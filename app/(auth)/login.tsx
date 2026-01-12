@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -78,124 +79,133 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.keyboardView}
       >
-        <View style={styles.headerContainer}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Sign in to continue</Text>
-        </View>
-
-        <View style={styles.formContainer}>
-          <View style={styles.inputContainer}>
-            <Ionicons
-              name="mail-outline"
-              size={20}
-              color={isDark ? "#ccc" : "#666"}
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              placeholderTextColor={isDark ? "#666" : "#999"}
-            />
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.headerContainer}>
+            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.subtitle}>Sign in to continue</Text>
           </View>
 
-          <View style={styles.inputContainer}>
-            <Ionicons
-              name="lock-closed-outline"
-              size={20}
-              color={isDark ? "#ccc" : "#666"}
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!passwordVisible}
-              placeholderTextColor={isDark ? "#666" : "#999"}
-            />
-            <TouchableOpacity
-              onPress={() => setPasswordVisible(!passwordVisible)}
-            >
+          <View style={styles.formContainer}>
+            <View style={styles.inputContainer}>
               <Ionicons
-                name={passwordVisible ? "eye-off-outline" : "eye-outline"}
+                name="mail-outline"
                 size={20}
                 color={isDark ? "#ccc" : "#666"}
+                style={styles.inputIcon}
               />
-            </TouchableOpacity>
-          </View>
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                placeholderTextColor={isDark ? "#666" : "#999"}
+              />
+            </View>
 
-          <View style={styles.optionsContainer}>
-            <TouchableOpacity
-              style={styles.rememberMeContainer}
-              onPress={() => setRememberMe(!rememberMe)}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[styles.checkbox, rememberMe && styles.checkboxChecked]}
+            <View style={styles.inputContainer}>
+              <Ionicons
+                name="lock-closed-outline"
+                size={20}
+                color={isDark ? "#ccc" : "#666"}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!passwordVisible}
+                placeholderTextColor={isDark ? "#666" : "#999"}
+              />
+              <TouchableOpacity
+                onPress={() => setPasswordVisible(!passwordVisible)}
               >
-                {rememberMe && (
-                  <Ionicons name="checkmark" size={14} color="#fff" />
-                )}
-              </View>
-              <Text style={styles.rememberMeText}>Remember me</Text>
+                <Ionicons
+                  name={passwordVisible ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color={isDark ? "#ccc" : "#666"}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.optionsContainer}>
+              <TouchableOpacity
+                style={styles.rememberMeContainer}
+                onPress={() => setRememberMe(!rememberMe)}
+                activeOpacity={0.7}
+              >
+                <View
+                  style={[
+                    styles.checkbox,
+                    rememberMe && styles.checkboxChecked,
+                  ]}
+                >
+                  {rememberMe && (
+                    <Ionicons name="checkmark" size={14} color="#fff" />
+                  )}
+                </View>
+                <Text style={styles.rememberMeText}>Remember me</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.forgotPassword}>
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>
+                {loading ? "Signing In..." : "Sign In"}
+              </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.forgotPassword}>
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            <View style={styles.dividerContainer}>
+              <View style={styles.divider} />
+              <Text style={styles.dividerText}>OR</Text>
+              <View style={styles.divider} />
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.googleButton,
+                googleLoading && styles.buttonDisabled,
+              ]}
+              onPress={handleGoogleLogin}
+              disabled={googleLoading}
+            >
+              <Ionicons
+                name="logo-google"
+                size={20}
+                color="#DB4437"
+                style={styles.googleIcon}
+              />
+              <Text style={styles.googleButtonText}>
+                {googleLoading ? "Signing in..." : "Sign in with Google"}
+              </Text>
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? "Signing In..." : "Sign In"}
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.dividerContainer}>
-            <View style={styles.divider} />
-            <Text style={styles.dividerText}>OR</Text>
-            <View style={styles.divider} />
+          <View style={styles.footerContainer}>
+            <Text style={styles.footerText}>Don&apos;t have an account? </Text>
+            <Link href="/(auth)/register" asChild>
+              <TouchableOpacity>
+                <Text style={styles.link}>Sign Up</Text>
+              </TouchableOpacity>
+            </Link>
           </View>
-
-          <TouchableOpacity
-            style={[
-              styles.googleButton,
-              googleLoading && styles.buttonDisabled,
-            ]}
-            onPress={handleGoogleLogin}
-            disabled={googleLoading}
-          >
-            <Ionicons
-              name="logo-google"
-              size={20}
-              color="#DB4437"
-              style={styles.googleIcon}
-            />
-            <Text style={styles.googleButtonText}>
-              {googleLoading ? "Signing in..." : "Sign in with Google"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.footerContainer}>
-          <Text style={styles.footerText}>Don&apos;t have an account? </Text>
-          <Link href="/(auth)/register" asChild>
-            <TouchableOpacity>
-              <Text style={styles.link}>Sign Up</Text>
-            </TouchableOpacity>
-          </Link>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -209,6 +219,9 @@ const getStyles = (isDark: boolean) =>
     },
     keyboardView: {
       flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
       padding: 24,
       justifyContent: "center",
     },

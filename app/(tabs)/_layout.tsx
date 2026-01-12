@@ -22,7 +22,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: "Dashboard",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="house.fill" color={color} />
           ),
@@ -40,7 +40,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="swipe"
         options={{
-          title: "Discover",
+          title: "Voca",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="book.fill" color={color} />
           ),
@@ -51,7 +51,7 @@ export default function TabLayout() {
         options={{
           title: "Settings",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="gear.circle.fill" color={color} />
+            <IconSymbol size={28} name="gearshape.fill" color={color} />
           ),
         }}
       />

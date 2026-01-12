@@ -9,9 +9,9 @@ WebBrowser.maybeCompleteAuthSession();
 
 export function useGoogleAuth() {
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com', // User needs to provide this
-    iosClientId: 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com',
-    androidClientId: 'YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com',
+    clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
   });
 
   const [loading, setLoading] = useState(false);

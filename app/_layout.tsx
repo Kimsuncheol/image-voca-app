@@ -10,12 +10,16 @@ import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import { ThemeProvider as AppThemeProvider } from "../src/context/ThemeContext";
+import { usePushNotifications } from "../src/hooks/usePushNotifications";
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+
+  const { deviceToken } = usePushNotifications();
+  console.log("Device Token:", deviceToken);
 
   useEffect(() => {
     if (loading) return;

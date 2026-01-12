@@ -1,15 +1,23 @@
 import { Ionicons } from "@expo/vector-icons";
 import {
+  launchImageLibraryAsync,
+  MediaTypeOptions,
+  requestMediaLibraryPermissionsAsync,
+} from "expo-image-picker";
+import { useNavigation } from "expo-router";
+import {
   deleteUser,
   EmailAuthProvider,
   reauthenticateWithCredential,
+  updateProfile,
 } from "firebase/auth";
-import React, { useState } from "react";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,18 +25,109 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../src/context/ThemeContext";
-import { auth } from "../src/services/firebase";
+import { auth, storage } from "../src/services/firebase";
 
 export default function ProfileScreen() {
   const { isDark } = useTheme();
   const styles = getStyles(isDark);
   const [loading, setLoading] = useState(false);
+  const [image, setImage] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState("");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const user = auth.currentUser;
+  const navigation = useNavigation();
 
   // State for re-authentication
   const [password, setPassword] = useState("");
   const [showPasswordInput, setShowPasswordInput] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      if (user.photoURL) setImage(user.photoURL);
+      setDisplayName(user.displayName || "");
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+      if (!hasUnsavedChanges) {
+        return;
+      }
+
+      // Prevent default behavior of leaving the screen
+      e.preventDefault();
+
+      Alert.alert(
+        "Discard changes?",
+        "You have unsaved changes. Are you sure you want to discard them and leave the screen?",
+        [
+          { text: "Don't leave", style: "cancel", onPress: () => {} },
+          {
+            text: "Discard",
+            style: "destructive",
+            onPress: () => navigation.dispatch(e.data.action),
+          },
+        ]
+      );
+    });
+
+    return unsubscribe;
+  }, [navigation, hasUnsavedChanges]);
+
+  const pickImage = async () => {
+    const { status } = await requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission required",
+        "Sorry, we need camera roll permissions to make this work!"
+      );
+      return;
+    }
+
+    const result = await launchImageLibraryAsync({
+      mediaTypes: MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+      setHasUnsavedChanges(true);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      let photoURL = user.photoURL;
+
+      // 1. Upload image to Firebase Storage if changed (local URI)
+      if (image && image !== user.photoURL && !image.startsWith("http")) {
+        const response = await fetch(image);
+        const blob = await response.blob();
+        const storageRef = ref(storage, `profile_images/${user.uid}`);
+        await uploadBytes(storageRef, blob);
+        photoURL = await getDownloadURL(storageRef);
+      }
+
+      // 2. Update user profile
+      await updateProfile(user, {
+        photoURL: photoURL,
+        displayName: displayName,
+      });
+
+      setHasUnsavedChanges(false);
+      Alert.alert("Success", "Profile updated successfully!");
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert("Error", "Failed to update profile: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDeleteAccount = async () => {
     if (!user) return;
@@ -92,82 +191,112 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <View style={styles.avatarContainer}>
-            <Ionicons name="person" size={40} color="#fff" />
-          </View>
-          <Text style={styles.displayNameText}>
-            {user?.displayName || "User"}
-          </Text>
-          <Text style={styles.emailText}>{user?.email}</Text>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Info</Text>
-          <View style={styles.card}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Name</Text>
-              <Text style={styles.infoValue}>
-                {user?.displayName || "Not set"}
-              </Text>
-            </View>
-            <View style={styles.separator} />
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Email</Text>
-              <Text style={styles.infoValue}>{user?.email}</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Actions</Text>
-          <View style={styles.card}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.header}>
             <TouchableOpacity
-              style={styles.dangerOption}
-              onPress={handleDeleteAccount}
-              disabled={loading}
+              onPress={pickImage}
+              style={styles.avatarContainer}
             >
-              <Text style={styles.dangerText}>
-                {loading ? "Processing..." : "Delete Account"}
-              </Text>
-              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+              {image ? (
+                <Image source={{ uri: image }} style={styles.avatarImage} />
+              ) : (
+                <Ionicons name="person" size={40} color="#fff" />
+              )}
+              <View style={styles.editIconContainer}>
+                <Ionicons name="camera" size={16} color="#fff" />
+              </View>
             </TouchableOpacity>
-          </View>
-        </View>
-
-        {showPasswordInput && (
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={styles.reauthContainer}
-          >
-            <Text style={styles.reauthTitle}>Confirm Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              placeholderTextColor="#999"
-            />
-            <View style={styles.reauthButtons}>
+            <Text style={styles.displayNameText}>
+              {user?.displayName || "User"}
+            </Text>
+            <Text style={styles.emailText}>{user?.email}</Text>
+            {hasUnsavedChanges && (
               <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setShowPasswordInput(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={handleReauthAndDelete}
+                style={styles.saveButton}
+                onPress={handleSaveProfile}
                 disabled={loading}
               >
-                <Text style={styles.confirmButtonText}>Confirm Delete</Text>
+                <Text style={styles.saveButtonText}>
+                  {loading ? "Saving..." : "Save Changes"}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Account Info</Text>
+            <View style={styles.card}>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Name</Text>
+                <TextInput
+                  style={styles.infoValueInput}
+                  value={displayName}
+                  onChangeText={(text) => {
+                    setDisplayName(text);
+                    setHasUnsavedChanges(true);
+                  }}
+                  placeholder="Display Name"
+                  placeholderTextColor={isDark ? "#555" : "#999"}
+                />
+              </View>
+              <View style={styles.separator} />
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Email</Text>
+                <Text style={styles.infoValue}>{user?.email}</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Account Actions</Text>
+            <View style={styles.card}>
+              <TouchableOpacity
+                style={styles.dangerOption}
+                onPress={handleDeleteAccount}
+                disabled={loading}
+              >
+                <Text style={styles.dangerText}>
+                  {loading ? "Processing..." : "Delete Account"}
+                </Text>
+                <Ionicons name="trash-outline" size={20} color="#FF3B30" />
               </TouchableOpacity>
             </View>
-          </KeyboardAvoidingView>
-        )}
-      </ScrollView>
+          </View>
+
+          {showPasswordInput && (
+            <View style={styles.reauthContainer}>
+              <Text style={styles.reauthTitle}>Confirm Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+                placeholderTextColor="#999"
+              />
+              <View style={styles.reauthButtons}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setShowPasswordInput(false)}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.confirmButton}
+                  onPress={handleReauthAndDelete}
+                  disabled={loading}
+                >
+                  <Text style={styles.confirmButtonText}>Confirm Delete</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -176,121 +305,177 @@ const getStyles = (isDark: boolean) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: isDark ? "#000" : "#f2f2f7",
+      backgroundColor: isDark ? "#000" : "#F2F2F7",
     },
     scrollContent: {
-      padding: 16,
+      paddingBottom: 40,
     },
     header: {
       alignItems: "center",
-      marginBottom: 32,
-      marginTop: 16,
+      paddingVertical: 30,
+      backgroundColor: isDark ? "#1C1C1E" : "#FFF",
+      borderBottomLeftRadius: 24,
+      borderBottomRightRadius: 24,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 5,
+      marginBottom: 20,
     },
     avatarContainer: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: "#007AFF",
-      justifyContent: "center",
-      alignItems: "center",
+      position: "relative",
       marginBottom: 16,
     },
-    emailText: {
-      fontSize: 14,
-      color: isDark ? "#aaa" : "#666",
-      marginTop: 4,
+    avatarImage: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      borderWidth: 4,
+      borderColor: isDark ? "#333" : "#FFF",
+    },
+    editIconContainer: {
+      position: "absolute",
+      bottom: 0,
+      right: 0,
+      backgroundColor: "#007AFF",
+      padding: 8,
+      borderRadius: 20,
+      borderWidth: 3,
+      borderColor: isDark ? "#1C1C1E" : "#FFF",
     },
     displayNameText: {
       fontSize: 24,
       fontWeight: "bold",
-      color: isDark ? "#fff" : "#000",
+      color: isDark ? "#FFF" : "#000",
+      marginBottom: 4,
+    },
+    emailText: {
+      fontSize: 16,
+      color: isDark ? "#AAA" : "#666",
+      marginBottom: 16,
+    },
+    saveButton: {
+      backgroundColor: "#007AFF",
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderRadius: 20,
+    },
+    saveButtonText: {
+      color: "#FFF",
+      fontWeight: "600",
     },
     section: {
+      paddingHorizontal: 20,
       marginBottom: 24,
     },
     sectionTitle: {
       fontSize: 14,
       fontWeight: "600",
-      color: isDark ? "#8e8e93" : "#6e6e73",
+      color: isDark ? "#AAA" : "#666",
       marginBottom: 8,
-      marginLeft: 12,
       textTransform: "uppercase",
+      letterSpacing: 1,
     },
     card: {
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
-      borderRadius: 10,
-      overflow: "hidden",
+      backgroundColor: isDark ? "#1C1C1E" : "#FFF",
+      borderRadius: 16,
+      padding: 16,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
     },
     infoRow: {
       flexDirection: "row",
       justifyContent: "space-between",
-      padding: 16,
       alignItems: "center",
+      paddingVertical: 12,
     },
     infoLabel: {
       fontSize: 16,
-      color: isDark ? "#fff" : "#000",
+      color: isDark ? "#FFF" : "#000",
+      fontWeight: "500",
     },
     infoValue: {
       fontSize: 16,
-      color: isDark ? "#aaa" : "#666",
+      color: isDark ? "#AAA" : "#666",
+    },
+    infoValueInput: {
+      fontSize: 16,
+      color: isDark ? "#AAA" : "#666",
+      textAlign: "right",
+      flex: 1,
+      marginLeft: 16,
     },
     separator: {
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: isDark ? "#38383a" : "#c6c6c8",
-      marginLeft: 16,
+      height: 1,
+      backgroundColor: isDark ? "#333" : "#F0F0F0",
     },
     dangerOption: {
       flexDirection: "row",
-      alignItems: "center",
       justifyContent: "space-between",
-      padding: 16,
+      alignItems: "center",
+      paddingVertical: 12,
     },
     dangerText: {
-      fontSize: 17,
+      fontSize: 16,
       color: "#FF3B30",
-      fontWeight: "500",
+      fontWeight: "600",
     },
     reauthContainer: {
-      marginTop: 20,
-      padding: 20,
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
-      borderRadius: 12,
+      position: "absolute",
+      top: "30%",
+      left: 20,
+      right: 20,
+      backgroundColor: isDark ? "#2C2C2E" : "#FFF",
+      padding: 24,
+      borderRadius: 16,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 10,
+      elevation: 10,
     },
     reauthTitle: {
-      fontSize: 16,
-      fontWeight: "600",
-      marginBottom: 12,
-      color: isDark ? "#fff" : "#000",
+      fontSize: 20,
+      fontWeight: "bold",
+      color: isDark ? "#FFF" : "#000",
+      marginBottom: 16,
+      textAlign: "center",
     },
     input: {
-      borderWidth: 1,
-      borderColor: isDark ? "#333" : "#ddd",
-      borderRadius: 8,
+      backgroundColor: isDark ? "#1C1C1E" : "#F2F2F7",
       padding: 12,
-      marginBottom: 16,
-      color: isDark ? "#fff" : "#000",
-      backgroundColor: isDark ? "#2c2c2e" : "#f9f9f9",
+      borderRadius: 12,
+      color: isDark ? "#FFF" : "#000",
+      marginBottom: 20,
     },
     reauthButtons: {
       flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: 12,
+      justifyContent: "space-between",
     },
     cancelButton: {
-      padding: 10,
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 12,
+      backgroundColor: isDark ? "#3A3A3C" : "#E5E5EA",
     },
     cancelButtonText: {
-      color: "#666",
+      fontSize: 16,
+      fontWeight: "600",
+      color: isDark ? "#FFF" : "#000",
     },
     confirmButton: {
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 12,
       backgroundColor: "#FF3B30",
-      paddingHorizontal: 16,
-      paddingVertical: 10,
-      borderRadius: 8,
     },
     confirmButtonText: {
-      color: "#fff",
+      fontSize: 16,
       fontWeight: "600",
+      color: "#FFF",
     },
   });

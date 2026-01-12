@@ -3,6 +3,7 @@ import { getAnalytics, isSupported } from 'firebase/analytics';
 import { initializeApp } from 'firebase/app';
 import { Auth, getAuth, getReactNativePersistence, initializeAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 // Replace these placeholders with your actual Firebase project configuration
 const firebaseConfig = {
@@ -32,6 +33,7 @@ try {
 
 export { auth };
 export const db = getFirestore(app);
+export const storage = getStorage(app);
 
 // Initialize Analytics
 export const analytics = isSupported().then(yes => yes ? getAnalytics(app) : null);
