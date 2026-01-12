@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { Link, useRouter } from "expo-router";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -15,9 +17,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../src/context/ThemeContext";
-import { auth } from "../../src/services/firebase";
-
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
+import { auth } from "../../src/services/firebase";
 
 export default function RegisterScreen() {
   const { isDark } = useTheme();
@@ -29,6 +30,7 @@ export default function RegisterScreen() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const { promptAsync, loading: googleLoading } = useGoogleAuth();
 
   // Password validation states
@@ -45,6 +47,26 @@ export default function RegisterScreen() {
     setHasSpecial(/[!@#$%^&*(),.?":{}|<>]/.test(password));
     setPasswordsMatch(password === confirmPassword && password !== "");
   }, [password, confirmPassword]);
+
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert("Permission Required", "Permission to access camera roll is required!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      setAvatarUri(result.assets[0].uri);
+    }
+  };
 
   const handleRegister = async () => {
     if (!displayName || !email || !password || !confirmPassword) {
@@ -71,6 +93,7 @@ export default function RegisterScreen() {
       );
       await updateProfile(userCredential.user, {
         displayName: displayName,
+        photoURL: avatarUri || null,
       });
       router.replace("/(tabs)");
     } catch (error: any) {
@@ -100,6 +123,23 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.formContainer}>
+            {/* Avatar Picker */}
+            <View style={styles.avatarContainer}>
+              <TouchableOpacity onPress={pickImage} style={styles.avatarButton}>
+                {avatarUri ? (
+                  <Image source={{ uri: avatarUri }} style={styles.avatar} />
+                ) : (
+                  <View style={styles.avatarPlaceholder}>
+                    <Ionicons
+                      name="camera-outline"
+                      size={32}
+                      color={isDark ? "#666" : "#999"}
+                    />
+                  </View>
+                )}
+              </TouchableOpacity>
+              <Text style={styles.avatarLabel}>Add Profile Photo (Optional)</Text>
+            </View>
             <View style={styles.inputContainer}>
               <Ionicons
                 name="person-outline"
@@ -434,5 +474,34 @@ const getStyles = (isDark: boolean) =>
       color: "#007AFF",
       fontSize: 14,
       fontWeight: "bold",
+    },
+    avatarContainer: {
+      alignItems: "center",
+      marginBottom: 24,
+    },
+    avatarButton: {
+      marginBottom: 8,
+    },
+    avatar: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      borderWidth: 3,
+      borderColor: "#007AFF",
+    },
+    avatarPlaceholder: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: isDark ? "#1c1c1e" : "#F9F9F9",
+      borderWidth: 2,
+      borderColor: isDark ? "#333" : "#E0E0E0",
+      borderStyle: "dashed",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    avatarLabel: {
+      fontSize: 12,
+      color: isDark ? "#888" : "#999",
     },
   });

@@ -3,7 +3,11 @@ import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { DashboardCard, ProgressCard, QuickAction } from "../../components/dashboard";
+import {
+  DashboardCard,
+  ProgressCard,
+  QuickAction,
+} from "../../components/dashboard";
 import { ThemedText } from "../../components/themed-text";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
@@ -32,7 +36,9 @@ export default function DashboardScreen() {
         <View style={styles.header}>
           <View>
             <ThemedText style={styles.greeting}>{getGreeting()}</ThemedText>
-            <ThemedText type="title">{user?.email?.split("@")[0] || "Learner"}</ThemedText>
+            <ThemedText type="title">
+              {user?.email?.split("@")[0] || "Learner"}
+            </ThemedText>
           </View>
         </View>
 
@@ -74,7 +80,12 @@ export default function DashboardScreen() {
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             {"Today's Progress"}
           </ThemedText>
-          <ProgressCard title="Daily Goal" current={15} total={20} unit="words" />
+          <ProgressCard
+            title="Daily Goal"
+            current={15}
+            total={20}
+            unit="words"
+          />
         </View>
 
         {/* Stats Grid */}
@@ -126,7 +137,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 0,
+    // paddingBottom: 40,
   },
   header: {
     marginBottom: 24,
