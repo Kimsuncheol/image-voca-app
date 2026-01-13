@@ -1,5 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Link, Stack, useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { signOut } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import {
@@ -8,13 +7,16 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
+import { AppearanceSection } from "../../components/settings/AppearanceSection";
+import { AccountSection } from "../../components/settings/AccountSection";
+import { LanguageSection } from "../../components/settings/LanguageSection";
+import { NotificationsSection } from "../../components/settings/NotificationsSection";
+import { SignOutSection } from "../../components/settings/SignOutSection";
 import { useTheme } from "../../src/context/ThemeContext";
+import { setLanguage, SupportedLanguage } from "../../src/i18n";
 import { auth } from "../../src/services/firebase";
 
 // Dynamically require to avoid crash on Expo Go Android
@@ -31,6 +33,7 @@ export default function SettingsScreen() {
   const { theme, setTheme, isDark } = useTheme();
   const [pushEnabled, setPushEnabled] = useState(false);
   const router = useRouter();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     if (Platform.OS === "android") {
@@ -57,15 +60,18 @@ export default function SettingsScreen() {
   const togglePushNotifications = async (value: boolean) => {
     if (Platform.OS === "android") {
       Alert.alert(
-        "Not Supported",
-        "Push notifications are not supported in Expo Go on Android."
+        t("settings.notifications.notSupportedTitle"),
+        t("settings.notifications.notSupportedMessage")
       );
       setPushEnabled(false);
       return;
     }
 
     if (!Notifications) {
-      Alert.alert("Error", "Notifications module not loaded.");
+      Alert.alert(
+        t("common.error"),
+        t("settings.notifications.moduleMissing")
+      );
       setPushEnabled(false);
       return;
     }
@@ -76,11 +82,14 @@ export default function SettingsScreen() {
         setPushEnabled(true);
       } else {
         Alert.alert(
-          "Permission Required",
-          "Please enable notifications in your system settings.",
+          t("settings.notifications.permissionTitle"),
+          t("settings.notifications.permissionMessage"),
           [
-            { text: "Cancel", style: "cancel" },
-            { text: "Open Settings", onPress: () => Linking.openSettings() },
+            { text: t("common.cancel"), style: "cancel" },
+            {
+              text: t("settings.notifications.openSettings"),
+              onPress: () => Linking.openSettings(),
+            },
           ]
         );
         setPushEnabled(false);
@@ -95,7 +104,15 @@ export default function SettingsScreen() {
       await signOut(auth);
       router.replace("/(auth)/login");
     } catch (error: any) {
-      Alert.alert("Error signing out", error.message);
+      Alert.alert(t("settings.account.signOutError"), error.message);
+    }
+  };
+
+  const handleLanguageChange = async (language: SupportedLanguage) => {
+    try {
+      await setLanguage(language);
+    } catch (error) {
+      console.warn("Failed to change language", error);
     }
   };
 
@@ -106,117 +123,35 @@ export default function SettingsScreen() {
       <ScrollView styles={{ flex: 1 }}>
         <Stack.Screen
           options={{
-            title: "Settings",
+            title: t("settings.title"),
             headerStyle: styles.header,
             headerTitleStyle: styles.headerTitle,
           }}
         />
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Appearance</Text>
-          <View style={styles.card}>
-            <TouchableOpacity
-              style={styles.option}
-              onPress={() => setTheme("light")}
-            >
-              <View style={styles.optionLeft}>
-                <Ionicons
-                  name="sunny-outline"
-                  size={24}
-                  color={isDark ? "#fff" : "#333"}
-                />
-                <Text style={styles.optionText}>Light</Text>
-              </View>
-              {theme === "light" && (
-                <Ionicons name="checkmark" size={24} color="#007AFF" />
-              )}
-            </TouchableOpacity>
-            <View style={styles.separator} />
-
-            <TouchableOpacity
-              style={styles.option}
-              onPress={() => setTheme("dark")}
-            >
-              <View style={styles.optionLeft}>
-                <Ionicons
-                  name="moon-outline"
-                  size={24}
-                  color={isDark ? "#fff" : "#333"}
-                />
-                <Text style={styles.optionText}>Dark</Text>
-              </View>
-              {theme === "dark" && (
-                <Ionicons name="checkmark" size={24} color="#007AFF" />
-              )}
-            </TouchableOpacity>
-            <View style={styles.separator} />
-
-            <TouchableOpacity
-              style={styles.option}
-              onPress={() => setTheme("system")}
-            >
-              <View style={styles.optionLeft}>
-                <Ionicons
-                  name="settings-outline"
-                  size={24}
-                  color={isDark ? "#fff" : "#333"}
-                />
-                <Text style={styles.optionText}>System</Text>
-              </View>
-              {theme === "system" && (
-                <Ionicons name="checkmark" size={24} color="#007AFF" />
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Notifications</Text>
-          <View style={styles.card}>
-            <View style={styles.option}>
-              <View style={styles.optionLeft}>
-                <Ionicons
-                  name="notifications-outline"
-                  size={24}
-                  color={isDark ? "#fff" : "#333"}
-                />
-                <Text style={styles.optionText}>Push Notifications</Text>
-              </View>
-              <Switch
-                value={pushEnabled}
-                onValueChange={togglePushNotifications}
-                trackColor={{ false: "#767577", true: "#34C759" }}
-              />
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
-          <View style={styles.card}>
-            <Link href="/profile" asChild>
-              <TouchableOpacity style={styles.option}>
-                <View style={styles.optionLeft}>
-                  <Ionicons
-                    name="person-outline"
-                    size={24}
-                    color={isDark ? "#fff" : "#333"}
-                  />
-                  <Text style={styles.optionText}>Profile</Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={isDark ? "#666" : "#c7c7cc"}
-                />
-              </TouchableOpacity>
-            </Link>
-          </View>
-        </View>
-
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Text style={styles.signOutText}>Sign Out</Text>
-        </TouchableOpacity>
+        <AppearanceSection
+          styles={styles}
+          isDark={isDark}
+          theme={theme}
+          setTheme={setTheme}
+          t={t}
+        />
+        <NotificationsSection
+          styles={styles}
+          isDark={isDark}
+          pushEnabled={pushEnabled}
+          onTogglePush={togglePushNotifications}
+          t={t}
+        />
+        <AccountSection styles={styles} isDark={isDark} t={t} />
+        <LanguageSection
+          styles={styles}
+          isDark={isDark}
+          currentLanguage={i18n.language}
+          onChangeLanguage={handleLanguageChange}
+          t={t}
+        />
+        <SignOutSection styles={styles} onSignOut={handleSignOut} t={t} />
       </ScrollView>
     </SafeAreaView>
   );

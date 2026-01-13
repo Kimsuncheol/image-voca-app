@@ -11,12 +11,16 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import { ThemeProvider as AppThemeProvider } from "../src/context/ThemeContext";
 import { usePushNotifications } from "../src/hooks/usePushNotifications";
+import "../src/i18n";
+import { hydrateLanguage } from "../src/i18n";
+import { useTranslation } from "react-i18next";
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { deviceToken } = usePushNotifications();
   console.log("Device Token:", deviceToken);
@@ -43,7 +47,12 @@ function RootLayoutNav() {
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="wordbank" options={{ headerShown: false }} />
+          <Stack.Screen name="course" options={{ headerShown: false }} />
+          <Stack.Screen name="review" options={{ headerShown: false }} />
+          <Stack.Screen name="billing" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+          <Stack.Screen name="profile" options={{ title: t("profile.title") }} />
         </Stack>
         <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       </NavigationThemeProvider>
@@ -52,6 +61,10 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  useEffect(() => {
+    hydrateLanguage();
+  }, []);
+
   return (
     <AppThemeProvider>
       <AuthProvider>

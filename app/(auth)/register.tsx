@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { Link, useRouter } from "expo-router";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -16,9 +17,10 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
-import { auth } from "../../src/services/firebase";
+import { auth, db } from "../../src/services/firebase";
 
 export default function RegisterScreen() {
   const { isDark } = useTheme();
@@ -40,6 +42,7 @@ export default function RegisterScreen() {
   const [passwordsMatch, setPasswordsMatch] = useState(false);
 
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     setHasMinLength(password.length >= 8);
@@ -52,7 +55,10 @@ export default function RegisterScreen() {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (permissionResult.granted === false) {
-      Alert.alert("Permission Required", "Permission to access camera roll is required!");
+      Alert.alert(
+        t("auth.errors.permissionTitle"),
+        t("auth.errors.permissionMessage")
+      );
       return;
     }
 
@@ -70,17 +76,17 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!displayName || !email || !password || !confirmPassword) {
-      Alert.alert("Error", "Please fill in all fields.");
+      Alert.alert(t("common.error"), t("auth.errors.missingFields"));
       return;
     }
 
     if (!hasMinLength || !hasNumber || !hasSpecial) {
-      Alert.alert("Error", "Please meet all password requirements.");
+      Alert.alert(t("common.error"), t("auth.errors.passwordRequirements"));
       return;
     }
 
     if (!passwordsMatch) {
-      Alert.alert("Error", "Passwords do not match.");
+      Alert.alert(t("common.error"), t("auth.errors.passwordMismatch"));
       return;
     }
 
@@ -95,9 +101,21 @@ export default function RegisterScreen() {
         displayName: displayName,
         photoURL: avatarUri || null,
       });
+
+      // Save user data to Firestore
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        displayName: displayName,
+        email: email,
+        photoURL: avatarUri || null,
+        createdAt: new Date().toISOString(),
+        wordBank: [],
+        recentCourse: null,
+      });
+
       router.replace("/(tabs)");
     } catch (error: any) {
-      Alert.alert("Registration Error", error.message);
+      Alert.alert(t("auth.errors.registerTitle"), error.message);
     } finally {
       setLoading(false);
     }
@@ -118,8 +136,8 @@ export default function RegisterScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerContainer}>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Sign up to get started</Text>
+            <Text style={styles.title}>{t("auth.register.title")}</Text>
+            <Text style={styles.subtitle}>{t("auth.register.subtitle")}</Text>
           </View>
 
           <View style={styles.formContainer}>
@@ -138,7 +156,9 @@ export default function RegisterScreen() {
                   </View>
                 )}
               </TouchableOpacity>
-              <Text style={styles.avatarLabel}>Add Profile Photo (Optional)</Text>
+              <Text style={styles.avatarLabel}>
+                {t("auth.register.avatarLabel")}
+              </Text>
             </View>
             <View style={styles.inputContainer}>
               <Ionicons
@@ -149,7 +169,7 @@ export default function RegisterScreen() {
               />
               <TextInput
                 style={styles.input}
-                placeholder="Full Name"
+                placeholder={t("auth.register.fullNamePlaceholder")}
                 value={displayName}
                 onChangeText={setDisplayName}
                 autoCapitalize="words"
@@ -166,7 +186,7 @@ export default function RegisterScreen() {
               />
               <TextInput
                 style={styles.input}
-                placeholder="Email"
+                placeholder={t("auth.register.emailPlaceholder")}
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -184,7 +204,7 @@ export default function RegisterScreen() {
               />
               <TextInput
                 style={styles.input}
-                placeholder="Password"
+                placeholder={t("auth.register.passwordPlaceholder")}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!passwordVisible}
@@ -210,7 +230,7 @@ export default function RegisterScreen() {
               />
               <TextInput
                 style={styles.input}
-                placeholder="Confirm Password"
+                placeholder={t("auth.register.confirmPasswordPlaceholder")}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!confirmPasswordVisible}
@@ -245,7 +265,7 @@ export default function RegisterScreen() {
                     hasMinLength && styles.hintTextValid,
                   ]}
                 >
-                  At least 8 characters
+                  {t("auth.register.passwordHint.length")}
                 </Text>
               </View>
               <View style={styles.hintRow}>
@@ -257,7 +277,7 @@ export default function RegisterScreen() {
                 <Text
                   style={[styles.hintText, hasNumber && styles.hintTextValid]}
                 >
-                  Contains a number
+                  {t("auth.register.passwordHint.number")}
                 </Text>
               </View>
               <View style={styles.hintRow}>
@@ -269,7 +289,7 @@ export default function RegisterScreen() {
                 <Text
                   style={[styles.hintText, hasSpecial && styles.hintTextValid]}
                 >
-                  Contains a special character
+                  {t("auth.register.passwordHint.special")}
                 </Text>
               </View>
               <View style={styles.hintRow}>
@@ -284,7 +304,7 @@ export default function RegisterScreen() {
                     passwordsMatch && styles.hintTextValid,
                   ]}
                 >
-                  Passwords match
+                  {t("auth.register.passwordHint.match")}
                 </Text>
               </View>
             </View>
@@ -295,13 +315,15 @@ export default function RegisterScreen() {
               disabled={loading}
             >
               <Text style={styles.buttonText}>
-                {loading ? "Creating Account..." : "Register"}
+                {loading
+                  ? t("auth.register.creatingAccount")
+                  : t("auth.register.register")}
               </Text>
             </TouchableOpacity>
 
             <View style={styles.dividerContainer}>
               <View style={styles.divider} />
-              <Text style={styles.dividerText}>OR</Text>
+              <Text style={styles.dividerText}>{t("common.or")}</Text>
               <View style={styles.divider} />
             </View>
 
@@ -320,16 +342,20 @@ export default function RegisterScreen() {
                 style={styles.googleIcon}
               />
               <Text style={styles.googleButtonText}>
-                {googleLoading ? "Signing in..." : "Sign in with Google"}
+                {googleLoading
+                  ? t("auth.register.googleSigningIn")
+                  : t("auth.register.googleSignIn")}
               </Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.footerContainer}>
-            <Text style={styles.footerText}>Already have an account? </Text>
+            <Text style={styles.footerText}>
+              {t("auth.register.hasAccount")}
+            </Text>
             <Link href="/(auth)/login" asChild>
               <TouchableOpacity>
-                <Text style={styles.link}>Sign In</Text>
+                <Text style={styles.link}>{t("auth.register.signIn")}</Text>
               </TouchableOpacity>
             </Link>
           </View>

@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Colors } from "../../constants/theme";
 import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
@@ -13,6 +14,7 @@ interface ProgressCardProps {
 
 export function ProgressCard({ title, current, total, unit = "" }: ProgressCardProps) {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
   const progress = total > 0 ? (current / total) * 100 : 0;
   const tintColor = Colors[isDark ? "dark" : "light"].tint;
 
@@ -37,7 +39,9 @@ export function ProgressCard({ title, current, total, unit = "" }: ProgressCardP
           ]}
         />
       </View>
-      <ThemedText style={styles.percentage}>{Math.round(progress)}% complete</ThemedText>
+      <ThemedText style={styles.percentage}>
+        {t("dashboard.progressComplete", { percent: Math.round(progress) })}
+      </ThemedText>
     </View>
   );
 }

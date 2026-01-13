@@ -26,6 +26,7 @@ const MAPPING = {
   "flame.fill": "local-fire-department",
   "checkmark.circle.fill": "check-circle",
   "clock.fill": "access-time",
+  "folder.fill": "folder",
 } as IconMapping;
 
 export type IconSymbolName = keyof typeof MAPPING;

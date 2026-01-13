@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../../src/context/ThemeContext";
 import { auth } from "../../src/services/firebase";
 
@@ -32,6 +33,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { promptAsync, loading: googleLoading } = useGoogleAuth();
+  const { t } = useTranslation();
 
   useEffect(() => {
     loadSavedEmail();
@@ -51,7 +53,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert("Error", "Please enter both email and password.");
+      Alert.alert(t("common.error"), t("auth.errors.missingCredentials"));
       return;
     }
     setLoading(true);
@@ -66,7 +68,7 @@ export default function LoginScreen() {
       await signInWithEmailAndPassword(auth, email, password);
       router.replace("/(tabs)");
     } catch (error: any) {
-      Alert.alert("Login Error", error.message);
+      Alert.alert(t("auth.errors.loginTitle"), error.message);
     } finally {
       setLoading(false);
     }
@@ -88,8 +90,8 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.headerContainer}>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to continue</Text>
+            <Text style={styles.title}>{t("auth.login.title")}</Text>
+            <Text style={styles.subtitle}>{t("auth.login.subtitle")}</Text>
           </View>
 
           <View style={styles.formContainer}>
@@ -102,7 +104,7 @@ export default function LoginScreen() {
               />
               <TextInput
                 style={styles.input}
-                placeholder="Email"
+                placeholder={t("auth.login.emailPlaceholder")}
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -120,7 +122,7 @@ export default function LoginScreen() {
               />
               <TextInput
                 style={styles.input}
-                placeholder="Password"
+                placeholder={t("auth.login.passwordPlaceholder")}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!passwordVisible}
@@ -153,11 +155,15 @@ export default function LoginScreen() {
                     <Ionicons name="checkmark" size={14} color="#fff" />
                   )}
                 </View>
-                <Text style={styles.rememberMeText}>Remember me</Text>
+                <Text style={styles.rememberMeText}>
+                  {t("auth.login.rememberMe")}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.forgotPassword}>
-                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                <Text style={styles.forgotPasswordText}>
+                  {t("auth.login.forgotPassword")}
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -167,13 +173,13 @@ export default function LoginScreen() {
               disabled={loading}
             >
               <Text style={styles.buttonText}>
-                {loading ? "Signing In..." : "Sign In"}
+                {loading ? t("auth.login.signingIn") : t("auth.login.signIn")}
               </Text>
             </TouchableOpacity>
 
             <View style={styles.dividerContainer}>
               <View style={styles.divider} />
-              <Text style={styles.dividerText}>OR</Text>
+              <Text style={styles.dividerText}>{t("common.or")}</Text>
               <View style={styles.divider} />
             </View>
 
@@ -192,16 +198,20 @@ export default function LoginScreen() {
                 style={styles.googleIcon}
               />
               <Text style={styles.googleButtonText}>
-                {googleLoading ? "Signing in..." : "Sign in with Google"}
+                {googleLoading
+                  ? t("auth.login.googleSigningIn")
+                  : t("auth.login.googleSignIn")}
               </Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.footerContainer}>
-            <Text style={styles.footerText}>Don&apos;t have an account? </Text>
+            <Text style={styles.footerText}>
+              {t("auth.login.noAccount")}
+            </Text>
             <Link href="/(auth)/register" asChild>
               <TouchableOpacity>
-                <Text style={styles.link}>Sign Up</Text>
+                <Text style={styles.link}>{t("auth.login.signUp")}</Text>
               </TouchableOpacity>
             </Link>
           </View>
