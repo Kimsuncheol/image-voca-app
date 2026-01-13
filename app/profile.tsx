@@ -60,7 +60,7 @@ export default function ProfileScreen() {
       if (user) {
         fetchStats(user.uid);
       }
-    }, [user])
+    }, [user, fetchStats])
   );
 
   useEffect(() => {
@@ -86,7 +86,9 @@ export default function ProfileScreen() {
     const baseImage = initialImage || "";
     const currentName = displayName;
     const baseName = initialDisplayName;
-    setHasUnsavedChanges(currentImage !== baseImage || currentName !== baseName);
+    setHasUnsavedChanges(
+      currentImage !== baseImage || currentName !== baseName
+    );
   }, [displayName, image, initialDisplayName, initialImage]);
 
   useEffect(() => {
@@ -109,7 +111,7 @@ export default function ProfileScreen() {
     });
 
     return unsubscribe;
-  }, [navigation, hasUnsavedChanges]);
+  }, [navigation, hasUnsavedChanges, t]);
 
   const pickImage = async () => {
     const { status } = await requestMediaLibraryPermissionsAsync();
@@ -282,6 +284,8 @@ export default function ProfileScreen() {
               const goal = parseInt(dailyGoalInput, 10);
               if (goal > 0 && user) {
                 await updateDailyGoal(user.uid, goal);
+                // Refetch stats to ensure dashboard gets the latest data
+                await fetchStats(user.uid);
                 Alert.alert(
                   t("common.success"),
                   t("profile.goal.updated", { goal })

@@ -1,16 +1,14 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
+import { useUserStatsStore } from "../../src/stores";
 import { ThemedText } from "../themed-text";
 import { ProgressCard } from "./ProgressCard";
 
-interface DashboardProgressProps {
-  current: number;
-  goal: number;
-}
-
-export function DashboardProgress({ current, goal }: DashboardProgressProps) {
+export function DashboardProgress() {
   const { t } = useTranslation();
+  const { getTodayProgress } = useUserStatsStore();
+  const { current, goal } = getTodayProgress();
 
   return (
     <View style={styles.section}>

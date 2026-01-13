@@ -23,7 +23,6 @@ export default function DashboardScreen() {
     getWordsLearnedForPeriod,
     getAccuracyForPeriod,
     getTimeSpentForPeriod,
-    getTodayProgress,
   } = useUserStatsStore();
 
   useFocusEffect(
@@ -34,7 +33,6 @@ export default function DashboardScreen() {
     }, [user, fetchStats])
   );
 
-  const todayProgress = getTodayProgress();
   const wordsThisWeek = getWordsLearnedForPeriod(7);
   const accuracyThisWeek = getAccuracyForPeriod(7);
   const timeThisWeek = getTimeSpentForPeriod(7);
@@ -52,10 +50,7 @@ export default function DashboardScreen() {
         <DashboardHeader userName={userName} />
         <DashboardQuickActions />
         <DashboardPopQuiz />
-        <DashboardProgress
-          current={todayProgress.current}
-          goal={todayProgress.goal}
-        />
+        <DashboardProgress />
         <DashboardStats
           wordsLearned={wordsThisWeek}
           streak={stats?.currentStreak || 0}
