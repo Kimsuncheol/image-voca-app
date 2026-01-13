@@ -33,6 +33,8 @@ const en = {
     notifications: {
       title: "Notifications",
       push: "Push Notifications",
+      studyReminder: "Study Reminder",
+      wordOfTheDay: "Word of the Day",
       notSupportedTitle: "Not Supported",
       notSupportedMessage:
         "Push notifications are not supported in Expo Go on Android.",

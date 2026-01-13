@@ -1,6 +1,7 @@
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { create } from "zustand";
 import { db } from "../services/firebase";
+import { markStudyDate } from "../utils/notifications";
 
 export interface DailyStats {
   date: string;
@@ -101,6 +102,7 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
   recordWordLearned: async (userId: string) => {
     const { stats } = get();
     if (!stats) return;
+    markStudyDate().catch(() => {});
 
     const today = getToday();
     const dailyStats = [...stats.dailyStats];
@@ -158,6 +160,7 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
   recordQuizAnswer: async (userId: string, correct: boolean) => {
     const { stats } = get();
     if (!stats) return;
+    markStudyDate().catch(() => {});
 
     const today = getToday();
     const dailyStats = [...stats.dailyStats];
@@ -190,6 +193,7 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
   recordTimeSpent: async (userId: string, minutes: number) => {
     const { stats } = get();
     if (!stats) return;
+    markStudyDate().catch(() => {});
 
     const today = getToday();
     const dailyStats = [...stats.dailyStats];

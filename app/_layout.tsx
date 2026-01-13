@@ -22,8 +22,7 @@ function RootLayoutNav() {
   const router = useRouter();
   const { t } = useTranslation();
 
-  const { deviceToken } = usePushNotifications();
-  console.log("Device Token:", deviceToken);
+  usePushNotifications();
 
   useEffect(() => {
     if (loading) return;

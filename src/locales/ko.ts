@@ -33,6 +33,8 @@ const ko = {
     notifications: {
       title: "알림",
       push: "푸시 알림",
+      studyReminder: "학습 알림",
+      wordOfTheDay: "오늘의 단어",
       notSupportedTitle: "지원되지 않음",
       notSupportedMessage: "Android Expo Go에서는 푸시 알림을 지원하지 않습니다.",
       moduleMissing: "알림 모듈을 불러오지 못했습니다.",

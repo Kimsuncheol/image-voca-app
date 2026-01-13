@@ -2,98 +2,148 @@ import { Stack, useRouter } from "expo-router";
 import { signOut } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Alert,
-  Linking,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Alert, Linking, ScrollView, StyleSheet, View } from "react-native";
 import { AccountSection } from "../../components/settings/AccountSection";
 import { AppearanceSection } from "../../components/settings/AppearanceSection";
 import { LanguageSection } from "../../components/settings/LanguageSection";
 import { NotificationsSection } from "../../components/settings/NotificationsSection";
 import { SignOutSection } from "../../components/settings/SignOutSection";
+import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { setLanguage, SupportedLanguage } from "../../src/i18n";
 import { auth } from "../../src/services/firebase";
-
-// Dynamically require to avoid crash on Expo Go Android
-let Notifications: any;
-if (Platform.OS !== "android") {
-  try {
-    Notifications = require("expo-notifications");
-  } catch (e) {
-    console.warn("Failed to load expo-notifications", e);
-  }
-}
+import {
+  cancelAllScheduledNotifications,
+  configureNotifications,
+  getNotificationPermissions,
+  getNotificationsEnabledPreference,
+  getPopWordEnabledPreference,
+  getStudyReminderEnabledPreference,
+  isPermissionGranted,
+  markStudyDate,
+  scheduleDailyNotifications,
+  setNotificationsEnabledPreference,
+  setPopWordEnabledPreference,
+  setStudyReminderEnabledPreference,
+} from "../../src/utils/notifications";
 
 export default function SettingsScreen() {
   const { theme, setTheme, isDark } = useTheme();
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [studyReminderEnabled, setStudyReminderEnabled] = useState(true);
+  const [popWordEnabled, setPopWordEnabled] = useState(true);
   const router = useRouter();
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (Platform.OS === "android") {
-      // Skip on Android Expo Go
-      return;
-    }
     checkNotificationStatus();
   }, []);
 
   const checkNotificationStatus = async () => {
-    if (!Notifications) return;
     try {
-      const settings = await Notifications.getPermissionsAsync();
-      setPushEnabled(
-        settings.granted ||
-          settings.ios?.status ===
-            Notifications.IosAuthorizationStatus.PROVISIONAL
-      );
+      const [preferencesEnabled, studyEnabled, popEnabled, permissions] =
+        await Promise.all([
+          getNotificationsEnabledPreference(),
+          getStudyReminderEnabledPreference(),
+          getPopWordEnabledPreference(),
+          getNotificationPermissions(),
+        ]);
+      const hasPermission = isPermissionGranted(permissions);
+      setPushEnabled(preferencesEnabled && hasPermission);
+      setStudyReminderEnabled(studyEnabled);
+      setPopWordEnabled(popEnabled);
     } catch (e) {
       console.warn("Error checking notification status", e);
     }
   };
 
-  const togglePushNotifications = async (value: boolean) => {
-    if (Platform.OS === "android") {
-      Alert.alert(
-        t("settings.notifications.notSupportedTitle"),
-        t("settings.notifications.notSupportedMessage")
-      );
-      setPushEnabled(false);
-      return;
-    }
-
-    if (!Notifications) {
+  const enablePushNotifications = async () => {
+    const permissions = await configureNotifications();
+    if (!permissions) {
       Alert.alert(t("common.error"), t("settings.notifications.moduleMissing"));
       setPushEnabled(false);
-      return;
+      return false;
     }
 
-    if (value) {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status === "granted") {
-        setPushEnabled(true);
-      } else {
-        Alert.alert(
-          t("settings.notifications.permissionTitle"),
-          t("settings.notifications.permissionMessage"),
-          [
-            { text: t("common.cancel"), style: "cancel" },
-            {
-              text: t("settings.notifications.openSettings"),
-              onPress: () => Linking.openSettings(),
-            },
-          ]
-        );
-        setPushEnabled(false);
-      }
-    } else {
-      setPushEnabled(false);
+    if (isPermissionGranted(permissions)) {
+      await markStudyDate();
+      await setNotificationsEnabledPreference(true);
+      setPushEnabled(true);
+      await scheduleDailyNotifications(user?.uid);
+      return true;
     }
+
+    Alert.alert(
+      t("settings.notifications.permissionTitle"),
+      t("settings.notifications.permissionMessage"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("settings.notifications.openSettings"),
+          onPress: () => Linking.openSettings(),
+        },
+      ]
+    );
+    await setNotificationsEnabledPreference(false);
+    setPushEnabled(false);
+    return false;
+  };
+
+  const disablePushNotifications = async () => {
+    await setNotificationsEnabledPreference(false);
+    await cancelAllScheduledNotifications();
+    setPushEnabled(false);
+  };
+
+  const togglePushNotifications = async (value: boolean) => {
+    if (value) {
+      const enabled = await enablePushNotifications();
+      if (!enabled) return;
+      await Promise.all([
+        setStudyReminderEnabledPreference(true),
+        setPopWordEnabledPreference(true),
+      ]);
+      setStudyReminderEnabled(true);
+      setPopWordEnabled(true);
+      await scheduleDailyNotifications(user?.uid);
+      return;
+    }
+    await disablePushNotifications();
+  };
+
+  const toggleStudyReminder = async (value: boolean) => {
+    if (value && !pushEnabled) {
+      const enabled = await enablePushNotifications();
+      if (!enabled) {
+        setStudyReminderEnabled(false);
+        return;
+      }
+    }
+    await setStudyReminderEnabledPreference(value);
+    setStudyReminderEnabled(value);
+    if (!value && !popWordEnabled) {
+      await disablePushNotifications();
+      return;
+    }
+    await scheduleDailyNotifications(user?.uid);
+  };
+
+  const togglePopWord = async (value: boolean) => {
+    if (value && !pushEnabled) {
+      const enabled = await enablePushNotifications();
+      if (!enabled) {
+        setPopWordEnabled(false);
+        return;
+      }
+    }
+    await setPopWordEnabledPreference(value);
+    setPopWordEnabled(value);
+    if (!value && !studyReminderEnabled) {
+      await disablePushNotifications();
+      return;
+    }
+    await scheduleDailyNotifications(user?.uid);
   };
 
   const handleSignOut = async () => {
@@ -137,7 +187,11 @@ export default function SettingsScreen() {
           styles={styles}
           isDark={isDark}
           pushEnabled={pushEnabled}
+          studyReminderEnabled={studyReminderEnabled}
+          popWordEnabled={popWordEnabled}
           onTogglePush={togglePushNotifications}
+          onToggleStudyReminder={toggleStudyReminder}
+          onTogglePopWord={togglePopWord}
           t={t}
         />
         <AccountSection styles={styles} isDark={isDark} t={t} />
@@ -189,6 +243,9 @@ const getStyles = (isDark: boolean) =>
       justifyContent: "space-between",
       padding: 16,
     },
+    // subOption: {
+    //   paddingLeft: 26,
+    // },
     optionLeft: {
       flexDirection: "row",
       alignItems: "center",
@@ -196,7 +253,7 @@ const getStyles = (isDark: boolean) =>
     optionText: {
       fontSize: 17,
       color: isDark ? "#fff" : "#000",
-      marginLeft: 12,
+      marginLeft: 8,
     },
     separator: {
       height: StyleSheet.hairlineWidth,
