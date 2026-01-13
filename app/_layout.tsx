@@ -6,11 +6,11 @@ import {
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
-import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import { ThemeProvider as AppThemeProvider } from "../src/context/ThemeContext";
 import { usePushNotifications } from "../src/hooks/usePushNotifications";
+import { useColorScheme } from "../hooks/use-color-scheme";
 import "../src/i18n";
 import { hydrateLanguage } from "../src/i18n";
 import { useTranslation } from "react-i18next";
