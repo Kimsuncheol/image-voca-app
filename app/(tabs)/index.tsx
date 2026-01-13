@@ -1,7 +1,6 @@
 import { useFocusEffect } from "expo-router";
 import React, { useCallback } from "react";
-import { ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 import {
   DashboardHeader,
@@ -43,7 +42,7 @@ export default function DashboardScreen() {
   const userName = user?.displayName || user?.email?.split("@")[0] || undefined;
 
   return (
-    <SafeAreaView
+    <View
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
     >
       <ScrollView
@@ -64,7 +63,7 @@ export default function DashboardScreen() {
           timeSpent={timeThisWeek}
         />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

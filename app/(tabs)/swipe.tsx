@@ -3,8 +3,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Alert, ScrollView, StyleSheet, View } from "react-native";
 
 import {
   AllCoursesSection,
@@ -89,7 +88,7 @@ export default function CourseSelectionScreen() {
   const otherCourses = COURSES.filter((c) => c.id !== recentCourse);
 
   return (
-    <SafeAreaView
+    <View
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
     >
       <ScrollView
@@ -108,7 +107,7 @@ export default function CourseSelectionScreen() {
           onCoursePress={handleCourseSelect}
         />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

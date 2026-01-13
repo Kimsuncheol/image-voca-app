@@ -1,17 +1,17 @@
 import { Stack, useRouter } from "expo-router";
 import { signOut } from "firebase/auth";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   Linking,
   Platform,
   ScrollView,
   StyleSheet,
+  View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
-import { AppearanceSection } from "../../components/settings/AppearanceSection";
 import { AccountSection } from "../../components/settings/AccountSection";
+import { AppearanceSection } from "../../components/settings/AppearanceSection";
 import { LanguageSection } from "../../components/settings/LanguageSection";
 import { NotificationsSection } from "../../components/settings/NotificationsSection";
 import { SignOutSection } from "../../components/settings/SignOutSection";
@@ -68,10 +68,7 @@ export default function SettingsScreen() {
     }
 
     if (!Notifications) {
-      Alert.alert(
-        t("common.error"),
-        t("settings.notifications.moduleMissing")
-      );
+      Alert.alert(t("common.error"), t("settings.notifications.moduleMissing"));
       setPushEnabled(false);
       return;
     }
@@ -119,8 +116,8 @@ export default function SettingsScreen() {
   const styles = getStyles(isDark);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView styles={{ flex: 1 }}>
+    <View style={styles.container}>
+      <ScrollView style={{ flex: 1 }}>
         <Stack.Screen
           options={{
             title: t("settings.title"),
@@ -153,7 +150,7 @@ export default function SettingsScreen() {
         />
         <SignOutSection styles={styles} onSignOut={handleSignOut} t={t} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

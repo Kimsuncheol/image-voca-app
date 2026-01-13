@@ -1,8 +1,7 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Alert, ScrollView, StyleSheet, View } from "react-native";
 
 import { WordBankCourseGrid, WordBankHeader } from "../../components/wordbank";
 import { useAuth } from "../../src/context/AuthContext";
@@ -45,7 +44,7 @@ export default function WordBankScreen() {
   };
 
   return (
-    <SafeAreaView
+    <View
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
     >
       <ScrollView
@@ -55,7 +54,7 @@ export default function WordBankScreen() {
         <WordBankHeader />
         <WordBankCourseGrid onCoursePress={handleCoursePress} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

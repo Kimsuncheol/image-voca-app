@@ -2396,14 +2396,23 @@
     use-latest-callback "^0.2.4"
     use-sync-external-store "^1.5.0"
 
-"@react-navigation/elements@^2.6.3", "@react-navigation/elements@^2.9.3":
-  version "2.9.3"
-  resolved "https://registry.npmjs.org/@react-navigation/elements/-/elements-2.9.3.tgz"
-  integrity sha512-3+eyvWiVPIEf6tN9UdduhOEHcTuNe3R5WovgiVkfH9+jApHMTZDc2loePTpY/i2HDJhObhhChpJzO6BVjrpdYQ==
+"@react-navigation/elements@^2.6.3", "@react-navigation/elements@^2.9.3", "@react-navigation/elements@^2.9.4":
+  version "2.9.4"
+  resolved "https://registry.npmjs.org/@react-navigation/elements/-/elements-2.9.4.tgz"
+  integrity sha512-TMFh+QzwesEuSaKpvZk4BFC5105t5gJs9eq+jG7jtfdlMKyrcFwheu2/dy1zfrW4WYbVcoMxhzFqCU4mKwI4fw==
   dependencies:
     color "^4.2.3"
     use-latest-callback "^0.2.4"
     use-sync-external-store "^1.5.0"
+
+"@react-navigation/material-top-tabs@^7.4.12":
+  version "7.4.12"
+  resolved "https://registry.yarnpkg.com/@react-navigation/material-top-tabs/-/material-top-tabs-7.4.12.tgz#6bd7a1f3b1fe01bad913e376a6bb2e546ce547c4"
+  integrity sha512-SrftYrhyx/bnpl51EP62yyymT+AyOtSSP9XIc0vLVPf88e7W0dWJI1SgGdWoYnvFPT5O7QN2xmB/Il39deDhzQ==
+  dependencies:
+    "@react-navigation/elements" "^2.9.4"
+    color "^4.2.3"
+    react-native-tab-view "^4.2.2"
 
 "@react-navigation/native-stack@^7.3.16":
   version "7.9.0"
@@ -2416,9 +2425,9 @@
     warn-once "^0.1.1"
 
 "@react-navigation/native@^7.1.8":
-  version "7.1.26"
-  resolved "https://registry.npmjs.org/@react-navigation/native/-/native-7.1.26.tgz"
-  integrity sha512-RhKmeD0E2ejzKS6z8elAfdfwShpcdkYY8zJzvHYLq+wv183BBcElTeyMLcIX6wIn7QutXeI92Yi21t7aUWfqNQ==
+  version "7.1.27"
+  resolved "https://registry.npmjs.org/@react-navigation/native/-/native-7.1.27.tgz"
+  integrity sha512-kW7LGP/RrisktpGyizTKw6HwSeQJdXnAN9L8GyQJcJAlgL9YtfEg6yEyD5n9RWH90CL8G0cRyUhphKIAFf4lVw==
   dependencies:
     "@react-navigation/core" "^7.13.7"
     escape-string-regexp "^4.0.0"
@@ -6817,6 +6826,11 @@ react-native-notifications@^5.2.2:
   resolved "https://registry.npmjs.org/react-native-notifications/-/react-native-notifications-5.2.2.tgz"
   integrity sha512-So4o7KfQfmNtpXDgzxPCRbuzVr3Mc6Hiz7IrdiMm0lxsMGgKgitQV4vO51DKIA5J//CzagJED6NBrTERSnZBFw==
 
+react-native-pager-view@6.9.1:
+  version "6.9.1"
+  resolved "https://registry.yarnpkg.com/react-native-pager-view/-/react-native-pager-view-6.9.1.tgz#a9e6d9323935cc2ae1d46d7816b66f76dc3eff8e"
+  integrity sha512-uUT0MMMbNtoSbxe9pRvdJJKEi9snjuJ3fXlZhG8F2vVMOBJVt/AFtqMPUHu9yMflmqOr08PewKzj9EPl/Yj+Gw==
+
 react-native-reanimated@~4.1.1:
   version "4.1.6"
   resolved "https://registry.npmjs.org/react-native-reanimated/-/react-native-reanimated-4.1.6.tgz"
@@ -6838,6 +6852,13 @@ react-native-screens@~4.16.0:
     react-freeze "^1.0.0"
     react-native-is-edge-to-edge "^1.2.1"
     warn-once "^0.1.0"
+
+react-native-tab-view@^4.2.2:
+  version "4.2.2"
+  resolved "https://registry.yarnpkg.com/react-native-tab-view/-/react-native-tab-view-4.2.2.tgz#303accb4ddb2f5856d62bb323dd202724275e6a2"
+  integrity sha512-NXtrG6OchvbGjsvbySJGVocXxo4Y2vA17ph4rAaWtA2jh+AasD8OyikKBRg2SmllEfeQ+GEhcKe8kulHv8BhTg==
+  dependencies:
+    use-latest-callback "^0.2.4"
 
 react-native-url-polyfill@^2.0.0:
   version "2.0.0"
