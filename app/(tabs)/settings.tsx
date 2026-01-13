@@ -243,9 +243,6 @@ const getStyles = (isDark: boolean) =>
       justifyContent: "space-between",
       padding: 16,
     },
-    // subOption: {
-    //   paddingLeft: 26,
-    // },
     optionLeft: {
       flexDirection: "row",
       alignItems: "center",

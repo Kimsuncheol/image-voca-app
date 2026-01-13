@@ -1,32 +1,32 @@
 import { Ionicons } from "@expo/vector-icons";
 import {
-    launchImageLibraryAsync,
-    MediaTypeOptions,
-    requestMediaLibraryPermissionsAsync,
+  launchImageLibraryAsync,
+  MediaTypeOptions,
+  requestMediaLibraryPermissionsAsync,
 } from "expo-image-picker";
 import { useFocusEffect, useNavigation } from "expo-router";
 import {
-    deleteUser,
-    EmailAuthProvider,
-    reauthenticateWithCredential,
-    updateProfile,
+  deleteUser,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updateProfile,
 } from "firebase/auth";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
 import { AccountActionsSection } from "../components/profile/AccountActionsSection";
 import { AccountInfoSection } from "../components/profile/AccountInfoSection";
 import { LearningGoalsSection } from "../components/profile/LearningGoalsSection";
@@ -42,6 +42,8 @@ export default function ProfileScreen() {
   const [image, setImage] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [initialImage, setInitialImage] = useState<string | null>(null);
+  const [initialDisplayName, setInitialDisplayName] = useState("");
   const user = auth.currentUser;
   const navigation = useNavigation();
 
@@ -63,8 +65,13 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     if (user) {
-      if (user.photoURL) setImage(user.photoURL);
-      setDisplayName(user.displayName || "");
+      const nextImage = user.photoURL || null;
+      const nextDisplayName = user.displayName || "";
+      setImage(nextImage);
+      setDisplayName(nextDisplayName);
+      setInitialImage(nextImage);
+      setInitialDisplayName(nextDisplayName);
+      setHasUnsavedChanges(false);
     }
   }, [user]);
 
@@ -75,6 +82,14 @@ export default function ProfileScreen() {
   }, [stats]);
 
   useEffect(() => {
+    const currentImage = image || "";
+    const baseImage = initialImage || "";
+    const currentName = displayName;
+    const baseName = initialDisplayName;
+    setHasUnsavedChanges(currentImage !== baseImage || currentName !== baseName);
+  }, [displayName, image, initialDisplayName, initialImage]);
+
+  useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
       if (!hasUnsavedChanges) {
         return;
@@ -83,18 +98,14 @@ export default function ProfileScreen() {
       // Prevent default behavior of leaving the screen
       e.preventDefault();
 
-      Alert.alert(
-        t("profile.unsaved.title"),
-        t("profile.unsaved.message"),
-        [
-          { text: t("profile.unsaved.stay"), style: "cancel", onPress: () => {} },
-          {
-            text: t("profile.unsaved.discard"),
-            style: "destructive",
-            onPress: () => navigation.dispatch(e.data.action),
-          },
-        ]
-      );
+      Alert.alert(t("profile.unsaved.title"), t("profile.unsaved.message"), [
+        { text: t("profile.unsaved.stay"), style: "cancel", onPress: () => {} },
+        {
+          text: t("profile.unsaved.discard"),
+          style: "destructive",
+          onPress: () => navigation.dispatch(e.data.action),
+        },
+      ]);
     });
 
     return unsubscribe;
@@ -143,6 +154,9 @@ export default function ProfileScreen() {
         displayName: displayName,
       });
 
+      setInitialImage(photoURL || null);
+      setInitialDisplayName(displayName);
+      setImage(photoURL || null);
       setHasUnsavedChanges(false);
       Alert.alert(t("common.success"), t("profile.save.success"));
     } catch (error: any) {
@@ -160,21 +174,17 @@ export default function ProfileScreen() {
     if (!user) return;
 
     // Use standard Alert for confirmation
-    Alert.alert(
-      t("profile.delete.title"),
-      t("profile.delete.message"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("profile.delete.confirm"),
-          style: "destructive",
-          onPress: () => {
-            // If user signed in recently, this works. If not, might throw "requires-recent-login"
-            performDelete();
-          },
+    Alert.alert(t("profile.delete.title"), t("profile.delete.message"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("profile.delete.confirm"),
+        style: "destructive",
+        onPress: () => {
+          // If user signed in recently, this works. If not, might throw "requires-recent-login"
+          performDelete();
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const performDelete = async () => {
@@ -208,16 +218,13 @@ export default function ProfileScreen() {
       await deleteUser(user);
     } catch (error: any) {
       setLoading(false);
-      Alert.alert(
-        t("common.error"),
-        t("profile.delete.failed")
-      );
+      Alert.alert(t("common.error"), t("profile.delete.failed"));
       console.error(error);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
@@ -262,7 +269,6 @@ export default function ProfileScreen() {
             displayName={displayName}
             onChangeDisplayName={(text) => {
               setDisplayName(text);
-              setHasUnsavedChanges(true);
             }}
             email={user?.email}
             t={t}
@@ -276,7 +282,10 @@ export default function ProfileScreen() {
               const goal = parseInt(dailyGoalInput, 10);
               if (goal > 0 && user) {
                 await updateDailyGoal(user.uid, goal);
-                Alert.alert(t("common.success"), t("profile.goal.updated", { goal }));
+                Alert.alert(
+                  t("common.success"),
+                  t("profile.goal.updated", { goal })
+                );
               } else {
                 Alert.alert(t("common.error"), t("profile.goal.invalid"));
               }

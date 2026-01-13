@@ -136,7 +136,7 @@ export function NotificationsSection({
           />
         </View>
         <View style={styles.separator} />
-        <View style={[styles.option, styles.subOption]}>
+        <View style={[styles.option]}>
           <View style={styles.optionLeft}>
             <Ionicons
               name="book-outline"
