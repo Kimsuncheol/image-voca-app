@@ -9,6 +9,12 @@ dist/
 web-build/
 expo-env.d.ts
 
+# Firebase
+firebase.json
+
+# CSV
+*.csv
+
 # Native
 .kotlin/
 *.orig.*

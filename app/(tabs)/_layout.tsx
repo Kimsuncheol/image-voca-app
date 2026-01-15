@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { IconSymbol } from "../../components/ui/icon-symbol";
 import { Colors } from "../../constants/theme";
 import { useTheme } from "../../src/context/ThemeContext";
+import { TabLayoutProvider } from "../../src/context/TabLayoutContext";
 
 import DashboardScreen from "./index";
 import SettingsScreen from "./settings";
@@ -41,6 +42,9 @@ export default function TabLayout() {
   const { width } = useWindowDimensions();
   const pagerRef = useRef<PagerView>(null);
   const [currentPage, setCurrentPage] = useState(MIDDLE_OFFSET); // Start in middle set
+  const tabIndexByKey = useRef(
+    new Map(TABS.map((tab, index) => [tab.key, index]))
+  ).current;
 
   // Get the actual tab index from the page position
   const getTabIndex = (page: number) => {
@@ -77,6 +81,14 @@ export default function TabLayout() {
     pagerRef.current?.setPage(targetPage);
   };
 
+  const handleTabPressByKey = (key: string) => {
+    const index = tabIndexByKey.get(key);
+    if (index === undefined) {
+      return;
+    }
+    handleTabPress(index);
+  };
+
   // Render a screen component based on tab index
   const renderScreen = (tabIndex: number) => {
     switch (tabIndex) {
@@ -94,74 +106,76 @@ export default function TabLayout() {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
-      // Don't modify this line
-      edges={["top", "bottom"]}
-    >
-      <PagerView
-        ref={pagerRef}
-        style={styles.pagerView}
-        initialPage={MIDDLE_OFFSET}
-        onPageSelected={onPageSelected}
-        overdrag={true}
+    <TabLayoutProvider goToTab={handleTabPressByKey}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+        // Don't modify this line
+        edges={["top", "bottom"]}
       >
-        {Array.from({ length: TOTAL_PAGES }).map((_, pageIndex) => {
-          const tabIndex = getTabIndex(pageIndex);
-          return (
-            <View key={pageIndex} style={styles.page}>
-              {renderScreen(tabIndex)}
-            </View>
-          );
-        })}
-      </PagerView>
+        <PagerView
+          ref={pagerRef}
+          style={styles.pagerView}
+          initialPage={MIDDLE_OFFSET}
+          onPageSelected={onPageSelected}
+          overdrag={true}
+        >
+          {Array.from({ length: TOTAL_PAGES }).map((_, pageIndex) => {
+            const tabIndex = getTabIndex(pageIndex);
+            return (
+              <View key={pageIndex} style={styles.page}>
+                {renderScreen(tabIndex)}
+              </View>
+            );
+          })}
+        </PagerView>
 
-      {/* Custom Tab Bar */}
-      <View
-        style={[
-          styles.tabBar,
-          {
-            backgroundColor: isDark ? "#1c1c1e" : "#fff",
-            borderTopColor: isDark ? "#38383a" : "#e0e0e0",
-          },
-        ]}
-      >
-        {/* Indicator */}
+        {/* Custom Tab Bar */}
         <View
           style={[
-            styles.indicator,
+            styles.tabBar,
             {
-              width: width / TABS.length,
-              left: (width / TABS.length) * activeTabIndex,
-              backgroundColor: Colors[isDark ? "dark" : "light"].tint,
+              backgroundColor: isDark ? "#1c1c1e" : "#fff",
+              borderTopColor: isDark ? "#38383a" : "#e0e0e0",
             },
           ]}
-        />
+        >
+          {/* Indicator */}
+          <View
+            style={[
+              styles.indicator,
+              {
+                width: width / TABS.length,
+                left: (width / TABS.length) * activeTabIndex,
+                backgroundColor: Colors[isDark ? "dark" : "light"].tint,
+              },
+            ]}
+          />
 
-        {TABS.map((tab, index) => {
-          const isActive = index === activeTabIndex;
-          const color = isActive
-            ? Colors[isDark ? "dark" : "light"].tint
-            : isDark
-            ? "#8e8e93"
-            : "#999";
+          {TABS.map((tab, index) => {
+            const isActive = index === activeTabIndex;
+            const color = isActive
+              ? Colors[isDark ? "dark" : "light"].tint
+              : isDark
+              ? "#8e8e93"
+              : "#999";
 
-          return (
-            <TouchableOpacity
-              key={tab.key}
-              style={[styles.tabItem, { width: width / TABS.length }]}
-              onPress={() => handleTabPress(index)}
-              activeOpacity={0.7}
-            >
-              <IconSymbol size={24} name={tab.icon} color={color} />
-              <Text style={[styles.tabLabel, { color }]}>
-                {t(tab.titleKey)}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </SafeAreaView>
+            return (
+              <TouchableOpacity
+                key={tab.key}
+                style={[styles.tabItem, { width: width / TABS.length }]}
+                onPress={() => handleTabPress(index)}
+                activeOpacity={0.7}
+              >
+                <IconSymbol size={24} name={tab.icon} color={color} />
+                <Text style={[styles.tabLabel, { color }]}>
+                  {t(tab.titleKey)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </SafeAreaView>
+    </TabLayoutProvider>
   );
 }
 

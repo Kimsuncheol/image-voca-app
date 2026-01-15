@@ -3,6 +3,7 @@ import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import * as Speech from "expo-speech";
 import { doc, getDoc } from "firebase/firestore";
 import React, { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   ScrollView,
@@ -11,7 +12,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
 import { ThemedText } from "../../components/themed-text";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
@@ -77,6 +77,7 @@ export default function CourseWordBankScreen() {
             ? t(courseData.titleKey, { defaultValue: courseData.title })
             : t("wordBank.title"),
           headerBackTitle: t("common.back"),
+          headerShown: false,
         }}
       />
       <ScrollView

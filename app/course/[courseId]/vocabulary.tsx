@@ -1,20 +1,21 @@
 import {
-    TinderSwipe,
-    TinderSwipeRef,
+  TinderSwipe,
+  TinderSwipeRef,
 } from "@/src/components/tinder-swipe/TinderSwipe";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { doc, updateDoc } from "firebase/firestore";
-import React, { useRef, useState } from "react";
+import { collection, doc, getDocs, query, updateDoc } from "firebase/firestore";
+import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
-    Dimensions,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
 import { SwipeCardItem } from "../../../components/swipe/SwipeCardItem";
+import { VocabularyCardSkeleton } from "../../../components/swipe/VocabularyCardSkeleton";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { db } from "../../../src/services/firebase";
@@ -22,33 +23,41 @@ import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
 
 const { width, height } = Dimensions.get("window");
 
-// Sample vocabulary data - 10 words per day
-const generateDayVocabulary = (
-  course: CourseType,
-  day: number
-): VocabularyCard[] => {
-  const baseWords = [
-    "Serendipity",
-    "Ephemeral",
-    "Luminous",
-    "Solitude",
-    "Aurora",
-    "Ethereal",
-    "Ineffable",
-    "Mellifluous",
-    "Ubiquitous",
-    "Eloquent",
-  ];
-
-  return baseWords.map((word, index) => ({
-    id: `${course}-day${day}-${index}`,
-    word: `${word} ${day}`,
-    pronunciation: "/ˌser.ənˈdɪp.ə.ti/",
-    meaning: `Day ${day} - The occurrence and development of events by chance.`,
-    example: `This is an example sentence for day ${day}.`,
-    image: `https://images.unsplash.com/photo-154948849${index}?w=400`,
-    course,
-  }));
+const getCourseConfig = (courseId: CourseType) => {
+  switch (courseId) {
+    case "수능":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_CSAT,
+        prefix: "CSAT",
+      };
+    case "TOEIC":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC,
+        prefix: "TOEIC",
+      };
+    case "TOEFL":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL,
+        prefix: "TOEFL",
+      };
+    case "TOEIC_SPEAKING":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC_SPEAKING,
+        prefix: "TOEIC_SPEAKING",
+      };
+    case "IELTS":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_IELTS,
+        prefix: "IELTS",
+      };
+    case "OPIC":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_OPIC,
+        prefix: "OPIc",
+      };
+    default:
+      return { path: "", prefix: "" };
+  }
 };
 
 export default function VocabularyScreen() {
@@ -63,9 +72,58 @@ export default function VocabularyScreen() {
   const swipeRef = useRef<TinderSwipeRef>(null);
   const { t } = useTranslation();
 
+  const [cards, setCards] = useState<VocabularyCard[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const dayNumber = parseInt(day || "1", 10);
-  const data = generateDayVocabulary(courseId as CourseType, dayNumber);
-  const [cards, setCards] = useState(data);
+
+  useEffect(() => {
+    const fetchVocabulary = async () => {
+      setLoading(true);
+      try {
+        const config = getCourseConfig(courseId as CourseType);
+
+        if (!config.path) {
+          console.error("No path configuration for course:", courseId);
+          setLoading(false);
+          return;
+        }
+
+        // Construct subcollection name: e.g. CSAT1_Day1
+        const subCollectionName = `${config.prefix}1_Day${dayNumber}`;
+        const targetCollection = collection(db, config.path, subCollectionName);
+
+        // Fetch data
+        // Try ordering by word or just fetch as is
+        const q = query(targetCollection);
+        const querySnapshot = await getDocs(q);
+
+        const fetchedCards: VocabularyCard[] = querySnapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            word: data.word,
+            meaning: data.meaning,
+            pronunciation: data.pronunciation,
+            example: data.example,
+            image: data.image, // Optional if it exists
+            course: courseId as CourseType,
+          };
+        });
+
+        console.log(
+          `Fetched ${fetchedCards.length} words from ${subCollectionName}`
+        );
+        setCards(fetchedCards);
+      } catch (error) {
+        console.error("Error fetching vocabulary:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVocabulary();
+  }, [courseId, dayNumber]);
 
   const onSwipeRight = (item: VocabularyCard) => {
     console.log("Learned:", item.word);
@@ -81,8 +139,8 @@ export default function VocabularyScreen() {
       await updateDoc(doc(db, "users", user.uid), {
         [`courseProgress.${courseId}.${dayNumber}`]: {
           completed: true,
-          wordsLearned: data.length,
-          totalWords: data.length,
+          wordsLearned: cards.length,
+          totalWords: cards.length,
           quizCompleted: false,
         },
       });
@@ -93,8 +151,13 @@ export default function VocabularyScreen() {
   };
 
   const handleRestart = () => {
-    setCards([...data]);
-    setIsFinished(false);
+    setCards([...cards]); // Re-set cards to trigger re-render if needed, but keys might need update.
+    // Ideally fetch again or just reset index. TinderSwipe might need a key change to reset.
+    // For now simplistic reload.
+    router.replace({
+      pathname: "/course/[courseId]/vocabulary",
+      params: { courseId, day },
+    });
   };
 
   const handleQuiz = () => {
@@ -103,6 +166,27 @@ export default function VocabularyScreen() {
       params: { courseId, day },
     });
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: isDark ? "#000" : "#fff" },
+        ]}
+      >
+        <Stack.Screen
+          options={{
+            title: t("course.dayTitle", { day: dayNumber }),
+            headerBackTitle: t("common.back"),
+          }}
+        />
+        <View style={styles.swipeContainer}>
+          <VocabularyCardSkeleton />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView
@@ -115,23 +199,34 @@ export default function VocabularyScreen() {
         }}
       />
       <View style={styles.swipeContainer}>
-        <View
-          style={{
-            flex: 1,
-            width: "100%",
-            display: isFinished ? "none" : "flex",
-          }}
-        >
-          <TinderSwipe
-            ref={swipeRef}
-            data={cards}
-            renderCard={(item) => <SwipeCardItem item={item} />}
-            onSwipeRight={onSwipeRight}
-            onSwipeLeft={onSwipeLeft}
-            loop={false}
-            onRunOutOfCards={() => setIsFinished(true)}
-          />
-        </View>
+        {cards.length > 0 ? (
+          <View
+            style={{
+              flex: 1,
+              width: "100%",
+              display: isFinished ? "none" : "flex",
+            }}
+          >
+            <TinderSwipe
+              ref={swipeRef}
+              data={cards}
+              renderCard={(item) => <SwipeCardItem item={item} />}
+              onSwipeRight={onSwipeRight}
+              onSwipeLeft={onSwipeLeft}
+              loop={false}
+              onRunOutOfCards={() => setIsFinished(true)}
+            />
+          </View>
+        ) : (
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
+            <Text style={{ color: isDark ? "#fff" : "#000" }}>
+              No words found for this day.
+            </Text>
+          </View>
+        )}
+
         {isFinished && (
           <View style={styles.finishedContainer}>
             <Text
@@ -144,9 +239,7 @@ export default function VocabularyScreen() {
                 style={[styles.button, styles.quizButton]}
                 onPress={handleQuiz}
               >
-                <Text style={styles.buttonText}>
-                  {t("course.takeQuiz")}
-                </Text>
+                <Text style={styles.buttonText}>{t("course.takeQuiz")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.restartButton]}

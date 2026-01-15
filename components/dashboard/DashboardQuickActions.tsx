@@ -2,12 +2,22 @@ import { useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
+import { useTabLayout } from "../../src/context/TabLayoutContext";
 import { ThemedText } from "../themed-text";
 import { QuickAction } from "./QuickAction";
 
 export function DashboardQuickActions() {
   const router = useRouter();
   const { t } = useTranslation();
+  const tabLayout = useTabLayout();
+
+  const handleTabAction = (key: string, href: string) => {
+    if (tabLayout) {
+      tabLayout.goToTab(key);
+      return;
+    }
+    router.push(href);
+  };
 
   return (
     <View style={styles.section}>
@@ -19,13 +29,13 @@ export function DashboardQuickActions() {
           title={t("dashboard.quickActions.vocabulary")}
           icon="book.fill"
           color="#FF6B6B"
-          onPress={() => router.push("/(tabs)/swipe")}
+          onPress={() => handleTabAction("voca", "/(tabs)/swipe")}
         />
         <QuickAction
           title={t("dashboard.quickActions.wordBank")}
           icon="folder.fill"
           color="#4ECDC4"
-          onPress={() => router.push("/wordbank")}
+          onPress={() => handleTabAction("wordbank", "/(tabs)/wordbank")}
         />
         <QuickAction
           title={t("dashboard.quickActions.review")}
@@ -37,7 +47,7 @@ export function DashboardQuickActions() {
           title={t("dashboard.quickActions.settings")}
           icon="gearshape.fill"
           color="#95E1D3"
-          onPress={() => router.push("/(tabs)/settings")}
+          onPress={() => handleTabAction("settings", "/(tabs)/settings")}
         />
       </View>
     </View>
