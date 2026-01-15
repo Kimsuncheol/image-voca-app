@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Asset } from "expo-asset";
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { Stack, useRouter } from "expo-router";
 import { addDoc, collection, deleteDoc, getDocs } from "firebase/firestore";
-import { ref, uploadBytes } from "firebase/storage";
+import { getMetadata, ref, uploadBytes } from "firebase/storage";
 import Papa from "papaparse";
 import React, { useState } from "react";
 import {
@@ -41,7 +42,17 @@ export default function AddVocaScreen() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState("");
   const [selectedCourse, setSelectedCourse] = useState(COURSES[0]);
-  const [subcollectionName, setSubcollectionName] = useState("CSAT1_Day1");
+  const [subcollectionName, setSubcollectionName] = useState("");
+
+  // Handler to auto-prepend "Day." prefix
+  const handleSubcollectionChange = (newValue: string) => {
+    // Auto-prepend "Day." if the value doesn't start with it
+    if (newValue && !newValue.startsWith("Day")) {
+      setSubcollectionName("Day" + newValue);
+    } else {
+      setSubcollectionName(newValue);
+    }
+  };
 
   // Computed full path for display/verify
   const fullPath = `${selectedCourse.path}/${subcollectionName}`;
@@ -64,18 +75,34 @@ export default function AddVocaScreen() {
       setLoading(true);
 
       // 1. Upload CSV to Storage
+      setProgress("Checking if CSV exists in Storage...");
+      const storageRef = ref(
+        storage,
+        `csv/${selectedCourse.name}/${subcollectionName}.csv`
+      );
+
+      try {
+        const metadata = await getMetadata(storageRef);
+        console.log("[Storage] File already exists:", metadata.name);
+        console.log("[Storage] Size:", metadata.size, "bytes");
+        console.log("[Storage] Updated:", metadata.updated);
+        setProgress("File exists, replacing with new CSV...");
+      } catch (error: any) {
+        if (error.code === "storage/object-not-found") {
+          console.log("[Storage] File does not exist, uploading new file");
+        } else {
+          console.error("[Storage] Error checking file:", error);
+        }
+      }
+
       setProgress("Uploading CSV to Storage...");
       try {
         const response = await fetch(file.uri);
         const blob = await response.blob();
-        const storageRef = ref(
-          storage,
-          `csv/${selectedCourse.name}/${subcollectionName}.csv`
-        );
         await uploadBytes(storageRef, blob);
-        console.log("CSV uploaded to storage");
+        console.log("[Storage] CSV uploaded successfully");
       } catch (storageError: any) {
-        console.error("Storage upload failed", storageError);
+        console.error("[Storage] Upload failed:", storageError);
         Alert.alert(
           "Warning",
           "Failed to save CSV to storage, but proceeding with data upload."
@@ -91,9 +118,21 @@ export default function AddVocaScreen() {
         header: true,
         skipEmptyLines: true,
         complete: async (results) => {
-          await uploadData(results.data);
+          console.log("[Picker] Parsed", results.data.length, "records");
+          console.log("[Picker] First 3 records:", results.data.slice(0, 3));
+          console.log("[Picker] All parsed data:", results.data);
+          try {
+            await uploadData(results.data);
+          } catch (uploadError: any) {
+            console.error("[Picker] Upload failed:", uploadError);
+            setLoading(false);
+            Alert.alert(
+              "Upload Error",
+              uploadError.message || "Failed to upload data"
+            );
+          }
         },
-        error: (error) => {
+        error: (error: any) => {
           setLoading(false);
           Alert.alert("Error parsing CSV", error.message);
         },
@@ -105,23 +144,33 @@ export default function AddVocaScreen() {
   };
 
   const uploadData = async (data: any[]) => {
+    console.log("[Upload] Starting uploadData with", data.length, "records");
     if (!subcollectionName.trim()) {
       Alert.alert("Error", "Please enter a Subcollection Name (e.g. Day1)");
       setLoading(false);
       return;
     }
 
+    console.log("[Upload] Target Firestore path:", fullPath);
+
     // 3. Clear existing data
     setProgress(`Clearing existing data in ${subcollectionName}...`);
     try {
       const querySnapshot = await getDocs(collection(db, fullPath));
+      console.log(
+        "[Upload] Found",
+        querySnapshot.docs.length,
+        "existing documents to delete"
+      );
       const deletePromises = querySnapshot.docs.map((doc) =>
         deleteDoc(doc.ref)
       );
       await Promise.all(deletePromises);
-      console.log(`Deleted ${deletePromises.length} existing documents.`);
+      console.log(
+        `[Upload] Deleted ${deletePromises.length} existing documents.`
+      );
     } catch (deleteError) {
-      console.error("Failed to clear existing data", deleteError);
+      console.error("[Upload] Failed to clear existing data:", deleteError);
       Alert.alert("Error", "Failed to clear existing data. Aborting upload.");
       setLoading(false);
       return;
@@ -138,31 +187,72 @@ export default function AddVocaScreen() {
     for (let i = 0; i < data.length; i++) {
       const item = data[i];
       try {
-        const word = item["Word"] || item["word"];
-        if (!word) continue;
+        // Handle both renamed headers (_1, _2, _3, _4) and standard headers
+        const word = String(
+          item["Word"] || item["word"] || item["_1"] || ""
+        ).trim();
+
+        // Skip if this is the actual header row (when first line was empty)
+        if (word === "Word" || !word) continue;
 
         const docData = {
-          word: String(word).trim(),
-          meaning: String(item["Meaning"] || item["meaning"] || "").trim(),
+          word: word,
+          meaning: String(
+            item["Meaning"] || item["meaning"] || item["_2"] || ""
+          ).trim(),
           pronunciation: String(
             item["Pronounciation"] ||
               item["Pronunciation"] ||
               item["pronunciation"] ||
+              item["_3"] ||
               ""
           ).trim(),
           example: String(
-            item["Example sentence"] || item["Example"] || item["example"] || ""
+            item["Example sentence"] ||
+              item["Example"] ||
+              item["example"] ||
+              item["_4"] ||
+              ""
           ).trim(),
           createdAt: new Date(),
         };
 
         await addDoc(collection(db, fullPath), docData);
         successCount++;
+        if (successCount === 1 || successCount % 10 === 0) {
+          console.log(`[Upload] Progress: ${successCount}/${data.length}`);
+        }
         setProgress(`Uploaded ${successCount}/${data.length}...`);
       } catch (e) {
         console.error("Upload failed", e);
         failCount++;
       }
+    }
+
+    // 5. Verify data was saved - fetch and display
+    console.log("[Verify] Fetching saved data from Firestore...");
+    try {
+      const verifySnapshot = await getDocs(collection(db, fullPath));
+      console.log(
+        "[Verify] Total documents in Firestore:",
+        verifySnapshot.docs.length
+      );
+      console.log(
+        "[Verify] First 3 documents:",
+        verifySnapshot.docs.slice(0, 3).map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+      );
+      console.log(
+        "[Verify] All documents:",
+        verifySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+      );
+    } catch (verifyError) {
+      console.error("[Verify] Failed to verify saved data:", verifyError);
     }
 
     setLoading(false);
@@ -172,6 +262,95 @@ export default function AddVocaScreen() {
       `Successfully uploaded: ${successCount}\nFailed: ${failCount}`,
       [{ text: "OK" }]
     );
+  };
+
+  const handleImportFromAsset = async () => {
+    try {
+      setLoading(true);
+      setProgress("Loading CSV from assets...");
+      console.log("[Import] Starting import from asset");
+      console.log("[Import] Target path:", fullPath);
+
+      // Load the predefined CSV file from assets
+      const csvAsset = Asset.fromModule(
+        require("../../assets/spreadsheet/CSAT_Day1.csv")
+      );
+      await csvAsset.downloadAsync();
+      console.log("[Import] CSV asset downloaded:", csvAsset.localUri);
+
+      if (!csvAsset.localUri) {
+        throw new Error("Failed to load CSV asset");
+      }
+
+      // 1. Check if file exists in Storage, then upload CSV
+      setProgress("Checking if CSV exists in Storage...");
+      const storageRef = ref(
+        storage,
+        `csv/${selectedCourse.name}/${subcollectionName}.csv`
+      );
+
+      try {
+        const metadata = await getMetadata(storageRef);
+        console.log("[Storage] File already exists:", metadata.name);
+        console.log("[Storage] Size:", metadata.size, "bytes");
+        console.log("[Storage] Updated:", metadata.updated);
+        setProgress("File exists, replacing with new CSV...");
+      } catch (error: any) {
+        if (error.code === "storage/object-not-found") {
+          console.log("[Storage] File does not exist, uploading new file");
+        } else {
+          console.error("[Storage] Error checking file:", error);
+        }
+      }
+
+      setProgress("Uploading CSV to Storage...");
+      try {
+        const response = await fetch(csvAsset.localUri);
+        const blob = await response.blob();
+        await uploadBytes(storageRef, blob);
+        console.log("[Storage] CSV uploaded successfully");
+      } catch (storageError: any) {
+        console.error("[Storage] Upload failed:", storageError);
+        Alert.alert(
+          "Warning",
+          "Failed to save CSV to storage, but proceeding with data upload."
+        );
+      }
+
+      // 2. Read and Parse
+      setProgress("Reading file...");
+      const fileContent = await FileSystem.readAsStringAsync(csvAsset.localUri);
+      console.log("[Import] File content length:", fileContent.length);
+
+      setProgress("Parsing CSV...");
+      Papa.parse(fileContent, {
+        header: true,
+        skipEmptyLines: true,
+        complete: async (results) => {
+          console.log("[Import] Parsed", results.data.length, "records");
+          console.log("[Import] First 3 records:", results.data.slice(0, 3));
+          console.log("[Import] All parsed data:", results.data);
+          try {
+            await uploadData(results.data);
+          } catch (uploadError: any) {
+            console.error("[Import] Upload failed:", uploadError);
+            setLoading(false);
+            Alert.alert(
+              "Upload Error",
+              uploadError.message || "Failed to upload data"
+            );
+          }
+        },
+        error: (error: any) => {
+          console.error("[Import] CSV parsing error:", error);
+          setLoading(false);
+          Alert.alert("Error parsing CSV", error.message);
+        },
+      });
+    } catch (err: any) {
+      setLoading(false);
+      Alert.alert("Error", err.message);
+    }
   };
 
   return (
@@ -245,7 +424,7 @@ export default function AddVocaScreen() {
             <TextInput
               style={styles.input}
               value={subcollectionName}
-              onChangeText={setSubcollectionName}
+              onChangeText={handleSubcollectionChange}
               placeholder="e.g. CSAT1_Day1"
               placeholderTextColor={isDark ? "#555" : "#999"}
             />
@@ -269,6 +448,27 @@ export default function AddVocaScreen() {
                   color="#007AFF"
                 />
                 <Text style={styles.uploadButtonText}>Select CSV File</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.importButton}
+            onPress={handleImportFromAsset}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <>
+                <Ionicons
+                  name="cloud-download-outline"
+                  size={24}
+                  color="#fff"
+                />
+                <Text style={styles.importButtonText}>
+                  Import from CSAT_Day1.csv
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -385,5 +585,20 @@ const getStyles = (isDark: boolean) =>
       marginTop: 20,
       fontSize: 16,
       color: isDark ? "#ccc" : "#666",
+    },
+    importButton: {
+      backgroundColor: "#007AFF",
+      padding: 16,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      marginTop: 16,
+      gap: 8,
+    },
+    importButtonText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "600",
     },
   });
