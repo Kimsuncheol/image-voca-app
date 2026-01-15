@@ -43,19 +43,10 @@ export default function AddVocaScreen() {
   const [progress, setProgress] = useState("");
   const [selectedCourse, setSelectedCourse] = useState(COURSES[0]);
   const [subcollectionName, setSubcollectionName] = useState("");
+  const [selectedFile, setSelectedFile] = useState<any>(null);
 
-  // Handler to auto-prepend "Day." prefix
-  const handleSubcollectionChange = (newValue: string) => {
-    // Auto-prepend "Day." if the value doesn't start with it
-    if (newValue && !newValue.startsWith("Day")) {
-      setSubcollectionName("Day" + newValue);
-    } else {
-      setSubcollectionName(newValue);
-    }
-  };
-
-  // Computed full path for display/verify
-  const fullPath = `${selectedCourse.path}/${subcollectionName}`;
+  // Computed full path for display/verify - now with Day prefix added
+  const fullPath = `${selectedCourse.path}/Day${subcollectionName}`;
 
   const handlePickDocument = async () => {
     try {
@@ -72,13 +63,32 @@ export default function AddVocaScreen() {
       if (result.canceled) return;
 
       const file = result.assets[0];
+      setSelectedFile(file);
+      console.log("[Picker] File selected:", file.name);
+    } catch (err: any) {
+      Alert.alert("Error", err.message);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      Alert.alert("Error", "Please select a CSV file first");
+      return;
+    }
+
+    if (!subcollectionName.trim()) {
+      Alert.alert("Error", "Please enter a day number (e.g. 1, 2, 3)");
+      return;
+    }
+
+    try {
       setLoading(true);
 
       // 1. Upload CSV to Storage
       setProgress("Checking if CSV exists in Storage...");
       const storageRef = ref(
         storage,
-        `csv/${selectedCourse.name}/${subcollectionName}.csv`
+        `csv/${selectedCourse.name}/Day${subcollectionName}.csv`
       );
 
       try {
@@ -97,7 +107,7 @@ export default function AddVocaScreen() {
 
       setProgress("Uploading CSV to Storage...");
       try {
-        const response = await fetch(file.uri);
+        const response = await fetch(selectedFile.uri);
         const blob = await response.blob();
         await uploadBytes(storageRef, blob);
         console.log("[Storage] CSV uploaded successfully");
@@ -111,7 +121,7 @@ export default function AddVocaScreen() {
 
       // 2. Read and Parse
       setProgress("Reading file...");
-      const fileContent = await FileSystem.readAsStringAsync(file.uri);
+      const fileContent = await FileSystem.readAsStringAsync(selectedFile.uri);
 
       setProgress("Parsing CSV...");
       Papa.parse(fileContent, {
@@ -420,16 +430,22 @@ export default function AddVocaScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Subcollection Name (e.g. Day1)</Text>
-            <TextInput
-              style={styles.input}
-              value={subcollectionName}
-              onChangeText={handleSubcollectionChange}
-              placeholder="e.g. CSAT1_Day1"
-              placeholderTextColor={isDark ? "#555" : "#999"}
-            />
+            <Text style={styles.label}>Subcollection Name</Text>
+            <View style={styles.dayInputContainer}>
+              <View style={styles.dayPrefix}>
+                <Text style={styles.dayPrefixText}>Day</Text>
+              </View>
+              <TextInput
+                style={styles.dayInput}
+                value={subcollectionName}
+                onChangeText={setSubcollectionName}
+                placeholder="1"
+                placeholderTextColor={isDark ? "#555" : "#999"}
+                keyboardType="numeric"
+              />
+            </View>
             <Text style={styles.pathHint}>
-              Target: .../{selectedCourse.name}/.../{subcollectionName}
+              Target: .../{selectedCourse.name}/.../Day{subcollectionName}
             </Text>
           </View>
 
@@ -438,19 +454,45 @@ export default function AddVocaScreen() {
             onPress={handlePickDocument}
             disabled={loading}
           >
-            {loading ? (
-              <ActivityIndicator color="#007AFF" size="large" />
-            ) : (
-              <>
-                <Ionicons
-                  name="cloud-upload-outline"
-                  size={32}
-                  color="#007AFF"
-                />
-                <Text style={styles.uploadButtonText}>Select CSV File</Text>
-              </>
-            )}
+            <>
+              <Ionicons
+                name="document-attach-outline"
+                size={32}
+                color="#007AFF"
+              />
+              <Text style={styles.uploadButtonText}>
+                {selectedFile ? selectedFile.name : "Select CSV File"}
+              </Text>
+            </>
           </TouchableOpacity>
+
+          {selectedFile && (
+            <TouchableOpacity
+              style={[styles.uploadButton, styles.uploadButtonPrimary]}
+              onPress={handleUpload}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" size="large" />
+              ) : (
+                <>
+                  <Ionicons
+                    name="cloud-upload-outline"
+                    size={32}
+                    color="#fff"
+                  />
+                  <Text
+                    style={[
+                      styles.uploadButtonText,
+                      styles.uploadButtonTextPrimary,
+                    ]}
+                  >
+                    Upload
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={styles.importButton}
@@ -466,9 +508,7 @@ export default function AddVocaScreen() {
                   size={24}
                   color="#fff"
                 />
-                <Text style={styles.importButtonText}>
-                  Import from CSAT_Day1.csv
-                </Text>
+                <Text style={styles.importButtonText}>Import</Text>
               </>
             )}
           </TouchableOpacity>
@@ -529,6 +569,38 @@ const getStyles = (isDark: boolean) =>
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: isDark ? "#38383a" : "#c6c6c8",
     },
+    dayInputContainer: {
+      flexDirection: "row",
+      alignItems: "stretch",
+      marginBottom: 8,
+    },
+    dayPrefix: {
+      backgroundColor: "#0b51e6",
+      paddingVertical: 15,
+      paddingHorizontal: 20,
+      borderTopLeftRadius: 10,
+      borderBottomLeftRadius: 10,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    dayPrefixText: {
+      color: "#fff",
+      fontSize: 14,
+      fontWeight: "600",
+    },
+    dayInput: {
+      flex: 1,
+      backgroundColor: isDark ? "#1c1c1e" : "#fff",
+      paddingVertical: 15,
+      paddingHorizontal: 15,
+      borderTopRightRadius: 10,
+      borderBottomRightRadius: 10,
+      fontSize: 14,
+      color: isDark ? "#fff" : "#000",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: isDark ? "#38383a" : "#c6c6c8",
+      borderLeftWidth: 0,
+    },
     pathInput: {
       fontSize: 12,
       color: isDark ? "#aaa" : "#666",
@@ -579,6 +651,13 @@ const getStyles = (isDark: boolean) =>
       fontSize: 18,
       fontWeight: "600",
       marginTop: 12,
+    },
+    uploadButtonPrimary: {
+      backgroundColor: "#007AFF",
+      borderStyle: "solid",
+    },
+    uploadButtonTextPrimary: {
+      color: "#fff",
     },
     progressText: {
       textAlign: "center",

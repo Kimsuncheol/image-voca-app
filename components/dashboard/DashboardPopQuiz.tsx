@@ -1,5 +1,5 @@
 import { collection, getDocs, query } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
@@ -21,84 +21,7 @@ export function DashboardPopQuiz() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  const fetchQuizData = async () => {
-    setLoading(true);
-    setSelectedOption(null);
-    setIsCorrect(null);
-    try {
-      // 1. Pick a random course
-      const randomCourse = COURSES[Math.floor(Math.random() * COURSES.length)];
-
-      // 2. Get config (duplicated helper logic for now)
-      let path = "";
-      let prefix = "";
-
-      switch (randomCourse.id) {
-        case "수능":
-          path = process.env.EXPO_PUBLIC_COURSE_PATH_CSAT || "";
-          prefix = "CSAT";
-          break;
-        case "TOEIC":
-          path = process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC || "";
-          prefix = "TOEIC";
-          break;
-        case "TOEFL":
-          path = process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL || "";
-          prefix = "TOEFL";
-          break;
-        case "TOEIC_SPEAKING":
-          path = process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC_SPEAKING || "";
-          prefix = "TOEIC_SPEAKING";
-          break;
-        case "IELTS":
-          path = process.env.EXPO_PUBLIC_COURSE_PATH_IELTS || "";
-          prefix = "IELTS";
-          break;
-        case "OPIC":
-          path = process.env.EXPO_PUBLIC_COURSE_PATH_OPIC || "";
-          prefix = "OPIc";
-          break;
-      }
-
-      if (!path) {
-        console.warn("No path for course", randomCourse.id);
-        setLoading(false);
-        return;
-      }
-
-      // 3. Fetch from Day 1 (assuming data exists there for now)
-      const subCollectionName = `${prefix}1_Day1`;
-      const q = query(collection(db, path, subCollectionName));
-      const snapshot = await getDocs(q);
-
-      if (snapshot.empty) {
-        console.log(`No data in ${subCollectionName}, defaulting...`);
-        // Consider retrying or just returning (will stay loading or show empty)
-        // For now, let's try CSAT Day 1 as fallback if we didn't pick it
-        if (prefix !== "CSAT") {
-          const csatPath = process.env.EXPO_PUBLIC_COURSE_PATH_CSAT || "";
-          if (csatPath) {
-            const fallbackSnap = await getDocs(
-              query(collection(db, csatPath, "CSAT1_Day1"))
-            );
-            if (!fallbackSnap.empty) {
-              processSnapshot(fallbackSnap);
-              return;
-            }
-          }
-        }
-        setLoading(false);
-        return;
-      }
-
-      processSnapshot(snapshot);
-    } catch (e) {
-      console.error("Quiz fetch error", e);
-      setLoading(false);
-    }
-  };
-
-  const processSnapshot = (snapshot: any) => {
+  const processSnapshot = useCallback((snapshot: any) => {
     const docs = snapshot.docs.map((d: any) => d.data());
     if (docs.length < 4) {
       setLoading(false);
@@ -131,11 +54,80 @@ export function DashboardPopQuiz() {
     setQuizItem({ word: targetWord.word, meaning: targetWord.meaning });
     setOptions(allOptions);
     setLoading(false);
-  };
+  }, []);
+
+  const fetchQuizData = useCallback(async () => {
+    setLoading(true);
+    setSelectedOption(null);
+    setIsCorrect(null);
+    try {
+      // Helper to get path for a course
+      const getCoursePath = (courseId: string) => {
+        switch (courseId) {
+          case "수능":
+            return process.env.EXPO_PUBLIC_COURSE_PATH_CSAT || "";
+          case "TOEIC":
+            return process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC || "";
+          case "TOEFL":
+            return process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL || "";
+          case "TOEIC_SPEAKING":
+            return process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC_SPEAKING || "";
+          case "IELTS":
+            return process.env.EXPO_PUBLIC_COURSE_PATH_IELTS || "";
+          case "OPIC":
+            return process.env.EXPO_PUBLIC_COURSE_PATH_OPIC || "";
+          default:
+            return "";
+        }
+      };
+
+      // Try to find data by attempting multiple courses and days
+      const shuffledCourses = [...COURSES].sort(() => Math.random() - 0.5);
+      const daysToTry = [1, 2, 3, 4, 5]; // Try Days 1-5
+
+      for (const course of shuffledCourses) {
+        const path = getCoursePath(course.id);
+        if (!path) continue;
+
+        // Shuffle days for variety
+        const shuffledDays = [...daysToTry].sort(() => Math.random() - 0.5);
+
+        for (const dayNum of shuffledDays) {
+          const subCollectionName = `Day${dayNum}`;
+
+          try {
+            const q = query(collection(db, path, subCollectionName));
+            const snapshot = await getDocs(q);
+
+            if (!snapshot.empty) {
+              console.log(
+                `Found quiz data in ${course.id} - ${subCollectionName} (${snapshot.docs.length} words)`
+              );
+              processSnapshot(snapshot);
+              return; // Success! Exit the function
+            }
+          } catch (error) {
+            console.log(
+              `Error checking ${course.id}/${subCollectionName}:`,
+              error
+            );
+            // Continue to next day/course
+          }
+        }
+      }
+
+      // If we get here, no data was found in any course/day
+      console.warn("No vocabulary data found in any course");
+      setLoading(false);
+    } catch (e) {
+      console.error("Quiz fetch error", e);
+      setLoading(false);
+    }
+  }, [processSnapshot]);
 
   useEffect(() => {
     fetchQuizData();
-  }, []);
+  }, [fetchQuizData]);
 
   if (loading || !quizItem) return <PopQuizSkeleton />;
 

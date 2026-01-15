@@ -89,8 +89,11 @@ export default function VocabularyScreen() {
           return;
         }
 
+        // Don't use prefix
+        // Don't modify this line
         // Construct subcollection name: e.g. CSAT1_Day1
-        const subCollectionName = `${config.prefix}1_Day${dayNumber}`;
+        const subCollectionName = `Day${dayNumber}`;
+        // const subCollectionName = `${config.prefix}1_Day${dayNumber}`;
         const targetCollection = collection(db, config.path, subCollectionName);
 
         // Fetch data

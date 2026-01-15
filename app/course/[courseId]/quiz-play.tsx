@@ -1,18 +1,26 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { doc, setDoc, updateDoc } from "firebase/firestore";
-import React, { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View
+  collection,
+  doc,
+  getDocs,
+  query,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
 import { ThemedText } from "../../../components/themed-text";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
@@ -28,6 +36,13 @@ interface QuizQuestion {
   correctAnswer: string;
 }
 
+interface VocabData {
+  word: string;
+  meaning: string;
+  pronunciation?: string;
+  example?: string;
+}
+
 const shuffleArray = <T,>(items: T[]): T[] => {
   const copy = [...items];
   for (let i = copy.length - 1; i > 0; i -= 1) {
@@ -37,36 +52,78 @@ const shuffleArray = <T,>(items: T[]): T[] => {
   return copy;
 };
 
-// Generate quiz questions from vocabulary
+// Helper to get Firestore path for a course
+const getCourseConfig = (courseId: CourseType) => {
+  switch (courseId) {
+    case "수능":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_CSAT,
+        prefix: "CSAT",
+      };
+    case "TOEIC":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC,
+        prefix: "TOEIC",
+      };
+    case "TOEFL":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL,
+        prefix: "TOEFL",
+      };
+    case "TOEIC_SPEAKING":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC_SPEAKING,
+        prefix: "TOEIC_SPEAKING",
+      };
+    case "IELTS":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_IELTS,
+        prefix: "IELTS",
+      };
+    case "OPIC":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_OPIC,
+        prefix: "OPIc",
+      };
+    default:
+      return { path: "", prefix: "" };
+  }
+};
+
+// Generate quiz questions from real vocabulary data
 const generateQuizQuestions = (
-  course: CourseType,
-  day: number,
+  vocabData: VocabData[],
   quizType: string
 ): QuizQuestion[] => {
-  const words = [
-    { word: "Serendipity", meaning: "Finding something good by chance" },
-    { word: "Ephemeral", meaning: "Lasting for a very short time" },
-    { word: "Luminous", meaning: "Full of or shedding light" },
-    { word: "Solitude", meaning: "The state of being alone" },
-    { word: "Aurora", meaning: "Natural light display in the sky" },
-  ];
+  // Shuffle and take random questions (up to 10)
+  const selectedWords = shuffleArray([...vocabData]).slice(
+    0,
+    Math.min(10, vocabData.length)
+  );
 
-  return words.map((w, index) => {
+  return selectedWords.map((vocab, index) => {
     const isWordAnswer = quizType === "fill-blank" || quizType === "spelling";
+
+    // Generate options for multiple choice
+    let options: string[] | undefined;
+    if (quizType === "multiple-choice") {
+      // Get 3 random wrong answers
+      const otherMeanings = vocabData
+        .filter((v) => v.word !== vocab.word)
+        .map((v) => v.meaning);
+      const shuffledOthers = shuffleArray(otherMeanings);
+      const wrongAnswers = shuffledOthers.slice(0, 3);
+
+      // Combine and shuffle
+      options = shuffleArray([vocab.meaning, ...wrongAnswers]);
+    }
+
     return {
-      id: `${course}-day${day}-q${index}`,
-      word: w.word,
-      meaning: w.meaning,
-      options:
-        quizType === "multiple-choice"
-          ? shuffleArray([
-              w.meaning,
-              "A type of food",
-              "A musical instrument",
-              "A weather phenomenon",
-            ])
-          : undefined,
-      correctAnswer: isWordAnswer ? w.word : w.meaning,
+      id: `q${index}`,
+      word: vocab.word,
+      meaning: vocab.meaning,
+      options,
+      correctAnswer: isWordAnswer ? vocab.word : vocab.meaning,
     };
   });
 };
@@ -86,9 +143,9 @@ export default function QuizPlayScreen() {
   const course = COURSES.find((c) => c.id === courseId);
   const dayNumber = parseInt(day || "1", 10);
 
-  const [questions] = useState(() =>
-    generateQuizQuestions(courseId as CourseType, dayNumber, quizType || "multiple-choice")
-  );
+  const [loading, setLoading] = useState(true);
+  const [vocabularyData, setVocabularyData] = useState<VocabData[]>([]);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
@@ -99,9 +156,69 @@ export default function QuizPlayScreen() {
   const [selectedMeaning, setSelectedMeaning] = useState<string | null>(null);
   const [matchedPairs, setMatchedPairs] = useState<Record<string, string>>({});
   const [matchingFeedback, setMatchingFeedback] = useState<string | null>(null);
-  const [matchingMeanings] = useState(() =>
-    shuffleArray(questions.map((question) => question.meaning))
-  );
+  const [matchingMeanings, setMatchingMeanings] = useState<string[]>([]);
+
+  // Fetch vocabulary data from Firestore
+  useEffect(() => {
+    const fetchVocabulary = async () => {
+      setLoading(true);
+      try {
+        const config = getCourseConfig(courseId as CourseType);
+
+        if (!config.path) {
+          console.error("No path configuration for course:", courseId);
+          setLoading(false);
+          return;
+        }
+
+        const subCollectionName = `Day${dayNumber}`;
+        const targetCollection = collection(db, config.path, subCollectionName);
+
+        const q = query(targetCollection);
+        const querySnapshot = await getDocs(q);
+
+        const fetchedVocab: VocabData[] = querySnapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            word: data.word,
+            meaning: data.meaning,
+            pronunciation: data.pronunciation,
+            example: data.example,
+          };
+        });
+
+        console.log(
+          `Fetched ${fetchedVocab.length} words from ${subCollectionName} for quiz`
+        );
+
+        if (fetchedVocab.length < 4) {
+          console.warn("Not enough vocabulary for quiz (need at least 4)");
+        }
+
+        setVocabularyData(fetchedVocab);
+
+        // Generate quiz questions from fetched data
+        const generatedQuestions = generateQuizQuestions(
+          fetchedVocab,
+          quizType || "multiple-choice"
+        );
+        setQuestions(generatedQuestions);
+
+        // Set up matching meanings if it's a matching quiz
+        if (quizType === "matching") {
+          setMatchingMeanings(
+            shuffleArray(generatedQuestions.map((q) => q.meaning))
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching vocabulary for quiz:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVocabulary();
+  }, [courseId, dayNumber, quizType]);
 
   const currentQuestion = questions[currentIndex];
   const isMatching = quizType === "matching";
@@ -124,6 +241,19 @@ export default function QuizPlayScreen() {
     if (user) {
       await recordQuizAnswer(user.uid, correct);
     }
+
+    // Auto-advance after showing feedback
+    setTimeout(() => {
+      setShowResult(false);
+      setUserAnswer("");
+
+      if (currentIndex < questions.length - 1) {
+        setCurrentIndex((prev) => prev + 1);
+      } else {
+        setQuizFinished(true);
+        saveQuizResult();
+      }
+    }, 1500); // 1.5 seconds delay to show feedback
   };
 
   const handleMatchingAttempt = async (word: string, meaning: string) => {
@@ -166,18 +296,6 @@ export default function QuizPlayScreen() {
       return;
     }
     setSelectedMeaning(meaning);
-  };
-
-  const handleNext = () => {
-    setShowResult(false);
-    setUserAnswer("");
-
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    } else {
-      setQuizFinished(true);
-      saveQuizResult();
-    }
   };
 
   const saveQuizResult = async (finalScore?: number) => {
@@ -228,11 +346,39 @@ export default function QuizPlayScreen() {
     setMatchingFeedback(null);
   };
 
+  // Show loading screen while fetching data
+  if (loading || questions.length === 0) {
+    return (
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: isDark ? "#000" : "#fff" },
+        ]}
+      >
+        <Stack.Screen
+          options={{
+            title: t("quiz.typeTitle"),
+            headerBackTitle: t("common.back"),
+          }}
+        />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <ThemedText style={styles.loadingText}>
+            {t("common.loading")}
+          </ThemedText>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (quizFinished) {
     const percentage = Math.round((score / questions.length) * 100);
     return (
       <SafeAreaView
-        style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+        style={[
+          styles.container,
+          { backgroundColor: isDark ? "#000" : "#fff" },
+        ]}
       >
         <Stack.Screen
           options={{
@@ -453,9 +599,8 @@ export default function QuizPlayScreen() {
                 </View>
                 <View style={styles.matchingColumn}>
                   {matchingMeanings.map((meaning) => {
-                    const isMatched = Object.values(matchedPairs).includes(
-                      meaning
-                    );
+                    const isMatched =
+                      Object.values(matchedPairs).includes(meaning);
                     const isSelected = selectedMeaning === meaning;
                     return (
                       <TouchableOpacity
@@ -525,44 +670,21 @@ export default function QuizPlayScreen() {
           )}
 
           {/* Result Feedback */}
-          {showResult && !isMatching && (
+          {showResult && !isMatching && !isCorrect && (
             <View style={styles.feedbackContainer}>
               <View
-                style={[
-                  styles.feedbackBadge,
-                  { backgroundColor: isCorrect ? "#28a745" : "#dc3545" },
-                ]}
+                style={[styles.feedbackBadge, { backgroundColor: "#dc3545" }]}
               >
-                <Ionicons
-                  name={isCorrect ? "checkmark-circle" : "close-circle"}
-                  size={24}
-                  color="#fff"
-                />
+                <Ionicons name="close-circle" size={24} color="#fff" />
                 <ThemedText style={styles.feedbackText}>
-                  {isCorrect ? t("quiz.feedback.correct") : t("quiz.feedback.incorrect")}
+                  {t("quiz.feedback.incorrect")}
                 </ThemedText>
               </View>
-              {!isCorrect && (
-                <ThemedText style={styles.correctAnswerText}>
-                  {t("quiz.feedback.correctAnswer", {
-                    answer: currentQuestion.correctAnswer,
-                  })}
-                </ThemedText>
-              )}
-              <TouchableOpacity
-                style={[
-                  styles.nextButton,
-                  { backgroundColor: course?.color || "#007AFF" },
-                ]}
-                onPress={handleNext}
-              >
-                <ThemedText style={styles.nextButtonText}>
-                  {currentIndex < questions.length - 1
-                    ? t("common.next")
-                    : t("quiz.seeResults")}
-                </ThemedText>
-                <Ionicons name="arrow-forward" size={20} color="#fff" />
-              </TouchableOpacity>
+              <ThemedText style={styles.correctAnswerText}>
+                {t("quiz.feedback.correctAnswer", {
+                  answer: currentQuestion.correctAnswer,
+                })}
+              </ThemedText>
             </View>
           )}
         </ScrollView>
@@ -775,5 +897,15 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    opacity: 0.6,
   },
 });
