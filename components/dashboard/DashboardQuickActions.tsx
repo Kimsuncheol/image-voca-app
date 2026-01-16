@@ -41,7 +41,7 @@ export function DashboardQuickActions() {
           title={t("dashboard.quickActions.review")}
           icon="star.fill"
           color="#FFE66D"
-          onPress={() => router.push("/review")}
+          onPress={() => handleTabAction("review", "/review")}
         />
         <QuickAction
           title={t("dashboard.quickActions.settings")}

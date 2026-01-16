@@ -18,7 +18,9 @@ import { SwipeCardItem } from "../../../components/swipe/SwipeCardItem";
 import { VocabularyCardSkeleton } from "../../../components/swipe/VocabularyCardSkeleton";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
 import { db } from "../../../src/services/firebase";
+import { useUserStatsStore } from "../../../src/stores";
 import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
 
 const { width, height } = Dimensions.get("window");
@@ -63,6 +65,8 @@ const getCourseConfig = (courseId: CourseType) => {
 export default function VocabularyScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
+  const { recordUniqueWordLearned } = useUserStatsStore();
+  useTimeTracking(); // Track time spent on this screen
   const { courseId, day } = useLocalSearchParams<{
     courseId: CourseType;
     day: string;
@@ -130,10 +134,21 @@ export default function VocabularyScreen() {
 
   const onSwipeRight = (item: VocabularyCard) => {
     console.log("Learned:", item.word);
+    // Record unique word learned (prevents duplicates)
+    if (user) {
+      const wordId = `${courseId}-${item.id}`;
+      recordUniqueWordLearned(user.uid, wordId);
+    }
   };
 
   const onSwipeLeft = (item: VocabularyCard) => {
-    console.log("Skipped:", item.word);
+    console.log("Learned:", item.word);
+    // console.log("Skipped:", item.word);
+    // Still counts as viewing the word
+    if (user) {
+      const wordId = `${courseId}-${item.id}`;
+      recordUniqueWordLearned(user.uid, wordId);
+    }
   };
 
   const handleFinish = async () => {

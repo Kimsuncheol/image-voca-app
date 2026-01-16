@@ -12,9 +12,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { IconSymbol } from "../../components/ui/icon-symbol";
 import { Colors } from "../../constants/theme";
-import { useTheme } from "../../src/context/ThemeContext";
 import { TabLayoutProvider } from "../../src/context/TabLayoutContext";
+import { useTheme } from "../../src/context/ThemeContext";
 
+import ReviewScreen from "../review";
 import DashboardScreen from "./index";
 import SettingsScreen from "./settings";
 import CourseSelectionScreen from "./swipe";
@@ -25,6 +26,11 @@ const TABS = [
   { key: "dashboard", titleKey: "tabs.dashboard", icon: "house.fill" as const },
   { key: "wordbank", titleKey: "tabs.wordBank", icon: "folder.fill" as const },
   { key: "voca", titleKey: "tabs.voca", icon: "book.fill" as const },
+  {
+    key: "review",
+    titleKey: "tabs.review",
+    icon: "checkmark.circle.fill" as const,
+  },
   {
     key: "settings",
     titleKey: "tabs.settings",
@@ -42,9 +48,9 @@ export default function TabLayout() {
   const { width } = useWindowDimensions();
   const pagerRef = useRef<PagerView>(null);
   const [currentPage, setCurrentPage] = useState(MIDDLE_OFFSET); // Start in middle set
-  const tabIndexByKey = useRef(
-    new Map(TABS.map((tab, index) => [tab.key, index]))
-  ).current;
+  const tabIndexByKey = new Map(
+    TABS.map((tab, index) => [tab.key, index])
+  );
 
   // Get the actual tab index from the page position
   const getTabIndex = (page: number) => {
@@ -99,6 +105,8 @@ export default function TabLayout() {
       case 2:
         return <CourseSelectionScreen />;
       case 3:
+        return <ReviewScreen />;
+      case 4:
         return <SettingsScreen />;
       default:
         return null;
@@ -108,7 +116,10 @@ export default function TabLayout() {
   return (
     <TabLayoutProvider goToTab={handleTabPressByKey}>
       <SafeAreaView
-        style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+        style={[
+          styles.container,
+          { backgroundColor: isDark ? "#000" : "#fff" },
+        ]}
         // Don't modify this line
         edges={["top", "bottom"]}
       >

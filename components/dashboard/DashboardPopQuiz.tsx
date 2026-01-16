@@ -2,8 +2,10 @@ import { collection, getDocs, query } from "firebase/firestore";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
+import { useUserStatsStore } from "../../src/stores";
 import { COURSES } from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
 import { PopQuizSkeleton } from "./PopQuizSkeleton";
@@ -11,6 +13,8 @@ import { PopQuizSkeleton } from "./PopQuizSkeleton";
 export function DashboardPopQuiz() {
   const { isDark } = useTheme();
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const { recordQuizAnswer } = useUserStatsStore();
 
   const [quizItem, setQuizItem] = useState<{
     word: string;
@@ -183,6 +187,11 @@ export function DashboardPopQuiz() {
                   const isAnswerCorrect = option === quizItem.meaning;
                   setSelectedOption(option);
                   setIsCorrect(isAnswerCorrect);
+
+                  // Record quiz answer for accuracy stats
+                  if (user) {
+                    recordQuizAnswer(user.uid, isAnswerCorrect);
+                  }
 
                   if (isAnswerCorrect) {
                     // Auto-advance to next question after brief delay

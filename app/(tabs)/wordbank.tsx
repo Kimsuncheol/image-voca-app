@@ -6,6 +6,7 @@ import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { WordBankCourseGrid, WordBankHeader } from "../../components/wordbank";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
+import { useTimeTracking } from "../../src/hooks/useTimeTracking";
 import { useSubscriptionStore } from "../../src/stores";
 import { CourseType } from "../../src/types/vocabulary";
 
@@ -15,6 +16,7 @@ export default function WordBankScreen() {
   const router = useRouter();
   const { canAccessSpeaking, fetchSubscription } = useSubscriptionStore();
   const { t } = useTranslation();
+  useTimeTracking(); // Track time spent on this screen
 
   useFocusEffect(
     useCallback(() => {

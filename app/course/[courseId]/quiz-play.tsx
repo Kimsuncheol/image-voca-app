@@ -24,6 +24,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "../../../components/themed-text";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
 import { db } from "../../../src/services/firebase";
 import { useUserStatsStore } from "../../../src/stores";
 import { COURSES, CourseType } from "../../../src/types/vocabulary";
@@ -134,6 +135,7 @@ export default function QuizPlayScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { recordQuizAnswer } = useUserStatsStore();
+  useTimeTracking(); // Track time spent on this screen
   const { courseId, day, quizType } = useLocalSearchParams<{
     courseId: CourseType;
     day: string;

@@ -4,7 +4,7 @@ import {
   MediaTypeOptions,
   requestMediaLibraryPermissionsAsync,
 } from "expo-image-picker";
-import { useFocusEffect, useNavigation } from "expo-router";
+import { useNavigation } from "expo-router";
 import {
   deleteUser,
   EmailAuthProvider,
@@ -12,7 +12,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
@@ -29,10 +29,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AccountActionsSection } from "../components/profile/AccountActionsSection";
 import { AccountInfoSection } from "../components/profile/AccountInfoSection";
-import { LearningGoalsSection } from "../components/profile/LearningGoalsSection";
 import { useTheme } from "../src/context/ThemeContext";
 import { auth, storage } from "../src/services/firebase";
-import { useUserStatsStore } from "../src/stores";
 
 export default function ProfileScreen() {
   const { isDark } = useTheme();
@@ -47,21 +45,9 @@ export default function ProfileScreen() {
   const user = auth.currentUser;
   const navigation = useNavigation();
 
-  // Daily Goal state
-  const { stats, fetchStats, updateDailyGoal } = useUserStatsStore();
-  const [dailyGoalInput, setDailyGoalInput] = useState("");
-
   // State for re-authentication
   const [password, setPassword] = useState("");
   const [showPasswordInput, setShowPasswordInput] = useState(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (user) {
-        fetchStats(user.uid);
-      }
-    }, [user, fetchStats])
-  );
 
   useEffect(() => {
     if (user) {
@@ -74,12 +60,6 @@ export default function ProfileScreen() {
       setHasUnsavedChanges(false);
     }
   }, [user]);
-
-  useEffect(() => {
-    if (stats) {
-      setDailyGoalInput(stats.dailyGoal.toString());
-    }
-  }, [stats]);
 
   useEffect(() => {
     const currentImage = image || "";
@@ -273,27 +253,6 @@ export default function ProfileScreen() {
               setDisplayName(text);
             }}
             email={user?.email}
-            t={t}
-          />
-          <LearningGoalsSection
-            styles={styles}
-            isDark={isDark}
-            dailyGoalInput={dailyGoalInput}
-            onChangeDailyGoal={setDailyGoalInput}
-            onUpdateGoal={async () => {
-              const goal = parseInt(dailyGoalInput, 10);
-              if (goal > 0 && user) {
-                await updateDailyGoal(user.uid, goal);
-                // Refetch stats to ensure dashboard gets the latest data
-                await fetchStats(user.uid);
-                Alert.alert(
-                  t("common.success"),
-                  t("profile.goal.updated", { goal })
-                );
-              } else {
-                Alert.alert(t("common.error"), t("profile.goal.invalid"));
-              }
-            }}
             t={t}
           />
           <AccountActionsSection

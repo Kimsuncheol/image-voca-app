@@ -81,13 +81,23 @@ export function SwipeCardItem({ item }: SwipeCardItemProps) {
         { borderColor: isDark ? "#333" : "#E0E0E0" },
       ]}
     >
-      {item.image && (
-        <Image source={{ uri: item.image }} style={styles.cardImage} />
-      )}
+      {/* Always reserve space for image */}
+      <View style={styles.imageContainer}>
+        {item.image ? (
+          <Image source={{ uri: item.image }} style={styles.cardImage} />
+        ) : (
+          <View style={[styles.cardImage, styles.imagePlaceholder]}>
+            <Ionicons
+              name="image-outline"
+              size={48}
+              color={isDark ? "#555" : "#ccc"}
+            />
+          </View>
+        )}
+      </View>
       <View
         style={[
           styles.cardInfo,
-          !item.image && styles.cardInfoFull,
           { backgroundColor: isDark ? "#1a1a1a" : "#fff" },
         ]}
       >
@@ -192,19 +202,25 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   cardImage: {
-    height: "50%",
+    height: "60%",
     width: "100%",
     resizeMode: "cover",
   },
+  imageContainer: {
+    height: "60%",
+    width: "100%",
+  },
+  imagePlaceholder: {
+    backgroundColor: "#f0f0f0",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   cardInfo: {
-    height: "50%",
+    height: "40%",
     justifyContent: "center",
     paddingHorizontal: 24,
     paddingVertical: 16,
     backgroundColor: "#fff",
-  },
-  cardInfoFull: {
-    height: "100%",
   },
   titleContainer: {
     flexDirection: "row",

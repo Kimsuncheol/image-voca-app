@@ -5,7 +5,6 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import {
   DashboardHeader,
   DashboardPopQuiz,
-  DashboardProgress,
   DashboardQuickActions,
   DashboardStats,
 } from "../../components/dashboard";
@@ -50,7 +49,6 @@ export default function DashboardScreen() {
         <DashboardHeader userName={userName} />
         <DashboardQuickActions />
         <DashboardPopQuiz />
-        <DashboardProgress />
         <DashboardStats
           wordsLearned={wordsThisWeek}
           streak={stats?.currentStreak || 0}

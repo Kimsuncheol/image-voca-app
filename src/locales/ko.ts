@@ -20,6 +20,7 @@ const ko = {
     dashboard: "대시보드",
     wordBank: "단어장",
     voca: "단어",
+    review: "복습",
     settings: "설정",
   },
   settings: {

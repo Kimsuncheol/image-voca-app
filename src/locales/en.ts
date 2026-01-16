@@ -20,6 +20,7 @@ const en = {
     dashboard: "Dashboard",
     wordBank: "Word Bank",
     voca: "Voca",
+    review: "Review",
     settings: "Settings",
   },
   settings: {
