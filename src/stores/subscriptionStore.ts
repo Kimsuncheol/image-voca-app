@@ -49,13 +49,16 @@ interface SubscriptionState {
   orderId: string | null;
   loading: boolean;
   error: string | null;
+  unlockedIds: string[];
   fetchSubscription: (userId: string) => Promise<void>;
   updateSubscription: (
     userId: string,
     planId: PlanType,
     orderId: string
   ) => Promise<void>;
+  unlockViaAd: (featureId: string) => void;
   canAccessUnlimitedVoca: () => boolean;
+  canAccessFeature: (featureId: string) => boolean;
   canAccessSpeaking: () => boolean;
   resetSubscription: () => void;
 }
@@ -81,6 +84,8 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   orderId: null,
   loading: false,
   error: null,
+
+  unlockedIds: [],
 
   fetchSubscription: async (userId: string) => {
     set({ loading: true, error: null });
@@ -140,16 +145,37 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     }
   },
 
+  unlockViaAd: (featureId: string) => {
+    set((state) => ({
+      unlockedIds: [...state.unlockedIds, featureId],
+    }));
+  },
+
   canAccessUnlimitedVoca: () => {
     const { currentPlan } = get();
     return currentPlan !== "free";
   },
 
+  canAccessFeature: (featureId: string) => {
+    const { currentPlan, unlockedIds } = get();
+    if (currentPlan !== "free") return true;
+    return unlockedIds.includes(featureId);
+  },
+
   canAccessSpeaking: () => {
-    const { currentPlan } = get();
-    return currentPlan === "voca_speaking";
+    const { currentPlan, unlockedIds } = get();
+    return (
+        currentPlan === "voca_speaking" ||
+        unlockedIds.includes("speaking_feature")
+    );
   },
 
   resetSubscription: () =>
-    set({ currentPlan: "free", orderId: null, loading: false, error: null }),
+    set({
+      currentPlan: "free",
+      orderId: null,
+      loading: false,
+      error: null,
+      unlockedIds: [],
+    }),
 }));

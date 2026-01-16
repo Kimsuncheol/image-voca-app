@@ -6,14 +6,14 @@ import {
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useColorScheme } from "../hooks/use-color-scheme";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import { ThemeProvider as AppThemeProvider } from "../src/context/ThemeContext";
 import { usePushNotifications } from "../src/hooks/usePushNotifications";
-import { useColorScheme } from "../hooks/use-color-scheme";
 import "../src/i18n";
 import { hydrateLanguage } from "../src/i18n";
-import { useTranslation } from "react-i18next";
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
@@ -50,8 +50,15 @@ function RootLayoutNav() {
           <Stack.Screen name="course" options={{ headerShown: false }} />
           <Stack.Screen name="review" options={{ headerShown: false }} />
           <Stack.Screen name="billing" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="advertisement-modal"
+            options={{ presentation: "fullScreenModal", headerShown: false }}
+          />
           <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-          <Stack.Screen name="profile" options={{ title: t("profile.title") }} />
+          <Stack.Screen
+            name="profile"
+            options={{ title: t("profile.title") }}
+          />
         </Stack>
         <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       </NavigationThemeProvider>

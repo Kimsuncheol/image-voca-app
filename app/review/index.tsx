@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   ScrollView,
@@ -9,7 +10,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
 import { ThemedText } from "../../components/themed-text";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
@@ -38,6 +38,14 @@ export default function ReviewScreen() {
         t("alerts.premiumFeature.message"),
         [
           { text: t("common.cancel"), style: "cancel" },
+          {
+            text: "Watch Ad (Free Access)",
+            onPress: () =>
+              router.push({
+                pathname: "/advertisement-modal",
+                params: { featureId: "speaking_feature" },
+              }),
+          },
           { text: t("common.upgrade"), onPress: () => router.push("/billing") },
         ]
       );

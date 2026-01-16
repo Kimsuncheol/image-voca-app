@@ -14,6 +14,8 @@ interface DayGridProps {
   dayProgress: Record<number, DayProgress>;
   courseColor?: string;
   canAccessUnlimitedVoca: boolean;
+  canAccessFeature: (featureId: string) => boolean;
+  courseId: string;
   freeDayLimit: number;
   onDayPress: (day: number) => void;
   onQuizPress: (day: number) => void;
@@ -24,6 +26,8 @@ export function DayGrid({
   dayProgress,
   courseColor,
   canAccessUnlimitedVoca,
+  canAccessFeature,
+  courseId,
   freeDayLimit,
   onDayPress,
   onQuizPress,
@@ -32,7 +36,10 @@ export function DayGrid({
     <View style={styles.daysGrid}>
       {Array.from({ length: totalDays }, (_, i) => i + 1).map((day) => {
         const progress = dayProgress[day];
-        const isLocked = !canAccessUnlimitedVoca && day > freeDayLimit;
+        const featureId = `${courseId}_day_${day}`;
+        const isDayUnlocked = canAccessFeature(featureId);
+        const isLocked =
+          !canAccessUnlimitedVoca && !isDayUnlocked && day > freeDayLimit;
 
         return (
           <DayCard

@@ -29,7 +29,8 @@ export default function DayPickerScreen() {
   const [dayProgress, setDayProgress] = useState<Record<number, DayProgress>>(
     {}
   );
-  const { canAccessUnlimitedVoca, fetchSubscription } = useSubscriptionStore();
+  const { canAccessUnlimitedVoca, canAccessFeature, fetchSubscription } =
+    useSubscriptionStore();
 
   const course = COURSES.find((c) => c.id === courseId);
   const totalDays = 30;
@@ -55,12 +56,23 @@ export default function DayPickerScreen() {
 
   const handleDayPress = (day: number) => {
     const hasUnlimitedAccess = canAccessUnlimitedVoca();
-    if (!hasUnlimitedAccess && day > freeDayLimit) {
+    const featureId = `${courseId}_day_${day}`;
+    const isDayUnlocked = canAccessFeature(featureId);
+
+    if (!hasUnlimitedAccess && !isDayUnlocked && day > freeDayLimit) {
       Alert.alert(
         t("alerts.premiumFeature.title"),
         t("course.premiumLimitMessage", { day: freeDayLimit }),
         [
           { text: t("common.cancel"), style: "cancel" },
+          {
+            text: "Watch Ad (Free Access)",
+            onPress: () =>
+              router.push({
+                pathname: "/advertisement-modal",
+                params: { featureId },
+              }),
+          },
           { text: t("common.upgrade"), onPress: () => router.push("/billing") },
         ]
       );
@@ -102,6 +114,8 @@ export default function DayPickerScreen() {
           dayProgress={dayProgress}
           courseColor={course?.color}
           canAccessUnlimitedVoca={canAccessUnlimitedVoca()}
+          canAccessFeature={canAccessFeature}
+          courseId={courseId!}
           freeDayLimit={freeDayLimit}
           onDayPress={handleDayPress}
           onQuizPress={handleQuizPress}
