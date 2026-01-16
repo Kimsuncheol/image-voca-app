@@ -2,8 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useRouter } from "expo-router";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import React, { useCallback, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 import {
   AllCoursesSection,
@@ -21,8 +20,7 @@ export default function CourseSelectionScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const [recentCourse, setRecentCourse] = useState<CourseType | null>(null);
-  const { canAccessSpeaking, fetchSubscription } = useSubscriptionStore();
-  const { t } = useTranslation();
+  const { fetchSubscription } = useSubscriptionStore();
 
   const fetchRecentCourse = useCallback(async () => {
     try {
@@ -51,21 +49,6 @@ export default function CourseSelectionScreen() {
 
   const handleCourseSelect = async (course: Course) => {
     try {
-      if (course.id === "TOEIC_SPEAKING" && !canAccessSpeaking()) {
-        Alert.alert(
-          t("alerts.premiumFeature.title"),
-          t("alerts.premiumFeature.message"),
-          [
-            { text: t("common.cancel"), style: "cancel" },
-            {
-              text: t("common.upgrade"),
-              onPress: () => router.push("/billing"),
-            },
-          ]
-        );
-        return;
-      }
-
       if (user) {
         updateDoc(doc(db, "users", user.uid), {
           recentCourse: course.id,

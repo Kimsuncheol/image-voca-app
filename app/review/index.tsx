@@ -2,13 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "../../components/themed-text";
 import { useAuth } from "../../src/context/AuthContext";
@@ -20,7 +14,7 @@ export default function ReviewScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
-  const { canAccessSpeaking, fetchSubscription } = useSubscriptionStore();
+  const { fetchSubscription } = useSubscriptionStore();
   const { t } = useTranslation();
 
   useFocusEffect(
@@ -32,26 +26,6 @@ export default function ReviewScreen() {
   );
 
   const handleCoursePress = (courseId: string) => {
-    if (courseId === "TOEIC_SPEAKING" && !canAccessSpeaking()) {
-      Alert.alert(
-        t("alerts.premiumFeature.title"),
-        t("alerts.premiumFeature.message"),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: "Watch Ad (Free Access)",
-            onPress: () =>
-              router.push({
-                pathname: "/advertisement-modal",
-                params: { featureId: "speaking_feature" },
-              }),
-          },
-          { text: t("common.upgrade"), onPress: () => router.push("/billing") },
-        ]
-      );
-      return;
-    }
-
     router.push({
       pathname: "/review/[courseId]",
       params: { courseId },

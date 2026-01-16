@@ -59,16 +59,6 @@ export const COURSES: Course[] = [
     wordCount: 1100,
   },
   {
-    id: "TOEIC_SPEAKING",
-    title: "TOEIC Speaking",
-    titleKey: "courses.toeicSpeaking.title",
-    description: "Speaking Skills",
-    descriptionKey: "courses.toeicSpeaking.description",
-    icon: "mic",
-    color: "#95E1D3",
-    wordCount: 500,
-  },
-  {
     id: "IELTS",
     title: "IELTS",
     titleKey: "courses.ielts.title",
@@ -78,14 +68,5 @@ export const COURSES: Course[] = [
     color: "#DDA0DD",
     wordCount: 1000,
   },
-  {
-    id: "OPIC",
-    title: "OPIc",
-    titleKey: "courses.opic.title",
-    description: "Oral Proficiency Interview",
-    descriptionKey: "courses.opic.description",
-    icon: "chatbubbles",
-    color: "#87CEEB",
-    wordCount: 600,
-  },
 ];
+

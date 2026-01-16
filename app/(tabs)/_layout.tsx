@@ -15,7 +15,7 @@ import { Colors } from "../../constants/theme";
 import { TabLayoutProvider } from "../../src/context/TabLayoutContext";
 import { useTheme } from "../../src/context/ThemeContext";
 
-import ReviewScreen from "../review";
+import SpeakingScreen from "../speaking";
 import DashboardScreen from "./index";
 import SettingsScreen from "./settings";
 import CourseSelectionScreen from "./swipe";
@@ -27,9 +27,9 @@ const TABS = [
   { key: "wordbank", titleKey: "tabs.wordBank", icon: "folder.fill" as const },
   { key: "voca", titleKey: "tabs.voca", icon: "book.fill" as const },
   {
-    key: "review",
-    titleKey: "tabs.review",
-    icon: "checkmark.circle.fill" as const,
+    key: "speaking",
+    titleKey: "tabs.speaking",
+    icon: "waveform" as const,
   },
   {
     key: "settings",
@@ -48,9 +48,7 @@ export default function TabLayout() {
   const { width } = useWindowDimensions();
   const pagerRef = useRef<PagerView>(null);
   const [currentPage, setCurrentPage] = useState(MIDDLE_OFFSET); // Start in middle set
-  const tabIndexByKey = new Map(
-    TABS.map((tab, index) => [tab.key, index])
-  );
+  const tabIndexByKey = new Map(TABS.map((tab, index) => [tab.key, index]));
 
   // Get the actual tab index from the page position
   const getTabIndex = (page: number) => {
@@ -105,7 +103,7 @@ export default function TabLayout() {
       case 2:
         return <CourseSelectionScreen />;
       case 3:
-        return <ReviewScreen />;
+        return <SpeakingScreen />;
       case 4:
         return <SettingsScreen />;
       default:

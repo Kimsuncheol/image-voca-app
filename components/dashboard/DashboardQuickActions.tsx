@@ -38,10 +38,10 @@ export function DashboardQuickActions() {
           onPress={() => handleTabAction("wordbank", "/(tabs)/wordbank")}
         />
         <QuickAction
-          title={t("dashboard.quickActions.review")}
-          icon="star.fill"
-          color="#FFE66D"
-          onPress={() => handleTabAction("review", "/review")}
+          title={t("dashboard.quickActions.speaking")}
+          icon="mic.fill"
+          color="#87CEEB"
+          onPress={() => handleTabAction("speaking", "/speaking")}
         />
         <QuickAction
           title={t("dashboard.quickActions.settings")}

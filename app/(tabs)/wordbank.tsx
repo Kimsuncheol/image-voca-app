@@ -1,7 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback } from "react";
-import { useTranslation } from "react-i18next";
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 import { WordBankCourseGrid, WordBankHeader } from "../../components/wordbank";
 import { useAuth } from "../../src/context/AuthContext";
@@ -14,8 +13,7 @@ export default function WordBankScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
-  const { canAccessSpeaking, fetchSubscription } = useSubscriptionStore();
-  const { t } = useTranslation();
+  const { fetchSubscription } = useSubscriptionStore();
   useTimeTracking(); // Track time spent on this screen
 
   useFocusEffect(
@@ -27,18 +25,6 @@ export default function WordBankScreen() {
   );
 
   const handleCoursePress = (courseId: CourseType) => {
-    if (courseId === "TOEIC_SPEAKING" && !canAccessSpeaking()) {
-      Alert.alert(
-        t("alerts.premiumFeature.title"),
-        t("alerts.premiumFeature.message"),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          { text: t("common.upgrade"), onPress: () => router.push("/billing") },
-        ]
-      );
-      return;
-    }
-
     router.push({
       pathname: "/courses/[course]",
       params: { course: courseId },
