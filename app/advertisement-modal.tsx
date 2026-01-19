@@ -39,7 +39,9 @@ export default function AdvertisementModal() {
         // Ad finished
         setIsRewardEarned(true);
         if (params.featureId) {
-          unlockViaAd(params.featureId);
+          (async () => {
+            await unlockViaAd(params.featureId);
+          })();
         }
       }
     }

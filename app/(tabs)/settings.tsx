@@ -84,7 +84,7 @@ export default function SettingsScreen() {
           text: t("settings.notifications.openSettings"),
           onPress: () => Linking.openSettings(),
         },
-      ]
+      ],
     );
     await setNotificationsEnabledPreference(false);
     setPushEnabled(false);
@@ -217,7 +217,7 @@ const getStyles = (isDark: boolean) =>
     container: {
       flex: 1,
       backgroundColor: isDark ? "#000" : "#f2f2f7",
-      padding: 16,
+      paddingHorizontal: 16,
     },
     header: {
       backgroundColor: isDark ? "#1c1c1e" : "#fff",

@@ -67,7 +67,7 @@ export default function ProfileScreen() {
     const currentName = displayName;
     const baseName = initialDisplayName;
     setHasUnsavedChanges(
-      currentImage !== baseImage || currentName !== baseName
+      currentImage !== baseImage || currentName !== baseName,
     );
   }, [displayName, image, initialDisplayName, initialImage]);
 
@@ -98,7 +98,7 @@ export default function ProfileScreen() {
     if (status !== "granted") {
       Alert.alert(
         t("profile.permission.title"),
-        t("profile.permission.message")
+        t("profile.permission.message"),
       );
       return;
     }
@@ -145,7 +145,7 @@ export default function ProfileScreen() {
       console.error(error);
       Alert.alert(
         t("common.error"),
-        t("profile.save.error", { message: error.message })
+        t("profile.save.error", { message: error.message }),
       );
     } finally {
       setLoading(false);
@@ -179,7 +179,7 @@ export default function ProfileScreen() {
       if (error.code === "auth/requires-recent-login") {
         Alert.alert(
           t("profile.delete.securityTitle"),
-          t("profile.delete.securityMessage")
+          t("profile.delete.securityMessage"),
         );
         setShowPasswordInput(true);
       } else {
@@ -206,7 +206,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container} edges={["left", "right"]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}

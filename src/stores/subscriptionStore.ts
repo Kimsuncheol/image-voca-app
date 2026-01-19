@@ -1,6 +1,11 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { create } from "zustand";
 import { db } from "../services/firebase";
+
+// Ad unlock is allowed for Days 4-10 only (Days 1-3 are free)
+export const AD_UNLOCK_LIMIT = 10;
+const UNLOCKED_IDS_KEY = "@unlocked_ids";
 
 export type PlanType = "free" | "voca_unlimited" | "voca_speaking";
 
@@ -56,10 +61,12 @@ interface SubscriptionState {
     planId: PlanType,
     orderId: string
   ) => Promise<void>;
-  unlockViaAd: (featureId: string) => void;
+  loadUnlockedIds: () => Promise<void>;
+  unlockViaAd: (featureId: string) => Promise<void>;
   canAccessUnlimitedVoca: () => boolean;
   canAccessFeature: (featureId: string) => boolean;
   canAccessSpeaking: () => boolean;
+  canUnlockViaAd: (day: number) => boolean;
   resetSubscription: () => void;
 }
 
@@ -145,10 +152,61 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     }
   },
 
-  unlockViaAd: (featureId: string) => {
-    set((state) => ({
-      unlockedIds: [...state.unlockedIds, featureId],
-    }));
+  loadUnlockedIds: async () => {
+    try {
+      const stored = await AsyncStorage.getItem(UNLOCKED_IDS_KEY);
+      if (stored) {
+        const parsed: string[] = JSON.parse(stored);
+        // Filter out any unlocks beyond Day 10 (enforce new limit)
+        const validUnlocks = parsed.filter((id) => {
+          const match = id.match(/_day_(\d+)$/);
+          if (match) {
+            const day = parseInt(match[1], 10);
+            return day <= AD_UNLOCK_LIMIT;
+          }
+          return true; // Keep non-day unlocks (e.g., speaking_feature)
+        });
+        set({ unlockedIds: validUnlocks });
+        // Save filtered list back if any were removed
+        if (validUnlocks.length !== parsed.length) {
+          await AsyncStorage.setItem(
+            UNLOCKED_IDS_KEY,
+            JSON.stringify(validUnlocks)
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load unlocked IDs:", error);
+    }
+  },
+
+  unlockViaAd: async (featureId: string) => {
+    // Validate the day is within ad unlock limit
+    const match = featureId.match(/_day_(\d+)$/);
+    if (match) {
+      const day = parseInt(match[1], 10);
+      if (day > AD_UNLOCK_LIMIT) {
+        console.warn(
+          `Cannot unlock Day ${day} via ad. Max is Day ${AD_UNLOCK_LIMIT}.`
+        );
+        return;
+      }
+    }
+
+    const currentIds = get().unlockedIds;
+    if (currentIds.includes(featureId)) return; // Already unlocked
+
+    const newUnlockedIds = [...currentIds, featureId];
+    set({ unlockedIds: newUnlockedIds });
+
+    try {
+      await AsyncStorage.setItem(
+        UNLOCKED_IDS_KEY,
+        JSON.stringify(newUnlockedIds)
+      );
+    } catch (error) {
+      console.error("Failed to persist unlocked ID:", error);
+    }
   },
 
   canAccessUnlimitedVoca: () => {
@@ -165,9 +223,13 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   canAccessSpeaking: () => {
     const { currentPlan, unlockedIds } = get();
     return (
-        currentPlan === "voca_speaking" ||
-        unlockedIds.includes("speaking_feature")
+      currentPlan === "voca_speaking" ||
+      unlockedIds.includes("speaking_feature")
     );
+  },
+
+  canUnlockViaAd: (day: number) => {
+    return day > 3 && day <= AD_UNLOCK_LIMIT;
   },
 
   resetSubscription: () =>

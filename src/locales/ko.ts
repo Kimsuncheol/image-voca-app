@@ -164,6 +164,9 @@ const ko = {
       description: "Voca + Speaking으로 업그레이드해 스피킹을 시작하세요.",
     },
     upgradeHint: "업그레이드하여 더 많은 기능을 이용하세요",
+    status: {
+      active: "활성",
+    },
   },
   plans: {
     free: {

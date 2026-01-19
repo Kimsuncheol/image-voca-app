@@ -27,10 +27,15 @@ export default function DayPickerScreen() {
   const { t } = useTranslation();
   const { courseId } = useLocalSearchParams<{ courseId: CourseType }>();
   const [dayProgress, setDayProgress] = useState<Record<number, DayProgress>>(
-    {}
+    {},
   );
-  const { canAccessUnlimitedVoca, canAccessFeature, fetchSubscription } =
-    useSubscriptionStore();
+  const {
+    canAccessUnlimitedVoca,
+    canAccessFeature,
+    canUnlockViaAd,
+    fetchSubscription,
+    loadUnlockedIds,
+  } = useSubscriptionStore();
 
   const course = COURSES.find((c) => c.id === courseId);
   const totalDays = 30;
@@ -40,6 +45,7 @@ export default function DayPickerScreen() {
     if (!user || !courseId) return;
     try {
       fetchSubscription(user.uid);
+      loadUnlockedIds(); // Load persisted ad unlocks
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
         const courseProgress = userDoc.data().courseProgress || {};
@@ -48,7 +54,7 @@ export default function DayPickerScreen() {
     } catch (error) {
       console.error("Error fetching day progress:", error);
     }
-  }, [user, courseId, fetchSubscription]);
+  }, [user, courseId, fetchSubscription, loadUnlockedIds]);
 
   useEffect(() => {
     fetchDayProgress();
@@ -60,21 +66,37 @@ export default function DayPickerScreen() {
     const isDayUnlocked = canAccessFeature(featureId);
 
     if (!hasUnlimitedAccess && !isDayUnlocked && day > freeDayLimit) {
+      // Days 4-10: Show ad option; Days 11+: Premium only
+      const canUseAd = canUnlockViaAd(day);
+
+      const alertButtons: any[] = [
+        { text: t("common.cancel"), style: "cancel" },
+      ];
+
+      if (canUseAd) {
+        alertButtons.push({
+          text: t("course.watchAd", { defaultValue: "Watch Ad (Free Access)" }),
+          onPress: () =>
+            router.push({
+              pathname: "/advertisement-modal",
+              params: { featureId },
+            }),
+        });
+      }
+
+      alertButtons.push({
+        text: t("common.upgrade"),
+        onPress: () => router.push("/billing"),
+      });
+
       Alert.alert(
         t("alerts.premiumFeature.title"),
-        t("course.premiumLimitMessage", { day: freeDayLimit }),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: "Watch Ad (Free Access)",
-            onPress: () =>
-              router.push({
-                pathname: "/advertisement-modal",
-                params: { featureId },
-              }),
-          },
-          { text: t("common.upgrade"), onPress: () => router.push("/billing") },
-        ]
+        canUseAd
+          ? t("course.premiumLimitMessage", { day: freeDayLimit })
+          : t("course.premiumOnlyMessage", {
+              defaultValue: "Days beyond 10 require a premium subscription.",
+            }),
+        alertButtons,
       );
       return;
     }
@@ -94,6 +116,7 @@ export default function DayPickerScreen() {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      edges={["left", "right", "bottom"]}
     >
       <Stack.Screen
         options={{

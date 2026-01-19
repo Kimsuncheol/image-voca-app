@@ -65,7 +65,7 @@ export default function SpeakingIndexScreen() {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
-      edges={["bottom"]}
+      edges={["left", "right"]}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}

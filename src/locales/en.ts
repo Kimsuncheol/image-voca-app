@@ -166,6 +166,9 @@ const en = {
       description: "Upgrade to Voca + Speaking to start speaking practice.",
     },
     upgradeHint: "Upgrade to unlock more features",
+    status: {
+      active: "Active",
+    },
   },
   plans: {
     free: {
