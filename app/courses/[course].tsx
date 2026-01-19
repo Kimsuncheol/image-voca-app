@@ -1,32 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
-import * as Speech from "expo-speech";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "../../components/themed-text";
+import { SavedWord, WordCard } from "../../components/wordbank/WordCard";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
-import { COURSES, CourseType } from "../../src/types/vocabulary";
-
-interface SavedWord {
-  id: string;
-  word: string;
-  meaning: string;
-  pronunciation: string;
-  example: string;
-  course: CourseType;
-  addedAt: string;
-}
+import { COURSES } from "../../src/types/vocabulary";
 
 export default function CourseWordBankScreen() {
   const { isDark } = useTheme();
@@ -43,7 +33,7 @@ export default function CourseWordBankScreen() {
     setLoading(true);
     try {
       const courseDoc = await getDoc(
-        doc(db, "vocabank", user.uid, "course", course)
+        doc(db, "vocabank", user.uid, "course", course),
       );
       if (courseDoc.exists()) {
         setWords(courseDoc.data().words || []);
@@ -60,12 +50,58 @@ export default function CourseWordBankScreen() {
   useFocusEffect(
     useCallback(() => {
       fetchWords();
-    }, [fetchWords])
+    }, [fetchWords]),
   );
 
-  const speak = (word: string) => {
-    Speech.speak(word);
-  };
+  const handleDelete = useCallback(
+    async (wordId: string) => {
+      if (!user) return;
+
+      const wordToDelete = words.find((w) => w.id === wordId);
+      if (!wordToDelete) return;
+
+      Alert.alert(
+        t("wordBank.delete.title", { defaultValue: "Delete Word" }),
+        t("wordBank.delete.message", {
+          defaultValue: `Are you sure you want to delete "${wordToDelete.word}"?`,
+          word: wordToDelete.word,
+        }),
+        [
+          {
+            text: t("common.cancel"),
+            style: "cancel",
+          },
+          {
+            text: t("common.delete", { defaultValue: "Delete" }),
+            style: "destructive",
+            onPress: async () => {
+              try {
+                const updatedWords = words.filter((w) => w.id !== wordId);
+                const courseRef = doc(
+                  db,
+                  "vocabank",
+                  user.uid,
+                  "course",
+                  course,
+                );
+                await setDoc(courseRef, { words: updatedWords });
+                setWords(updatedWords);
+              } catch (error) {
+                console.error("Error deleting word:", error);
+                Alert.alert(
+                  t("common.error", { defaultValue: "Error" }),
+                  t("wordBank.delete.error", {
+                    defaultValue: "Failed to delete word. Please try again.",
+                  }),
+                );
+              }
+            },
+          },
+        ],
+      );
+    },
+    [user, course, words, t],
+  );
 
   return (
     <SafeAreaView
@@ -104,42 +140,13 @@ export default function CourseWordBankScreen() {
           </View>
         ) : (
           words.map((word, index) => (
-            <View
+            <WordCard
               key={word.id + index}
-              style={[
-                styles.wordCard,
-                { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
-              ]}
-            >
-              <View style={styles.wordHeader}>
-                <View style={styles.wordTitleRow}>
-                  <ThemedText type="subtitle" style={styles.wordTitle}>
-                    {word.word}
-                  </ThemedText>
-                  <TouchableOpacity
-                    onPress={() => speak(word.word)}
-                    style={styles.speakerButton}
-                  >
-                    <Ionicons
-                      name="volume-medium"
-                      size={22}
-                      color={courseData?.color || "#007AFF"}
-                    />
-                  </TouchableOpacity>
-                </View>
-                {word.pronunciation && (
-                  <ThemedText style={styles.pronunciation}>
-                    {word.pronunciation}
-                  </ThemedText>
-                )}
-              </View>
-              <ThemedText style={styles.meaning}>{word.meaning}</ThemedText>
-              <View style={styles.exampleContainer}>
-                <ThemedText style={styles.example}>
-                  {`"${word.example}"`}
-                </ThemedText>
-              </View>
-            </View>
+              word={word}
+              courseColor={courseData?.color}
+              isDark={isDark}
+              onDelete={handleDelete}
+            />
           ))
         )}
       </ScrollView>
@@ -178,46 +185,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 8,
     paddingHorizontal: 40,
-  },
-  wordCard: {
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 12,
-  },
-  wordHeader: {
-    marginBottom: 8,
-  },
-  wordTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  wordTitle: {
-    fontSize: 22,
-  },
-  speakerButton: {
-    padding: 4,
-  },
-  pronunciation: {
-    fontSize: 14,
-    fontStyle: "italic",
-    opacity: 0.6,
-    marginTop: 2,
-  },
-  meaning: {
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 8,
-  },
-  exampleContainer: {
-    borderLeftWidth: 3,
-    borderLeftColor: "#007AFF",
-    paddingLeft: 12,
-    marginTop: 4,
-  },
-  example: {
-    fontSize: 14,
-    fontStyle: "italic",
-    opacity: 0.8,
   },
 });

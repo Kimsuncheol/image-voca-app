@@ -1,15 +1,16 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import type * as NotificationsType from "expo-notifications";
 import { collection, getDocs } from "firebase/firestore";
 import { Platform } from "react-native";
 import { db } from "../services/firebase";
 import { vocaService } from "../services/vocaService";
-import type * as NotificationsType from "expo-notifications";
 
 type NotificationsModule = typeof import("expo-notifications");
 type NotificationPermissions = NotificationsType.NotificationPermissionsStatus;
 
 const POP_WORD_NOTIFICATION_IDS_KEY = "voca_pop_word_notification_ids";
-const STUDY_REMINDER_NOTIFICATION_IDS_KEY = "voca_study_reminder_notification_ids";
+const STUDY_REMINDER_NOTIFICATION_IDS_KEY =
+  "voca_study_reminder_notification_ids";
 const LAST_STUDY_DATE_KEY = "voca_last_study_date";
 const NOTIFICATIONS_ENABLED_KEY = "voca_notifications_enabled";
 const POP_WORD_ENABLED_KEY = "voca_pop_word_enabled";
@@ -44,7 +45,7 @@ const getScheduleDates = (
   hour: number,
   minute: number,
   days: number,
-  startFromTomorrow: boolean
+  startFromTomorrow: boolean,
 ) => {
   const now = new Date();
   const start = new Date(now);
@@ -65,7 +66,10 @@ const getScheduleDates = (
 
 const buildDateTrigger = (date: Date) => {
   if (Platform.OS === "android") {
-    return { date, channelId: ANDROID_CHANNEL_ID } as NotificationsType.DateTriggerInput;
+    return {
+      date,
+      channelId: ANDROID_CHANNEL_ID,
+    } as NotificationsType.DateTriggerInput;
   }
   return date;
 };
@@ -99,7 +103,7 @@ const cancelStoredNotifications = async (key: string) => {
   const Notifications = getNotificationsModule();
   if (Notifications) {
     await Promise.all(
-      ids.map((id) => Notifications.cancelScheduledNotificationAsync(id))
+      ids.map((id) => Notifications.cancelScheduledNotificationAsync(id)),
     );
   }
   await AsyncStorage.removeItem(key);
@@ -108,7 +112,9 @@ const cancelStoredNotifications = async (key: string) => {
 const fetchSavedWords = async (userId: string) => {
   const words: { word: string; meaning: string }[] = [];
   try {
-    const snapshot = await getDocs(collection(db, "vocabank", userId, "course"));
+    const snapshot = await getDocs(
+      collection(db, "vocabank", userId, "course"),
+    );
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
       const savedWords = Array.isArray(data.words) ? data.words : [];
@@ -142,13 +148,16 @@ const fetchSavedWords = async (userId: string) => {
   return words;
 };
 
-export const getNotificationPermissions = async (): Promise<NotificationPermissions | null> => {
-  const Notifications = getNotificationsModule();
-  if (!Notifications) return null;
-  return Notifications.getPermissionsAsync();
-};
+export const getNotificationPermissions =
+  async (): Promise<NotificationPermissions | null> => {
+    const Notifications = getNotificationsModule();
+    if (!Notifications) return null;
+    return Notifications.getPermissionsAsync();
+  };
 
-export const isPermissionGranted = (permissions: NotificationPermissions | null) => {
+export const isPermissionGranted = (
+  permissions: NotificationPermissions | null,
+) => {
   if (!permissions) return false;
   if (permissions.granted) return true;
   const Notifications = getNotificationsModule();
@@ -158,34 +167,36 @@ export const isPermissionGranted = (permissions: NotificationPermissions | null)
   );
 };
 
-export const configureNotifications = async (): Promise<NotificationPermissions | null> => {
-  const Notifications = getNotificationsModule();
-  if (!Notifications) return null;
+export const configureNotifications =
+  async (): Promise<NotificationPermissions | null> => {
+    const Notifications = getNotificationsModule();
+    if (!Notifications) return null;
 
-  if (!handlerConfigured) {
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: false,
-        shouldSetBadge: false,
-      }),
-    });
-    handlerConfigured = true;
-  }
+    if (!handlerConfigured) {
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowBanner: true,
+          shouldShowList: true,
+          shouldPlaySound: false,
+          shouldSetBadge: false,
+        }),
+      });
+      handlerConfigured = true;
+    }
 
-  if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
-      name: "Voca Daily",
-      importance: Notifications.AndroidImportance.DEFAULT,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#4A90E2",
-    });
-  }
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
+        name: "Voca Daily",
+        importance: Notifications.AndroidImportance.DEFAULT,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#4A90E2",
+      });
+    }
 
-  const current = await Notifications.getPermissionsAsync();
-  if (isPermissionGranted(current)) return current;
-  return Notifications.requestPermissionsAsync();
-};
+    const current = await Notifications.getPermissionsAsync();
+    if (isPermissionGranted(current)) return current;
+    return Notifications.requestPermissionsAsync();
+  };
 
 export const getNotificationsEnabledPreference = async () => {
   const value = await AsyncStorage.getItem(NOTIFICATIONS_ENABLED_KEY);
@@ -196,7 +207,7 @@ export const getNotificationsEnabledPreference = async () => {
 export const setNotificationsEnabledPreference = async (enabled: boolean) => {
   await AsyncStorage.setItem(
     NOTIFICATIONS_ENABLED_KEY,
-    enabled ? "true" : "false"
+    enabled ? "true" : "false",
   );
 };
 
@@ -219,7 +230,7 @@ export const getStudyReminderEnabledPreference = async () => {
 export const setStudyReminderEnabledPreference = async (enabled: boolean) => {
   await AsyncStorage.setItem(
     STUDY_REMINDER_ENABLED_KEY,
-    enabled ? "true" : "false"
+    enabled ? "true" : "false",
   );
 };
 
@@ -238,7 +249,7 @@ export const cancelAllScheduledNotifications = async () => {
 
 export const schedulePopWordNotifications = async (
   userId: string,
-  days: number = SCHEDULE_WINDOW_DAYS
+  days: number = SCHEDULE_WINDOW_DAYS,
 ) => {
   const Notifications = getNotificationsModule();
   if (!Notifications) return;
@@ -251,7 +262,7 @@ export const schedulePopWordNotifications = async (
     DEFAULT_POP_WORD_HOUR,
     DEFAULT_POP_WORD_MINUTE,
     days,
-    false
+    false,
   );
 
   const scheduledIds: string[] = [];
@@ -275,7 +286,7 @@ export const schedulePopWordNotifications = async (
 };
 
 export const scheduleStudyReminderNotifications = async (
-  days: number = SCHEDULE_WINDOW_DAYS
+  days: number = SCHEDULE_WINDOW_DAYS,
 ) => {
   const Notifications = getNotificationsModule();
   if (!Notifications) return;
@@ -287,7 +298,7 @@ export const scheduleStudyReminderNotifications = async (
     DEFAULT_REMINDER_HOUR,
     DEFAULT_REMINDER_MINUTE,
     days,
-    lastStudyDate === today
+    lastStudyDate === today,
   );
 
   const scheduledIds: string[] = [];

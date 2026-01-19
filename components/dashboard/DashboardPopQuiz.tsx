@@ -1,7 +1,7 @@
 import { collection, getDocs, query } from "firebase/firestore";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
@@ -16,6 +16,14 @@ export function DashboardPopQuiz() {
   const { user } = useAuth();
   const { recordQuizAnswer } = useUserStatsStore();
 
+  // Batch prefetch state
+  const [currentBatch, setCurrentBatch] = useState<any[]>([]);
+  const [nextBatch, setNextBatch] = useState<any[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [turnNumber, setTurnNumber] = useState(1);
+  const [isPrefetching, setIsPrefetching] = useState(false);
+
+  // Quiz state
   const [quizItem, setQuizItem] = useState<{
     word: string;
     meaning: string;
@@ -25,75 +33,39 @@ export function DashboardPopQuiz() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  const processSnapshot = useCallback((snapshot: any) => {
-    const docs = snapshot.docs.map((d: any) => d.data());
-    if (docs.length < 4) {
-      setLoading(false);
-      return; // Need at least 4 words for a quiz
+  // Animation
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Helper to get course path
+  const getCoursePath = useCallback((courseId: string) => {
+    switch (courseId) {
+      case "수능":
+        return process.env.EXPO_PUBLIC_COURSE_PATH_CSAT || "";
+      case "TOEIC":
+        return process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC || "";
+      case "TOEFL":
+        return process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL || "";
+      case "TOEIC_SPEAKING":
+        return process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC_SPEAKING || "";
+      case "IELTS":
+        return process.env.EXPO_PUBLIC_COURSE_PATH_IELTS || "";
+      case "OPIC":
+        return process.env.EXPO_PUBLIC_COURSE_PATH_OPIC || "";
+      default:
+        return "";
     }
-
-    // Pick random word
-    const targetIndex = Math.floor(Math.random() * docs.length);
-    const targetWord = docs[targetIndex];
-
-    // Pick 3 distractors
-    const distractors: string[] = [];
-    const usedIndices = new Set([targetIndex]);
-
-    while (distractors.length < 3) {
-      const randIndex = Math.floor(Math.random() * docs.length);
-      if (!usedIndices.has(randIndex)) {
-        usedIndices.add(randIndex);
-        distractors.push(docs[randIndex].meaning);
-      }
-    }
-
-    const allOptions = [...distractors, targetWord.meaning];
-    // Shuffle options
-    for (let i = allOptions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
-    }
-
-    setQuizItem({ word: targetWord.word, meaning: targetWord.meaning });
-    setOptions(allOptions);
-    setLoading(false);
   }, []);
 
-  const fetchQuizData = useCallback(async () => {
-    setLoading(true);
-    setSelectedOption(null);
-    setIsCorrect(null);
+  // Fetch a batch of 10 words
+  const fetchBatch = useCallback(async () => {
     try {
-      // Helper to get path for a course
-      const getCoursePath = (courseId: string) => {
-        switch (courseId) {
-          case "수능":
-            return process.env.EXPO_PUBLIC_COURSE_PATH_CSAT || "";
-          case "TOEIC":
-            return process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC || "";
-          case "TOEFL":
-            return process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL || "";
-          case "TOEIC_SPEAKING":
-            return process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC_SPEAKING || "";
-          case "IELTS":
-            return process.env.EXPO_PUBLIC_COURSE_PATH_IELTS || "";
-          case "OPIC":
-            return process.env.EXPO_PUBLIC_COURSE_PATH_OPIC || "";
-          default:
-            return "";
-        }
-      };
-
-      // Try to find data by attempting multiple courses and days
       const shuffledCourses = [...COURSES].sort(() => Math.random() - 0.5);
-      const daysToTry = [1, 2, 3, 4, 5]; // Try Days 1-5
+      const daysToTry = [1, 2, 3, 4, 5];
 
       for (const course of shuffledCourses) {
         const path = getCoursePath(course.id);
         if (!path) continue;
 
-        // Shuffle days for variety
         const shuffledDays = [...daysToTry].sort(() => Math.random() - 0.5);
 
         for (const dayNum of shuffledDays) {
@@ -103,35 +75,139 @@ export function DashboardPopQuiz() {
             const q = query(collection(db, path, subCollectionName));
             const snapshot = await getDocs(q);
 
-            if (!snapshot.empty) {
+            if (!snapshot.empty && snapshot.docs.length >= 10) {
+              // Shuffle and take 10 words
+              const allDocs = snapshot.docs.map((d) => d.data());
+              const shuffled = allDocs.sort(() => Math.random() - 0.5);
+              const batch = shuffled.slice(0, 10);
+
               console.log(
-                `Found quiz data in ${course.id} - ${subCollectionName} (${snapshot.docs.length} words)`
+                `Fetched batch from ${course.id} - ${subCollectionName} (${batch.length} words)`,
               );
-              processSnapshot(snapshot);
-              return; // Success! Exit the function
+              return batch;
             }
           } catch (error) {
             console.log(
               `Error checking ${course.id}/${subCollectionName}:`,
-              error
+              error,
             );
-            // Continue to next day/course
           }
         }
       }
 
-      // If we get here, no data was found in any course/day
       console.warn("No vocabulary data found in any course");
-      setLoading(false);
+      return [];
     } catch (e) {
-      console.error("Quiz fetch error", e);
-      setLoading(false);
+      console.error("Batch fetch error", e);
+      return [];
     }
-  }, [processSnapshot]);
+  }, [getCoursePath]);
 
+  // Prefetch next batch
+  const prefetchNextBatch = useCallback(async () => {
+    if (isPrefetching) return;
+
+    setIsPrefetching(true);
+    const batch = await fetchBatch();
+    setNextBatch(batch);
+    setIsPrefetching(false);
+    console.log("Prefetched next batch");
+  }, [fetchBatch, isPrefetching]);
+
+  // Generate quiz from current word
+  const generateQuiz = useCallback((wordData: any, batch: any[]) => {
+    if (batch.length < 4) return;
+
+    // Use wordData as target
+    const targetWord = wordData;
+
+    // Pick 3 distractors from batch
+    const distractors: string[] = [];
+    const availableWords = batch.filter((w) => w.word !== targetWord.word);
+
+    while (distractors.length < 3 && availableWords.length > 0) {
+      const randIndex = Math.floor(Math.random() * availableWords.length);
+      distractors.push(availableWords[randIndex].meaning);
+      availableWords.splice(randIndex, 1);
+    }
+
+    // Shuffle options
+    const allOptions = [...distractors, targetWord.meaning];
+    for (let i = allOptions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
+    }
+
+    setQuizItem({ word: targetWord.word, meaning: targetWord.meaning });
+    setOptions(allOptions);
+  }, []);
+
+  // Load next quiz from current batch
+  const loadNextQuiz = useCallback(() => {
+    if (currentBatch.length === 0) return;
+
+    const newIndex = currentIndex + 1;
+
+    // Check if we need to switch batches
+    if (newIndex >= 10) {
+      if (nextBatch.length > 0) {
+        console.log(`Switching to next batch (turn ${turnNumber + 1})`);
+        setCurrentBatch(nextBatch);
+        setNextBatch([]);
+        setCurrentIndex(0);
+        setTurnNumber((prev) => prev + 1);
+        generateQuiz(nextBatch[0], nextBatch);
+      } else {
+        // No next batch, fetch new one
+        setLoading(true);
+      }
+      return;
+    }
+
+    // Prefetch at position 10*n - 3 (e.g., 7, 17, 27...)
+    if (newIndex === 10 * turnNumber - 3 && nextBatch.length === 0) {
+      console.log(`Prefetching at position ${newIndex}`);
+      prefetchNextBatch();
+    }
+
+    setCurrentIndex(newIndex);
+    generateQuiz(currentBatch[newIndex], currentBatch);
+  }, [
+    currentBatch,
+    currentIndex,
+    nextBatch,
+    turnNumber,
+    generateQuiz,
+    prefetchNextBatch,
+  ]);
+
+  // Initial load
   useEffect(() => {
-    fetchQuizData();
-  }, [fetchQuizData]);
+    const init = async () => {
+      setLoading(true);
+      const batch = await fetchBatch();
+      if (batch.length > 0) {
+        setCurrentBatch(batch);
+        setCurrentIndex(0);
+        setTurnNumber(1);
+        generateQuiz(batch[0], batch);
+      }
+      setLoading(false);
+    };
+    init();
+  }, [fetchBatch, generateQuiz]);
+
+  // Animate on quiz change
+  useEffect(() => {
+    if (quizItem) {
+      fadeAnim.setValue(0);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [quizItem, fadeAnim]);
 
   if (loading || !quizItem) return <PopQuizSkeleton />;
 
@@ -157,58 +233,62 @@ export function DashboardPopQuiz() {
           </View>
         </View>
 
-        <View style={styles.popQuizQuestion}>
-          <ThemedText style={styles.popQuizQuestionLabel}>
-            {t("dashboard.popQuiz.question")}
-          </ThemedText>
-          <ThemedText style={styles.popQuizQuestionText}>
-            {quizItem.word}
-          </ThemedText>
-        </View>
+        <Animated.View style={{ opacity: fadeAnim }}>
+          <View style={styles.popQuizQuestion}>
+            <ThemedText style={styles.popQuizQuestionLabel}>
+              {t("dashboard.popQuiz.question")}
+            </ThemedText>
+            <ThemedText style={styles.popQuizQuestionText}>
+              {quizItem.word}
+            </ThemedText>
+          </View>
 
-        <View style={styles.popQuizOptions}>
-          {options.map((option, index) => {
-            const selected = selectedOption === option;
-            const correct = option === quizItem.meaning;
-            return (
-              <TouchableOpacity
-                key={`${option}-${index}`}
-                style={[
-                  styles.popQuizOption,
-                  { backgroundColor: isDark ? "#2c2c2e" : "#fff" },
-                  selected &&
-                    (correct
-                      ? styles.popQuizOptionCorrect
-                      : styles.popQuizOptionIncorrect),
-                ]}
-                onPress={() => {
-                  if (isCorrect) return; // Only lock if already answered correctly
+          <View style={styles.popQuizOptions}>
+            {options.map((option, index) => {
+              const selected = selectedOption === option;
+              const correct = option === quizItem.meaning;
+              return (
+                <TouchableOpacity
+                  key={`${option}-${index}`}
+                  style={[
+                    styles.popQuizOption,
+                    { backgroundColor: isDark ? "#2c2c2e" : "#fff" },
+                    selected &&
+                      (correct
+                        ? styles.popQuizOptionCorrect
+                        : styles.popQuizOptionIncorrect),
+                  ]}
+                  onPress={() => {
+                    if (isCorrect) return; // Only lock if already answered correctly
 
-                  const isAnswerCorrect = option === quizItem.meaning;
-                  setSelectedOption(option);
-                  setIsCorrect(isAnswerCorrect);
+                    const isAnswerCorrect = option === quizItem.meaning;
+                    setSelectedOption(option);
+                    setIsCorrect(isAnswerCorrect);
 
-                  // Record quiz answer for accuracy stats
-                  if (user) {
-                    recordQuizAnswer(user.uid, isAnswerCorrect);
-                  }
+                    // Record quiz answer for accuracy stats
+                    if (user) {
+                      recordQuizAnswer(user.uid, isAnswerCorrect);
+                    }
 
-                  if (isAnswerCorrect) {
-                    // Auto-advance to next question after brief delay
-                    setTimeout(() => {
-                      fetchQuizData();
-                    }, 500);
-                  }
-                }}
-                activeOpacity={0.8}
-              >
-                <ThemedText style={styles.popQuizOptionText}>
-                  {option}
-                </ThemedText>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+                    if (isAnswerCorrect) {
+                      // Auto-advance to next question after brief delay
+                      setTimeout(() => {
+                        setSelectedOption(null);
+                        setIsCorrect(null);
+                        loadNextQuiz();
+                      }, 500);
+                    }
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <ThemedText style={styles.popQuizOptionText}>
+                    {option}
+                  </ThemedText>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </Animated.View>
       </View>
     </View>
   );
@@ -258,6 +338,7 @@ const styles = StyleSheet.create({
   },
   popQuizQuestion: {
     gap: 4,
+    marginBottom: 20,
   },
   popQuizQuestionLabel: {
     fontSize: 12,
@@ -265,7 +346,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   popQuizQuestionText: {
-    fontSize: 20,
+    fontSize: 28,
     fontWeight: "700",
   },
   popQuizOptions: {

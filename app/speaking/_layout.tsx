@@ -27,7 +27,9 @@ export default function SpeakingLayout() {
         name="toeic/index"
         options={{
           title: t("speaking.toeic.title"),
+          headerTitle: "TOEIC Speaking",
           headerBackTitle: t("common.back"),
+          headerShown: false,
         }}
       />
       <Stack.Screen
@@ -35,6 +37,7 @@ export default function SpeakingLayout() {
         options={{
           title: t("speaking.toeic.practice"),
           headerBackTitle: t("common.back"),
+          headerShown: false,
           gestureEnabled: false,
         }}
       />
@@ -50,7 +53,9 @@ export default function SpeakingLayout() {
         name="opic/index"
         options={{
           title: t("speaking.opic.title"),
+          headerTitle: "OPIc",
           headerBackTitle: t("common.back"),
+          headerShown: false,
         }}
       />
       <Stack.Screen
@@ -58,6 +63,7 @@ export default function SpeakingLayout() {
         options={{
           title: t("speaking.opic.practice"),
           headerBackTitle: t("common.back"),
+          headerShown: false,
           gestureEnabled: false,
         }}
       />

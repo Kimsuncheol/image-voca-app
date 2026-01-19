@@ -29,7 +29,7 @@ export default function DashboardScreen() {
       if (user) {
         fetchStats(user.uid);
       }
-    }, [user, fetchStats])
+    }, [user, fetchStats]),
   );
 
   const wordsThisWeek = getWordsLearnedForPeriod(7);
