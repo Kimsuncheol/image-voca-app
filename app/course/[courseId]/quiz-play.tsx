@@ -661,6 +661,7 @@ export default function QuizPlayScreen() {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      edges={["bottom"]}
     >
       <Stack.Screen
         options={{

@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   },
   popQuizQuestion: {
     gap: 4,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   popQuizQuestionLabel: {
     fontSize: 12,
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   popQuizQuestionText: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "700",
   },
   popQuizOptions: {

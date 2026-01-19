@@ -3,7 +3,7 @@ import {
   TinderSwipeRef,
 } from "@/src/components/tinder-swipe/TinderSwipe";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { collection, doc, getDocs, query, updateDoc } from "firebase/firestore";
+import { collection, getDocs, query } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -109,7 +109,7 @@ export default function VocabularyScreen() {
         });
 
         console.log(
-          `Fetched ${fetchedCards.length} words from ${subCollectionName}`
+          `Fetched ${fetchedCards.length} words from ${subCollectionName}`,
         );
         setCards(fetchedCards);
       } catch (error) {
@@ -138,23 +138,6 @@ export default function VocabularyScreen() {
     if (user) {
       const wordId = `${courseId}-${item.id}`;
       recordUniqueWordLearned(user.uid, wordId);
-    }
-  };
-
-  const handleFinish = async () => {
-    if (!user) return;
-    try {
-      await updateDoc(doc(db, "users", user.uid), {
-        [`courseProgress.${courseId}.${dayNumber}`]: {
-          completed: true,
-          wordsLearned: cards.length,
-          totalWords: cards.length,
-          quizCompleted: false,
-        },
-      });
-      router.back();
-    } catch (error) {
-      console.error("Error updating progress:", error);
     }
   };
 
@@ -256,12 +239,6 @@ export default function VocabularyScreen() {
                 <Text style={styles.buttonText}>{t("common.review")}</Text>
               </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={[styles.button, styles.finishButton]}
-              onPress={handleFinish}
-            >
-              <Text style={styles.buttonText}>{t("common.finish")}</Text>
-            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -312,9 +289,6 @@ const styles = StyleSheet.create({
   },
   restartButton: {
     backgroundColor: "#007bff",
-  },
-  finishButton: {
-    backgroundColor: "#6c757d",
   },
   buttonText: {
     color: "#fff",
