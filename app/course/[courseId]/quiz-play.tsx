@@ -16,11 +16,17 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  MatchingGame,
+  MultipleChoiceGame,
+  QuizFeedback,
+  SpellingGame,
+  WordArrangementGame,
+} from "../../../components/course";
 import { ThemedText } from "../../../components/themed-text";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
@@ -94,12 +100,12 @@ const getCourseConfig = (courseId: CourseType) => {
 // Generate quiz questions from real vocabulary data
 const generateQuizQuestions = (
   vocabData: VocabData[],
-  quizType: string
+  quizType: string,
 ): QuizQuestion[] => {
   // Shuffle and take random questions (up to 10)
   const selectedWords = shuffleArray([...vocabData]).slice(
     0,
-    Math.min(10, vocabData.length)
+    Math.min(10, vocabData.length),
   );
 
   return selectedWords.map((vocab, index) => {
@@ -127,6 +133,57 @@ const generateQuizQuestions = (
       correctAnswer: isWordAnswer ? vocab.word : vocab.meaning,
     };
   });
+};
+
+// Word Arrangement helpers
+const tokenizeSentence = (sentence: string): string[] => {
+  // Split by spaces but keep punctuation attached to words
+  return sentence.split(/\s+/).filter((chunk) => chunk.length > 0);
+};
+
+const normalizeSentence = (sentence: string) =>
+  sentence.split(/\s+/).filter(Boolean).join(" ");
+
+const splitExampleSentences = (example: string): string[] => {
+  const normalized = example.replace(/\r\n/g, "\n").trim();
+  if (!normalized) return [];
+
+  const lines = normalized
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  let sentences: string[] = [];
+  if (lines.length > 1) {
+    sentences = lines;
+  } else if (/^\s*\d+[\.\)]\s+/.test(normalized)) {
+    sentences = normalized
+      .split(/\s*\d+[\.\)]\s+/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+  }
+
+  if (sentences.length === 0) {
+    sentences = [normalized];
+  }
+
+  return sentences
+    .map((sentence) => sentence.replace(/^\d+[\.\)]\s+/, "").trim())
+    .filter(Boolean);
+};
+
+const splitSelectedChunksBySentence = (
+  chunks: string[],
+  counts: number[],
+): string[][] => {
+  if (counts.length === 0) return [chunks];
+  const groups: string[][] = [];
+  let cursor = 0;
+  counts.forEach((count) => {
+    groups.push(chunks.slice(cursor, cursor + count));
+    cursor += count;
+  });
+  return groups;
 };
 
 export default function QuizPlayScreen() {
@@ -160,6 +217,16 @@ export default function QuizPlayScreen() {
   const [matchingFeedback, setMatchingFeedback] = useState<string | null>(null);
   const [matchingMeanings, setMatchingMeanings] = useState<string[]>([]);
 
+  // Word Arrangement state
+  const [shuffledChunks, setShuffledChunks] = useState<string[]>([]);
+  const [selectedChunks, setSelectedChunks] = useState<string[]>([]);
+  const [arrangementComplete, setArrangementComplete] = useState(false);
+  const [currentArrangementWord, setCurrentArrangementWord] =
+    useState<VocabData | null>(null);
+  const [currentArrangementSentences, setCurrentArrangementSentences] =
+    useState<string[]>([]);
+  const [sentenceChunkCounts, setSentenceChunkCounts] = useState<number[]>([]);
+
   // Fetch vocabulary data from Firestore
   useEffect(() => {
     const fetchVocabulary = async () => {
@@ -190,7 +257,7 @@ export default function QuizPlayScreen() {
         });
 
         console.log(
-          `Fetched ${fetchedVocab.length} words from ${subCollectionName} for quiz`
+          `Fetched ${fetchedVocab.length} words from ${subCollectionName} for quiz`,
         );
 
         if (fetchedVocab.length < 4) {
@@ -202,14 +269,14 @@ export default function QuizPlayScreen() {
         // Generate quiz questions from fetched data
         const generatedQuestions = generateQuizQuestions(
           fetchedVocab,
-          quizType || "multiple-choice"
+          quizType || "multiple-choice",
         );
         setQuestions(generatedQuestions);
 
         // Set up matching meanings if it's a matching quiz
         if (quizType === "matching") {
           setMatchingMeanings(
-            shuffleArray(generatedQuestions.map((q) => q.meaning))
+            shuffleArray(generatedQuestions.map((q) => q.meaning)),
           );
         }
       } catch (error) {
@@ -225,6 +292,7 @@ export default function QuizPlayScreen() {
   const currentQuestion = questions[currentIndex];
   const isMatching = quizType === "matching";
   const isSpelling = quizType === "spelling";
+  const isWordArrangement = quizType === "word-arrangement";
   const matchedCount = Object.keys(matchedPairs).length;
   const progressCurrent = isMatching ? matchedCount : currentIndex + 1;
 
@@ -261,7 +329,7 @@ export default function QuizPlayScreen() {
   const handleMatchingAttempt = async (word: string, meaning: string) => {
     const correct = questions.find((q) => q.word === word)?.meaning === meaning;
     setMatchingFeedback(
-      correct ? t("quiz.feedback.correct") : t("quiz.feedback.incorrect")
+      correct ? t("quiz.feedback.correct") : t("quiz.feedback.incorrect"),
     );
 
     if (user) {
@@ -300,6 +368,146 @@ export default function QuizPlayScreen() {
     setSelectedMeaning(meaning);
   };
 
+  // Word Arrangement: Initialize a new word for arrangement
+  const initWordArrangement = React.useCallback((vocab: VocabData) => {
+    if (!vocab.example) return;
+    const sentences = splitExampleSentences(vocab.example)
+      .map((sentence) => normalizeSentence(sentence))
+      .filter(Boolean);
+    if (sentences.length === 0) return;
+
+    const sentenceChunks = sentences.map((sentence) =>
+      tokenizeSentence(sentence),
+    );
+    const chunks = sentenceChunks.flat();
+    setCurrentArrangementWord(vocab);
+    setCurrentArrangementSentences(sentences);
+    setSentenceChunkCounts(sentenceChunks.map((chunk) => chunk.length));
+    setShuffledChunks(shuffleArray([...chunks]));
+    setSelectedChunks([]);
+    setArrangementComplete(false);
+  }, []);
+
+  // Word Arrangement: Handle selecting a chunk from available
+  const handleChunkSelect = (chunk: string, index: number) => {
+    if (arrangementComplete) return;
+    // Remove from shuffled and add to selected
+    const newShuffled = [...shuffledChunks];
+    newShuffled.splice(index, 1);
+    setShuffledChunks(newShuffled);
+    setSelectedChunks([...selectedChunks, chunk]);
+  };
+
+  // Word Arrangement: Handle removing a chunk from answer
+  const handleChunkDeselect = (index: number) => {
+    if (arrangementComplete) return;
+    const chunk = selectedChunks[index];
+    const newSelected = [...selectedChunks];
+    newSelected.splice(index, 1);
+    setSelectedChunks(newSelected);
+    setShuffledChunks([...shuffledChunks, chunk]);
+  };
+
+  // Word Arrangement: Check if arrangement is correct
+  // Word Arrangement: Check if arrangement is correct
+  const checkArrangement = React.useCallback(async () => {
+    if (currentArrangementSentences.length === 0) return;
+    const groupedChunks = splitSelectedChunksBySentence(
+      selectedChunks,
+      sentenceChunkCounts,
+    );
+    const isCorrect =
+      groupedChunks.length === currentArrangementSentences.length &&
+      groupedChunks.every((group, index) => {
+        const userSentence = normalizeSentence(group.join(" "));
+        return userSentence === currentArrangementSentences[index];
+      });
+
+    if (isCorrect) {
+      setArrangementComplete(true);
+      setScore((prev) => prev + 1);
+      if (user) {
+        await recordQuizAnswer(user.uid, true);
+      }
+    }
+    return isCorrect;
+  }, [
+    currentArrangementSentences,
+    selectedChunks,
+    sentenceChunkCounts,
+    user,
+    recordQuizAnswer,
+  ]);
+
+  // Word Arrangement: Handle next word
+  const handleArrangementNext = () => {
+    const nextIndex = currentIndex + 1;
+    if (nextIndex >= vocabularyData.length) {
+      setQuizFinished(true);
+      saveQuizResult();
+      return;
+    }
+
+    // Find next word with example sentence
+    let nextVocab = vocabularyData[nextIndex];
+    let searchIndex = nextIndex;
+    while (searchIndex < vocabularyData.length && !nextVocab.example) {
+      searchIndex++;
+      if (searchIndex < vocabularyData.length) {
+        nextVocab = vocabularyData[searchIndex];
+      }
+    }
+
+    if (searchIndex >= vocabularyData.length || !nextVocab.example) {
+      setQuizFinished(true);
+      saveQuizResult();
+      return;
+    }
+
+    setCurrentIndex(searchIndex);
+    initWordArrangement(nextVocab);
+  };
+
+  // Word Arrangement: Check arrangement when all chunks are selected
+  useEffect(() => {
+    if (
+      isWordArrangement &&
+      shuffledChunks.length === 0 &&
+      selectedChunks.length > 0 &&
+      !arrangementComplete
+    ) {
+      checkArrangement();
+    }
+  }, [
+    shuffledChunks,
+    selectedChunks,
+    isWordArrangement,
+    arrangementComplete,
+    checkArrangement,
+  ]);
+
+  // Word Arrangement: Initialize first word when data is loaded
+  useEffect(() => {
+    if (
+      isWordArrangement &&
+      vocabularyData.length > 0 &&
+      !currentArrangementWord
+    ) {
+      // Find first word with example sentence
+      const firstWithExample = vocabularyData.find((v) => v.example);
+      if (firstWithExample) {
+        const firstIndex = vocabularyData.indexOf(firstWithExample);
+        setCurrentIndex(firstIndex);
+        initWordArrangement(firstWithExample);
+      }
+    }
+  }, [
+    vocabularyData,
+    isWordArrangement,
+    currentArrangementWord,
+    initWordArrangement,
+  ]);
+
   const saveQuizResult = async (finalScore?: number) => {
     if (!user) return;
 
@@ -318,7 +526,7 @@ export default function QuizPlayScreen() {
           totalQuestions: questions.length,
           percentage,
           completedAt: new Date().toISOString(),
-        }
+        },
       );
 
       // Update course progress
@@ -346,6 +554,13 @@ export default function QuizPlayScreen() {
     setSelectedMeaning(null);
     setMatchedPairs({});
     setMatchingFeedback(null);
+    // Reset word arrangement state
+    setShuffledChunks([]);
+    setSelectedChunks([]);
+    setArrangementComplete(false);
+    setCurrentArrangementWord(null);
+    setCurrentArrangementSentences([]);
+    setSentenceChunkCounts([]);
   };
 
   // Show loading screen while fetching data
@@ -397,8 +612,8 @@ export default function QuizPlayScreen() {
                   percentage >= 80
                     ? "#28a745"
                     : percentage >= 60
-                    ? "#ffc107"
-                    : "#dc3545",
+                      ? "#ffc107"
+                      : "#dc3545",
               },
             ]}
           >
@@ -414,8 +629,8 @@ export default function QuizPlayScreen() {
             {percentage >= 80
               ? t("quiz.results.excellent")
               : percentage >= 60
-              ? t("quiz.results.goodJob")
-              : t("quiz.results.keepPracticing")}
+                ? t("quiz.results.goodJob")
+                : t("quiz.results.keepPracticing")}
           </ThemedText>
 
           <View style={styles.resultButtons}>
@@ -492,202 +707,63 @@ export default function QuizPlayScreen() {
             </ThemedText>
           </View>
 
-          {/* Question Card */}
-          {!isMatching && (
-            <View
-              style={[
-                styles.questionCard,
-                { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
-              ]}
-            >
-              {quizType === "fill-blank" || isSpelling ? (
-                <>
-                  <ThemedText style={styles.questionLabel}>
-                    {isSpelling
-                      ? t("quiz.questions.spellPrompt")
-                      : t("quiz.questions.matchMeaning")}
-                  </ThemedText>
-                  <ThemedText type="subtitle" style={styles.questionText}>
-                    {currentQuestion.meaning}
-                  </ThemedText>
-                </>
-              ) : (
-                <>
-                  <ThemedText style={styles.questionLabel}>
-                    {t("quiz.questions.meaningOf")}
-                  </ThemedText>
-                  <ThemedText type="title" style={styles.wordText}>
-                    {currentQuestion.word}
-                  </ThemedText>
-                </>
-              )}
-            </View>
-          )}
-
-          {/* Answer Section */}
-          {quizType === "fill-blank" || isSpelling ? (
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5",
-                    color: isDark ? "#fff" : "#000",
-                  },
-                  showResult && {
-                    borderColor: isCorrect ? "#28a745" : "#dc3545",
-                    borderWidth: 2,
-                  },
-                ]}
-                placeholder={
-                  isSpelling
-                    ? t("quiz.actions.typeSpelling")
-                    : t("quiz.actions.typeAnswer")
-                }
-                placeholderTextColor={isDark ? "#666" : "#999"}
-                value={userAnswer}
-                onChangeText={setUserAnswer}
-                editable={!showResult}
-                autoCapitalize="none"
-              />
-              {!showResult && (
-                <TouchableOpacity
-                  style={[
-                    styles.submitButton,
-                    { backgroundColor: course?.color || "#007AFF" },
-                  ]}
-                  onPress={() => handleAnswer(userAnswer)}
-                  disabled={!userAnswer.trim()}
-                >
-                  <ThemedText style={styles.submitButtonText}>
-                    {t("common.submit")}
-                  </ThemedText>
-                </TouchableOpacity>
-              )}
-            </View>
-          ) : isMatching ? (
-            <View style={styles.matchingContainer}>
-              <ThemedText style={styles.matchingHint}>
-                {t("quiz.matching.instructions")}
-              </ThemedText>
-              <View style={styles.matchingColumns}>
-                <View style={styles.matchingColumn}>
-                  {questions.map((question) => {
-                    const isMatched = Boolean(matchedPairs[question.word]);
-                    const isSelected = selectedWord === question.word;
-                    return (
-                      <TouchableOpacity
-                        key={question.word}
-                        style={[
-                          styles.matchingItem,
-                          { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
-                          isMatched && styles.matchingItemMatched,
-                          isSelected && styles.matchingItemSelected,
-                        ]}
-                        onPress={() => handleSelectWord(question.word)}
-                        disabled={isMatched}
-                      >
-                        <ThemedText
-                          style={[
-                            styles.matchingItemText,
-                            isMatched && styles.matchingItemTextMatched,
-                          ]}
-                        >
-                          {question.word}
-                        </ThemedText>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-                <View style={styles.matchingColumn}>
-                  {matchingMeanings.map((meaning) => {
-                    const isMatched =
-                      Object.values(matchedPairs).includes(meaning);
-                    const isSelected = selectedMeaning === meaning;
-                    return (
-                      <TouchableOpacity
-                        key={meaning}
-                        style={[
-                          styles.matchingItem,
-                          { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
-                          isMatched && styles.matchingItemMatched,
-                          isSelected && styles.matchingItemSelected,
-                        ]}
-                        onPress={() => handleSelectMeaning(meaning)}
-                        disabled={isMatched}
-                      >
-                        <ThemedText
-                          style={[
-                            styles.matchingItemText,
-                            isMatched && styles.matchingItemTextMatched,
-                          ]}
-                        >
-                          {meaning}
-                        </ThemedText>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-              {matchingFeedback && (
-                <ThemedText style={styles.matchingFeedback}>
-                  {matchingFeedback}
-                </ThemedText>
-              )}
-            </View>
+          {/* Game Section */}
+          {isMatching ? (
+            <MatchingGame
+              questions={questions}
+              meanings={matchingMeanings}
+              selectedWord={selectedWord}
+              selectedMeaning={selectedMeaning}
+              matchedPairs={matchedPairs}
+              onSelectWord={handleSelectWord}
+              onSelectMeaning={handleSelectMeaning}
+              feedback={matchingFeedback}
+              courseColor={course?.color}
+              isDark={isDark}
+            />
+          ) : isSpelling ? (
+            <SpellingGame
+              userAnswer={userAnswer}
+              setUserAnswer={setUserAnswer}
+              showResult={showResult}
+              isCorrect={isCorrect}
+              onSubmit={() => handleAnswer(userAnswer)}
+              courseColor={course?.color}
+              meaning={currentQuestion.meaning}
+            />
+          ) : isWordArrangement ? (
+            <WordArrangementGame
+              word={currentArrangementWord?.word || ""}
+              meaning={currentArrangementWord?.meaning || ""}
+              selectedChunks={selectedChunks}
+              availableChunks={shuffledChunks}
+              isComplete={arrangementComplete}
+              sentenceChunkCounts={sentenceChunkCounts}
+              courseColor={course?.color}
+              onChunkSelect={handleChunkSelect}
+              onChunkDeselect={handleChunkDeselect}
+              onNext={handleArrangementNext}
+            />
           ) : (
-            <View style={styles.optionsContainer}>
-              {currentQuestion.options?.map((option, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.optionButton,
-                    { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
-                    showResult &&
-                      option === currentQuestion.correctAnswer && {
-                        backgroundColor: "#28a74520",
-                        borderColor: "#28a745",
-                        borderWidth: 2,
-                      },
-                    showResult &&
-                      option !== currentQuestion.correctAnswer &&
-                      userAnswer === option && {
-                        backgroundColor: "#dc354520",
-                        borderColor: "#dc3545",
-                        borderWidth: 2,
-                      },
-                  ]}
-                  onPress={() => {
-                    if (!showResult) {
-                      setUserAnswer(option);
-                      handleAnswer(option);
-                    }
-                  }}
-                  disabled={showResult}
-                >
-                  <ThemedText style={styles.optionText}>{option}</ThemedText>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <MultipleChoiceGame
+              options={currentQuestion.options || []}
+              correctAnswer={currentQuestion.correctAnswer}
+              userAnswer={userAnswer}
+              showResult={showResult}
+              onAnswer={(answer) => {
+                setUserAnswer(answer);
+                handleAnswer(answer);
+              }}
+              word={currentQuestion.word}
+            />
           )}
 
           {/* Result Feedback */}
-          {showResult && !isMatching && !isCorrect && (
-            <View style={styles.feedbackContainer}>
-              <View
-                style={[styles.feedbackBadge, { backgroundColor: "#dc3545" }]}
-              >
-                <Ionicons name="close-circle" size={24} color="#fff" />
-                <ThemedText style={styles.feedbackText}>
-                  {t("quiz.feedback.incorrect")}
-                </ThemedText>
-              </View>
-              <ThemedText style={styles.correctAnswerText}>
-                {t("quiz.feedback.correctAnswer", {
-                  answer: currentQuestion.correctAnswer,
-                })}
-              </ThemedText>
-            </View>
+          {showResult && !isMatching && (
+            <QuizFeedback
+              isCorrect={isCorrect}
+              correctAnswer={currentQuestion.correctAnswer}
+            />
           )}
         </ScrollView>
       </KeyboardAvoidingView>
@@ -724,119 +800,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     textAlign: "right",
   },
-  questionCard: {
-    padding: 24,
-    borderRadius: 16,
-    marginBottom: 24,
-    alignItems: "center",
-  },
-  questionLabel: {
-    fontSize: 14,
-    opacity: 0.6,
-    marginBottom: 12,
-  },
-  questionText: {
-    fontSize: 18,
-    textAlign: "center",
-    lineHeight: 26,
-  },
-  wordText: {
-    fontSize: 32,
-    textAlign: "center",
-  },
-  inputContainer: {
-    marginBottom: 24,
-  },
-  input: {
-    padding: 16,
-    borderRadius: 12,
-    fontSize: 18,
-    marginBottom: 12,
-  },
-  submitButton: {
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  submitButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  optionsContainer: {
-    gap: 12,
-    marginBottom: 24,
-  },
-  optionButton: {
-    padding: 16,
-    borderRadius: 12,
-  },
-  optionText: {
-    fontSize: 16,
-    textAlign: "center",
-  },
-  matchingContainer: {
-    gap: 12,
-    marginBottom: 24,
-  },
-  matchingHint: {
-    fontSize: 14,
-    opacity: 0.6,
-  },
-  matchingColumns: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  matchingColumn: {
-    flex: 1,
-    gap: 8,
-  },
-  matchingItem: {
-    padding: 12,
-    borderRadius: 12,
-  },
-  matchingItemSelected: {
-    borderWidth: 2,
-    borderColor: "#007AFF",
-  },
-  matchingItemMatched: {
-    backgroundColor: "#28a74520",
-    borderWidth: 1,
-    borderColor: "#28a745",
-  },
-  matchingItemText: {
-    fontSize: 14,
-    textAlign: "center",
-  },
-  matchingItemTextMatched: {
-    opacity: 0.6,
-  },
-  matchingFeedback: {
-    fontSize: 14,
-    textAlign: "center",
-    marginTop: 4,
-  },
-  feedbackContainer: {
-    alignItems: "center",
-    gap: 16,
-  },
-  feedbackBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 24,
-    gap: 8,
-  },
-  feedbackText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  correctAnswerText: {
-    fontSize: 14,
-    opacity: 0.8,
-  },
+
   nextButton: {
     flexDirection: "row",
     alignItems: "center",

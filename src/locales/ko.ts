@@ -38,7 +38,8 @@ const ko = {
       studyReminder: "학습 알림",
       wordOfTheDay: "오늘의 단어",
       notSupportedTitle: "지원되지 않음",
-      notSupportedMessage: "Android Expo Go에서는 푸시 알림을 지원하지 않습니다.",
+      notSupportedMessage:
+        "Android Expo Go에서는 푸시 알림을 지원하지 않습니다.",
       moduleMissing: "알림 모듈을 불러오지 못했습니다.",
       permissionTitle: "권한 필요",
       permissionMessage: "시스템 설정에서 알림을 허용해주세요.",
@@ -307,8 +308,7 @@ const ko = {
     currentPlanButton: "현재 요금제",
     freePlanButton: "기본 요금제",
     purchaseButton: "구매하기",
-    info:
-      "일회성 결제로 평생 이용 가능합니다. 환불은 구매 후 7일 이내에만 가능합니다.",
+    info: "일회성 결제로 평생 이용 가능합니다. 환불은 구매 후 7일 이내에만 가능합니다.",
     checkout: {
       title: "결제",
       invalidPlan: "잘못된 요금제입니다.",
@@ -388,6 +388,10 @@ const ko = {
         title: "플래시카드 복습",
         description: "빠른 복습 모드",
       },
+      wordArrangement: {
+        title: "문장 배열",
+        description: "단어를 배열하여 문장을 만드세요",
+      },
     },
     questionTitle: "{{current}}/{{total}}문항",
     questions: {
@@ -402,6 +406,14 @@ const ko = {
     matching: {
       instructions: "단어와 뜻을 각각 눌러 짝을 맞추세요.",
       progressTitle: "매칭 {{current}}/{{total}}",
+    },
+    wordArrangement: {
+      instructions: "올바른 문장을 만들려면 단어를 순서대로 탭하세요.",
+      targetWord: "대상 단어",
+      yourSentence: "내 문장",
+      tapToRemove: "탭하여 제거",
+      completed: "정답! 🎉",
+      noExample: "예문이 없습니다.",
     },
     feedback: {
       correct: "정답!",
@@ -436,10 +448,19 @@ const ko = {
       beginQuestion: "문제 시작",
       skipPrep: "준비 건너뛰기",
       parts: {
-        1: { title: "문장 읽기", description: "텍스트를 명확하게 소리내어 읽기" },
-        2: { title: "문장 읽기", description: "텍스트를 명확하게 소리내어 읽기" },
+        1: {
+          title: "문장 읽기",
+          description: "텍스트를 명확하게 소리내어 읽기",
+        },
+        2: {
+          title: "문장 읽기",
+          description: "텍스트를 명확하게 소리내어 읽기",
+        },
         3: { title: "사진 묘사", description: "사진을 상세하게 설명하기" },
-        4: { title: "질문 응답", description: "일상 주제에 대한 질문에 답하기" },
+        4: {
+          title: "질문 응답",
+          description: "일상 주제에 대한 질문에 답하기",
+        },
         5: { title: "해결책 제시", description: "문제를 듣고 해결책 제안하기" },
         6: { title: "의견 표현", description: "주제에 대한 의견 말하기" },
       },

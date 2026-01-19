@@ -29,15 +29,6 @@ const QUIZ_TYPES: QuizType[] = [
     color: "#FF6B6B",
   },
   {
-    id: "fill-blank",
-    title: "Fill in the Blank",
-    titleKey: "quiz.types.fillBlank.title",
-    description: "Type the correct word",
-    descriptionKey: "quiz.types.fillBlank.description",
-    icon: "create",
-    color: "#4ECDC4",
-  },
-  {
     id: "matching",
     title: "Matching",
     titleKey: "quiz.types.matching.title",
@@ -54,6 +45,15 @@ const QUIZ_TYPES: QuizType[] = [
     descriptionKey: "quiz.types.spelling.description",
     icon: "text",
     color: "#DDA0DD",
+  },
+  {
+    id: "word-arrangement",
+    title: "Word Arrangement",
+    titleKey: "quiz.types.wordArrangement.title",
+    description: "Arrange words to form a sentence",
+    descriptionKey: "quiz.types.wordArrangement.description",
+    icon: "reorder-four",
+    color: "#9B59B6",
   },
 ];
 

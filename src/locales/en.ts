@@ -313,8 +313,7 @@ const en = {
     currentPlanButton: "Current Plan",
     freePlanButton: "Free Plan",
     purchaseButton: "Purchase",
-    info:
-      "One-time payment for lifetime access. Refunds are available only within 7 days of purchase.",
+    info: "One-time payment for lifetime access. Refunds are available only within 7 days of purchase.",
     checkout: {
       title: "Checkout",
       invalidPlan: "Invalid plan selected.",
@@ -394,6 +393,10 @@ const en = {
         title: "Flashcard Review",
         description: "Quick review mode",
       },
+      wordArrangement: {
+        title: "Word Arrangement",
+        description: "Arrange words to form a sentence",
+      },
     },
     questionTitle: "Question {{current}}/{{total}}",
     questions: {
@@ -408,6 +411,14 @@ const en = {
     matching: {
       instructions: "Tap a word and its matching meaning.",
       progressTitle: "Matching {{current}}/{{total}}",
+    },
+    wordArrangement: {
+      instructions: "Tap words in order to form the correct sentence.",
+      targetWord: "Target Word",
+      yourSentence: "Your Sentence",
+      tapToRemove: "Tap to remove",
+      completed: "Correct! 🎉",
+      noExample: "No example sentence available.",
     },
     feedback: {
       correct: "Correct!",
@@ -442,12 +453,30 @@ const en = {
       beginQuestion: "Begin Question",
       skipPrep: "Skip Prep",
       parts: {
-        1: { title: "Read Aloud", description: "Read a text aloud with clear pronunciation" },
-        2: { title: "Read Aloud", description: "Read a text aloud with clear pronunciation" },
-        3: { title: "Describe Picture", description: "Describe the picture in detail" },
-        4: { title: "Respond to Questions", description: "Answer questions about everyday topics" },
-        5: { title: "Propose Solution", description: "Listen to a problem and propose a solution" },
-        6: { title: "Express Opinion", description: "Express your opinion on a topic" },
+        1: {
+          title: "Read Aloud",
+          description: "Read a text aloud with clear pronunciation",
+        },
+        2: {
+          title: "Read Aloud",
+          description: "Read a text aloud with clear pronunciation",
+        },
+        3: {
+          title: "Describe Picture",
+          description: "Describe the picture in detail",
+        },
+        4: {
+          title: "Respond to Questions",
+          description: "Answer questions about everyday topics",
+        },
+        5: {
+          title: "Propose Solution",
+          description: "Listen to a problem and propose a solution",
+        },
+        6: {
+          title: "Express Opinion",
+          description: "Express your opinion on a topic",
+        },
       },
     },
     opic: {
@@ -523,7 +552,8 @@ const en = {
     },
     errors: {
       permissionTitle: "Microphone Permission Required",
-      permissionMessage: "Please allow microphone access to record your responses.",
+      permissionMessage:
+        "Please allow microphone access to record your responses.",
       recordingFailed: "Failed to start recording. Please try again.",
     },
   },

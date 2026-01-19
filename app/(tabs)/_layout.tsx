@@ -77,7 +77,7 @@ export default function TabLayout() {
         }, 100);
       }
     },
-    []
+    [],
   );
 
   const handleTabPress = (index: number) => {
@@ -165,8 +165,8 @@ export default function TabLayout() {
             const color = isActive
               ? Colors[isDark ? "dark" : "light"].tint
               : isDark
-              ? "#8e8e93"
-              : "#999";
+                ? "#8e8e93"
+                : "#999";
 
             return (
               <TouchableOpacity
