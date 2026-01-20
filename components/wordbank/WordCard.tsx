@@ -8,6 +8,7 @@ export interface SavedWord {
   id: string;
   word: string;
   meaning: string;
+  translation?: string;
   pronunciation: string;
   example: string;
   course: string;
@@ -69,6 +70,9 @@ export function WordCard({
         )}
       </View>
       <ThemedText style={styles.meaning}>{word.meaning}</ThemedText>
+      {word.translation && (
+        <ThemedText style={styles.translation}>{word.translation}</ThemedText>
+      )}
       <View style={styles.exampleContainer}>
         <ThemedText style={styles.example}>{`"${word.example}"`}</ThemedText>
       </View>
@@ -115,6 +119,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 8,
+  },
+  translation: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 8,
+    opacity: 0.8,
+    fontStyle: "italic",
   },
   exampleContainer: {
     borderLeftWidth: 3,

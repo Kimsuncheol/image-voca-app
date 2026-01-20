@@ -50,20 +50,21 @@ export function SwipeCardItem({ item }: SwipeCardItemProps) {
             id: item.id,
             word: item.word,
             meaning: item.meaning,
+            translation: item.translation || "",
             pronunciation: item.pronunciation || "",
             example: item.example,
             course: item.course,
             addedAt: new Date().toISOString(),
           }),
         },
-        { merge: true }
+        { merge: true },
       );
       setIsAdded(true);
       // Record word learned for stats
       await recordWordLearned(user.uid);
       Alert.alert(
         t("common.success"),
-        t("swipe.success.addedToWordBank", { word: item.word })
+        t("swipe.success.addedToWordBank", { word: item.word }),
       );
     } catch (error) {
       console.error("Error adding to word bank:", error);
@@ -177,8 +178,8 @@ export function SwipeCardItem({ item }: SwipeCardItemProps) {
             {isAdding
               ? t("swipe.actions.adding")
               : isAdded
-              ? t("swipe.actions.added")
-              : t("swipe.actions.addToWordBank")}
+                ? t("swipe.actions.added")
+                : t("swipe.actions.addToWordBank")}
           </Text>
         </TouchableOpacity>
       </View>

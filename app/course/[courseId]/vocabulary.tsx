@@ -101,6 +101,7 @@ export default function VocabularyScreen() {
             id: doc.id,
             word: data.word,
             meaning: data.meaning,
+            translation: data.translation,
             pronunciation: data.pronunciation,
             example: data.example,
             image: data.image, // Optional if it exists

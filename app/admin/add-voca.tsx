@@ -88,7 +88,7 @@ export default function AddVocaScreen() {
       setProgress("Checking if CSV exists in Storage...");
       const storageRef = ref(
         storage,
-        `csv/${selectedCourse.name}/Day${subcollectionName}.csv`
+        `csv/${selectedCourse.name}/Day${subcollectionName}.csv`,
       );
 
       try {
@@ -115,7 +115,7 @@ export default function AddVocaScreen() {
         console.error("[Storage] Upload failed:", storageError);
         Alert.alert(
           "Warning",
-          "Failed to save CSV to storage, but proceeding with data upload."
+          "Failed to save CSV to storage, but proceeding with data upload.",
         );
       }
 
@@ -138,7 +138,7 @@ export default function AddVocaScreen() {
             setLoading(false);
             Alert.alert(
               "Upload Error",
-              uploadError.message || "Failed to upload data"
+              uploadError.message || "Failed to upload data",
             );
           }
         },
@@ -170,14 +170,14 @@ export default function AddVocaScreen() {
       console.log(
         "[Upload] Found",
         querySnapshot.docs.length,
-        "existing documents to delete"
+        "existing documents to delete",
       );
       const deletePromises = querySnapshot.docs.map((doc) =>
-        deleteDoc(doc.ref)
+        deleteDoc(doc.ref),
       );
       await Promise.all(deletePromises);
       console.log(
-        `[Upload] Deleted ${deletePromises.length} existing documents.`
+        `[Upload] Deleted ${deletePromises.length} existing documents.`,
       );
     } catch (deleteError) {
       console.error("[Upload] Failed to clear existing data:", deleteError);
@@ -188,7 +188,7 @@ export default function AddVocaScreen() {
 
     // 4. Upload new data
     setProgress(
-      `Found ${data.length} records. Uploading to ${subcollectionName}...`
+      `Found ${data.length} records. Uploading to ${subcollectionName}...`,
     );
 
     let successCount = 0;
@@ -199,7 +199,7 @@ export default function AddVocaScreen() {
       try {
         // Handle both renamed headers (_1, _2, _3, _4) and standard headers
         const word = String(
-          item["Word"] || item["word"] || item["_1"] || ""
+          item["Word"] || item["word"] || item["_1"] || "",
         ).trim();
 
         // Skip if this is the actual header row (when first line was empty)
@@ -208,21 +208,24 @@ export default function AddVocaScreen() {
         const docData = {
           word: word,
           meaning: String(
-            item["Meaning"] || item["meaning"] || item["_2"] || ""
+            item["Meaning"] || item["meaning"] || item["_2"] || "",
+          ).trim(),
+          translation: String(
+            item["Translation"] || item["translation"] || item["_5"] || "",
           ).trim(),
           pronunciation: String(
             item["Pronounciation"] ||
               item["Pronunciation"] ||
               item["pronunciation"] ||
               item["_3"] ||
-              ""
+              "",
           ).trim(),
           example: String(
             item["Example sentence"] ||
               item["Example"] ||
               item["example"] ||
               item["_4"] ||
-              ""
+              "",
           ).trim(),
           createdAt: new Date(),
         };
@@ -245,21 +248,21 @@ export default function AddVocaScreen() {
       const verifySnapshot = await getDocs(collection(db, fullPath));
       console.log(
         "[Verify] Total documents in Firestore:",
-        verifySnapshot.docs.length
+        verifySnapshot.docs.length,
       );
       console.log(
         "[Verify] First 3 documents:",
         verifySnapshot.docs.slice(0, 3).map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        }))
+        })),
       );
       console.log(
         "[Verify] All documents:",
         verifySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        }))
+        })),
       );
     } catch (verifyError) {
       console.error("[Verify] Failed to verify saved data:", verifyError);
@@ -270,7 +273,7 @@ export default function AddVocaScreen() {
     Alert.alert(
       "Upload Complete",
       `Successfully uploaded: ${successCount}\nFailed: ${failCount}`,
-      [{ text: "OK" }]
+      [{ text: "OK" }],
     );
   };
 
@@ -283,7 +286,7 @@ export default function AddVocaScreen() {
 
       // Load the predefined CSV file from assets
       const csvAsset = Asset.fromModule(
-        require("../../assets/spreadsheet/CSAT_Day1.csv")
+        require("../../assets/spreadsheet/CSAT_Day1.csv"),
       );
       await csvAsset.downloadAsync();
       console.log("[Import] CSV asset downloaded:", csvAsset.localUri);
@@ -296,7 +299,7 @@ export default function AddVocaScreen() {
       setProgress("Checking if CSV exists in Storage...");
       const storageRef = ref(
         storage,
-        `csv/${selectedCourse.name}/${subcollectionName}.csv`
+        `csv/${selectedCourse.name}/${subcollectionName}.csv`,
       );
 
       try {
@@ -323,7 +326,7 @@ export default function AddVocaScreen() {
         console.error("[Storage] Upload failed:", storageError);
         Alert.alert(
           "Warning",
-          "Failed to save CSV to storage, but proceeding with data upload."
+          "Failed to save CSV to storage, but proceeding with data upload.",
         );
       }
 
@@ -347,7 +350,7 @@ export default function AddVocaScreen() {
             setLoading(false);
             Alert.alert(
               "Upload Error",
-              uploadError.message || "Failed to upload data"
+              uploadError.message || "Failed to upload data",
             );
           }
         },
