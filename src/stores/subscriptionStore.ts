@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { arrayUnion, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { create } from "zustand";
 import { db } from "../services/firebase";
 
@@ -55,14 +55,15 @@ interface SubscriptionState {
   loading: boolean;
   error: string | null;
   unlockedIds: string[];
+  currentUserId: string | null;
   fetchSubscription: (userId: string) => Promise<void>;
   updateSubscription: (
     userId: string,
     planId: PlanType,
-    orderId: string
+    orderId: string,
   ) => Promise<void>;
-  loadUnlockedIds: () => Promise<void>;
-  unlockViaAd: (featureId: string) => Promise<void>;
+  loadUnlockedIds: (userId: string) => Promise<void>;
+  unlockViaAd: (userId: string, featureId: string) => Promise<void>;
   canAccessUnlimitedVoca: () => boolean;
   canAccessFeature: (featureId: string) => boolean;
   canAccessSpeaking: () => boolean;
@@ -79,7 +80,7 @@ const normalizePlanId = (planId: unknown): PlanType => {
 
 const buildSubscription = (
   planId: PlanType,
-  orderId?: string
+  orderId?: string,
 ): SubscriptionData => ({
   planId,
   orderId,
@@ -91,8 +92,8 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   orderId: null,
   loading: false,
   error: null,
-
   unlockedIds: [],
+  currentUserId: null,
 
   fetchSubscription: async (userId: string) => {
     set({ loading: true, error: null });
@@ -113,10 +114,10 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
             {
               subscription: buildSubscription(
                 normalizedPlan,
-                orderId ?? undefined
+                orderId ?? undefined,
               ),
             },
-            { merge: true }
+            { merge: true },
           );
         }
 
@@ -137,7 +138,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   updateSubscription: async (
     userId: string,
     planId: PlanType,
-    orderId: string
+    orderId: string,
   ) => {
     set({ loading: true, error: null });
     try {
@@ -152,42 +153,68 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     }
   },
 
-  loadUnlockedIds: async () => {
+  loadUnlockedIds: async (userId: string) => {
+    if (!userId) {
+      console.warn("loadUnlockedIds called without userId");
+      return;
+    }
+
+    set({ currentUserId: userId });
+    const userCacheKey = `${UNLOCKED_IDS_KEY}_${userId}`;
+
     try {
-      const stored = await AsyncStorage.getItem(UNLOCKED_IDS_KEY);
-      if (stored) {
-        const parsed: string[] = JSON.parse(stored);
-        // Filter out any unlocks beyond Day 10 (enforce new limit)
-        const validUnlocks = parsed.filter((id) => {
-          const match = id.match(/_day_(\d+)$/);
-          if (match) {
-            const day = parseInt(match[1], 10);
-            return day <= AD_UNLOCK_LIMIT;
-          }
-          return true; // Keep non-day unlocks (e.g., speaking_feature)
-        });
-        set({ unlockedIds: validUnlocks });
-        // Save filtered list back if any were removed
-        if (validUnlocks.length !== parsed.length) {
-          await AsyncStorage.setItem(
-            UNLOCKED_IDS_KEY,
-            JSON.stringify(validUnlocks)
-          );
-        }
+      // First, try to load from Firestore (source of truth)
+      const userRef = doc(db, "users", userId);
+      const userDoc = await getDoc(userRef);
+
+      let unlockedDays: string[] = [];
+
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        unlockedDays = data.unlockedDays || [];
       }
+
+      // Filter out any unlocks beyond Day 10 (enforce limit)
+      const validUnlocks = unlockedDays.filter((id) => {
+        const match = id.match(/_day_(\d+)$/);
+        if (match) {
+          const day = parseInt(match[1], 10);
+          return day <= AD_UNLOCK_LIMIT;
+        }
+        return true; // Keep non-day unlocks (e.g., speaking_feature)
+      });
+
+      set({ unlockedIds: validUnlocks });
+
+      // Cache to AsyncStorage for offline access
+      await AsyncStorage.setItem(userCacheKey, JSON.stringify(validUnlocks));
     } catch (error) {
-      console.error("Failed to load unlocked IDs:", error);
+      console.error("Failed to load unlocked IDs from Firestore:", error);
+      // Fallback to cached AsyncStorage data
+      try {
+        const cached = await AsyncStorage.getItem(userCacheKey);
+        if (cached) {
+          set({ unlockedIds: JSON.parse(cached) });
+        }
+      } catch (cacheError) {
+        console.error("Failed to load cached unlocked IDs:", cacheError);
+      }
     }
   },
 
-  unlockViaAd: async (featureId: string) => {
+  unlockViaAd: async (userId: string, featureId: string) => {
+    if (!userId) {
+      console.warn("unlockViaAd called without userId");
+      return;
+    }
+
     // Validate the day is within ad unlock limit
     const match = featureId.match(/_day_(\d+)$/);
     if (match) {
       const day = parseInt(match[1], 10);
       if (day > AD_UNLOCK_LIMIT) {
         console.warn(
-          `Cannot unlock Day ${day} via ad. Max is Day ${AD_UNLOCK_LIMIT}.`
+          `Cannot unlock Day ${day} via ad. Max is Day ${AD_UNLOCK_LIMIT}.`,
         );
         return;
       }
@@ -199,13 +226,28 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     const newUnlockedIds = [...currentIds, featureId];
     set({ unlockedIds: newUnlockedIds });
 
+    const userCacheKey = `${UNLOCKED_IDS_KEY}_${userId}`;
+
     try {
-      await AsyncStorage.setItem(
-        UNLOCKED_IDS_KEY,
-        JSON.stringify(newUnlockedIds)
-      );
+      // Save to Firestore (source of truth)
+      const userRef = doc(db, "users", userId);
+      await updateDoc(userRef, {
+        unlockedDays: arrayUnion(featureId),
+      });
+
+      // Also cache locally
+      await AsyncStorage.setItem(userCacheKey, JSON.stringify(newUnlockedIds));
     } catch (error) {
-      console.error("Failed to persist unlocked ID:", error);
+      console.error("Failed to persist unlocked ID to Firestore:", error);
+      // Still try to cache locally as fallback
+      try {
+        await AsyncStorage.setItem(
+          userCacheKey,
+          JSON.stringify(newUnlockedIds),
+        );
+      } catch (cacheError) {
+        console.error("Failed to cache unlocked ID:", cacheError);
+      }
     }
   },
 
@@ -239,5 +281,6 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       loading: false,
       error: null,
       unlockedIds: [],
+      currentUserId: null,
     }),
 }));

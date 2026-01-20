@@ -3,8 +3,15 @@ import { AVPlaybackStatus, ResizeMode, Video } from "expo-av";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../src/context/AuthContext";
 import { useSubscriptionStore } from "../src/stores/subscriptionStore";
 
 const AD_DURATION = 5; // seconds
@@ -20,6 +27,7 @@ const TEST_ADS = [
 
 export default function AdvertisementModal() {
   const router = useRouter();
+  const { user } = useAuth();
   const params = useLocalSearchParams<{ featureId: string }>();
   const { unlockViaAd } = useSubscriptionStore();
   const [timeLeft, setTimeLeft] = useState(AD_DURATION);
@@ -57,8 +65,8 @@ export default function AdvertisementModal() {
 
   const handleClaimReward = async () => {
     setIsRewardEarned(true);
-    if (params.featureId) {
-      await unlockViaAd(params.featureId);
+    if (params.featureId && user?.uid) {
+      await unlockViaAd(user.uid, params.featureId);
     }
     // Close after a short delay to show "Granted" state
     setTimeout(() => {
@@ -86,14 +94,21 @@ export default function AdvertisementModal() {
       ) : (
         <View style={styles.adContent}>
           {/* Ad Reward Timer - Always Visible */}
-          <View style={styles.header}>
-            <Text style={styles.timerText}>
-              {isRewardEarned
-                ? "✓ Reward Granted!"
-                : timeLeft > 0
-                  ? `Reward in ${timeLeft}s`
-                  : "Reward Unlocked"}
-            </Text>
+          {/* Top Bar: Timer or Close Button */}
+          <View style={styles.topBar}>
+            {timeLeft > 0 ? (
+              <View style={styles.timerContainer}>
+                <Text style={styles.timerText}>Reward in {timeLeft}s</Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={handleClaimReward}
+              >
+                <Text style={styles.grantRewardText}>Grant Reward</Text>
+                <Ionicons name="close-circle" size={30} color="#ffffff" />
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Video or Fallback Image */}
@@ -121,19 +136,10 @@ export default function AdvertisementModal() {
           </View>
 
           <View style={styles.footer}>
-            {timeLeft === 0 && !isRewardEarned ? (
-              <TouchableOpacity
-                style={styles.claimButton}
-                onPress={handleClaimReward}
-              >
-                <Text style={styles.claimButtonText}>Claim Reward</Text>
-              </TouchableOpacity>
-            ) : (
-              <View style={styles.adLabelContainer}>
-                <Ionicons name="volume-high" size={20} color="#666" />
-                <Text style={styles.footerText}> Advertisement</Text>
-              </View>
-            )}
+            <View style={styles.adLabelContainer}>
+              <Ionicons name="volume-high" size={20} color="#666" />
+              <Text style={styles.footerText}> Advertisement</Text>
+            </View>
           </View>
         </View>
       )}
@@ -161,18 +167,38 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: 16,
   },
-  header: {
+  topBar: {
     flexDirection: "row",
-    justifyContent: "center",
+    justifyContent: "flex-end", // Align to right
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    zIndex: 10,
+  },
+  timerContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    borderRadius: 20,
+  },
+  closeButton: {
+    padding: 4,
+    flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    backgroundColor: "rgba(255, 204, 0, 0.15)",
-    borderRadius: 8,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    borderRadius: 20,
+    paddingLeft: 12,
+    paddingRight: 4,
+  },
+  grantRewardText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "bold",
+    marginRight: 4,
   },
   timerText: {
-    color: "#ffcc00",
-    fontSize: 18,
-    fontWeight: "bold",
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
   },
   videoContainer: {
     flex: 1,
@@ -204,16 +230,9 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   claimButton: {
-    backgroundColor: "#007AFF",
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 30,
-    width: "80%",
-    alignItems: "center",
+    display: "none",
   },
   claimButtonText: {
-    color: "#ffffff",
-    fontSize: 18,
-    fontWeight: "bold",
+    display: "none",
   },
 });

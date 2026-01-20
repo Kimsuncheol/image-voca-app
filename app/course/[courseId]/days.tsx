@@ -45,7 +45,7 @@ export default function DayPickerScreen() {
     if (!user || !courseId) return;
     try {
       fetchSubscription(user.uid);
-      loadUnlockedIds(); // Load persisted ad unlocks
+      loadUnlockedIds(user.uid); // Load persisted ad unlocks for this user
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
         const courseProgress = userDoc.data().courseProgress || {};
