@@ -6,7 +6,7 @@ import { Stack, useRouter } from "expo-router";
 import { addDoc, collection, deleteDoc, getDocs } from "firebase/firestore";
 import { getMetadata, ref, uploadBytes } from "firebase/storage";
 import Papa from "papaparse";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -20,7 +20,9 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
+import useGoogleSheetsAuth from "../../src/hooks/useGoogleSheetsAuth";
 import { db, storage } from "../../src/services/firebase";
+import { parseSheetValues } from "../../src/utils/googleSheetsUtils";
 
 export default function AddVocaScreen() {
   const { isDark } = useTheme();
@@ -44,6 +46,19 @@ export default function AddVocaScreen() {
   const [selectedCourse, setSelectedCourse] = useState(COURSES[0]);
   const [subcollectionName, setSubcollectionName] = useState("");
   const [selectedFile, setSelectedFile] = useState<any>(null);
+
+  // Google Sheets integration
+  const { token, promptAsync } = useGoogleSheetsAuth();
+  const [sheetId, setSheetId] = useState("");
+  const [sheetRange, setSheetRange] = useState("Sheet1!A:E");
+  const [waitingForToken, setWaitingForToken] = useState(false);
+
+  useEffect(() => {
+    if (waitingForToken && token) {
+      setWaitingForToken(false);
+      handleFetchSheetData();
+    }
+  }, [token, waitingForToken]);
 
   // Computed full path for display/verify - now with Day prefix added
   const fullPath = `${selectedCourse.path}/Day${subcollectionName}`;
@@ -150,6 +165,73 @@ export default function AddVocaScreen() {
     } catch (err: any) {
       setLoading(false);
       Alert.alert("Error", err.message);
+    }
+  };
+
+  const handleSheetImportButton = async () => {
+    if (!subcollectionName.trim()) {
+      Alert.alert("Error", "Please enter a day number first (e.g. 1)");
+      return;
+    }
+    if (!sheetId.trim()) {
+      Alert.alert("Error", "Please enter a Google Sheet ID");
+      return;
+    }
+
+    if (!token) {
+      setWaitingForToken(true);
+      try {
+        await promptAsync();
+      } catch (e: any) {
+        setWaitingForToken(false);
+        Alert.alert("Auth Error", e.message);
+      }
+    } else {
+      handleFetchSheetData();
+    }
+  };
+
+  const handleFetchSheetData = async () => {
+    if (!token) return;
+
+    try {
+      setLoading(true);
+      setProgress("Fetching data from Google Sheets...");
+      console.log(`[Sheets] Fetching ID: ${sheetId}, Range: ${sheetRange}`);
+
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetRange}?majorDimension=ROWS`;
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const json = await response.json();
+
+      if (json.error) {
+        throw new Error(json.error.message);
+      }
+
+      const rows = json.values;
+      if (!rows || rows.length < 2) {
+        throw new Error("No data found or only header row exists.");
+      }
+
+      console.log(`[Sheets] Fetched ${rows.length} rows.`);
+
+      console.log(`[Sheets] Fetched ${rows.length} rows.`);
+
+      // Use the tested utility to parse data
+      const dataObjects = parseSheetValues(rows);
+
+      console.log("[Sheets] First converted object:", dataObjects[0]);
+
+      // Reuse existing upload logic
+      await uploadData(dataObjects);
+    } catch (err: any) {
+      console.error("[Sheets] Error:", err);
+      Alert.alert("Sheet Import Error", err.message);
+      setLoading(false);
     }
   };
 
@@ -490,12 +572,60 @@ export default function AddVocaScreen() {
                       styles.uploadButtonTextPrimary,
                     ]}
                   >
-                    Upload
+                    Upload CSV
                   </Text>
                 </>
               )}
             </TouchableOpacity>
           )}
+
+          <View style={styles.divider} />
+
+          <Text style={styles.sectionTitle}>Import from Google Sheets</Text>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Sheet ID</Text>
+            <TextInput
+              style={styles.input}
+              value={sheetId}
+              onChangeText={setSheetId}
+              placeholder="e.g. 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
+              placeholderTextColor={isDark ? "#555" : "#999"}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <Text style={styles.pathHint}>
+              Copy the ID from your Google Sheet URL
+            </Text>
+          </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Range (Optional)</Text>
+            <TextInput
+              style={styles.input}
+              value={sheetRange}
+              onChangeText={setSheetRange}
+              placeholder="Sheet1!A:E"
+              placeholderTextColor={isDark ? "#555" : "#999"}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.importButton, { backgroundColor: "#0F9D58" }]} // Google Sheets Green
+            onPress={handleSheetImportButton}
+            disabled={loading}
+          >
+            {loading && waitingForToken ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <>
+                <Ionicons name="grid-outline" size={24} color="#fff" />
+                <Text style={styles.importButtonText}>
+                  {token ? "Import form Sheets" : "Connect & Import Sheets"}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.divider} />
 
           <TouchableOpacity
             style={styles.importButton}
@@ -682,5 +812,16 @@ const getStyles = (isDark: boolean) =>
       color: "#fff",
       fontSize: 16,
       fontWeight: "600",
+    },
+    divider: {
+      height: 1,
+      backgroundColor: isDark ? "#38383a" : "#e5e5ea",
+      marginVertical: 24,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: isDark ? "#fff" : "#000",
+      marginBottom: 16,
     },
   });

@@ -1,17 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
+import { AVPlaybackStatus, ResizeMode, Video } from "expo-av";
+import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSubscriptionStore } from "../src/stores/subscriptionStore";
 
 const AD_DURATION = 5; // seconds
+
+// For testing: 5 different sample videos to simulate different ads
+const TEST_ADS = [
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+];
 
 export default function AdvertisementModal() {
   const router = useRouter();
@@ -20,6 +25,16 @@ export default function AdvertisementModal() {
   const [timeLeft, setTimeLeft] = useState(AD_DURATION);
   const [isAdLoaded, setIsAdLoaded] = useState(false);
   const [isRewardEarned, setIsRewardEarned] = useState(false);
+  const [useVideoFallback, setUseVideoFallback] = useState(false);
+  const videoRef = useRef<Video>(null);
+
+  // Select a random video on mount
+  const [videoSource, setVideoSource] = useState("");
+
+  useEffect(() => {
+    const randomAd = TEST_ADS[Math.floor(Math.random() * TEST_ADS.length)];
+    setVideoSource(randomAd);
+  }, []);
 
   useEffect(() => {
     // Simulate ad loading
@@ -35,22 +50,30 @@ export default function AdvertisementModal() {
       if (timeLeft > 0) {
         const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
         return () => clearTimeout(timer);
-      } else {
-        // Ad finished
-        setIsRewardEarned(true);
-        if (params.featureId) {
-          (async () => {
-            await unlockViaAd(params.featureId);
-          })();
-        }
       }
+      // Timer finished: Do nothing here, just let the UI show the button
     }
-  }, [isAdLoaded, timeLeft, isRewardEarned, unlockViaAd, params.featureId]);
+  }, [isAdLoaded, timeLeft, isRewardEarned]);
 
-  const handleClose = () => {
-    if (isRewardEarned) {
-      router.back();
+  const handleClaimReward = async () => {
+    setIsRewardEarned(true);
+    if (params.featureId) {
+      await unlockViaAd(params.featureId);
     }
+    // Close after a short delay to show "Granted" state
+    setTimeout(() => {
+      router.back();
+    }, 1000);
+  };
+
+  const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+    // Optional: If video finishes before user clicks, maybe auto-show button or just loop?
+    // For now, relies on timer. The user said video plays for 30s, button appears in 5s.
+  };
+
+  const handleVideoError = () => {
+    console.log("[Ad] Video failed to load, using fallback image");
+    setUseVideoFallback(true);
   };
 
   return (
@@ -62,37 +85,55 @@ export default function AdvertisementModal() {
         </View>
       ) : (
         <View style={styles.adContent}>
+          {/* Ad Reward Timer - Always Visible */}
           <View style={styles.header}>
             <Text style={styles.timerText}>
-              {isRewardEarned ? "Reward Granted" : `Reward in ${timeLeft}s`}
+              {isRewardEarned
+                ? "✓ Reward Granted!"
+                : timeLeft > 0
+                  ? `Reward in ${timeLeft}s`
+                  : "Reward Unlocked"}
             </Text>
-            {isRewardEarned && (
-              <TouchableOpacity
-                onPress={handleClose}
-                style={styles.closeButton}
-              >
-                <Ionicons name="close" size={30} color="#ffffff" />
-              </TouchableOpacity>
+          </View>
+
+          {/* Video or Fallback Image */}
+          <View style={styles.videoContainer}>
+            {useVideoFallback ? (
+              <Image
+                source={require("../assets/images/test_ad.png")}
+                style={styles.fallbackImage}
+                contentFit="contain"
+              />
+            ) : (
+              <Video
+                ref={videoRef}
+                source={{ uri: videoSource }}
+                style={styles.video}
+                resizeMode={ResizeMode.CONTAIN}
+                shouldPlay={true}
+                isLooping={true} // Loop so it keeps playing until user clicks
+                onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+                onError={handleVideoError}
+                useNativeControls={false}
+                isMuted={false}
+              />
             )}
           </View>
 
-          <View style={styles.videoPlaceholder}>
-            <Text style={styles.placeholderText}>
-              AMAZING PRODUCT ADVERTISEMENT
-            </Text>
-            <Text style={styles.subText}>
-              Imagine a cool video playing here...
-            </Text>
-            <Ionicons
-              name="videocam"
-              size={100}
-              color="#555"
-              style={{ marginTop: 20 }}
-            />
-          </View>
-
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Advertisement</Text>
+            {timeLeft === 0 && !isRewardEarned ? (
+              <TouchableOpacity
+                style={styles.claimButton}
+                onPress={handleClaimReward}
+              >
+                <Text style={styles.claimButtonText}>Claim Reward</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.adLabelContainer}>
+                <Ionicons name="volume-high" size={20} color="#666" />
+                <Text style={styles.footerText}> Advertisement</Text>
+              </View>
+            )}
           </View>
         </View>
       )}
@@ -118,49 +159,61 @@ const styles = StyleSheet.create({
   adContent: {
     flex: 1,
     justifyContent: "space-between",
-    padding: 20,
+    padding: 16,
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
-    height: 50,
+    paddingVertical: 12,
+    backgroundColor: "rgba(255, 204, 0, 0.15)",
+    borderRadius: 8,
   },
   timerText: {
-    color: "#ffffff",
+    color: "#ffcc00",
     fontSize: 18,
     fontWeight: "bold",
   },
-  closeButton: {
-    padding: 5,
-  },
-  videoPlaceholder: {
+  videoContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    marginVertical: 16,
+    borderRadius: 12,
+    overflow: "hidden",
     backgroundColor: "#111",
-    marginVertical: 40,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#333",
   },
-  placeholderText: {
-    color: "#ffcc00",
-    fontSize: 24,
-    fontWeight: "900",
-    textAlign: "center",
-    marginBottom: 10,
+  video: {
+    flex: 1,
+    width: "100%",
   },
-  subText: {
-    color: "#888",
-    fontSize: 16,
+  fallbackImage: {
+    flex: 1,
+    width: "100%",
   },
   footer: {
+    height: 80, // Fixed height to prevent layout jumps
     alignItems: "center",
-    paddingBottom: 20,
+    justifyContent: "center",
+  },
+  adLabelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   footerText: {
-    color: "#444",
-    fontSize: 12,
+    color: "#666",
+    fontSize: 14,
+    marginLeft: 8,
+  },
+  claimButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 30,
+    width: "80%",
+    alignItems: "center",
+  },
+  claimButtonText: {
+    color: "#ffffff",
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });
