@@ -3,6 +3,7 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   query,
   setDoc,
@@ -254,7 +255,7 @@ export default function QuizPlayScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const { t } = useTranslation();
-  const { recordQuizAnswer } = useUserStatsStore();
+  const { recordQuizAnswer, stats } = useUserStatsStore();
   useTimeTracking(); // Track time spent on this screen
   const { courseId, day, quizType } = useLocalSearchParams<{
     courseId: CourseType;
@@ -632,9 +633,22 @@ export default function QuizPlayScreen() {
       );
 
       // Update course progress
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      let accumulatedCorrect = resolvedScore;
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        const existingProgress =
+          data.courseProgress?.[courseId as string]?.[dayNumber] || {};
+        accumulatedCorrect += existingProgress.accumulatedCorrect || 0;
+      }
+
       await updateDoc(doc(db, "users", user.uid), {
         [`courseProgress.${courseId}.${dayNumber}.quizCompleted`]: true,
         [`courseProgress.${courseId}.${dayNumber}.quizScore`]: percentage,
+        [`courseProgress.${courseId}.${dayNumber}.accumulatedCorrect`]:
+          accumulatedCorrect,
+        [`courseProgress.${courseId}.${dayNumber}.isRetake`]:
+          accumulatedCorrect >= (stats?.targetScore || 10),
       });
     } catch (error) {
       console.error("Error saving quiz result:", error);

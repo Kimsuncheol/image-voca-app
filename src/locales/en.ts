@@ -361,6 +361,7 @@ const en = {
     progress: "{{learned}}/{{total}} words",
     retake: "Retake",
     quiz: "Quiz",
+    checked: "Checked",
     premiumLimitMessage:
       "Learning after Day {{day}} requires the Voca Unlimited plan.",
   },

@@ -354,8 +354,9 @@ const ko = {
     dayCompleted: "오늘 학습 완료!",
     takeQuiz: "퀴즈 풀기",
     progress: "{{learned}}/{{total}} 단어",
-    retake: "다시 풀기",
+    retake: "정복 완료",
     quiz: "퀴즈",
+    checked: "확인됨",
     premiumLimitMessage:
       "{{day}}일차 이후 학습은 Voca Unlimited 요금제가 필요합니다.",
   },

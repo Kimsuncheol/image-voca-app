@@ -117,7 +117,7 @@ export function FillInTheBlankGameClozeSentenceCard({
       ]}
     >
       <ThemedText style={styles.sentenceLabel}>
-        {t("quiz.fillInBlank.completeSentence")}
+        {t("quiz.types.fillInBlank.completeSentence")}
       </ThemedText>
       {renderSentenceWithBlanks()}
       {translation && (

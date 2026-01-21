@@ -10,6 +10,7 @@ interface DayProgress {
   wordsLearned: number;
   totalWords: number;
   quizCompleted: boolean;
+  isRetake?: boolean;
 }
 
 interface DayCardProps {
@@ -34,6 +35,7 @@ export function DayCard({
 
   const isCompleted = progress?.completed || false;
   const quizCompleted = progress?.quizCompleted || false;
+  const isRetake = progress?.isRetake || false;
 
   return (
     <View style={styles.dayCardWrapper}>
@@ -91,7 +93,13 @@ export function DayCard({
             color="#fff"
           />
           <ThemedText style={styles.quizButtonText}>
-            {quizCompleted ? t("course.retake") : t("course.quiz")}
+            {isRetake
+              ? t("course.retake")
+              : quizCompleted
+                ? t("course.retake")
+                : isCompleted
+                  ? t("course.checked")
+                  : t("course.quiz")}
           </ThemedText>
         </TouchableOpacity>
       )}

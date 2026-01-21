@@ -25,7 +25,7 @@ export function FillInTheBlankGameOptions({
   return (
     <View style={styles.optionsContainer}>
       <ThemedText style={styles.optionsLabel}>
-        {t("quiz.fillInBlank.chooseWord")}
+        {t("quiz.types.fillInBlank.chooseWord")}
       </ThemedText>
       {options.map((option, index) => (
         <TouchableOpacity

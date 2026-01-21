@@ -9,10 +9,12 @@ import { AppearanceSection } from "../../components/settings/AppearanceSection";
 import { LanguageSection } from "../../components/settings/LanguageSection";
 import { NotificationsSection } from "../../components/settings/NotificationsSection";
 import { SignOutSection } from "../../components/settings/SignOutSection";
+import { StudySection } from "../../components/settings/StudySection";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { setLanguage, SupportedLanguage } from "../../src/i18n";
 import { auth } from "../../src/services/firebase";
+import { useUserStatsStore } from "../../src/stores";
 import {
   cancelAllScheduledNotifications,
   configureNotifications,
@@ -36,10 +38,14 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const { stats, fetchStats, updateTargetScore } = useUserStatsStore();
 
   useEffect(() => {
     checkNotificationStatus();
-  }, []);
+    if (user) {
+      fetchStats(user.uid);
+    }
+  }, [user, fetchStats]);
 
   const checkNotificationStatus = async () => {
     try {
@@ -164,6 +170,12 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleUpdateTargetScore = async (score: number) => {
+    if (user) {
+      await updateTargetScore(user.uid, score);
+    }
+  };
+
   const styles = getStyles(isDark);
 
   return (
@@ -182,6 +194,13 @@ export default function SettingsScreen() {
           isDark={isDark}
           theme={theme}
           setTheme={setTheme}
+          t={t}
+        />
+        <StudySection
+          styles={styles}
+          isDark={isDark}
+          targetScore={stats?.targetScore || 10}
+          onUpdateTargetScore={handleUpdateTargetScore}
           t={t}
         />
         <NotificationsSection

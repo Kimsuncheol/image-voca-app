@@ -19,6 +19,7 @@ export interface UserStats {
   longestStreak: number;
   lastActiveDate: string;
   dailyStats: DailyStats[];
+  targetScore: number;
 }
 
 interface UserStatsState {
@@ -29,6 +30,7 @@ interface UserStatsState {
   // Actions
   fetchStats: (userId: string) => Promise<void>;
   updateDailyGoal: (userId: string, goal: number) => Promise<void>;
+  updateTargetScore: (userId: string, score: number) => Promise<void>;
   recordWordLearned: (userId: string) => Promise<void>;
   recordUniqueWordLearned: (userId: string, wordId: string) => Promise<boolean>;
   recordQuizAnswer: (userId: string, correct: boolean) => Promise<void>;
@@ -120,7 +122,7 @@ const syncWeeklyWordsLearned = async (userId: string) => {
             wordsLearned: state.wordsLearned,
           }),
         },
-        { merge: true }
+        { merge: true },
       );
     }
 
@@ -134,7 +136,7 @@ const syncWeeklyWordsLearned = async (userId: string) => {
 
 const incrementWeeklyWordsLearned = async (
   userId: string,
-  amount: number = 1
+  amount: number = 1,
 ) => {
   const state = await syncWeeklyWordsLearned(userId);
   const nextCount = Math.max(0, state.wordsLearned + amount);
@@ -149,6 +151,7 @@ const getDefaultStats = (): UserStats => ({
   longestStreak: 0,
   lastActiveDate: "",
   dailyStats: [],
+  targetScore: 10,
 });
 
 export const useUserStatsStore = create<UserStatsState>((set, get) => ({
@@ -177,17 +180,23 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
             ...stat,
             learnedWordIds: stat.learnedWordIds || [],
           })),
+          targetScore: data.targetScore || 10,
         };
-        
+
         // Update streak if needed
         const today = getToday();
-        const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-        
-        if (stats.lastActiveDate !== today && stats.lastActiveDate !== yesterday) {
+        const yesterday = new Date(Date.now() - 86400000)
+          .toISOString()
+          .split("T")[0];
+
+        if (
+          stats.lastActiveDate !== today &&
+          stats.lastActiveDate !== yesterday
+        ) {
           // Streak broken
           stats.currentStreak = 0;
         }
-        
+
         set({ stats, loading: false });
       } else {
         // Create default stats
@@ -205,6 +214,17 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
       await updateDoc(doc(db, "users", userId), { dailyGoal: goal });
       set((state) => ({
         stats: state.stats ? { ...state.stats, dailyGoal: goal } : null,
+      }));
+    } catch (error: any) {
+      set({ error: error.message });
+    }
+  },
+
+  updateTargetScore: async (userId: string, score: number) => {
+    try {
+      await updateDoc(doc(db, "users", userId), { targetScore: score });
+      set((state) => ({
+        stats: state.stats ? { ...state.stats, targetScore: score } : null,
       }));
     } catch (error: any) {
       set({ error: error.message });
@@ -236,8 +256,10 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
 
     // Update streak
     let currentStreak = stats.currentStreak;
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-    
+    const yesterday = new Date(Date.now() - 86400000)
+      .toISOString()
+      .split("T")[0];
+
     if (stats.lastActiveDate !== today) {
       if (stats.lastActiveDate === yesterday) {
         currentStreak += 1;
@@ -311,7 +333,9 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
 
     // Update streak
     let currentStreak = stats.currentStreak;
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+    const yesterday = new Date(Date.now() - 86400000)
+      .toISOString()
+      .split("T")[0];
 
     if (stats.lastActiveDate !== today) {
       if (stats.lastActiveDate === yesterday) {
@@ -440,10 +464,18 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
       .split("T")[0];
 
     const periodStats = stats.dailyStats.filter((d) => d.date >= cutoffDate);
-    const totalCorrect = periodStats.reduce((sum, d) => sum + d.correctAnswers, 0);
-    const totalAnswers = periodStats.reduce((sum, d) => sum + d.totalAnswers, 0);
+    const totalCorrect = periodStats.reduce(
+      (sum, d) => sum + d.correctAnswers,
+      0,
+    );
+    const totalAnswers = periodStats.reduce(
+      (sum, d) => sum + d.totalAnswers,
+      0,
+    );
 
-    return totalAnswers > 0 ? Math.round((totalCorrect / totalAnswers) * 100) : 0;
+    return totalAnswers > 0
+      ? Math.round((totalCorrect / totalAnswers) * 100)
+      : 0;
   },
 
   getTimeSpentForPeriod: (days: number) => {

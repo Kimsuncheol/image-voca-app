@@ -18,6 +18,7 @@ interface DayProgress {
   wordsLearned: number;
   totalWords: number;
   quizCompleted: boolean;
+  isRetake?: boolean;
 }
 
 export default function DayPickerScreen() {

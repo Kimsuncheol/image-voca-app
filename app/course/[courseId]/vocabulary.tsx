@@ -3,7 +3,7 @@ import {
   TinderSwipeRef,
 } from "@/src/components/tinder-swipe/TinderSwipe";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { collection, getDocs, query } from "firebase/firestore";
+import { collection, doc, getDocs, query, updateDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -142,6 +142,22 @@ export default function VocabularyScreen() {
     }
   };
 
+  const handleRunOutOfCards = async () => {
+    setIsFinished(true);
+    if (user && courseId) {
+      try {
+        await updateDoc(doc(db, "users", user.uid), {
+          [`courseProgress.${courseId}.${dayNumber}.completed`]: true,
+          [`courseProgress.${courseId}.${dayNumber}.totalWords`]: cards.length,
+          [`courseProgress.${courseId}.${dayNumber}.wordsLearned`]:
+            cards.length,
+        });
+      } catch (error) {
+        console.error("Error marking day as completed:", error);
+      }
+    }
+  };
+
   const handleRestart = () => {
     setCards([...cards]); // Re-set cards to trigger re-render if needed, but keys might need update.
     // Ideally fetch again or just reset index. TinderSwipe might need a key change to reset.
@@ -206,7 +222,7 @@ export default function VocabularyScreen() {
               onSwipeRight={onSwipeRight}
               onSwipeLeft={onSwipeLeft}
               loop={false}
-              onRunOutOfCards={() => setIsFinished(true)}
+              onRunOutOfCards={handleRunOutOfCards}
             />
           </View>
         ) : (
@@ -224,7 +240,7 @@ export default function VocabularyScreen() {
             <Text
               style={[styles.finishedText, { color: isDark ? "#fff" : "#000" }]}
             >
-              {t("course.dayCompleted")}
+              {t("course.checked")}
             </Text>
             <View style={styles.buttonContainer}>
               <TouchableOpacity
