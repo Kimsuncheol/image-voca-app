@@ -70,11 +70,11 @@ export function WordCard({
         )}
       </View>
       <ThemedText style={styles.meaning}>{word.meaning}</ThemedText>
-      {word.translation && (
-        <ThemedText style={styles.translation}>{word.translation}</ThemedText>
-      )}
       <View style={styles.exampleContainer}>
         <ThemedText style={styles.example}>{`"${word.example}"`}</ThemedText>
+        {word.translation && (
+          <ThemedText style={styles.translation}>{word.translation}</ThemedText>
+        )}
       </View>
     </View>
   );
