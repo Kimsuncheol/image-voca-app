@@ -3,7 +3,14 @@ import {
   TinderSwipeRef,
 } from "@/src/components/tinder-swipe/TinderSwipe";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { collection, doc, getDocs, query, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  updateDoc,
+} from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -67,6 +74,7 @@ export default function VocabularyScreen() {
   const { t } = useTranslation();
 
   const [cards, setCards] = useState<VocabularyCard[]>([]);
+  const [savedWordIds, setSavedWordIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
   const dayNumber = parseInt(day || "1", 10);
@@ -121,7 +129,31 @@ export default function VocabularyScreen() {
     };
 
     fetchVocabulary();
+    fetchVocabulary();
   }, [courseId, dayNumber]);
+
+  // Fetch saved words from Word Bank
+  useEffect(() => {
+    const fetchSavedWords = async () => {
+      if (!user || !courseId) return;
+
+      try {
+        const wordBankRef = doc(db, "vocabank", user.uid, "course", courseId);
+        const docSnap = await getDoc(wordBankRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const words = data.words || [];
+          const ids = new Set(words.map((w: any) => w.id));
+          setSavedWordIds(ids as Set<string>);
+        }
+      } catch (error) {
+        console.error("Error fetching saved words:", error);
+      }
+    };
+
+    fetchSavedWords();
+  }, [user, courseId]);
 
   const onSwipeRight = (item: VocabularyCard) => {
     console.log("Learned:", item.word);
@@ -218,7 +250,13 @@ export default function VocabularyScreen() {
             <TinderSwipe
               ref={swipeRef}
               data={cards}
-              renderCard={(item) => <SwipeCardItem item={item} />}
+              renderCard={(item) => (
+                <SwipeCardItem
+                  item={item}
+                  initialIsSaved={savedWordIds.has(item.id)}
+                  day={dayNumber}
+                />
+              )}
               onSwipeRight={onSwipeRight}
               onSwipeLeft={onSwipeLeft}
               loop={false}
@@ -270,7 +308,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   swipeContainer: {
-    height: height * 0.7,
+    height: height * 0.8,
     width: width,
     alignItems: "center",
     justifyContent: "center",

@@ -1,11 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
+import {
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
+  Pressable,
   ScrollView,
   StyleSheet,
   View,
@@ -21,6 +27,7 @@ import { COURSES } from "../../src/types/vocabulary";
 export default function CourseWordBankScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
+  const router = useRouter();
   const { course } = useLocalSearchParams<{ course: string }>();
   const [words, setWords] = useState<SavedWord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -137,6 +144,22 @@ export default function CourseWordBankScreen() {
             <ThemedText style={styles.emptySubtext}>
               {t("wordBank.empty.subtitle")}
             </ThemedText>
+            <Pressable
+              style={[
+                styles.startButton,
+                { backgroundColor: courseData?.color || "#007AFF" },
+              ]}
+              onPress={() =>
+                router.push({
+                  pathname: "/course/[courseId]/days",
+                  params: { courseId: course },
+                })
+              }
+            >
+              <ThemedText style={styles.startButtonText}>
+                {t("course.startLearning", { defaultValue: "Start Learning" })}
+              </ThemedText>
+            </Pressable>
           </View>
         ) : (
           words.map((word, index) => (
@@ -185,5 +208,22 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 8,
     paddingHorizontal: 40,
+  },
+  startButton: {
+    marginTop: 24,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  startButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
   },
 });

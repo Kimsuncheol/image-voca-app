@@ -12,6 +12,7 @@ export interface SavedWord {
   pronunciation: string;
   example: string;
   course: string;
+  day?: number;
   addedAt: string;
 }
 
@@ -41,9 +42,14 @@ export function WordCard({
     >
       <View style={styles.wordHeader}>
         <View style={styles.wordTitleRow}>
-          <ThemedText type="subtitle" style={styles.wordTitle}>
-            {word.word}
-          </ThemedText>
+          <View style={styles.wordTitleContainer}>
+            <ThemedText type="subtitle" style={styles.wordTitle}>
+              {word.word}
+            </ThemedText>
+            {word.day && (
+              <ThemedText style={styles.dayBadge}>Day {word.day}</ThemedText>
+            )}
+          </View>
           <View style={styles.actionButtons}>
             <TouchableOpacity
               onPress={() => speak(word.word)}
@@ -94,9 +100,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  wordTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+  },
   wordTitle: {
     fontSize: 22,
-    flex: 1,
+  },
+  dayBadge: {
+    fontSize: 13,
+    opacity: 0.6,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    backgroundColor: "rgba(0, 122, 255, 0.1)",
   },
   actionButtons: {
     flexDirection: "row",
