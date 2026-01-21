@@ -377,6 +377,13 @@ const en = {
         title: "Fill in the Blank",
         description: "Type the correct word",
       },
+      fillInBlank: {
+        title: "Fill in the Blank",
+        description: "Complete the sentence",
+        targetWord: "Target Word",
+        completeSentence: "Complete the sentence",
+        chooseWord: "Choose the correct word",
+      },
       matching: {
         title: "Matching",
         description: "Pair words with their meanings",

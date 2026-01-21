@@ -47,6 +47,15 @@ const QUIZ_TYPES: QuizType[] = [
     color: "#DDA0DD",
   },
   {
+    id: "fill-in-blank",
+    title: "Fill in the Blank",
+    titleKey: "quiz.types.fillInBlank.title",
+    description: "Complete the sentence",
+    descriptionKey: "quiz.types.fillInBlank.description",
+    icon: "create-outline",
+    color: "#4ECDC4",
+  },
+  {
     id: "word-arrangement",
     title: "Word Arrangement",
     titleKey: "quiz.types.wordArrangement.title",

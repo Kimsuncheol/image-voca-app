@@ -21,6 +21,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
+  FillInTheBlankGame,
   MatchingGame,
   MultipleChoiceGame,
   QuizFeedback,
@@ -35,12 +36,17 @@ import { db } from "../../../src/services/firebase";
 import { useUserStatsStore } from "../../../src/stores";
 import { COURSES, CourseType } from "../../../src/types/vocabulary";
 
+import nlp from "compromise";
+
 interface QuizQuestion {
   id: string;
   word: string;
   meaning: string;
   options?: string[];
   correctAnswer: string;
+  clozeSentence?: string;
+  translation?: string;
+  correctForms?: string[];
 }
 
 interface VocabData {
@@ -110,7 +116,8 @@ const generateQuizQuestions = (
   );
 
   return selectedWords.map((vocab, index) => {
-    const isWordAnswer = quizType === "fill-blank" || quizType === "spelling";
+    const isWordAnswer =
+      quizType === "fill-in-blank" || quizType === "spelling";
 
     // Generate options for multiple choice
     let options: string[] | undefined;
@@ -126,12 +133,81 @@ const generateQuizQuestions = (
       options = shuffleArray([vocab.meaning, ...wrongAnswers]);
     }
 
+    // Generate cloze sentence and options for fill-in-blank
+    let clozeSentence: string | undefined;
+    let translation: string | undefined;
+    let correctForms: string[] | undefined;
+
+    if (quizType === "fill-in-blank" && vocab.example) {
+      // Use compromise to match the word smarty (handles tenses, plurals, lemmas)
+      const doc = nlp(vocab.example);
+
+      // Generate variations of the target word to check against
+      const targetWord = vocab.word;
+      const variations = new Set([targetWord, targetWord.toLowerCase()]);
+
+      try {
+        // Add verb variations
+        variations.add(nlp(targetWord).verbs().toPastTense().out());
+        variations.add(nlp(targetWord).verbs().toPresentTense().out());
+        variations.add(nlp(targetWord).verbs().toGerund().out());
+
+        // Add noun variations
+        variations.add(nlp(targetWord).nouns().toPlural().out());
+        variations.add(nlp(targetWord).nouns().toSingular().out());
+      } catch (e) {
+        // If compromise fails on a word, just ignore
+      }
+
+      // Convert set to array, filter empty strings, and escape for regex
+      const variationArray = Array.from(variations)
+        .filter((v) => v)
+        // Escape regex special characters just in case
+        .map((v) => v.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+
+      // Match any of the variations in the sentence
+      // We use a regex constructor with the variations joined by |
+      const matchString = variationArray.map((v) => `\\b${v}\\b`).join("|");
+      const matchRegex = new RegExp(matchString, "gi");
+
+      // Find matches in the original document text
+      const docText = doc.text();
+      const matches = docText.match(matchRegex);
+
+      if (matches && matches.length > 0) {
+        // Correctly found the word (or its variation)
+        correctForms = Array.from(matches);
+        clozeSentence = docText.replace(matchRegex, "___");
+      } else {
+        // Fallback: Use simple regex for the base word
+        const fallbackRegex = new RegExp(`\\b${vocab.word}[a-z]*\\b`, "gi");
+        const fallbackMatches = vocab.example.match(fallbackRegex);
+        correctForms = fallbackMatches ? Array.from(fallbackMatches) : [];
+        clozeSentence = vocab.example.replace(fallbackRegex, "___");
+      }
+
+      translation = vocab.translation;
+
+      // Get 3 random wrong answers (distractors)
+      const otherWords = vocabData
+        .filter((v) => v.word !== vocab.word)
+        .map((v) => v.word);
+      const shuffledOthers = shuffleArray(otherWords);
+      const wrongAnswers = shuffledOthers.slice(0, 3);
+
+      // Combine and shuffle options (1 correct + 3 wrong)
+      options = shuffleArray([vocab.word, ...wrongAnswers]);
+    }
+
     return {
       id: `q${index}`,
       word: vocab.word,
       meaning: vocab.meaning,
       options,
       correctAnswer: isWordAnswer ? vocab.word : vocab.meaning,
+      clozeSentence,
+      translation,
+      correctForms,
     };
   });
 };
@@ -283,6 +359,7 @@ export default function QuizPlayScreen() {
   const currentQuestion = questions[currentIndex];
   const isMatching = quizType === "matching";
   const isSpelling = quizType === "spelling";
+  const isFillInBlank = quizType === "fill-in-blank";
   const isWordArrangement = quizType === "word-arrangement";
   const matchedCount = Object.keys(matchedPairs).length;
   const progressCurrent = isMatching ? matchedCount : currentIndex + 1;
@@ -756,6 +833,21 @@ export default function QuizPlayScreen() {
               onSubmit={() => handleAnswer(userAnswer)}
               courseColor={course?.color}
               meaning={currentQuestion.meaning}
+            />
+          ) : isFillInBlank ? (
+            <FillInTheBlankGame
+              word={currentQuestion.word}
+              clozeSentence={currentQuestion.clozeSentence || ""}
+              translation={currentQuestion.translation}
+              options={currentQuestion.options || []}
+              correctAnswer={currentQuestion.correctAnswer}
+              userAnswer={userAnswer}
+              showResult={showResult}
+              onAnswer={(answer) => {
+                setUserAnswer(answer);
+                handleAnswer(answer);
+              }}
+              correctForms={currentQuestion.correctForms}
             />
           ) : isWordArrangement ? (
             <WordArrangementGame

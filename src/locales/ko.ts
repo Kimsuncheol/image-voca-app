@@ -372,6 +372,13 @@ const ko = {
         title: "빈칸 채우기",
         description: "정답 단어 입력",
       },
+      fillInBlank: {
+        title: "빈칸 채우기",
+        description: "문장을 완성하세요",
+        targetWord: "목표 단어",
+        completeSentence: "문장을 완성하세요",
+        chooseWord: "정답 단어를 선택하세요",
+      },
       matching: {
         title: "매칭",
         description: "단어와 뜻을 짝지으세요",

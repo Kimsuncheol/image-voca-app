@@ -19,6 +19,7 @@
     "@react-navigation/material-top-tabs": "^7.4.12",
     "@react-navigation/native": "^7.1.8",
     "@tosspayments/widget-sdk-react-native": "^1.5.1",
+    "compromise": "^14.14.5",
     "csv-parse": "^6.1.0",
     "dotenv": "^17.2.3",
     "expo": "~54.0.31",
