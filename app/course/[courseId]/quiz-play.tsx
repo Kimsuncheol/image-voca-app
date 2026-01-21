@@ -48,6 +48,7 @@ interface VocabData {
   meaning: string;
   pronunciation?: string;
   example?: string;
+  translation?: string;
 }
 
 const shuffleArray = <T,>(items: T[]): T[] => {
@@ -172,20 +173,6 @@ const splitExampleSentences = (example: string): string[] => {
     .filter(Boolean);
 };
 
-const splitSelectedChunksBySentence = (
-  chunks: string[],
-  counts: number[],
-): string[][] => {
-  if (counts.length === 0) return [chunks];
-  const groups: string[][] = [];
-  let cursor = 0;
-  counts.forEach((count) => {
-    groups.push(chunks.slice(cursor, cursor + count));
-    cursor += count;
-  });
-  return groups;
-};
-
 export default function QuizPlayScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
@@ -219,13 +206,16 @@ export default function QuizPlayScreen() {
 
   // Word Arrangement state
   const [shuffledChunks, setShuffledChunks] = useState<string[]>([]);
-  const [selectedChunks, setSelectedChunks] = useState<string[]>([]);
+  const [selectedChunksByArea, setSelectedChunksByArea] = useState<string[][]>(
+    [],
+  );
   const [arrangementComplete, setArrangementComplete] = useState(false);
   const [currentArrangementWord, setCurrentArrangementWord] =
     useState<VocabData | null>(null);
   const [currentArrangementSentences, setCurrentArrangementSentences] =
     useState<string[]>([]);
   const [sentenceChunkCounts, setSentenceChunkCounts] = useState<number[]>([]);
+  const [focusedSentenceIndex, setFocusedSentenceIndex] = useState(0);
 
   // Fetch vocabulary data from Firestore
   useEffect(() => {
@@ -253,6 +243,7 @@ export default function QuizPlayScreen() {
             meaning: data.meaning,
             pronunciation: data.pronunciation,
             example: data.example,
+            translation: data.translation,
           };
         });
 
@@ -384,42 +375,66 @@ export default function QuizPlayScreen() {
     setCurrentArrangementSentences(sentences);
     setSentenceChunkCounts(sentenceChunks.map((chunk) => chunk.length));
     setShuffledChunks(shuffleArray([...chunks]));
-    setSelectedChunks([]);
+    // Initialize empty arrays for each sentence area
+    setSelectedChunksByArea(sentences.map(() => []));
     setArrangementComplete(false);
+    setFocusedSentenceIndex(0);
   }, []);
 
   // Word Arrangement: Handle selecting a chunk from available
   const handleChunkSelect = (chunk: string, index: number) => {
     if (arrangementComplete) return;
-    // Remove from shuffled and add to selected
+    // Remove from shuffled
     const newShuffled = [...shuffledChunks];
     newShuffled.splice(index, 1);
     setShuffledChunks(newShuffled);
-    setSelectedChunks([...selectedChunks, chunk]);
+
+    // Add to the focused sentence area
+    setSelectedChunksByArea((prev) => {
+      const newAreas = prev.map((area, i) =>
+        i === focusedSentenceIndex ? [...area, chunk] : [...area],
+      );
+      return newAreas;
+    });
+  };
+
+  // Word Arrangement: Handle focus change
+  const handleFocusChange = (index: number) => {
+    setFocusedSentenceIndex(index);
   };
 
   // Word Arrangement: Handle removing a chunk from answer
-  const handleChunkDeselect = (index: number) => {
+  const handleChunkDeselect = (areaIndex: number, chunkIndex: number) => {
     if (arrangementComplete) return;
-    const chunk = selectedChunks[index];
-    const newSelected = [...selectedChunks];
-    newSelected.splice(index, 1);
-    setSelectedChunks(newSelected);
-    setShuffledChunks([...shuffledChunks, chunk]);
+    const chunk = selectedChunksByArea[areaIndex]?.[chunkIndex];
+    if (!chunk) return;
+
+    // Remove from the area
+    setSelectedChunksByArea((prev) => {
+      const newAreas = prev.map((area, i) => {
+        if (i === areaIndex) {
+          const newArea = [...area];
+          newArea.splice(chunkIndex, 1);
+          return newArea;
+        }
+        return [...area];
+      });
+      return newAreas;
+    });
+
+    // Add back to shuffled chunks
+    setShuffledChunks((prev) => [...prev, chunk]);
   };
 
   // Word Arrangement: Check if arrangement is correct
-  // Word Arrangement: Check if arrangement is correct
   const checkArrangement = React.useCallback(async () => {
     if (currentArrangementSentences.length === 0) return;
-    const groupedChunks = splitSelectedChunksBySentence(
-      selectedChunks,
-      sentenceChunkCounts,
-    );
+
+    // Each area is already a separate array - compare directly
     const isCorrect =
-      groupedChunks.length === currentArrangementSentences.length &&
-      groupedChunks.every((group, index) => {
-        const userSentence = normalizeSentence(group.join(" "));
+      selectedChunksByArea.length === currentArrangementSentences.length &&
+      selectedChunksByArea.every((areaChunks, index) => {
+        const userSentence = normalizeSentence(areaChunks.join(" "));
         return userSentence === currentArrangementSentences[index];
       });
 
@@ -433,8 +448,7 @@ export default function QuizPlayScreen() {
     return isCorrect;
   }, [
     currentArrangementSentences,
-    selectedChunks,
-    sentenceChunkCounts,
+    selectedChunksByArea,
     user,
     recordQuizAnswer,
   ]);
@@ -469,18 +483,29 @@ export default function QuizPlayScreen() {
   };
 
   // Word Arrangement: Check arrangement when all chunks are selected
+  const totalSelectedChunks = selectedChunksByArea.reduce(
+    (sum, area) => sum + area.length,
+    0,
+  );
+  const totalExpectedChunks = sentenceChunkCounts.reduce(
+    (sum, count) => sum + count,
+    0,
+  );
+
   useEffect(() => {
     if (
       isWordArrangement &&
       shuffledChunks.length === 0 &&
-      selectedChunks.length > 0 &&
+      totalSelectedChunks > 0 &&
+      totalSelectedChunks === totalExpectedChunks &&
       !arrangementComplete
     ) {
       checkArrangement();
     }
   }, [
     shuffledChunks,
-    selectedChunks,
+    totalSelectedChunks,
+    totalExpectedChunks,
     isWordArrangement,
     arrangementComplete,
     checkArrangement,
@@ -556,7 +581,7 @@ export default function QuizPlayScreen() {
     setMatchingFeedback(null);
     // Reset word arrangement state
     setShuffledChunks([]);
-    setSelectedChunks([]);
+    setSelectedChunksByArea([]);
     setArrangementComplete(false);
     setCurrentArrangementWord(null);
     setCurrentArrangementSentences([]);
@@ -736,11 +761,14 @@ export default function QuizPlayScreen() {
             <WordArrangementGame
               word={currentArrangementWord?.word || ""}
               meaning={currentArrangementWord?.meaning || ""}
-              selectedChunks={selectedChunks}
+              translation={currentArrangementWord?.translation}
+              selectedChunksByArea={selectedChunksByArea}
               availableChunks={shuffledChunks}
               isComplete={arrangementComplete}
               sentenceChunkCounts={sentenceChunkCounts}
               courseColor={course?.color}
+              focusedSentenceIndex={focusedSentenceIndex}
+              onFocusChange={handleFocusChange}
               onChunkSelect={handleChunkSelect}
               onChunkDeselect={handleChunkDeselect}
               onNext={handleArrangementNext}

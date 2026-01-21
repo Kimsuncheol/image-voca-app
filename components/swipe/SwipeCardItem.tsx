@@ -1,15 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as Speech from "expo-speech";
 import { arrayUnion, doc, setDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Dimensions, Image, StyleSheet, Text, View } from "react-native";
+import { Alert, Dimensions, StyleSheet, Text, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
 import { useUserStatsStore } from "../../src/stores";
 import { VocabularyCard } from "../../src/types/vocabulary";
+import { SwipeCardItemImageSection } from "./SwipeCardItemImageSection";
+import { SwipeCardItemMeaningExampleSentenceSection } from "./SwipeCardItemMeaningExampleSentenceSection";
 
 const { width } = Dimensions.get("window");
 
@@ -24,10 +25,6 @@ export function SwipeCardItem({ item }: SwipeCardItemProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const { t } = useTranslation();
-
-  const speak = () => {
-    Speech.speak(item.word);
-  };
 
   const addToWordBank = async () => {
     if (!user) {
@@ -82,72 +79,25 @@ export function SwipeCardItem({ item }: SwipeCardItemProps) {
         { borderColor: isDark ? "#333" : "#E0E0E0" },
       ]}
     >
-      {/* Always reserve space for image */}
-      <View style={styles.imageContainer}>
-        {item.image ? (
-          <Image source={{ uri: item.image }} style={styles.cardImage} />
-        ) : (
-          <View style={[styles.cardImage, styles.imagePlaceholder]}>
-            <Ionicons
-              name="image-outline"
-              size={48}
-              color={isDark ? "#555" : "#ccc"}
-            />
-          </View>
-        )}
-      </View>
+      {/* Image Section */}
+      <SwipeCardItemImageSection image={item.image} isDark={isDark} />
+
+      {/* Card Info Section */}
       <View
         style={[
           styles.cardInfo,
           { backgroundColor: isDark ? "#1a1a1a" : "#fff" },
         ]}
       >
-        <View style={styles.titleContainer}>
-          <Text
-            style={[styles.cardTitle, { color: isDark ? "#fff" : "#1a1a1a" }]}
-          >
-            {item.word}
-          </Text>
-          <TouchableOpacity
-            onPress={speak}
-            style={[
-              styles.speakerButton,
-              { backgroundColor: isDark ? "#2c2c2c" : "#F5F5F5" },
-            ]}
-          >
-            <Ionicons
-              name="volume-medium"
-              size={24}
-              color={isDark ? "#aaa" : "#666"}
-            />
-          </TouchableOpacity>
-        </View>
-        {item.pronunciation && (
-          <Text
-            style={[styles.cardSubtitle, { color: isDark ? "#999" : "#666" }]}
-          >
-            {item.pronunciation}
-          </Text>
-        )}
-        <Text
-          style={[
-            styles.cardDescription,
-            { color: isDark ? "#e0e0e0" : "#2c2c2c" },
-          ]}
-          numberOfLines={2}
-        >
-          {item.meaning}
-        </Text>
-        <Text
-          style={[
-            styles.cardExample,
-            { color: isDark ? "#b0b0b0" : "#444" },
-            { borderLeftColor: isDark ? "#0a84ff" : "#007AFF" },
-          ]}
-          numberOfLines={2}
-        >
-          &quot;{item.example}&quot;
-        </Text>
+        {/* Merged Word, Meaning & Example Section */}
+        <SwipeCardItemMeaningExampleSentenceSection
+          word={item.word}
+          pronunciation={item.pronunciation}
+          meaning={item.meaning}
+          example={item.example}
+          translation={item.translation}
+          isDark={isDark}
+        />
 
         {/* Add to Word Bank Button */}
         <TouchableOpacity
@@ -202,65 +152,12 @@ const styles = StyleSheet.create({
     elevation: 16,
     overflow: "hidden",
   },
-  cardImage: {
-    height: "60%",
-    width: "100%",
-    resizeMode: "cover",
-  },
-  imageContainer: {
-    height: "60%",
-    width: "100%",
-  },
-  imagePlaceholder: {
-    backgroundColor: "#f0f0f0",
-    justifyContent: "center",
-    alignItems: "center",
-  },
   cardInfo: {
-    height: "40%",
+    height: "55%",
     justifyContent: "center",
     paddingHorizontal: 24,
     paddingVertical: 16,
     backgroundColor: "#fff",
-  },
-  titleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  speakerButton: {
-    marginLeft: 10,
-    padding: 8,
-    backgroundColor: "#F5F5F5",
-    borderRadius: 20,
-  },
-  cardTitle: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-  },
-  cardSubtitle: {
-    fontSize: 16,
-    color: "#666",
-    fontStyle: "italic",
-    marginBottom: 8,
-  },
-  cardDescription: {
-    fontSize: 17,
-    color: "#2c2c2c",
-    lineHeight: 24,
-    marginBottom: 8,
-    fontWeight: "500",
-  },
-  cardExample: {
-    fontSize: 14,
-    color: "#444",
-    fontStyle: "italic",
-    borderLeftWidth: 4,
-    borderLeftColor: "#007AFF",
-    paddingLeft: 12,
-    marginTop: 8,
-    lineHeight: 20,
   },
   addButton: {
     flexDirection: "row",

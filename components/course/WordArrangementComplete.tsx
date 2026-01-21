@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../themed-text";
 
 interface WordArrangementCompleteProps {
@@ -15,6 +15,15 @@ export function WordArrangementComplete({
 }: WordArrangementCompleteProps) {
   const { t } = useTranslation();
 
+  // Auto-advance after 2.5 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onNext();
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, [onNext]);
+
   return (
     <View style={styles.completeContainer}>
       <View style={[styles.feedbackBadge, { backgroundColor: "#28a745" }]}>
@@ -23,15 +32,6 @@ export function WordArrangementComplete({
           {t("quiz.wordArrangement.completed")}
         </ThemedText>
       </View>
-      <TouchableOpacity
-        style={[styles.nextButton, { backgroundColor: courseColor }]}
-        onPress={onNext}
-      >
-        <ThemedText style={styles.nextButtonText}>
-          {t("common.next")}
-        </ThemedText>
-        <Ionicons name="arrow-forward" size={20} color="#fff" />
-      </TouchableOpacity>
     </View>
   );
 }
@@ -53,19 +53,6 @@ const styles = StyleSheet.create({
   feedbackText: {
     color: "#fff",
     fontSize: 18,
-    fontWeight: "600",
-  },
-  nextButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 24,
-    gap: 8,
-  },
-  nextButtonText: {
-    color: "#fff",
-    fontSize: 16,
     fontWeight: "600",
   },
 });

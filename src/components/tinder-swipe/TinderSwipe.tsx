@@ -31,7 +31,7 @@ export const TinderSwipe = forwardRef<TinderSwipeRef, TinderSwipeProps>(
       onRunOutOfCards,
       loop = false,
     },
-    ref
+    ref,
   ) => {
     const [cards, setCards] = useState(data);
     const historyRef = useRef<any[]>([]);
@@ -145,7 +145,7 @@ export const TinderSwipe = forwardRef<TinderSwipeRef, TinderSwipeProps>(
     // But inside the map, we need to correct the handlers.
     // If we render [C, B, A], only A (the last rendered) should be swipeable?
     // TinderCard handles gesture. If A covers B, only A receives touch? Yes (usually).
-  }
+  },
 );
 
 TinderSwipe.displayName = "TinderSwipe";

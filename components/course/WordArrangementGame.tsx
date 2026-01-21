@@ -10,24 +10,30 @@ import { WordArrangementTargetCard } from "./WordArrangementTargetCard";
 interface WordArrangementGameProps {
   word: string;
   meaning: string;
-  selectedChunks: string[];
+  translation?: string;
+  selectedChunksByArea: string[][];
   availableChunks: string[];
   isComplete: boolean;
   sentenceChunkCounts?: number[];
   courseColor?: string;
+  focusedSentenceIndex?: number;
+  onFocusChange?: (index: number) => void;
   onChunkSelect: (chunk: string, index: number) => void;
-  onChunkDeselect: (index: number) => void;
+  onChunkDeselect: (areaIndex: number, chunkIndex: number) => void;
   onNext: () => void;
 }
 
 export function WordArrangementGame({
   word,
   meaning,
-  selectedChunks,
+  translation,
+  selectedChunksByArea,
   availableChunks,
   isComplete,
   sentenceChunkCounts,
   courseColor,
+  focusedSentenceIndex = 0,
+  onFocusChange,
   onChunkSelect,
   onChunkDeselect,
   onNext,
@@ -43,10 +49,13 @@ export function WordArrangementGame({
       />
 
       <WordArrangementAnswerZone
-        selectedChunks={selectedChunks}
+        selectedChunksByArea={selectedChunksByArea}
         isComplete={isComplete}
         sentenceChunkCounts={sentenceChunkCounts}
         onChunkDeselect={onChunkDeselect}
+        translation={translation}
+        focusedSentenceIndex={focusedSentenceIndex}
+        onFocusChange={onFocusChange}
       />
 
       {!isComplete && (

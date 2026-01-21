@@ -1,46 +1,44 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Asset } from "expo-asset";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import { addDoc, collection, deleteDoc, getDocs } from "firebase/firestore";
 import { getMetadata, ref, uploadBytes } from "firebase/storage";
 import Papa from "papaparse";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import AddVocaHeader from "../../src/components/admin/AddVocaHeader";
+import UploadCSVFileView from "../../src/components/admin/UploadCSVFileView";
+import UploadViaLinkView from "../../src/components/admin/UploadViaLinkView";
 import { useTheme } from "../../src/context/ThemeContext";
 import useGoogleSheetsAuth from "../../src/hooks/useGoogleSheetsAuth";
 import { db, storage } from "../../src/services/firebase";
 import { parseSheetValues } from "../../src/utils/googleSheetsUtils";
 
+type TabType = "csv" | "link";
+
 export default function AddVocaScreen() {
   const { isDark } = useTheme();
-  const router = useRouter();
   const styles = getStyles(isDark);
 
   const COURSES = [
     { name: "CSAT", path: process.env.EXPO_PUBLIC_COURSE_PATH_CSAT || "" },
     { name: "IELTS", path: process.env.EXPO_PUBLIC_COURSE_PATH_IELTS || "" },
-    { name: "OPIc", path: process.env.EXPO_PUBLIC_COURSE_PATH_OPIC || "" },
     { name: "TOEFL", path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL || "" },
     { name: "TOEIC", path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC || "" },
-    {
-      name: "TOEIC Speaking",
-      path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC_SPEAKING || "",
-    },
   ];
 
+  // State
+  const [activeTab, setActiveTab] = useState<TabType>("csv");
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState("");
   const [selectedCourse, setSelectedCourse] = useState(COURSES[0]);
@@ -60,9 +58,9 @@ export default function AddVocaScreen() {
     }
   }, [token, waitingForToken]);
 
-  // Computed full path for display/verify - now with Day prefix added
   const fullPath = `${selectedCourse.path}/Day${subcollectionName}`;
 
+  // CSV Handlers
   const handlePickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -107,16 +105,11 @@ export default function AddVocaScreen() {
       );
 
       try {
-        const metadata = await getMetadata(storageRef);
-        console.log("[Storage] File already exists:", metadata.name);
-        console.log("[Storage] Size:", metadata.size, "bytes");
-        console.log("[Storage] Updated:", metadata.updated);
+        await getMetadata(storageRef);
         setProgress("File exists, replacing with new CSV...");
       } catch (error: any) {
         if (error.code === "storage/object-not-found") {
           console.log("[Storage] File does not exist, uploading new file");
-        } else {
-          console.error("[Storage] Error checking file:", error);
         }
       }
 
@@ -144,8 +137,6 @@ export default function AddVocaScreen() {
         skipEmptyLines: true,
         complete: async (results) => {
           console.log("[Picker] Parsed", results.data.length, "records");
-          console.log("[Picker] First 3 records:", results.data.slice(0, 3));
-          console.log("[Picker] All parsed data:", results.data);
           try {
             await uploadData(results.data);
           } catch (uploadError: any) {
@@ -168,6 +159,7 @@ export default function AddVocaScreen() {
     }
   };
 
+  // Google Sheets Handlers
   const handleSheetImportButton = async () => {
     if (!subcollectionName.trim()) {
       Alert.alert("Error", "Please enter a day number first (e.g. 1)");
@@ -197,7 +189,6 @@ export default function AddVocaScreen() {
     try {
       setLoading(true);
       setProgress("Fetching data from Google Sheets...");
-      console.log(`[Sheets] Fetching ID: ${sheetId}, Range: ${sheetRange}`);
 
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetRange}?majorDimension=ROWS`;
       const response = await fetch(url, {
@@ -217,16 +208,7 @@ export default function AddVocaScreen() {
         throw new Error("No data found or only header row exists.");
       }
 
-      console.log(`[Sheets] Fetched ${rows.length} rows.`);
-
-      console.log(`[Sheets] Fetched ${rows.length} rows.`);
-
-      // Use the tested utility to parse data
       const dataObjects = parseSheetValues(rows);
-
-      console.log("[Sheets] First converted object:", dataObjects[0]);
-
-      // Reuse existing upload logic
       await uploadData(dataObjects);
     } catch (err: any) {
       console.error("[Sheets] Error:", err);
@@ -235,40 +217,29 @@ export default function AddVocaScreen() {
     }
   };
 
+  // Shared upload logic
   const uploadData = async (data: any[]) => {
-    console.log("[Upload] Starting uploadData with", data.length, "records");
     if (!subcollectionName.trim()) {
       Alert.alert("Error", "Please enter a Subcollection Name (e.g. Day1)");
       setLoading(false);
       return;
     }
 
-    console.log("[Upload] Target Firestore path:", fullPath);
-
-    // 3. Clear existing data
+    // Clear existing data
     setProgress(`Clearing existing data in ${subcollectionName}...`);
     try {
       const querySnapshot = await getDocs(collection(db, fullPath));
-      console.log(
-        "[Upload] Found",
-        querySnapshot.docs.length,
-        "existing documents to delete",
-      );
       const deletePromises = querySnapshot.docs.map((doc) =>
         deleteDoc(doc.ref),
       );
       await Promise.all(deletePromises);
-      console.log(
-        `[Upload] Deleted ${deletePromises.length} existing documents.`,
-      );
     } catch (deleteError) {
-      console.error("[Upload] Failed to clear existing data:", deleteError);
       Alert.alert("Error", "Failed to clear existing data. Aborting upload.");
       setLoading(false);
       return;
     }
 
-    // 4. Upload new data
+    // Upload new data
     setProgress(
       `Found ${data.length} records. Uploading to ${subcollectionName}...`,
     );
@@ -279,12 +250,10 @@ export default function AddVocaScreen() {
     for (let i = 0; i < data.length; i++) {
       const item = data[i];
       try {
-        // Handle both renamed headers (_1, _2, _3, _4) and standard headers
         const word = String(
           item["Word"] || item["word"] || item["_1"] || "",
         ).trim();
 
-        // Skip if this is the actual header row (when first line was empty)
         if (word === "Word" || !word) continue;
 
         const docData = {
@@ -314,9 +283,6 @@ export default function AddVocaScreen() {
 
         await addDoc(collection(db, fullPath), docData);
         successCount++;
-        if (successCount === 1 || successCount % 10 === 0) {
-          console.log(`[Upload] Progress: ${successCount}/${data.length}`);
-        }
         setProgress(`Uploaded ${successCount}/${data.length}...`);
       } catch (e) {
         console.error("Upload failed", e);
@@ -324,132 +290,16 @@ export default function AddVocaScreen() {
       }
     }
 
-    // 5. Verify data was saved - fetch and display
-    console.log("[Verify] Fetching saved data from Firestore...");
-    try {
-      const verifySnapshot = await getDocs(collection(db, fullPath));
-      console.log(
-        "[Verify] Total documents in Firestore:",
-        verifySnapshot.docs.length,
-      );
-      console.log(
-        "[Verify] First 3 documents:",
-        verifySnapshot.docs.slice(0, 3).map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })),
-      );
-      console.log(
-        "[Verify] All documents:",
-        verifySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })),
-      );
-    } catch (verifyError) {
-      console.error("[Verify] Failed to verify saved data:", verifyError);
-    }
-
     setLoading(false);
     setProgress("");
     Alert.alert(
       "Upload Complete",
       `Successfully uploaded: ${successCount}\nFailed: ${failCount}`,
-      [{ text: "OK" }],
     );
   };
 
-  const handleImportFromAsset = async () => {
-    try {
-      setLoading(true);
-      setProgress("Loading CSV from assets...");
-      console.log("[Import] Starting import from asset");
-      console.log("[Import] Target path:", fullPath);
-
-      // Load the predefined CSV file from assets
-      const csvAsset = Asset.fromModule(
-        require("../../assets/spreadsheet/CSAT_Day1.csv"),
-      );
-      await csvAsset.downloadAsync();
-      console.log("[Import] CSV asset downloaded:", csvAsset.localUri);
-
-      if (!csvAsset.localUri) {
-        throw new Error("Failed to load CSV asset");
-      }
-
-      // 1. Check if file exists in Storage, then upload CSV
-      setProgress("Checking if CSV exists in Storage...");
-      const storageRef = ref(
-        storage,
-        `csv/${selectedCourse.name}/${subcollectionName}.csv`,
-      );
-
-      try {
-        const metadata = await getMetadata(storageRef);
-        console.log("[Storage] File already exists:", metadata.name);
-        console.log("[Storage] Size:", metadata.size, "bytes");
-        console.log("[Storage] Updated:", metadata.updated);
-        setProgress("File exists, replacing with new CSV...");
-      } catch (error: any) {
-        if (error.code === "storage/object-not-found") {
-          console.log("[Storage] File does not exist, uploading new file");
-        } else {
-          console.error("[Storage] Error checking file:", error);
-        }
-      }
-
-      setProgress("Uploading CSV to Storage...");
-      try {
-        const response = await fetch(csvAsset.localUri);
-        const blob = await response.blob();
-        await uploadBytes(storageRef, blob);
-        console.log("[Storage] CSV uploaded successfully");
-      } catch (storageError: any) {
-        console.error("[Storage] Upload failed:", storageError);
-        Alert.alert(
-          "Warning",
-          "Failed to save CSV to storage, but proceeding with data upload.",
-        );
-      }
-
-      // 2. Read and Parse
-      setProgress("Reading file...");
-      const fileContent = await FileSystem.readAsStringAsync(csvAsset.localUri);
-      console.log("[Import] File content length:", fileContent.length);
-
-      setProgress("Parsing CSV...");
-      Papa.parse(fileContent, {
-        header: true,
-        skipEmptyLines: true,
-        complete: async (results) => {
-          console.log("[Import] Parsed", results.data.length, "records");
-          console.log("[Import] First 3 records:", results.data.slice(0, 3));
-          console.log("[Import] All parsed data:", results.data);
-          try {
-            await uploadData(results.data);
-          } catch (uploadError: any) {
-            console.error("[Import] Upload failed:", uploadError);
-            setLoading(false);
-            Alert.alert(
-              "Upload Error",
-              uploadError.message || "Failed to upload data",
-            );
-          }
-        },
-        error: (error: any) => {
-          console.error("[Import] CSV parsing error:", error);
-          setLoading(false);
-          Alert.alert("Error parsing CSV", error.message);
-        },
-      });
-    } catch (err: any) {
-      setLoading(false);
-      Alert.alert("Error", err.message);
-    }
-  };
-
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
       <Stack.Screen
         options={{
           title: "Import Vocabulary",
@@ -465,191 +315,72 @@ export default function AddVocaScreen() {
         keyboardVerticalOffset={100}
       >
         <ScrollView style={styles.content}>
-          <View style={styles.infoBox}>
-            <Ionicons
-              name="information-circle-outline"
-              size={24}
-              color={isDark ? "#eee" : "#333"}
-            />
-            <Text style={styles.infoText}>
-              Select a Course and define the day/unit (e.g., Day1).{"\n"}
-              Then upload your CSV.
-            </Text>
-          </View>
+          <AddVocaHeader
+            selectedCourse={selectedCourse}
+            setSelectedCourse={setSelectedCourse}
+            subcollectionName={subcollectionName}
+            setSubcollectionName={setSubcollectionName}
+            isDark={isDark}
+            courses={COURSES}
+          />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Select Course</Text>
-            <View style={styles.courseContainer}>
-              {COURSES.map((course) => (
-                <TouchableOpacity
-                  key={course.name}
-                  style={[
-                    styles.courseButton,
-                    selectedCourse.name === course.name &&
-                      styles.courseButtonActive,
-                  ]}
-                  onPress={() => {
-                    setSelectedCourse(course);
-                    // Optional: Reset or auto-suggest subcollection name based on course?
-                    // For now keep it manual or preserve.
-                    if (
-                      course.name === "CSAT" &&
-                      subcollectionName.startsWith("CSAT")
-                    )
-                      return;
-                    // Simple heuristic to clear if switching types completely, strictly optional.
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.courseButtonText,
-                      selectedCourse.name === course.name &&
-                        styles.courseButtonTextActive,
-                    ]}
-                  >
-                    {course.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Subcollection Name</Text>
-            <View style={styles.dayInputContainer}>
-              <View style={styles.dayPrefix}>
-                <Text style={styles.dayPrefixText}>Day</Text>
-              </View>
-              <TextInput
-                style={styles.dayInput}
-                value={subcollectionName}
-                onChangeText={setSubcollectionName}
-                placeholder="1"
-                placeholderTextColor={isDark ? "#555" : "#999"}
-                keyboardType="numeric"
-              />
-            </View>
-            <Text style={styles.pathHint}>
-              Target: .../{selectedCourse.name}/.../Day{subcollectionName}
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.uploadButton}
-            onPress={handlePickDocument}
-            disabled={loading}
-          >
-            <>
-              <Ionicons
-                name="document-attach-outline"
-                size={32}
-                color="#007AFF"
-              />
-              <Text style={styles.uploadButtonText}>
-                {selectedFile ? selectedFile.name : "Select CSV File"}
-              </Text>
-            </>
-          </TouchableOpacity>
-
-          {selectedFile && (
+          {/* Tab Switcher */}
+          <View style={styles.tabContainer}>
             <TouchableOpacity
-              style={[styles.uploadButton, styles.uploadButtonPrimary]}
-              onPress={handleUpload}
-              disabled={loading}
+              style={[styles.tab, activeTab === "csv" && styles.tabActive]}
+              onPress={() => setActiveTab("csv")}
             >
-              {loading ? (
-                <ActivityIndicator color="#fff" size="large" />
-              ) : (
-                <>
-                  <Ionicons
-                    name="cloud-upload-outline"
-                    size={32}
-                    color="#fff"
-                  />
-                  <Text
-                    style={[
-                      styles.uploadButtonText,
-                      styles.uploadButtonTextPrimary,
-                    ]}
-                  >
-                    Upload CSV
-                  </Text>
-                </>
-              )}
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === "csv" && styles.tabTextActive,
+                ]}
+              >
+                Upload CSV File
+              </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === "link" && styles.tabActive]}
+              onPress={() => setActiveTab("link")}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === "link" && styles.tabTextActive,
+                ]}
+              >
+                Upload via Link
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Tab Content */}
+          {activeTab === "csv" ? (
+            <UploadCSVFileView
+              selectedFile={selectedFile}
+              loading={loading}
+              progress={progress}
+              isDark={isDark}
+              onPickDocument={handlePickDocument}
+              onUpload={handleUpload}
+            />
+          ) : (
+            <UploadViaLinkView
+              sheetId={sheetId}
+              setSheetId={setSheetId}
+              sheetRange={sheetRange}
+              setSheetRange={setSheetRange}
+              loading={loading}
+              progress={progress}
+              isDark={isDark}
+              token={token}
+              waitingForToken={waitingForToken}
+              onSheetImport={handleSheetImportButton}
+            />
           )}
-
-          <View style={styles.divider} />
-
-          <Text style={styles.sectionTitle}>Import from Google Sheets</Text>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Sheet ID</Text>
-            <TextInput
-              style={styles.input}
-              value={sheetId}
-              onChangeText={setSheetId}
-              placeholder="e.g. 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
-              placeholderTextColor={isDark ? "#555" : "#999"}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            <Text style={styles.pathHint}>
-              Copy the ID from your Google Sheet URL
-            </Text>
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Range (Optional)</Text>
-            <TextInput
-              style={styles.input}
-              value={sheetRange}
-              onChangeText={setSheetRange}
-              placeholder="Sheet1!A:E"
-              placeholderTextColor={isDark ? "#555" : "#999"}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={[styles.importButton, { backgroundColor: "#0F9D58" }]} // Google Sheets Green
-            onPress={handleSheetImportButton}
-            disabled={loading}
-          >
-            {loading && waitingForToken ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <>
-                <Ionicons name="grid-outline" size={24} color="#fff" />
-                <Text style={styles.importButtonText}>
-                  {token ? "Import form Sheets" : "Connect & Import Sheets"}
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
-
-          <View style={styles.divider} />
-
-          <TouchableOpacity
-            style={styles.importButton}
-            onPress={handleImportFromAsset}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <>
-                <Ionicons
-                  name="cloud-download-outline"
-                  size={24}
-                  color="#fff"
-                />
-                <Text style={styles.importButtonText}>Import</Text>
-              </>
-            )}
-          </TouchableOpacity>
-
-          {loading && <Text style={styles.progressText}>{progress}</Text>}
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -668,160 +399,28 @@ const getStyles = (isDark: boolean) =>
     content: {
       padding: 20,
     },
-    infoBox: {
+    tabContainer: {
       flexDirection: "row",
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
-      padding: 16,
-      borderRadius: 12,
       marginBottom: 24,
-      alignItems: "center",
-    },
-    infoText: {
-      color: isDark ? "#e5e5e7" : "#333",
-      marginLeft: 12,
-      flex: 1,
-      lineHeight: 20,
-    },
-    inputGroup: {
-      marginBottom: 24,
-    },
-    label: {
-      fontSize: 14,
-      fontWeight: "600",
-      marginBottom: 8,
-      color: isDark ? "#8e8e93" : "#6e6e73",
-      textTransform: "uppercase",
-      marginLeft: 4,
-    },
-    input: {
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
-      padding: 15,
       borderRadius: 10,
-      fontSize: 14,
-      color: isDark ? "#fff" : "#000",
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: isDark ? "#38383a" : "#c6c6c8",
+      backgroundColor: isDark ? "#1c1c1e" : "#e5e5ea",
+      padding: 4,
     },
-    dayInputContainer: {
-      flexDirection: "row",
-      alignItems: "stretch",
-      marginBottom: 8,
-    },
-    dayPrefix: {
-      backgroundColor: "#0b51e6",
-      paddingVertical: 15,
-      paddingHorizontal: 20,
-      borderTopLeftRadius: 10,
-      borderBottomLeftRadius: 10,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    dayPrefixText: {
-      color: "#fff",
-      fontSize: 14,
-      fontWeight: "600",
-    },
-    dayInput: {
+    tab: {
       flex: 1,
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
-      paddingVertical: 15,
-      paddingHorizontal: 15,
-      borderTopRightRadius: 10,
-      borderBottomRightRadius: 10,
-      fontSize: 14,
-      color: isDark ? "#fff" : "#000",
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: isDark ? "#38383a" : "#c6c6c8",
-      borderLeftWidth: 0,
+      paddingVertical: 12,
+      alignItems: "center",
+      borderRadius: 8,
     },
-    pathInput: {
-      fontSize: 12,
-      color: isDark ? "#aaa" : "#666",
-      height: 80,
-      textAlignVertical: "top",
-    },
-    courseContainer: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: 10,
-    },
-    courseButton: {
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-      borderRadius: 20,
-      backgroundColor: isDark ? "#2c2c2e" : "#e5e5ea",
-      marginBottom: 8,
-    },
-    courseButtonActive: {
+    tabActive: {
       backgroundColor: "#007AFF",
     },
-    courseButtonText: {
-      fontSize: 14,
-      color: isDark ? "#fff" : "#000",
-    },
-    courseButtonTextActive: {
-      color: "#fff",
+    tabText: {
+      fontSize: 15,
       fontWeight: "600",
-    },
-    pathHint: {
-      fontSize: 12,
       color: isDark ? "#8e8e93" : "#6e6e73",
-      marginTop: 6,
-      fontStyle: "italic",
     },
-    uploadButton: {
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
-      padding: 40,
-      borderRadius: 16,
-      alignItems: "center",
-      justifyContent: "center",
-      borderWidth: 2,
-      borderColor: "#007AFF",
-      borderStyle: "dashed",
-    },
-    uploadButtonText: {
-      color: "#007AFF",
-      fontSize: 18,
-      fontWeight: "600",
-      marginTop: 12,
-    },
-    uploadButtonPrimary: {
-      backgroundColor: "#007AFF",
-      borderStyle: "solid",
-    },
-    uploadButtonTextPrimary: {
+    tabTextActive: {
       color: "#fff",
-    },
-    progressText: {
-      textAlign: "center",
-      marginTop: 20,
-      fontSize: 16,
-      color: isDark ? "#ccc" : "#666",
-    },
-    importButton: {
-      backgroundColor: "#007AFF",
-      padding: 16,
-      borderRadius: 12,
-      alignItems: "center",
-      justifyContent: "center",
-      flexDirection: "row",
-      marginTop: 16,
-      gap: 8,
-    },
-    importButtonText: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    divider: {
-      height: 1,
-      backgroundColor: isDark ? "#38383a" : "#e5e5ea",
-      marginVertical: 24,
-    },
-    sectionTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: isDark ? "#fff" : "#000",
-      marginBottom: 16,
     },
   });
