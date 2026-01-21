@@ -1,89 +1,139 @@
-import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import AddAnotherButton from "./AddAnotherButton";
+import DayInput from "./DayInput";
+import RangeInput from "./RangeInput";
+import SheetIdInput from "./SheetIdInput";
+import UploadActionButton from "./UploadActionButton";
+import UploadItemHeader from "./UploadItemHeader";
+
+export interface SheetUploadItem {
+  id: string;
+  day: string;
+  sheetId: string;
+  range: string;
+}
 
 interface UploadViaLinkViewProps {
-  sheetId: string;
-  setSheetId: (id: string) => void;
-  sheetRange: string;
-  setSheetRange: (range: string) => void;
+  items: SheetUploadItem[];
+  setItems: React.Dispatch<React.SetStateAction<SheetUploadItem[]>>;
   loading: boolean;
   progress: string;
   isDark: boolean;
   token: string | null;
   waitingForToken: boolean;
-  onSheetImport: () => void;
+  onImport: () => void;
 }
 
 export default function UploadViaLinkView({
-  sheetId,
-  setSheetId,
-  sheetRange,
-  setSheetRange,
+  items,
+  setItems,
   loading,
   progress,
   isDark,
   token,
   waitingForToken,
-  onSheetImport,
+  onImport,
 }: UploadViaLinkViewProps) {
   const styles = getStyles(isDark);
 
-  return (
-    <>
-      <Text style={styles.sectionTitle}>Import from Google Sheets</Text>
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Sheet ID</Text>
-        <TextInput
-          style={styles.input}
-          value={sheetId}
-          onChangeText={setSheetId}
-          placeholder="e.g. 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
-          placeholderTextColor={isDark ? "#555" : "#999"}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-        <Text style={styles.pathHint}>
-          Copy the ID from your Google Sheet URL
-        </Text>
-      </View>
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Range (Optional)</Text>
-        <TextInput
-          style={styles.input}
-          value={sheetRange}
-          onChangeText={setSheetRange}
-          placeholder="Sheet1!A:E"
-          placeholderTextColor={isDark ? "#555" : "#999"}
-        />
-      </View>
+  const handleAddItem = () => {
+    setItems((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        day: "",
+        sheetId: "",
+        range: "Sheet1!A:E",
+      },
+    ]);
+  };
 
-      <TouchableOpacity
-        style={[styles.importButton, { backgroundColor: "#0F9D58" }]} // Google Sheets Green
-        onPress={onSheetImport}
+  const handleRemoveItem = (id: string) => {
+    if (items.length === 1) {
+      setItems([
+        {
+          id: Date.now().toString(),
+          day: "",
+          sheetId: "",
+          range: "Sheet1!A:E",
+        },
+      ]);
+      return;
+    }
+    setItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleUpdateItem = (
+    id: string,
+    field: keyof SheetUploadItem,
+    value: string,
+  ) => {
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
+    );
+  };
+
+  return (
+    <View>
+      <Text style={styles.sectionTitle}>Import from Google Sheets</Text>
+
+      {items.map((item, index) => (
+        <View key={item.id} style={styles.itemContainer}>
+          <UploadItemHeader
+            index={index}
+            showDelete={items.length > 1}
+            onDelete={() => handleRemoveItem(item.id)}
+            titlePrefix="Import"
+            isDark={isDark}
+          />
+
+          <DayInput
+            value={item.day}
+            onChangeText={(text) => handleUpdateItem(item.id, "day", text)}
+            editable={!loading}
+            isDark={isDark}
+          />
+
+          <SheetIdInput
+            value={item.sheetId}
+            onChangeText={(text) => handleUpdateItem(item.id, "sheetId", text)}
+            editable={!loading}
+            isDark={isDark}
+          />
+
+          <RangeInput
+            value={item.range}
+            onChangeText={(text) => handleUpdateItem(item.id, "range", text)}
+            editable={!loading}
+            isDark={isDark}
+          />
+        </View>
+      ))}
+
+      <AddAnotherButton
+        onPress={handleAddItem}
         disabled={loading}
-      >
-        {loading && waitingForToken ? (
-          <ActivityIndicator color="#fff" size="small" />
-        ) : (
-          <>
-            <Ionicons name="grid-outline" size={24} color="#fff" />
-            <Text style={styles.importButtonText}>
-              {token ? "Import from Sheets" : "Connect & Import Sheets"}
-            </Text>
-          </>
-        )}
-      </TouchableOpacity>
+        text="Add Another Link"
+      />
+
+      <View style={styles.divider} />
+
+      <UploadActionButton
+        onPress={onImport}
+        loading={loading}
+        disabled={loading}
+        text={
+          token
+            ? `Import ${items.filter((i) => i.sheetId && i.day).length} Item(s)`
+            : "Connect & Import"
+        }
+        iconName="grid"
+        backgroundColor="#0F9D58"
+      />
 
       {loading && <Text style={styles.progressText}>{progress}</Text>}
-    </>
+    </View>
   );
 }
 
@@ -95,52 +145,23 @@ const getStyles = (isDark: boolean) =>
       color: isDark ? "#fff" : "#000",
       marginBottom: 16,
     },
-    inputGroup: {
-      marginBottom: 24,
-    },
-    label: {
-      fontSize: 14,
-      fontWeight: "600",
-      marginBottom: 8,
-      color: isDark ? "#8e8e93" : "#6e6e73",
-      textTransform: "uppercase",
-      marginLeft: 4,
-    },
-    input: {
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
-      padding: 15,
-      borderRadius: 10,
-      fontSize: 14,
-      color: isDark ? "#fff" : "#000",
+    itemContainer: {
+      backgroundColor: isDark ? "#2c2c2e" : "#fff",
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 16,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: isDark ? "#38383a" : "#c6c6c8",
     },
-    pathHint: {
-      fontSize: 12,
-      color: isDark ? "#8e8e93" : "#6e6e73",
-      marginTop: 6,
-      fontStyle: "italic",
-    },
-    importButton: {
-      backgroundColor: "#007AFF",
-      padding: 16,
-      borderRadius: 12,
-      alignItems: "center",
-      justifyContent: "center",
-      flexDirection: "row",
-      marginTop: 16,
-      gap: 8,
-      marginBottom: 48,
-    },
-    importButtonText: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "600",
+    divider: {
+      height: 1,
+      backgroundColor: isDark ? "#38383a" : "#e5e5ea",
+      marginVertical: 16,
     },
     progressText: {
       textAlign: "center",
-      marginTop: 20,
-      fontSize: 16,
-      color: isDark ? "#ccc" : "#666",
+      fontSize: 14,
+      color: isDark ? "#8e8e93" : "#6e6e73",
+      marginBottom: 20,
     },
   });

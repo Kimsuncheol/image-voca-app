@@ -11,14 +11,16 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AddVocaHeader from "../../src/components/admin/AddVocaHeader";
-import UploadCSVFileView from "../../src/components/admin/UploadCSVFileView";
-import UploadViaLinkView from "../../src/components/admin/UploadViaLinkView";
+import TabSwitcher from "../../src/components/admin/TabSwitcher";
+import UploadCSVFileView, {
+  CsvUploadItem,
+} from "../../src/components/admin/UploadCSVFileView";
+import UploadViaLinkView, {
+  SheetUploadItem,
+} from "../../src/components/admin/UploadViaLinkView";
 import { useTheme } from "../../src/context/ThemeContext";
 import useGoogleSheetsAuth from "../../src/hooks/useGoogleSheetsAuth";
 import { db, storage } from "../../src/services/firebase";
@@ -42,26 +44,30 @@ export default function AddVocaScreen() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState("");
   const [selectedCourse, setSelectedCourse] = useState(COURSES[0]);
-  const [subcollectionName, setSubcollectionName] = useState("");
-  const [selectedFile, setSelectedFile] = useState<any>(null);
+
+  // CSV Items State
+  const [csvItems, setCsvItems] = useState<CsvUploadItem[]>([
+    { id: "1", day: "", file: null },
+  ]);
+
+  // Sheet Items State
+  const [sheetItems, setSheetItems] = useState<SheetUploadItem[]>([
+    { id: "1", day: "", sheetId: "", range: "Sheet1!A:E" },
+  ]);
 
   // Google Sheets integration
   const { token, promptAsync } = useGoogleSheetsAuth();
-  const [sheetId, setSheetId] = useState("");
-  const [sheetRange, setSheetRange] = useState("Sheet1!A:E");
   const [waitingForToken, setWaitingForToken] = useState(false);
 
   useEffect(() => {
     if (waitingForToken && token) {
       setWaitingForToken(false);
-      handleFetchSheetData();
+      handleBatchSheetImport();
     }
   }, [token, waitingForToken]);
 
-  const fullPath = `${selectedCourse.path}/Day${subcollectionName}`;
-
   // CSV Handlers
-  const handlePickDocument = async () => {
+  const handlePickDocument = async (itemId: string) => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: [
@@ -76,97 +82,111 @@ export default function AddVocaScreen() {
       if (result.canceled) return;
 
       const file = result.assets[0];
-      setSelectedFile(file);
-      console.log("[Picker] File selected:", file.name);
+      setCsvItems((prev) =>
+        prev.map((item) => (item.id === itemId ? { ...item, file } : item)),
+      );
+      console.log("[Picker] File selected for item", itemId, ":", file.name);
     } catch (err: any) {
       Alert.alert("Error", err.message);
     }
   };
 
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      Alert.alert("Error", "Please select a CSV file first");
-      return;
-    }
-
-    if (!subcollectionName.trim()) {
-      Alert.alert("Error", "Please enter a day number (e.g. 1, 2, 3)");
+  const handleBatchUpload = async () => {
+    // Validation
+    const invalidItems = csvItems.filter(
+      (item) => !item.day.trim() || !item.file,
+    );
+    if (invalidItems.length > 0) {
+      Alert.alert(
+        "Validation Error",
+        "Please ensure all items have a Day and a File selected.",
+      );
       return;
     }
 
     try {
       setLoading(true);
 
-      // 1. Upload CSV to Storage
-      setProgress("Checking if CSV exists in Storage...");
-      const storageRef = ref(
-        storage,
-        `csv/${selectedCourse.name}/Day${subcollectionName}.csv`,
-      );
+      for (let i = 0; i < csvItems.length; i++) {
+        const item = csvItems[i];
+        const progressPrefix = `[${i + 1}/${csvItems.length}] Day ${item.day}: `;
+        setProgress(`${progressPrefix}Starting...`);
 
-      try {
-        await getMetadata(storageRef);
-        setProgress("File exists, replacing with new CSV...");
-      } catch (error: any) {
-        if (error.code === "storage/object-not-found") {
-          console.log("[Storage] File does not exist, uploading new file");
-        }
+        await processCsvItem(item, progressPrefix);
       }
 
-      setProgress("Uploading CSV to Storage...");
-      try {
-        const response = await fetch(selectedFile.uri);
-        const blob = await response.blob();
-        await uploadBytes(storageRef, blob);
-        console.log("[Storage] CSV uploaded successfully");
-      } catch (storageError: any) {
-        console.error("[Storage] Upload failed:", storageError);
-        Alert.alert(
-          "Warning",
-          "Failed to save CSV to storage, but proceeding with data upload.",
-        );
-      }
-
-      // 2. Read and Parse
-      setProgress("Reading file...");
-      const fileContent = await FileSystem.readAsStringAsync(selectedFile.uri);
-
-      setProgress("Parsing CSV...");
-      Papa.parse(fileContent, {
-        header: true,
-        skipEmptyLines: true,
-        complete: async (results) => {
-          console.log("[Picker] Parsed", results.data.length, "records");
-          try {
-            await uploadData(results.data);
-          } catch (uploadError: any) {
-            console.error("[Picker] Upload failed:", uploadError);
-            setLoading(false);
-            Alert.alert(
-              "Upload Error",
-              uploadError.message || "Failed to upload data",
-            );
-          }
-        },
-        error: (error: any) => {
-          setLoading(false);
-          Alert.alert("Error parsing CSV", error.message);
-        },
-      });
+      setLoading(false);
+      setProgress("");
+      Alert.alert("Success", "All files uploaded successfully!");
     } catch (err: any) {
       setLoading(false);
       Alert.alert("Error", err.message);
     }
   };
 
+  const processCsvItem = async (
+    item: CsvUploadItem,
+    progressPrefix: string,
+  ) => {
+    // 1. Upload CSV to Storage
+    setProgress(`${progressPrefix}Checking Storage...`);
+    const storageRef = ref(
+      storage,
+      `csv/${selectedCourse.name}/Day${item.day}.csv`,
+    );
+
+    try {
+      await getMetadata(storageRef);
+      // File exists
+    } catch (error: any) {
+      // File doesn't exist, ignore
+    }
+
+    setProgress(`${progressPrefix}Uploading file to Storage...`);
+    try {
+      const response = await fetch(item.file.uri);
+      const blob = await response.blob();
+      await uploadBytes(storageRef, blob);
+    } catch (storageError: any) {
+      console.error("[Storage] Upload failed:", storageError);
+      // Continue anyway
+    }
+
+    // 2. Read and Parse
+    setProgress(`${progressPrefix}Reading file...`);
+    const fileContent = await FileSystem.readAsStringAsync(item.file.uri);
+
+    setProgress(`${progressPrefix}Parsing CSV...`);
+    return new Promise<void>((resolve, reject) => {
+      Papa.parse(fileContent, {
+        header: true,
+        skipEmptyLines: true,
+        complete: async (results) => {
+          try {
+            await uploadData(results.data, item.day, progressPrefix);
+            resolve();
+          } catch (uploadError: any) {
+            reject(uploadError);
+          }
+        },
+        error: (error: any) => {
+          reject(error);
+        },
+      });
+    });
+  };
+
   // Google Sheets Handlers
   const handleSheetImportButton = async () => {
-    if (!subcollectionName.trim()) {
-      Alert.alert("Error", "Please enter a day number first (e.g. 1)");
-      return;
-    }
-    if (!sheetId.trim()) {
-      Alert.alert("Error", "Please enter a Google Sheet ID");
+    // Validation
+    const invalidItems = sheetItems.filter(
+      (item) => !item.day.trim() || !item.sheetId.trim(),
+    );
+    if (invalidItems.length > 0) {
+      Alert.alert(
+        "Validation Error",
+        "Please ensure all items have a Day and a Sheet ID.",
+      );
       return;
     }
 
@@ -179,54 +199,67 @@ export default function AddVocaScreen() {
         Alert.alert("Auth Error", e.message);
       }
     } else {
-      handleFetchSheetData();
+      handleBatchSheetImport();
     }
   };
 
-  const handleFetchSheetData = async () => {
+  const handleBatchSheetImport = async () => {
     if (!token) return;
 
     try {
       setLoading(true);
-      setProgress("Fetching data from Google Sheets...");
 
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetRange}?majorDimension=ROWS`;
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      for (let i = 0; i < sheetItems.length; i++) {
+        const item = sheetItems[i];
+        const progressPrefix = `[${i + 1}/${sheetItems.length}] Day ${item.day}: `;
+        setProgress(`${progressPrefix}Fetching from Sheets...`);
 
-      const json = await response.json();
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${item.sheetId}/values/${item.range}?majorDimension=ROWS`;
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      if (json.error) {
-        throw new Error(json.error.message);
+        const json = await response.json();
+
+        if (json.error) {
+          throw new Error(
+            `Sheet Error (Day ${item.day}): ${json.error.message}`,
+          );
+        }
+
+        const rows = json.values;
+        if (!rows || rows.length < 2) {
+          throw new Error(
+            `No data found for Day ${item.day} or only header row exists.`,
+          );
+        }
+
+        const dataObjects = parseSheetValues(rows);
+        await uploadData(dataObjects, item.day, progressPrefix);
       }
 
-      const rows = json.values;
-      if (!rows || rows.length < 2) {
-        throw new Error("No data found or only header row exists.");
-      }
-
-      const dataObjects = parseSheetValues(rows);
-      await uploadData(dataObjects);
+      setLoading(false);
+      setProgress("");
+      Alert.alert("Success", "All sheets imported successfully!");
     } catch (err: any) {
       console.error("[Sheets] Error:", err);
-      Alert.alert("Sheet Import Error", err.message);
+      Alert.alert("Import Error", err.message);
       setLoading(false);
     }
   };
 
   // Shared upload logic
-  const uploadData = async (data: any[]) => {
-    if (!subcollectionName.trim()) {
-      Alert.alert("Error", "Please enter a Subcollection Name (e.g. Day1)");
-      setLoading(false);
-      return;
-    }
+  const uploadData = async (
+    data: any[],
+    day: string,
+    progressPrefix: string,
+  ) => {
+    const fullPath = `${selectedCourse.path}/Day${day}`;
 
     // Clear existing data
-    setProgress(`Clearing existing data in ${subcollectionName}...`);
+    setProgress(`${progressPrefix}Clearing existing data...`);
     try {
       const querySnapshot = await getDocs(collection(db, fullPath));
       const deletePromises = querySnapshot.docs.map((doc) =>
@@ -234,15 +267,11 @@ export default function AddVocaScreen() {
       );
       await Promise.all(deletePromises);
     } catch (deleteError) {
-      Alert.alert("Error", "Failed to clear existing data. Aborting upload.");
-      setLoading(false);
-      return;
+      throw new Error(`Failed to clear existing data for Day ${day}`);
     }
 
     // Upload new data
-    setProgress(
-      `Found ${data.length} records. Uploading to ${subcollectionName}...`,
-    );
+    setProgress(`${progressPrefix}Uploading ${data.length} records...`);
 
     let successCount = 0;
     let failCount = 0;
@@ -283,18 +312,19 @@ export default function AddVocaScreen() {
 
         await addDoc(collection(db, fullPath), docData);
         successCount++;
-        setProgress(`Uploaded ${successCount}/${data.length}...`);
+        if (i % 10 === 0) {
+          setProgress(
+            `${progressPrefix}Uploading ${successCount}/${data.length}...`,
+          );
+        }
       } catch (e) {
         console.error("Upload failed", e);
         failCount++;
       }
     }
 
-    setLoading(false);
-    setProgress("");
-    Alert.alert(
-      "Upload Complete",
-      `Successfully uploaded: ${successCount}\nFailed: ${failCount}`,
+    console.log(
+      `[Upload] Day ${day}: Success ${successCount}, Failed ${failCount}`,
     );
   };
 
@@ -318,64 +348,38 @@ export default function AddVocaScreen() {
           <AddVocaHeader
             selectedCourse={selectedCourse}
             setSelectedCourse={setSelectedCourse}
-            subcollectionName={subcollectionName}
-            setSubcollectionName={setSubcollectionName}
             isDark={isDark}
             courses={COURSES}
           />
 
           {/* Tab Switcher */}
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === "csv" && styles.tabActive]}
-              onPress={() => setActiveTab("csv")}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === "csv" && styles.tabTextActive,
-                ]}
-              >
-                Upload CSV File
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === "link" && styles.tabActive]}
-              onPress={() => setActiveTab("link")}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === "link" && styles.tabTextActive,
-                ]}
-              >
-                Upload via Link
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <TabSwitcher
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            isDark={isDark}
+          />
 
           {/* Tab Content */}
           {activeTab === "csv" ? (
             <UploadCSVFileView
-              selectedFile={selectedFile}
+              items={csvItems}
+              setItems={setCsvItems}
               loading={loading}
               progress={progress}
               isDark={isDark}
               onPickDocument={handlePickDocument}
-              onUpload={handleUpload}
+              onUpload={handleBatchUpload}
             />
           ) : (
             <UploadViaLinkView
-              sheetId={sheetId}
-              setSheetId={setSheetId}
-              sheetRange={sheetRange}
-              setSheetRange={setSheetRange}
+              items={sheetItems}
+              setItems={setSheetItems}
               loading={loading}
               progress={progress}
               isDark={isDark}
               token={token}
               waitingForToken={waitingForToken}
-              onSheetImport={handleSheetImportButton}
+              onImport={handleSheetImportButton}
             />
           )}
         </ScrollView>
@@ -398,29 +402,5 @@ const getStyles = (isDark: boolean) =>
     },
     content: {
       padding: 20,
-    },
-    tabContainer: {
-      flexDirection: "row",
-      marginBottom: 24,
-      borderRadius: 10,
-      backgroundColor: isDark ? "#1c1c1e" : "#e5e5ea",
-      padding: 4,
-    },
-    tab: {
-      flex: 1,
-      paddingVertical: 12,
-      alignItems: "center",
-      borderRadius: 8,
-    },
-    tabActive: {
-      backgroundColor: "#007AFF",
-    },
-    tabText: {
-      fontSize: 15,
-      fontWeight: "600",
-      color: isDark ? "#8e8e93" : "#6e6e73",
-    },
-    tabTextActive: {
-      color: "#fff",
     },
   });
