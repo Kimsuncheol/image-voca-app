@@ -109,11 +109,12 @@ const getCourseConfig = (courseId: CourseType) => {
 const generateQuizQuestions = (
   vocabData: VocabData[],
   quizType: string,
+  targetScore: number = 10,
 ): QuizQuestion[] => {
-  // Shuffle and take random questions (up to 10)
+  // Shuffle and take random questions (up to targetScore)
   const selectedWords = shuffleArray([...vocabData]).slice(
     0,
-    Math.min(10, vocabData.length),
+    Math.min(targetScore, vocabData.length),
   );
 
   return selectedWords.map((vocab, index) => {
@@ -338,6 +339,7 @@ export default function QuizPlayScreen() {
         const generatedQuestions = generateQuizQuestions(
           fetchedVocab,
           quizType || "multiple-choice",
+          stats?.targetScore || 10,
         );
         setQuestions(generatedQuestions);
 
@@ -351,11 +353,13 @@ export default function QuizPlayScreen() {
         console.error("Error fetching vocabulary for quiz:", error);
       } finally {
         setLoading(false);
+        // print stats
+        console.log("Stats:", stats?.targetScore);
       }
     };
 
     fetchVocabulary();
-  }, [courseId, dayNumber, quizType]);
+  }, [courseId, dayNumber, quizType, stats]);
 
   const currentQuestion = questions[currentIndex];
   const isMatching = quizType === "matching";

@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import { ThemedText } from "../themed-text";
 
@@ -18,12 +18,24 @@ export function StudySection({
   onUpdateTargetScore,
   t,
 }: StudySectionProps) {
+  const [localValue, setLocalValue] = useState(targetScore.toString());
+
+  // Sync local value when targetScore changes from external source
+  useEffect(() => {
+    setLocalValue(targetScore.toString());
+  }, [targetScore]);
+
   const handleTextChange = (text: string) => {
-    const score = parseInt(text.replace(/[^0-9]/g, ""), 10);
+    setLocalValue(text);
+  };
+
+  const handleBlur = () => {
+    const score = parseInt(localValue.replace(/[^0-9]/g, ""), 10);
     if (!isNaN(score)) {
       onUpdateTargetScore(score);
-    } else if (text === "") {
+    } else {
       onUpdateTargetScore(0);
+      setLocalValue("0");
     }
   };
 
@@ -64,8 +76,9 @@ export function StudySection({
               },
             ]}
             keyboardType="number-pad"
-            value={targetScore.toString()}
+            value={localValue}
             onChangeText={handleTextChange}
+            onBlur={handleBlur}
             maxLength={3}
           />
         </View>
