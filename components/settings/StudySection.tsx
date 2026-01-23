@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import React from "react";
+import { View } from "react-native";
 import { ThemedText } from "../themed-text";
+import { TargetScorePicker } from "./TargetScorePicker";
 
 interface StudySectionProps {
   styles: any;
@@ -18,26 +19,10 @@ export function StudySection({
   onUpdateTargetScore,
   t,
 }: StudySectionProps) {
-  const [localValue, setLocalValue] = useState(targetScore.toString());
-
-  // Sync local value when targetScore changes from external source
-  useEffect(() => {
-    setLocalValue(targetScore.toString());
-  }, [targetScore]);
-
-  const handleTextChange = (text: string) => {
-    setLocalValue(text);
-  };
-
-  const handleBlur = () => {
-    const score = parseInt(localValue.replace(/[^0-9]/g, ""), 10);
-    if (!isNaN(score)) {
-      onUpdateTargetScore(score);
-    } else {
-      onUpdateTargetScore(0);
-      setLocalValue("0");
-    }
-  };
+  const baseOptions = [5, 10, 15, 20, 25, 30, 35, 40];
+  const options = baseOptions.includes(targetScore)
+    ? baseOptions
+    : [...baseOptions, targetScore].sort((a, b) => a - b);
 
   return (
     <View style={styles.section}>
@@ -67,33 +52,14 @@ export function StudySection({
               })}
             </ThemedText>
           </View>
-          <TextInput
-            style={[
-              localStyles.input,
-              {
-                color: isDark ? "#fff" : "#000",
-                backgroundColor: isDark ? "#2c2c2e" : "#f2f2f7",
-              },
-            ]}
-            keyboardType="number-pad"
-            value={localValue}
-            onChangeText={handleTextChange}
-            onBlur={handleBlur}
-            maxLength={3}
+          <TargetScorePicker
+            value={targetScore}
+            options={options}
+            isDark={isDark}
+            onChange={onUpdateTargetScore}
           />
         </View>
       </View>
     </View>
   );
 }
-
-const localStyles = StyleSheet.create({
-  input: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    fontSize: 16,
-    minWidth: 60,
-    textAlign: "center",
-  },
-});
