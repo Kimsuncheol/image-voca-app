@@ -765,6 +765,13 @@ export default function QuizPlayScreen() {
   };
 
   const handleTimeUp = () => {
+    if (isMatching) {
+      // Matching game ends on time up
+      setQuizFinished(true);
+      saveQuizResult(score);
+      return;
+    }
+
     // Treat as incorrect answer
     if (!showResult && !quizFinished) {
       handleAnswer(""); // Empty answer triggers incorrect
@@ -861,10 +868,10 @@ export default function QuizPlayScreen() {
       />
       {!quizFinished && !loading && (
         <QuizTimer
-          duration={15}
+          duration={isMatching ? 30 : 15}
           onTimeUp={handleTimeUp}
           isRunning={!showResult && !quizFinished}
-          quizKey={`${currentIndex}-${dayNumber}`}
+          quizKey={isMatching ? "matching" : `${currentIndex}-${dayNumber}`}
         />
       )}
       <KeyboardAvoidingView
