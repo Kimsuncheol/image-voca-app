@@ -9,6 +9,7 @@ export { FillInTheBlankGameOptions } from "./FillInTheBlankGameOptions";
 export { GameBoard } from "./GameBoard";
 export { GameScore } from "./GameScore";
 export { LoadingView } from "./LoadingView";
+export { MatchingCard } from "./MatchingCard";
 export { MatchingGame } from "./MatchingGame";
 export { MultipleChoiceGame } from "./MultipleChoiceGame";
 export { QuizFeedback } from "./QuizFeedback";

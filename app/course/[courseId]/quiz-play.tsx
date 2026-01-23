@@ -279,7 +279,7 @@ export default function QuizPlayScreen() {
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [selectedMeaning, setSelectedMeaning] = useState<string | null>(null);
   const [matchedPairs, setMatchedPairs] = useState<Record<string, string>>({});
-  const [matchingFeedback, setMatchingFeedback] = useState<string | null>(null);
+  // const [matchingFeedback, setMatchingFeedback] = useState<string | null>(null); // Removed
   const [matchingMeanings, setMatchingMeanings] = useState<string[]>([]);
   const [wordArrangementItems, setWordArrangementItems] = useState<VocabData[]>(
     [],
@@ -490,9 +490,9 @@ export default function QuizPlayScreen() {
 
   const handleMatchingAttempt = async (word: string, meaning: string) => {
     const correct = questions.find((q) => q.word === word)?.meaning === meaning;
-    setMatchingFeedback(
-      correct ? t("quiz.feedback.correct") : t("quiz.feedback.incorrect"),
-    );
+    // setMatchingFeedback(
+    //   correct ? t("quiz.feedback.correct") : t("quiz.feedback.incorrect"),
+    // ); // Removed
 
     if (user) {
       bufferQuizAnswer(user.uid, correct);
@@ -792,7 +792,7 @@ export default function QuizPlayScreen() {
     setSelectedWord(null);
     setSelectedMeaning(null);
     setMatchedPairs({});
-    setMatchingFeedback(null);
+    // setMatchingFeedback(null); // Removed
     // Reset word arrangement state
     setShuffledChunks([]);
     setSelectedChunksByArea([]);
@@ -868,7 +868,7 @@ export default function QuizPlayScreen() {
       />
       {!quizFinished && !loading && (
         <QuizTimer
-          duration={isMatching ? 30 : 15}
+          duration={15}
           onTimeUp={handleTimeUp}
           isRunning={!showResult && !quizFinished}
           quizKey={isMatching ? "matching" : `${currentIndex}-${dayNumber}`}
@@ -893,7 +893,7 @@ export default function QuizPlayScreen() {
             selectedWord={selectedWord}
             selectedMeaning={selectedMeaning}
             matchedPairs={matchedPairs}
-            matchingFeedback={matchingFeedback}
+            // matchingFeedback={matchingFeedback} // Removed
             onSelectWord={handleSelectWord}
             onSelectMeaning={handleSelectMeaning}
             userAnswer={userAnswer}

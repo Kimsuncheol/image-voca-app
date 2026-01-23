@@ -43,7 +43,6 @@ interface GameBoardProps {
   selectedWord: string | null;
   selectedMeaning: string | null;
   matchedPairs: Record<string, string>;
-  matchingFeedback: string | null;
   onSelectWord: (word: string) => void;
   onSelectMeaning: (meaning: string) => void;
 
@@ -81,7 +80,6 @@ export function GameBoard({
   selectedWord,
   selectedMeaning,
   matchedPairs,
-  matchingFeedback,
   onSelectWord,
   onSelectMeaning,
   userAnswer,
@@ -126,7 +124,6 @@ export function GameBoard({
           matchedPairs={matchedPairs}
           onSelectWord={onSelectWord}
           onSelectMeaning={onSelectMeaning}
-          feedback={matchingFeedback}
           courseColor={courseColor}
           isDark={isDark}
         />
