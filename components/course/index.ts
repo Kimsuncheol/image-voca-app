@@ -13,6 +13,7 @@ export { MatchingGame } from "./MatchingGame";
 export { MultipleChoiceGame } from "./MultipleChoiceGame";
 export { QuizFeedback } from "./QuizFeedback";
 export { QuizFinishView } from "./QuizFinishView";
+export { QuizTimer } from "./QuizTimer";
 export { QuizTypeCard } from "./QuizTypeCard";
 export { QuizTypeGrid } from "./QuizTypeGrid";
 export { QuizTypeHeader } from "./QuizTypeHeader";

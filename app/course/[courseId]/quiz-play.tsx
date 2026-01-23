@@ -21,6 +21,7 @@ import {
   GameBoard,
   LoadingView,
   QuizFinishView,
+  QuizTimer,
 } from "../../../components/course";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
@@ -475,7 +476,11 @@ export default function QuizPlayScreen() {
       setUserAnswer("");
 
       if (currentIndex < totalQuestions - 1) {
-        setCurrentIndex((prev) => prev + 1);
+        const nextIndex = currentIndex + 1;
+        setCurrentIndex(nextIndex);
+        if (isWordArrangement) {
+          initWordArrangement(wordArrangementItems[nextIndex]);
+        }
       } else {
         setQuizFinished(true);
         saveQuizResult(nextScore);
@@ -759,6 +764,13 @@ export default function QuizPlayScreen() {
     }
   };
 
+  const handleTimeUp = () => {
+    // Treat as incorrect answer
+    if (!showResult && !quizFinished) {
+      handleAnswer(""); // Empty answer triggers incorrect
+    }
+  };
+
   const handleFinish = () => {
     router.back();
     router.back();
@@ -847,6 +859,14 @@ export default function QuizPlayScreen() {
           headerBackTitle: t("common.back"),
         }}
       />
+      {!quizFinished && !loading && (
+        <QuizTimer
+          duration={15}
+          onTimeUp={handleTimeUp}
+          isRunning={!showResult && !quizFinished}
+          quizKey={`${currentIndex}-${dayNumber}`}
+        />
+      )}
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
