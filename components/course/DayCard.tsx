@@ -10,6 +10,7 @@ interface DayProgress {
   wordsLearned: number;
   totalWords: number;
   quizCompleted: boolean;
+  quizScore?: number;
   isRetake?: boolean;
 }
 
@@ -87,20 +88,34 @@ export function DayCard({
           ]}
           onPress={onQuizPress}
         >
-          <Ionicons
-            name={quizCompleted ? "trophy" : "play"}
-            size={16}
-            color="#fff"
-          />
-          <ThemedText style={styles.quizButtonText}>
-            {isRetake
-              ? t("course.retake")
-              : quizCompleted
-                ? t("course.retake")
-                : isCompleted
-                  ? t("course.checked")
-                  : t("course.quiz")}
-          </ThemedText>
+          {quizCompleted && progress?.quizScore !== undefined ? (
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+            >
+              <ThemedText
+                style={{ color: "#fff", fontSize: 12, fontWeight: "800" }}
+              >
+                {progress.quizScore}%
+              </ThemedText>
+            </View>
+          ) : (
+            <>
+              <Ionicons
+                name={quizCompleted ? "trophy" : "play"}
+                size={16}
+                color="#fff"
+              />
+              <ThemedText style={styles.quizButtonText}>
+                {isRetake
+                  ? t("course.retake")
+                  : quizCompleted
+                    ? t("course.retake")
+                    : isCompleted
+                      ? t("course.checked")
+                      : t("course.quiz")}
+              </ThemedText>
+            </>
+          )}
         </TouchableOpacity>
       )}
     </View>

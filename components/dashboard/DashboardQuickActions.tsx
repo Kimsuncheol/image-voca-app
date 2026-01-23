@@ -44,10 +44,10 @@ export function DashboardQuickActions() {
           onPress={() => handleTabAction("speaking", "/speaking")}
         />
         <QuickAction
-          title={t("dashboard.quickActions.settings")}
-          icon="gearshape.fill"
+          title={t("dashboard.quickActions.review")}
+          icon="checkmark.circle.fill"
           color="#95E1D3"
-          onPress={() => handleTabAction("settings", "/(tabs)/settings")}
+          onPress={() => router.push("/review")}
         />
       </View>
     </View>
