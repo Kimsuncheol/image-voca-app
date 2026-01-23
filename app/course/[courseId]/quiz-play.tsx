@@ -407,27 +407,37 @@ export default function QuizPlayScreen() {
     : questions.length;
   const progressCurrent = isMatching ? matchedCount : currentIndex + 1;
 
-  const maybeMarkRetake = async (nextScore: number) => {
-    if (!user || !courseId) return;
-    if (retakeMarkedRef.current) return;
+  const maybeMarkRetake = React.useCallback(
+    async (nextScore: number) => {
+      if (!user || !courseId) return;
+      if (retakeMarkedRef.current) return;
 
-    const existingAccumulated =
-      courseProgress[courseId]?.[dayNumber]?.accumulatedCorrect || 0;
-    const totalCorrect = existingAccumulated + nextScore;
+      const existingAccumulated =
+        courseProgress[courseId]?.[dayNumber]?.accumulatedCorrect || 0;
+      const totalCorrect = existingAccumulated + nextScore;
 
-    if (totalCorrect < targetScore) return;
+      if (totalCorrect < targetScore) return;
 
-    retakeMarkedRef.current = true;
-    updateCourseDayProgress(courseId, dayNumber, { isRetake: true });
+      retakeMarkedRef.current = true;
+      updateCourseDayProgress(courseId, dayNumber, { isRetake: true });
 
-    try {
-      await updateDoc(doc(db, "users", user.uid), {
-        [`courseProgress.${courseId}.${dayNumber}.isRetake`]: true,
-      });
-    } catch (error) {
-      console.error("Error marking day as retake:", error);
-    }
-  };
+      try {
+        await updateDoc(doc(db, "users", user.uid), {
+          [`courseProgress.${courseId}.${dayNumber}.isRetake`]: true,
+        });
+      } catch (error) {
+        console.error("Error marking day as retake:", error);
+      }
+    },
+    [
+      user,
+      courseId,
+      courseProgress,
+      dayNumber,
+      targetScore,
+      updateCourseDayProgress,
+    ],
+  );
 
   const handleAnswer = async (answer: string) => {
     const correct =
@@ -619,6 +629,7 @@ export default function QuizPlayScreen() {
     return isCorrect;
   }, [
     currentArrangementSentences,
+    currentArrangementWord,
     selectedChunksByArea,
     score,
     user,
