@@ -61,6 +61,14 @@ interface UserStatsState {
   getAccuracyForPeriod: (days: number) => number;
   getTimeSpentForPeriod: (days: number) => number;
   getTodayProgress: () => { current: number; goal: number };
+
+  // Buffering
+  bufferQuizAnswer: (userId: string, correct: boolean) => void;
+  flushQuizStats: (userId: string) => Promise<void>;
+  pendingQuizStats: { total: number; correct: number };
+  bufferWordLearned: (userId: string, wordId: string) => void;
+  flushWordStats: (userId: string) => Promise<void>;
+  pendingWordStats: string[];
 }
 
 const getToday = () => new Date().toISOString().split("T")[0];
@@ -179,6 +187,8 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
   loading: false,
   error: null,
   courseProgress: {},
+  pendingQuizStats: { total: 0, correct: 0 },
+  pendingWordStats: [],
 
   fetchStats: async (userId: string) => {
     set({ loading: true, error: null });
@@ -364,9 +374,18 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
   },
 
   recordUniqueWordLearned: async (userId: string, wordId: string) => {
-    const { stats } = get();
-    if (!stats) return false;
+    // Legacy: use buffered version instead when possible
+    const { bufferWordLearned, flushWordStats } = get();
+    bufferWordLearned(userId, wordId);
+    await flushWordStats(userId);
+    return true; // Assume success for legacy calls
+  },
 
+  bufferWordLearned: (userId: string, wordId: string) => {
+    const { stats, pendingWordStats } = get();
+    if (!stats) return;
+
+    // Update local state immediately for UI responsiveness
     const today = getToday();
     const dailyStats = [...stats.dailyStats];
     let todayStats = dailyStats.find((d) => d.date === today);
@@ -383,21 +402,20 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
       dailyStats.push(todayStats);
     }
 
-    // Ensure learnedWordIds exists (backward compatibility)
     if (!todayStats.learnedWordIds) {
       todayStats.learnedWordIds = [];
     }
 
     // Check if word was already learned today
     if (todayStats.learnedWordIds.includes(wordId)) {
-      return false; // Already learned
+      return;
     }
 
     // Add word to learned list
     todayStats.learnedWordIds.push(wordId);
     todayStats.wordsLearned += 1;
 
-    // Update streak
+    // Update streak logic
     let currentStreak = stats.currentStreak;
     const yesterday = new Date(Date.now() - 86400000)
       .toISOString()
@@ -413,41 +431,107 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
 
     const longestStreak = Math.max(stats.longestStreak, currentStreak);
 
-    try {
-      markStudyDate().catch(() => {});
-      await updateDoc(doc(db, "users", userId), {
+    // Update local store
+    set({
+      stats: {
+        ...stats,
         dailyStats,
         currentStreak,
         longestStreak,
         lastActiveDate: today,
-      });
+      },
+      pendingWordStats: [...pendingWordStats, wordId],
+    });
+  },
 
-      set({
-        stats: {
-          ...stats,
-          dailyStats,
-          currentStreak,
-          longestStreak,
-          lastActiveDate: today,
-        },
-      });
-      try {
-        await incrementWeeklyWordsLearned(userId);
-      } catch (error: any) {
-        set({ error: error.message });
+  flushWordStats: async (userId: string) => {
+    const { stats, pendingWordStats } = get();
+    if (!stats || pendingWordStats.length === 0) return;
+
+    const wordsToFlush = [...pendingWordStats];
+    set({ pendingWordStats: [] });
+
+    try {
+      const today = getToday();
+      const userRef = doc(db, "users", userId);
+
+      // Perform arrayUnion on learnedWordIds for the specific day is tricky in deep objects
+      // We will read-modify-write for simplicity or just update the whole dailyStats array if possible
+      // But Firestore arrayUnion doesn't work deep inside objects in an array.
+      // So we must fetch, update, and set.
+
+      const userDoc = await getDoc(userRef);
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        const serverDailyStats = data.dailyStats || [];
+        let serverTodayStats = serverDailyStats.find(
+          (d: any) => d.date === today,
+        );
+
+        if (!serverTodayStats) {
+          serverTodayStats = {
+            date: today,
+            wordsLearned: 0,
+            learnedWordIds: [],
+            correctAnswers: 0,
+            totalAnswers: 0,
+            timeSpentMinutes: 0,
+          };
+          serverDailyStats.push(serverTodayStats);
+        }
+
+        if (!serverTodayStats.learnedWordIds) {
+          serverTodayStats.learnedWordIds = [];
+        }
+
+        // Add new unique words
+        const newWords = wordsToFlush.filter(
+          (id) => !serverTodayStats.learnedWordIds.includes(id),
+        );
+        if (newWords.length > 0) {
+          serverTodayStats.learnedWordIds.push(...newWords);
+          serverTodayStats.wordsLearned =
+            serverTodayStats.learnedWordIds.length;
+
+          // Also update streak fields on the root document
+          await updateDoc(userRef, {
+            dailyStats: serverDailyStats,
+            lastActiveDate: today,
+            currentStreak: stats.currentStreak,
+            longestStreak: stats.longestStreak,
+          });
+
+          try {
+            // For simplicity, we just increment weekly stats by the count of new words
+            // This might be slightly off if we re-learn a word, but buffer filters duplicates locally
+            await incrementWeeklyWordsLearned(userId, newWords.length);
+          } catch (e) {
+            console.error("Failed to sync weekly stats", e);
+          }
+        }
       }
-      return true; // Successfully recorded new word
+      markStudyDate().catch(() => {});
     } catch (error: any) {
-      set({ error: error.message });
-      return false;
+      console.error("Failed to flush word stats:", error);
+      // Restore pending stats on failure
+      set((state) => ({
+        pendingWordStats: [...state.pendingWordStats, ...wordsToFlush],
+      }));
     }
   },
 
   recordQuizAnswer: async (userId: string, correct: boolean) => {
-    const { stats } = get();
-    if (!stats) return;
-    markStudyDate().catch(() => {});
+    // Legacy: use buffered version instead when possible
+    const { bufferQuizAnswer, flushQuizStats } = get();
+    bufferQuizAnswer(userId, correct);
+    await flushQuizStats(userId);
+  },
 
+  bufferQuizAnswer: (userId: string, correct: boolean) => {
+    const { stats, pendingQuizStats } = get();
+    if (!stats) return;
+
+    // Update local state immediately for UI responsiveness
     const today = getToday();
     const dailyStats = [...stats.dailyStats];
     let todayStats = dailyStats.find((d) => d.date === today);
@@ -469,11 +553,65 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
       todayStats.correctAnswers += 1;
     }
 
+    // Accumulate pending stats
+    const newPending = {
+      total: pendingQuizStats.total + 1,
+      correct: pendingQuizStats.correct + (correct ? 1 : 0),
+    };
+
+    set({
+      stats: { ...stats, dailyStats },
+      pendingQuizStats: newPending,
+    });
+  },
+
+  flushQuizStats: async (userId: string) => {
+    const { stats, pendingQuizStats } = get();
+    if (!stats || pendingQuizStats.total === 0) return;
+
+    // Reset pending immediately to prevent double submission
+    set({ pendingQuizStats: { total: 0, correct: 0 } });
+
     try {
-      await updateDoc(doc(db, "users", userId), { dailyStats });
-      set({ stats: { ...stats, dailyStats } });
+      const today = getToday();
+      const userRef = doc(db, "users", userId);
+      const userDoc = await getDoc(userRef);
+
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        const serverDailyStats = data.dailyStats || [];
+        let serverTodayStats = serverDailyStats.find(
+          (d: any) => d.date === today,
+        );
+
+        if (!serverTodayStats) {
+          serverTodayStats = {
+            date: today,
+            wordsLearned: 0,
+            learnedWordIds: [],
+            correctAnswers: 0,
+            totalAnswers: 0,
+            timeSpentMinutes: 0,
+          };
+          serverDailyStats.push(serverTodayStats);
+        }
+
+        serverTodayStats.totalAnswers += pendingQuizStats.total;
+        serverTodayStats.correctAnswers += pendingQuizStats.correct;
+
+        await updateDoc(userRef, { dailyStats: serverDailyStats });
+      }
     } catch (error: any) {
-      set({ error: error.message });
+      // On error, restore pending stats?
+      // For now, just log and accept that strict consistency might drift slightly in edge cases
+      // or implement more robust retry logic later.
+      console.error("Failed to flush quiz stats:", error);
+      set((state) => ({
+        pendingQuizStats: {
+          total: state.pendingQuizStats.total + pendingQuizStats.total,
+          correct: state.pendingQuizStats.correct + pendingQuizStats.correct,
+        },
+      }));
     }
   },
 

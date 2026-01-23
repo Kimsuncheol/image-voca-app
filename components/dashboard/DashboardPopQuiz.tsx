@@ -14,7 +14,7 @@ export function DashboardPopQuiz() {
   const { isDark } = useTheme();
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { recordQuizAnswer } = useUserStatsStore();
+  const { bufferQuizAnswer, flushQuizStats } = useUserStatsStore();
 
   // Batch prefetch state
   const [currentBatch, setCurrentBatch] = useState<any[]>([]);
@@ -209,6 +209,15 @@ export function DashboardPopQuiz() {
     }
   }, [quizItem, fadeAnim]);
 
+  // Flush stats on unmount
+  useEffect(() => {
+    return () => {
+      if (user) {
+        flushQuizStats(user.uid);
+      }
+    };
+  }, [user, flushQuizStats]);
+
   if (loading || !quizItem) return <PopQuizSkeleton />;
 
   return (
@@ -267,7 +276,7 @@ export function DashboardPopQuiz() {
 
                     // Record quiz answer for accuracy stats
                     if (user) {
-                      recordQuizAnswer(user.uid, isAnswerCorrect);
+                      bufferQuizAnswer(user.uid, isAnswerCorrect);
                     }
 
                     if (isAnswerCorrect) {

@@ -249,7 +249,8 @@ export default function QuizPlayScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const {
-    recordQuizAnswer,
+    bufferQuizAnswer,
+    flushQuizStats,
     stats,
     courseProgress,
     fetchCourseProgress,
@@ -465,7 +466,7 @@ export default function QuizPlayScreen() {
 
     // Record answer for stats
     if (user) {
-      await recordQuizAnswer(user.uid, correct);
+      bufferQuizAnswer(user.uid, correct);
     }
 
     // Auto-advance after showing feedback
@@ -489,7 +490,7 @@ export default function QuizPlayScreen() {
     );
 
     if (user) {
-      await recordQuizAnswer(user.uid, correct);
+      bufferQuizAnswer(user.uid, correct);
     }
 
     console.log("[Quiz] matching attempt", correct ? "correct" : "incorrect", {
@@ -617,7 +618,7 @@ export default function QuizPlayScreen() {
     );
 
     if (user) {
-      await recordQuizAnswer(user.uid, isCorrect);
+      bufferQuizAnswer(user.uid, isCorrect);
     }
 
     if (isCorrect) {
@@ -633,8 +634,8 @@ export default function QuizPlayScreen() {
     selectedChunksByArea,
     score,
     user,
-    recordQuizAnswer,
     maybeMarkRetake,
+    bufferQuizAnswer,
   ]);
 
   // Word Arrangement: Handle next word
@@ -750,6 +751,9 @@ export default function QuizPlayScreen() {
         accumulatedCorrect,
         isRetake: didReachTarget,
       });
+
+      // Flush any buffered quiz stats
+      await flushQuizStats(user.uid);
     } catch (error) {
       console.error("Error saving quiz result:", error);
     }

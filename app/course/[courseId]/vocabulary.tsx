@@ -62,7 +62,7 @@ const getCourseConfig = (courseId: CourseType) => {
 export default function VocabularyScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
-  const { recordUniqueWordLearned, updateCourseDayProgress } =
+  const { bufferWordLearned, flushWordStats, updateCourseDayProgress } =
     useUserStatsStore();
   useTimeTracking(); // Track time spent on this screen
   const { courseId, day } = useLocalSearchParams<{
@@ -161,7 +161,7 @@ export default function VocabularyScreen() {
     // Record unique word learned (prevents duplicates)
     if (user) {
       const wordId = `${courseId}-${item.id}`;
-      recordUniqueWordLearned(user.uid, wordId);
+      bufferWordLearned(user.uid, wordId);
     }
   };
 
@@ -171,13 +171,16 @@ export default function VocabularyScreen() {
     // Still counts as viewing the word
     if (user) {
       const wordId = `${courseId}-${item.id}`;
-      recordUniqueWordLearned(user.uid, wordId);
+      bufferWordLearned(user.uid, wordId);
     }
   };
 
   const handleRunOutOfCards = async () => {
     setIsFinished(true);
     if (user && courseId) {
+      // Flush buffered words
+      await flushWordStats(user.uid);
+
       try {
         await updateDoc(doc(db, "users", user.uid), {
           [`courseProgress.${courseId}.${dayNumber}.completed`]: true,
