@@ -257,6 +257,7 @@ export default function QuizPlayScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { recordQuizAnswer, stats } = useUserStatsStore();
+  const targetScore = stats?.targetScore || 10;
   useTimeTracking(); // Track time spent on this screen
   const { courseId, day, quizType } = useLocalSearchParams<{
     courseId: CourseType;
@@ -339,7 +340,7 @@ export default function QuizPlayScreen() {
         const generatedQuestions = generateQuizQuestions(
           fetchedVocab,
           quizType || "multiple-choice",
-          stats?.targetScore || 10,
+          targetScore,
         );
         setQuestions(generatedQuestions);
 
@@ -354,12 +355,12 @@ export default function QuizPlayScreen() {
       } finally {
         setLoading(false);
         // print stats
-        console.log("Stats:", stats?.targetScore);
+        console.log("Stats:", targetScore);
       }
     };
 
     fetchVocabulary();
-  }, [courseId, dayNumber, quizType, stats]);
+  }, [courseId, dayNumber, quizType, targetScore]);
 
   const currentQuestion = questions[currentIndex];
   const isMatching = quizType === "matching";
