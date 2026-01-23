@@ -62,7 +62,8 @@ const getCourseConfig = (courseId: CourseType) => {
 export default function VocabularyScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
-  const { recordUniqueWordLearned } = useUserStatsStore();
+  const { recordUniqueWordLearned, updateCourseDayProgress } =
+    useUserStatsStore();
   useTimeTracking(); // Track time spent on this screen
   const { courseId, day } = useLocalSearchParams<{
     courseId: CourseType;
@@ -183,6 +184,11 @@ export default function VocabularyScreen() {
           [`courseProgress.${courseId}.${dayNumber}.totalWords`]: cards.length,
           [`courseProgress.${courseId}.${dayNumber}.wordsLearned`]:
             cards.length,
+        });
+        updateCourseDayProgress(courseId, dayNumber, {
+          completed: true,
+          totalWords: cards.length,
+          wordsLearned: cards.length,
         });
       } catch (error) {
         console.error("Error marking day as completed:", error);

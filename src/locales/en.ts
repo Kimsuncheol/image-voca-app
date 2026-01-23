@@ -15,6 +15,7 @@ const en = {
     submit: "Submit",
     next: "Next",
     retry: "Retry",
+    loading: "Loading...",
   },
   tabs: {
     dashboard: "Dashboard",

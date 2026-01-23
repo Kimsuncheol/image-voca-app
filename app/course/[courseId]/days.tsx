@@ -1,6 +1,5 @@
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { doc, getDoc } from "firebase/firestore";
-import React, { useCallback, useEffect, useState } from "react";
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -9,8 +8,7 @@ import { DayGrid, DayPickerHeader } from "../../../components/course";
 import { SubscriptionBadge } from "../../../components/subscription";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
-import { db } from "../../../src/services/firebase";
-import { useSubscriptionStore } from "../../../src/stores";
+import { useSubscriptionStore, useUserStatsStore } from "../../../src/stores";
 import { COURSES, CourseType } from "../../../src/types/vocabulary";
 
 interface DayProgress {
@@ -27,9 +25,7 @@ export default function DayPickerScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { courseId } = useLocalSearchParams<{ courseId: CourseType }>();
-  const [dayProgress, setDayProgress] = useState<Record<number, DayProgress>>(
-    {},
-  );
+  const { courseProgress, fetchCourseProgress } = useUserStatsStore();
   const {
     canAccessUnlimitedVoca,
     canAccessFeature,
@@ -42,24 +38,19 @@ export default function DayPickerScreen() {
   const totalDays = 30;
   const freeDayLimit = 3;
 
-  const fetchDayProgress = useCallback(async () => {
-    if (!user || !courseId) return;
-    try {
+  const dayProgress: Record<number, DayProgress> = courseId
+    ? courseProgress[courseId] || {}
+    : {};
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user || !courseId) return;
+
       fetchSubscription(user.uid);
       loadUnlockedIds(user.uid); // Load persisted ad unlocks for this user
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists()) {
-        const courseProgress = userDoc.data().courseProgress || {};
-        setDayProgress(courseProgress[courseId] || {});
-      }
-    } catch (error) {
-      console.error("Error fetching day progress:", error);
-    }
-  }, [user, courseId, fetchSubscription, loadUnlockedIds]);
-
-  useEffect(() => {
-    fetchDayProgress();
-  }, [fetchDayProgress]);
+      fetchCourseProgress(user.uid, courseId);
+    }, [user, courseId, fetchSubscription, loadUnlockedIds, fetchCourseProgress]),
+  );
 
   const handleDayPress = (day: number) => {
     const hasUnlimitedAccess = canAccessUnlimitedVoca();

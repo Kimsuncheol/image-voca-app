@@ -15,6 +15,7 @@ const ko = {
     submit: "제출",
     next: "다음",
     retry: "다시하기",
+    loading: "로딩중...",
   },
   tabs: {
     dashboard: "대시보드",

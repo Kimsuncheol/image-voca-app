@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
   collection,
@@ -12,24 +11,17 @@ import {
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
-  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  FillInTheBlankGame,
-  MatchingGame,
-  MultipleChoiceGame,
-  QuizFeedback,
-  SpellingGame,
-  WordArrangementGame,
+  GameBoard,
+  LoadingView,
+  QuizFinishView,
 } from "../../../components/course";
-import { ThemedText } from "../../../components/themed-text";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
@@ -256,7 +248,13 @@ export default function QuizPlayScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const { t } = useTranslation();
-  const { recordQuizAnswer, stats } = useUserStatsStore();
+  const {
+    recordQuizAnswer,
+    stats,
+    courseProgress,
+    fetchCourseProgress,
+    updateCourseDayProgress,
+  } = useUserStatsStore();
   const targetScore = stats?.targetScore || 10;
   useTimeTracking(); // Track time spent on this screen
   const { courseId, day, quizType } = useLocalSearchParams<{
@@ -269,7 +267,6 @@ export default function QuizPlayScreen() {
   const dayNumber = parseInt(day || "1", 10);
 
   const [loading, setLoading] = useState(true);
-  const [vocabularyData, setVocabularyData] = useState<VocabData[]>([]);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -282,6 +279,10 @@ export default function QuizPlayScreen() {
   const [matchedPairs, setMatchedPairs] = useState<Record<string, string>>({});
   const [matchingFeedback, setMatchingFeedback] = useState<string | null>(null);
   const [matchingMeanings, setMatchingMeanings] = useState<string[]>([]);
+  const [wordArrangementItems, setWordArrangementItems] = useState<VocabData[]>(
+    [],
+  );
+  const retakeMarkedRef = React.useRef(false);
 
   // Word Arrangement state
   const [shuffledChunks, setShuffledChunks] = useState<string[]>([]);
@@ -295,6 +296,21 @@ export default function QuizPlayScreen() {
     useState<string[]>([]);
   const [sentenceChunkCounts, setSentenceChunkCounts] = useState<number[]>([]);
   const [focusedSentenceIndex, setFocusedSentenceIndex] = useState(0);
+
+  useEffect(() => {
+    if (user && courseId) {
+      fetchCourseProgress(user.uid, courseId);
+    }
+  }, [user, courseId, fetchCourseProgress]);
+
+  useEffect(() => {
+    if (!courseId) {
+      retakeMarkedRef.current = false;
+      return;
+    }
+    retakeMarkedRef.current =
+      courseProgress[courseId]?.[dayNumber]?.isRetake || false;
+  }, [courseProgress, courseId, dayNumber]);
 
   // Fetch vocabulary data from Firestore
   useEffect(() => {
@@ -334,21 +350,41 @@ export default function QuizPlayScreen() {
           console.warn("Not enough vocabulary for quiz (need at least 4)");
         }
 
-        setVocabularyData(fetchedVocab);
+        const resolvedQuizType = quizType || "multiple-choice";
 
-        // Generate quiz questions from fetched data
-        const generatedQuestions = generateQuizQuestions(
-          fetchedVocab,
-          quizType || "multiple-choice",
-          targetScore,
-        );
-        setQuestions(generatedQuestions);
-
-        // Set up matching meanings if it's a matching quiz
-        if (quizType === "matching") {
-          setMatchingMeanings(
-            shuffleArray(generatedQuestions.map((q) => q.meaning)),
+        if (resolvedQuizType === "word-arrangement") {
+          const arrangementPool = fetchedVocab.filter((v) => v.example);
+          const selectedArrangement = shuffleArray([...arrangementPool]).slice(
+            0,
+            Math.min(targetScore, arrangementPool.length),
           );
+          setWordArrangementItems(selectedArrangement);
+          setQuestions(
+            selectedArrangement.map((vocab, index) => ({
+              id: `q${index}`,
+              word: vocab.word,
+              meaning: vocab.meaning,
+              correctAnswer: vocab.meaning,
+            })),
+          );
+          setMatchingMeanings([]);
+        } else {
+          const generatedQuestions = generateQuizQuestions(
+            fetchedVocab,
+            resolvedQuizType,
+            targetScore,
+          );
+          setQuestions(generatedQuestions);
+          setWordArrangementItems([]);
+
+          // Set up matching meanings if it's a matching quiz
+          if (resolvedQuizType === "matching") {
+            setMatchingMeanings(
+              shuffleArray(generatedQuestions.map((q) => q.meaning)),
+            );
+          } else {
+            setMatchingMeanings([]);
+          }
         }
       } catch (error) {
         console.error("Error fetching vocabulary for quiz:", error);
@@ -364,21 +400,57 @@ export default function QuizPlayScreen() {
 
   const currentQuestion = questions[currentIndex];
   const isMatching = quizType === "matching";
-  const isSpelling = quizType === "spelling";
-  const isFillInBlank = quizType === "fill-in-blank";
   const isWordArrangement = quizType === "word-arrangement";
   const matchedCount = Object.keys(matchedPairs).length;
+  const totalQuestions = isWordArrangement
+    ? wordArrangementItems.length
+    : questions.length;
   const progressCurrent = isMatching ? matchedCount : currentIndex + 1;
+
+  const maybeMarkRetake = async (nextScore: number) => {
+    if (!user || !courseId) return;
+    if (retakeMarkedRef.current) return;
+
+    const existingAccumulated =
+      courseProgress[courseId]?.[dayNumber]?.accumulatedCorrect || 0;
+    const totalCorrect = existingAccumulated + nextScore;
+
+    if (totalCorrect < targetScore) return;
+
+    retakeMarkedRef.current = true;
+    updateCourseDayProgress(courseId, dayNumber, { isRetake: true });
+
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        [`courseProgress.${courseId}.${dayNumber}.isRetake`]: true,
+      });
+    } catch (error) {
+      console.error("Error marking day as retake:", error);
+    }
+  };
 
   const handleAnswer = async (answer: string) => {
     const correct =
       answer.toLowerCase().trim() ===
       currentQuestion.correctAnswer.toLowerCase().trim();
+    const nextScore = correct ? score + 1 : score;
+    console.log(
+      `[Quiz] ${quizType} answer in handleAnswer`,
+      correct ? "correct" : "incorrect",
+      {
+        questionId: currentQuestion.id,
+        word: currentQuestion.word,
+        answer,
+        correctAnswer: currentQuestion.correctAnswer,
+      },
+      `score: ${nextScore}`,
+    );
     setIsCorrect(correct);
     setShowResult(true);
 
     if (correct) {
       setScore((prev) => prev + 1);
+      await maybeMarkRetake(nextScore);
     }
 
     // Record answer for stats
@@ -391,11 +463,11 @@ export default function QuizPlayScreen() {
       setShowResult(false);
       setUserAnswer("");
 
-      if (currentIndex < questions.length - 1) {
+      if (currentIndex < totalQuestions - 1) {
         setCurrentIndex((prev) => prev + 1);
       } else {
         setQuizFinished(true);
-        saveQuizResult();
+        saveQuizResult(nextScore);
       }
     }, 1500); // 1.5 seconds delay to show feedback
   };
@@ -410,15 +482,22 @@ export default function QuizPlayScreen() {
       await recordQuizAnswer(user.uid, correct);
     }
 
+    console.log("[Quiz] matching attempt", correct ? "correct" : "incorrect", {
+      word,
+      meaning,
+    });
+
     if (correct) {
+      const nextScore = score + 1;
       setMatchedPairs((prev) => ({ ...prev, [word]: meaning }));
       setScore((prev) => prev + 1);
+      await maybeMarkRetake(nextScore);
     }
 
     setSelectedWord(null);
     setSelectedMeaning(null);
 
-    if (correct && Object.keys(matchedPairs).length + 1 === questions.length) {
+    if (correct && Object.keys(matchedPairs).length + 1 === totalQuestions) {
       setQuizFinished(true);
       saveQuizResult(score + 1);
     }
@@ -521,48 +600,42 @@ export default function QuizPlayScreen() {
         return userSentence === currentArrangementSentences[index];
       });
 
+    console.log(
+      "[Quiz] word-arrangement attempt",
+      isCorrect ? "correct" : "incorrect",
+      { word: currentArrangementWord?.word },
+    );
+
+    if (user) {
+      await recordQuizAnswer(user.uid, isCorrect);
+    }
+
     if (isCorrect) {
+      const nextScore = score + 1;
       setArrangementComplete(true);
       setScore((prev) => prev + 1);
-      if (user) {
-        await recordQuizAnswer(user.uid, true);
-      }
+      await maybeMarkRetake(nextScore);
     }
     return isCorrect;
   }, [
     currentArrangementSentences,
     selectedChunksByArea,
+    score,
     user,
     recordQuizAnswer,
+    maybeMarkRetake,
   ]);
 
   // Word Arrangement: Handle next word
   const handleArrangementNext = () => {
     const nextIndex = currentIndex + 1;
-    if (nextIndex >= vocabularyData.length) {
+    if (nextIndex >= wordArrangementItems.length) {
       setQuizFinished(true);
       saveQuizResult();
       return;
     }
-
-    // Find next word with example sentence
-    let nextVocab = vocabularyData[nextIndex];
-    let searchIndex = nextIndex;
-    while (searchIndex < vocabularyData.length && !nextVocab.example) {
-      searchIndex++;
-      if (searchIndex < vocabularyData.length) {
-        nextVocab = vocabularyData[searchIndex];
-      }
-    }
-
-    if (searchIndex >= vocabularyData.length || !nextVocab.example) {
-      setQuizFinished(true);
-      saveQuizResult();
-      return;
-    }
-
-    setCurrentIndex(searchIndex);
-    initWordArrangement(nextVocab);
+    setCurrentIndex(nextIndex);
+    initWordArrangement(wordArrangementItems[nextIndex]);
   };
 
   // Word Arrangement: Check arrangement when all chunks are selected
@@ -598,29 +671,27 @@ export default function QuizPlayScreen() {
   useEffect(() => {
     if (
       isWordArrangement &&
-      vocabularyData.length > 0 &&
+      wordArrangementItems.length > 0 &&
       !currentArrangementWord
     ) {
-      // Find first word with example sentence
-      const firstWithExample = vocabularyData.find((v) => v.example);
-      if (firstWithExample) {
-        const firstIndex = vocabularyData.indexOf(firstWithExample);
-        setCurrentIndex(firstIndex);
-        initWordArrangement(firstWithExample);
-      }
+      setCurrentIndex(0);
+      initWordArrangement(wordArrangementItems[0]);
     }
   }, [
-    vocabularyData,
     isWordArrangement,
+    wordArrangementItems,
     currentArrangementWord,
     initWordArrangement,
   ]);
 
   const saveQuizResult = async (finalScore?: number) => {
-    if (!user) return;
+    if (!user || !courseId) return;
 
     const resolvedScore = finalScore ?? score;
-    const percentage = Math.round((resolvedScore / questions.length) * 100);
+    const percentage =
+      totalQuestions > 0
+        ? Math.round((resolvedScore / totalQuestions) * 100)
+        : 0;
 
     try {
       // Save quiz result to Firestore
@@ -631,29 +702,42 @@ export default function QuizPlayScreen() {
           day: dayNumber,
           quizType,
           score: resolvedScore,
-          totalQuestions: questions.length,
+          totalQuestions,
           percentage,
           completedAt: new Date().toISOString(),
         },
       );
 
       // Update course progress
-      const userDoc = await getDoc(doc(db, "users", user.uid));
       let accumulatedCorrect = resolvedScore;
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        const existingProgress =
-          data.courseProgress?.[courseId as string]?.[dayNumber] || {};
-        accumulatedCorrect += existingProgress.accumulatedCorrect || 0;
+      const existingProgress = courseProgress[courseId]?.[dayNumber] || null;
+      if (typeof existingProgress?.accumulatedCorrect === "number") {
+        accumulatedCorrect += existingProgress.accumulatedCorrect;
+      } else {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          const storedProgress =
+            data.courseProgress?.[courseId as string]?.[dayNumber] || {};
+          accumulatedCorrect += storedProgress.accumulatedCorrect || 0;
+        }
       }
+      const didReachTarget = accumulatedCorrect >= targetScore;
 
       await updateDoc(doc(db, "users", user.uid), {
-        [`courseProgress.${courseId}.${dayNumber}.quizCompleted`]: true,
+        [`courseProgress.${courseId}.${dayNumber}.quizCompleted`]:
+          didReachTarget,
         [`courseProgress.${courseId}.${dayNumber}.quizScore`]: percentage,
         [`courseProgress.${courseId}.${dayNumber}.accumulatedCorrect`]:
           accumulatedCorrect,
-        [`courseProgress.${courseId}.${dayNumber}.isRetake`]:
-          accumulatedCorrect >= (stats?.targetScore || 10),
+        [`courseProgress.${courseId}.${dayNumber}.isRetake`]: didReachTarget,
+      });
+
+      updateCourseDayProgress(courseId, dayNumber, {
+        quizCompleted: didReachTarget,
+        quizScore: percentage,
+        accumulatedCorrect,
+        isRetake: didReachTarget,
       });
     } catch (error) {
       console.error("Error saving quiz result:", error);
@@ -685,7 +769,7 @@ export default function QuizPlayScreen() {
   };
 
   // Show loading screen while fetching data
-  if (loading || questions.length === 0) {
+  if (loading || totalQuestions === 0) {
     return (
       <SafeAreaView
         style={[
@@ -699,18 +783,12 @@ export default function QuizPlayScreen() {
             headerBackTitle: t("common.back"),
           }}
         />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <ThemedText style={styles.loadingText}>
-            {t("common.loading")}
-          </ThemedText>
-        </View>
+        <LoadingView isDark={isDark} />
       </SafeAreaView>
     );
   }
 
   if (quizFinished) {
-    const percentage = Math.round((score / questions.length) * 100);
     return (
       <SafeAreaView
         style={[
@@ -724,57 +802,13 @@ export default function QuizPlayScreen() {
             headerBackTitle: t("common.back"),
           }}
         />
-        <View style={styles.resultContainer}>
-          <View
-            style={[
-              styles.scoreCircle,
-              {
-                borderColor:
-                  percentage >= 80
-                    ? "#28a745"
-                    : percentage >= 60
-                      ? "#ffc107"
-                      : "#dc3545",
-              },
-            ]}
-          >
-            <ThemedText type="title" style={styles.scoreText}>
-              {percentage}%
-            </ThemedText>
-            <ThemedText style={styles.scoreLabel}>
-              {score}/{questions.length}
-            </ThemedText>
-          </View>
-
-          <ThemedText type="subtitle" style={styles.resultMessage}>
-            {percentage >= 80
-              ? t("quiz.results.excellent")
-              : percentage >= 60
-                ? t("quiz.results.goodJob")
-                : t("quiz.results.keepPracticing")}
-          </ThemedText>
-
-          <View style={styles.resultButtons}>
-            <TouchableOpacity
-              style={[styles.resultButton, styles.retryButton]}
-              onPress={handleRetry}
-            >
-              <Ionicons name="refresh" size={20} color="#fff" />
-              <ThemedText style={styles.resultButtonText}>
-                {t("common.retry")}
-              </ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.resultButton, styles.finishButton]}
-              onPress={handleFinish}
-            >
-              <Ionicons name="checkmark" size={20} color="#fff" />
-              <ThemedText style={styles.resultButtonText}>
-                {t("common.finish")}
-              </ThemedText>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <QuizFinishView
+          score={score}
+          totalQuestions={totalQuestions}
+          isDark={isDark}
+          onRetry={handleRetry}
+          onFinish={handleFinish}
+        />
       </SafeAreaView>
     );
   }
@@ -789,11 +823,11 @@ export default function QuizPlayScreen() {
           title: isMatching
             ? t("quiz.matching.progressTitle", {
                 current: matchedCount,
-                total: questions.length,
+                total: totalQuestions,
               })
             : t("quiz.questionTitle", {
                 current: currentIndex + 1,
-                total: questions.length,
+                total: totalQuestions,
               }),
           headerBackTitle: t("common.back"),
         }}
@@ -806,105 +840,40 @@ export default function QuizPlayScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Progress Bar */}
-          <View style={styles.progressContainer}>
-            <View
-              style={[
-                styles.progressBar,
-                { backgroundColor: isDark ? "#333" : "#e0e0e0" },
-              ]}
-            >
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${(progressCurrent / questions.length) * 100}%`,
-                    backgroundColor: course?.color || "#007AFF",
-                  },
-                ]}
-              />
-            </View>
-            <ThemedText style={styles.progressText}>
-              {progressCurrent} / {questions.length}
-            </ThemedText>
-          </View>
-
-          {/* Game Section */}
-          {isMatching ? (
-            <MatchingGame
-              questions={questions}
-              meanings={matchingMeanings}
-              selectedWord={selectedWord}
-              selectedMeaning={selectedMeaning}
-              matchedPairs={matchedPairs}
-              onSelectWord={handleSelectWord}
-              onSelectMeaning={handleSelectMeaning}
-              feedback={matchingFeedback}
-              courseColor={course?.color}
-              isDark={isDark}
-            />
-          ) : isSpelling ? (
-            <SpellingGame
-              userAnswer={userAnswer}
-              setUserAnswer={setUserAnswer}
-              showResult={showResult}
-              isCorrect={isCorrect}
-              onSubmit={() => handleAnswer(userAnswer)}
-              courseColor={course?.color}
-              meaning={currentQuestion.meaning}
-            />
-          ) : isFillInBlank ? (
-            <FillInTheBlankGame
-              word={currentQuestion.word}
-              clozeSentence={currentQuestion.clozeSentence || ""}
-              translation={currentQuestion.translation}
-              options={currentQuestion.options || []}
-              correctAnswer={currentQuestion.correctAnswer}
-              userAnswer={userAnswer}
-              showResult={showResult}
-              onAnswer={(answer) => {
-                setUserAnswer(answer);
-                handleAnswer(answer);
-              }}
-              correctForms={currentQuestion.correctForms}
-            />
-          ) : isWordArrangement ? (
-            <WordArrangementGame
-              word={currentArrangementWord?.word || ""}
-              meaning={currentArrangementWord?.meaning || ""}
-              translation={currentArrangementWord?.translation}
-              selectedChunksByArea={selectedChunksByArea}
-              availableChunks={shuffledChunks}
-              isComplete={arrangementComplete}
-              sentenceChunkCounts={sentenceChunkCounts}
-              courseColor={course?.color}
-              focusedSentenceIndex={focusedSentenceIndex}
-              onFocusChange={handleFocusChange}
-              onChunkSelect={handleChunkSelect}
-              onChunkDeselect={handleChunkDeselect}
-              onNext={handleArrangementNext}
-            />
-          ) : (
-            <MultipleChoiceGame
-              options={currentQuestion.options || []}
-              correctAnswer={currentQuestion.correctAnswer}
-              userAnswer={userAnswer}
-              showResult={showResult}
-              onAnswer={(answer) => {
-                setUserAnswer(answer);
-                handleAnswer(answer);
-              }}
-              word={currentQuestion.word}
-            />
-          )}
-
-          {/* Result Feedback */}
-          {showResult && !isMatching && (
-            <QuizFeedback
-              isCorrect={isCorrect}
-              correctAnswer={currentQuestion.correctAnswer}
-            />
-          )}
+          <GameBoard
+            quizType={quizType || "multiple-choice"}
+            currentQuestion={currentQuestion}
+            questions={questions}
+            progressCurrent={progressCurrent}
+            courseColor={course?.color}
+            isDark={isDark}
+            matchingMeanings={matchingMeanings}
+            selectedWord={selectedWord}
+            selectedMeaning={selectedMeaning}
+            matchedPairs={matchedPairs}
+            matchingFeedback={matchingFeedback}
+            onSelectWord={handleSelectWord}
+            onSelectMeaning={handleSelectMeaning}
+            userAnswer={userAnswer}
+            setUserAnswer={setUserAnswer}
+            showResult={showResult}
+            isCorrect={isCorrect}
+            onSubmit={() => handleAnswer(userAnswer)}
+            onAnswer={(answer) => {
+              setUserAnswer(answer);
+              handleAnswer(answer);
+            }}
+            currentArrangementWord={currentArrangementWord}
+            selectedChunksByArea={selectedChunksByArea}
+            shuffledChunks={shuffledChunks}
+            arrangementComplete={arrangementComplete}
+            sentenceChunkCounts={sentenceChunkCounts}
+            focusedSentenceIndex={focusedSentenceIndex}
+            onFocusChange={handleFocusChange}
+            onChunkSelect={handleChunkSelect}
+            onChunkDeselect={handleChunkDeselect}
+            onArrangementNext={handleArrangementNext}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -922,25 +891,6 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
-  progressContainer: {
-    marginBottom: 24,
-  },
-  progressBar: {
-    height: 8,
-    borderRadius: 4,
-    overflow: "hidden",
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 4,
-  },
-  progressText: {
-    fontSize: 12,
-    opacity: 0.6,
-    textAlign: "right",
-  },
-
   nextButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -954,64 +904,5 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
-  },
-  resultContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  scoreCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    borderWidth: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  scoreText: {
-    fontSize: 48,
-  },
-  scoreLabel: {
-    fontSize: 16,
-    opacity: 0.6,
-  },
-  resultMessage: {
-    fontSize: 24,
-    marginBottom: 32,
-  },
-  resultButtons: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  resultButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 24,
-    gap: 8,
-  },
-  retryButton: {
-    backgroundColor: "#6c757d",
-  },
-  finishButton: {
-    backgroundColor: "#28a745",
-  },
-  resultButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 16,
-  },
-  loadingText: {
-    fontSize: 16,
-    opacity: 0.6,
   },
 });

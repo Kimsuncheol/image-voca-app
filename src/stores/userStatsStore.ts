@@ -22,13 +22,33 @@ export interface UserStats {
   targetScore: number;
 }
 
+interface DayProgress {
+  completed?: boolean;
+  wordsLearned?: number;
+  totalWords?: number;
+  quizCompleted?: boolean;
+  quizScore?: number;
+  accumulatedCorrect?: number;
+  isRetake?: boolean;
+}
+
+type CourseProgress = Record<number, DayProgress>;
+
 interface UserStatsState {
   stats: UserStats | null;
   loading: boolean;
   error: string | null;
+  courseProgress: Record<string, CourseProgress>;
 
   // Actions
   fetchStats: (userId: string) => Promise<void>;
+  fetchCourseProgress: (userId: string, courseId: string) => Promise<void>;
+  setCourseProgress: (courseId: string, progress: CourseProgress) => void;
+  updateCourseDayProgress: (
+    courseId: string,
+    day: number,
+    patch: Partial<DayProgress>,
+  ) => void;
   updateDailyGoal: (userId: string, goal: number) => Promise<void>;
   updateTargetScore: (userId: string, score: number) => Promise<void>;
   recordWordLearned: (userId: string) => Promise<void>;
@@ -158,6 +178,7 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
   stats: null,
   loading: false,
   error: null,
+  courseProgress: {},
 
   fetchStats: async (userId: string) => {
     set({ loading: true, error: null });
@@ -207,6 +228,51 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
     } catch (error: any) {
       set({ error: error.message, loading: false });
     }
+  },
+
+  fetchCourseProgress: async (userId: string, courseId: string) => {
+    try {
+      const userDoc = await getDoc(doc(db, "users", userId));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        const progress = data.courseProgress?.[courseId] || {};
+        set((state) => ({
+          courseProgress: { ...state.courseProgress, [courseId]: progress },
+        }));
+      } else {
+        set((state) => ({
+          courseProgress: { ...state.courseProgress, [courseId]: {} },
+        }));
+      }
+    } catch (error: any) {
+      set({ error: error.message });
+    }
+  },
+
+  setCourseProgress: (courseId: string, progress: CourseProgress) => {
+    set((state) => ({
+      courseProgress: { ...state.courseProgress, [courseId]: progress },
+    }));
+  },
+
+  updateCourseDayProgress: (
+    courseId: string,
+    day: number,
+    patch: Partial<DayProgress>,
+  ) => {
+    set((state) => {
+      const course = state.courseProgress[courseId] || {};
+      const dayProgress = course[day] || {};
+      return {
+        courseProgress: {
+          ...state.courseProgress,
+          [courseId]: {
+            ...course,
+            [day]: { ...dayProgress, ...patch },
+          },
+        },
+      };
+    });
   },
 
   updateDailyGoal: async (userId: string, goal: number) => {
