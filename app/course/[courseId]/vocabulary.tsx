@@ -23,6 +23,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SwipeCardItem } from "../../../components/swipe/SwipeCardItem";
 import { VocabularyCardSkeleton } from "../../../components/swipe/VocabularyCardSkeleton";
+
+import { CollocationFlipCard } from "../../../components/CollocationFlipCard";
+
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
@@ -53,6 +56,11 @@ const getCourseConfig = (courseId: CourseType) => {
       return {
         path: process.env.EXPO_PUBLIC_COURSE_PATH_IELTS,
         prefix: "IELTS",
+      };
+    case "COLLOCATION":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION,
+        prefix: "COLLOCATION",
       };
     default:
       return { path: "", prefix: "" };
@@ -106,6 +114,20 @@ export default function VocabularyScreen() {
 
         const fetchedCards: VocabularyCard[] = querySnapshot.docs.map((doc) => {
           const data = doc.data();
+
+          if (courseId === "COLLOCATION") {
+            return {
+              id: doc.id,
+              word: data.collocation, // Map 'collocation' to 'word'
+              meaning: data.meaning,
+              translation: data.translation,
+              pronunciation: data.explanation, // Map 'explanation' to 'pronunciation' field for now, or we need to update VocabularyCard type
+              example: data.example,
+              image: data.image,
+              course: courseId as CourseType,
+            };
+          }
+
           return {
             id: doc.id,
             word: data.word,
@@ -259,13 +281,26 @@ export default function VocabularyScreen() {
             <TinderSwipe
               ref={swipeRef}
               data={cards}
-              renderCard={(item) => (
-                <SwipeCardItem
-                  item={item}
-                  initialIsSaved={savedWordIds.has(item.id)}
-                  day={dayNumber}
-                />
-              )}
+              renderCard={(item) =>
+                courseId === "COLLOCATION" ? (
+                  <CollocationFlipCard
+                    data={{
+                      collocation: item.word,
+                      meaning: item.meaning,
+                      explanation: item.pronunciation || "", // mapped from pronunciation
+                      example: item.example,
+                      translation: item.translation || "",
+                    }}
+                    isDark={isDark}
+                  />
+                ) : (
+                  <SwipeCardItem
+                    item={item}
+                    initialIsSaved={savedWordIds.has(item.id)}
+                    day={dayNumber}
+                  />
+                )
+              }
               onSwipeRight={onSwipeRight}
               onSwipeLeft={onSwipeLeft}
               loop={false}
