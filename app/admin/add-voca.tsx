@@ -4,7 +4,7 @@ import { Stack } from "expo-router";
 import { addDoc, collection, deleteDoc, getDocs } from "firebase/firestore";
 import { getMetadata, ref, uploadBytes } from "firebase/storage";
 import Papa from "papaparse";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -58,13 +58,6 @@ export default function AddVocaScreen() {
   // Google Sheets integration
   const { token, promptAsync } = useGoogleSheetsAuth();
   const [waitingForToken, setWaitingForToken] = useState(false);
-
-  useEffect(() => {
-    if (waitingForToken && token) {
-      setWaitingForToken(false);
-      handleBatchSheetImport();
-    }
-  }, [token, waitingForToken]);
 
   // CSV Handlers
   const handlePickDocument = async (itemId: string) => {
@@ -203,7 +196,84 @@ export default function AddVocaScreen() {
     }
   };
 
-  const handleBatchSheetImport = async () => {
+  // Shared upload logic
+  const uploadData = useCallback(
+    async (data: any[], day: string, progressPrefix: string) => {
+      const fullPath = `${selectedCourse.path}/Day${day}`;
+
+      // Clear existing data
+      setProgress(`${progressPrefix}Clearing existing data...`);
+      try {
+        const querySnapshot = await getDocs(collection(db, fullPath));
+        const deletePromises = querySnapshot.docs.map((doc) =>
+          deleteDoc(doc.ref),
+        );
+        await Promise.all(deletePromises);
+      } catch (deleteError) {
+        throw new Error(`Failed to clear existing data for Day ${day}`);
+      }
+
+      // Upload new data
+      setProgress(`${progressPrefix}Uploading ${data.length} records...`);
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (let i = 0; i < data.length; i++) {
+        const item = data[i];
+        try {
+          const word = String(
+            item["Word"] || item["word"] || item["_1"] || "",
+          ).trim();
+
+          if (word === "Word" || !word) continue;
+
+          const docData = {
+            word: word,
+            meaning: String(
+              item["Meaning"] || item["meaning"] || item["_2"] || "",
+            ).trim(),
+            translation: String(
+              item["Translation"] || item["translation"] || item["_5"] || "",
+            ).trim(),
+            pronunciation: String(
+              item["Pronounciation"] ||
+                item["Pronunciation"] ||
+                item["pronunciation"] ||
+                item["_3"] ||
+                "",
+            ).trim(),
+            example: String(
+              item["Example sentence"] ||
+                item["Example"] ||
+                item["example"] ||
+                item["_4"] ||
+                "",
+            ).trim(),
+            createdAt: new Date(),
+          };
+
+          await addDoc(collection(db, fullPath), docData);
+          successCount++;
+          if (i % 10 === 0) {
+            setProgress(
+              `${progressPrefix}Uploading ${successCount}/${data.length}...`,
+            );
+          }
+        } catch (e) {
+          console.error("Upload failed", e);
+          failCount++;
+        }
+      }
+
+      console.log(
+        `[Upload] Day ${day}: Success ${successCount}, Failed ${failCount}`,
+      );
+    },
+    [selectedCourse],
+  );
+
+  const handleBatchSheetImport = useCallback(async () => {
     if (!token) return;
 
     try {
@@ -248,85 +318,14 @@ export default function AddVocaScreen() {
       Alert.alert("Import Error", err.message);
       setLoading(false);
     }
-  };
+  }, [token, sheetItems, uploadData]);
 
-  // Shared upload logic
-  const uploadData = async (
-    data: any[],
-    day: string,
-    progressPrefix: string,
-  ) => {
-    const fullPath = `${selectedCourse.path}/Day${day}`;
-
-    // Clear existing data
-    setProgress(`${progressPrefix}Clearing existing data...`);
-    try {
-      const querySnapshot = await getDocs(collection(db, fullPath));
-      const deletePromises = querySnapshot.docs.map((doc) =>
-        deleteDoc(doc.ref),
-      );
-      await Promise.all(deletePromises);
-    } catch (deleteError) {
-      throw new Error(`Failed to clear existing data for Day ${day}`);
+  useEffect(() => {
+    if (waitingForToken && token) {
+      setWaitingForToken(false);
+      handleBatchSheetImport();
     }
-
-    // Upload new data
-    setProgress(`${progressPrefix}Uploading ${data.length} records...`);
-
-    let successCount = 0;
-    let failCount = 0;
-
-    for (let i = 0; i < data.length; i++) {
-      const item = data[i];
-      try {
-        const word = String(
-          item["Word"] || item["word"] || item["_1"] || "",
-        ).trim();
-
-        if (word === "Word" || !word) continue;
-
-        const docData = {
-          word: word,
-          meaning: String(
-            item["Meaning"] || item["meaning"] || item["_2"] || "",
-          ).trim(),
-          translation: String(
-            item["Translation"] || item["translation"] || item["_5"] || "",
-          ).trim(),
-          pronunciation: String(
-            item["Pronounciation"] ||
-              item["Pronunciation"] ||
-              item["pronunciation"] ||
-              item["_3"] ||
-              "",
-          ).trim(),
-          example: String(
-            item["Example sentence"] ||
-              item["Example"] ||
-              item["example"] ||
-              item["_4"] ||
-              "",
-          ).trim(),
-          createdAt: new Date(),
-        };
-
-        await addDoc(collection(db, fullPath), docData);
-        successCount++;
-        if (i % 10 === 0) {
-          setProgress(
-            `${progressPrefix}Uploading ${successCount}/${data.length}...`,
-          );
-        }
-      } catch (e) {
-        console.error("Upload failed", e);
-        failCount++;
-      }
-    }
-
-    console.log(
-      `[Upload] Day ${day}: Success ${successCount}, Failed ${failCount}`,
-    );
-  };
+  }, [token, waitingForToken, handleBatchSheetImport]);
 
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
