@@ -34,7 +34,10 @@ export default function AddVocaHeader({
                 selectedCourse.name === course.name &&
                   styles.courseButtonActive,
               ]}
-              onPress={() => setSelectedCourse(course)}
+              onPress={() => {
+                console.log("Selected course:", course.name);
+                setSelectedCourse(course);
+              }}
             >
               <Text
                 style={[

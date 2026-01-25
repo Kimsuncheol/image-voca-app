@@ -17,12 +17,37 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { CollocationFlipCard } from "../../components/CollocationFlipCard";
 import { ThemedText } from "../../components/themed-text";
 import { SavedWord, WordCard } from "../../components/wordbank/WordCard";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
 import { COURSES } from "../../src/types/vocabulary";
+
+const COLLOCATION_DATA = [
+  {
+    collocation: "make a decision",
+    meaning: "decide something",
+    explanation: "Used when you choose one option",
+    example: "I had to make a decision quickly",
+    translation: "결정을 내리다",
+  },
+  {
+    collocation: "do a favor",
+    meaning: "help someone",
+    explanation: "Used when you help someone",
+    example: "Can you do me a favor?",
+    translation: "부탁을 들어주다",
+  },
+  {
+    collocation: "make a mistake",
+    meaning: "do something wrong",
+    explanation: "Used when you do something incorrect",
+    example: "I made a mistake on the test.",
+    translation: "실수를 하다",
+  },
+];
 
 export default function CourseWordBankScreen() {
   const { isDark } = useTheme();
@@ -131,6 +156,10 @@ export default function CourseWordBankScreen() {
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#007AFF" />
           </View>
+        ) : course === "COLLOCATION" ? (
+          COLLOCATION_DATA.map((item, index) => (
+            <CollocationFlipCard key={index} data={item} isDark={isDark} />
+          ))
         ) : words.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons

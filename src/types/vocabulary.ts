@@ -15,7 +15,8 @@ export type CourseType =
   | "TOEFL"
   | "TOEIC_SPEAKING"
   | "IELTS"
-  | "OPIC";
+  | "OPIC"
+  | "COLLOCATION";
 
 export interface Course {
   id: CourseType;
@@ -68,5 +69,15 @@ export const COURSES: Course[] = [
     icon: "globe",
     color: "#DDA0DD",
     wordCount: 1000,
+  },
+  {
+    id: "COLLOCATION",
+    title: "Collocations",
+    titleKey: "courses.collocation.title",
+    description: "Common Word Pairs",
+    descriptionKey: "courses.collocation.description",
+    icon: "layers",
+    color: "#4A90E2",
+    wordCount: 50,
   },
 ];

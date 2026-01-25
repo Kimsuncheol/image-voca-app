@@ -37,6 +37,10 @@ export default function AddVocaScreen() {
     { name: "IELTS", path: process.env.EXPO_PUBLIC_COURSE_PATH_IELTS || "" },
     { name: "TOEFL", path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL || "" },
     { name: "TOEIC", path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC || "" },
+    {
+      name: "COLLOCATION",
+      path: process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION || "",
+    },
   ];
 
   // State
@@ -110,6 +114,7 @@ export default function AddVocaScreen() {
 
       setLoading(false);
       setProgress("");
+      setCsvItems([{ id: "1", day: "", file: null }]);
       Alert.alert("Success", "All files uploaded successfully!");
     } catch (err: any) {
       setLoading(false);
@@ -133,6 +138,7 @@ export default function AddVocaScreen() {
       // File exists
     } catch (error: any) {
       // File doesn't exist, ignore
+      console.log("[Storage] File doesn't exist (creating new):", error.code);
     }
 
     setProgress(`${progressPrefix}Uploading file to Storage...`);
@@ -228,30 +234,51 @@ export default function AddVocaScreen() {
 
           if (word === "Word" || !word) continue;
 
-          const docData = {
-            word: word,
-            meaning: String(
-              item["Meaning"] || item["meaning"] || item["_2"] || "",
-            ).trim(),
-            translation: String(
-              item["Translation"] || item["translation"] || item["_5"] || "",
-            ).trim(),
-            pronunciation: String(
-              item["Pronounciation"] ||
-                item["Pronunciation"] ||
-                item["pronunciation"] ||
-                item["_3"] ||
-                "",
-            ).trim(),
-            example: String(
-              item["Example sentence"] ||
-                item["Example"] ||
-                item["example"] ||
-                item["_4"] ||
-                "",
-            ).trim(),
-            createdAt: new Date(),
-          };
+          let docData: any = {};
+
+          if (selectedCourse.name === "COLLOCATION") {
+            docData = {
+              collocation: word,
+              meaning: String(
+                item["Meaning"] || item["meaning"] || item["_2"] || "",
+              ).trim(),
+              explanation: String(
+                item["Explanation"] || item["explanation"] || item["_3"] || "",
+              ).trim(),
+              example: String(
+                item["Example"] || item["example"] || item["_4"] || "",
+              ).trim(),
+              translation: String(
+                item["Translation"] || item["translation"] || item["_5"] || "",
+              ).trim(),
+              createdAt: new Date(),
+            };
+          } else {
+            docData = {
+              word: word,
+              meaning: String(
+                item["Meaning"] || item["meaning"] || item["_2"] || "",
+              ).trim(),
+              translation: String(
+                item["Translation"] || item["translation"] || item["_5"] || "",
+              ).trim(),
+              pronunciation: String(
+                item["Pronounciation"] ||
+                  item["Pronunciation"] ||
+                  item["pronunciation"] ||
+                  item["_3"] ||
+                  "",
+              ).trim(),
+              example: String(
+                item["Example sentence"] ||
+                  item["Example"] ||
+                  item["example"] ||
+                  item["_4"] ||
+                  "",
+              ).trim(),
+              createdAt: new Date(),
+            };
+          }
 
           await addDoc(collection(db, fullPath), docData);
           successCount++;
@@ -312,6 +339,7 @@ export default function AddVocaScreen() {
 
       setLoading(false);
       setProgress("");
+      setSheetItems([{ id: "1", day: "", sheetId: "", range: "Sheet1!A:E" }]);
       Alert.alert("Success", "All sheets imported successfully!");
     } catch (err: any) {
       console.error("[Sheets] Error:", err);
