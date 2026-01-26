@@ -12,30 +12,29 @@ interface Props {
   isDark?: boolean;
 }
 
-export const CollocationFlipCard: React.FC<Props> = ({
-  data,
-  isDark = false,
-}) => {
-  const [isBackVisible, setIsBackVisible] = useState(false);
+export const CollocationFlipCard: React.FC<Props> = React.memo(
+  ({ data, isDark = false }) => {
+    const [isBackVisible, setIsBackVisible] = useState(false);
 
-  return (
-    <FlipCard
-      style={styles.card}
-      friction={10}
-      perspective={2000}
-      flipHorizontal={true}
-      flipVertical={false}
-      clickable={true}
-      onFlipEnd={setIsBackVisible}
-    >
-      {/* Face Side */}
-      <FaceSide data={data} isDark={isDark} />
+    return (
+      <FlipCard
+        style={styles.card}
+        friction={10}
+        perspective={2000}
+        flipHorizontal={true}
+        flipVertical={false}
+        clickable={true}
+        onFlipEnd={setIsBackVisible}
+      >
+        {/* Face Side */}
+        <FaceSide data={data} isDark={isDark} />
 
-      {/* Back Side */}
-      <BackSide data={data} isDark={isDark} isVisible={isBackVisible} />
-    </FlipCard>
-  );
-};
+        {/* Back Side */}
+        <BackSide data={data} isDark={isDark} isVisible={isBackVisible} />
+      </FlipCard>
+    );
+  },
+);
 
 const { height } = Dimensions.get("window");
 

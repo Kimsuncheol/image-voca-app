@@ -15,10 +15,10 @@ interface FaceSideProps {
   isDark: boolean;
 }
 
-export default function FaceSide({ data, isDark }: FaceSideProps) {
-  const speak = () => {
+export default React.memo(function FaceSide({ data, isDark }: FaceSideProps) {
+  const speak = React.useCallback(() => {
     Speech.speak(data.collocation);
-  };
+  }, [data.collocation]);
 
   return (
     <View style={[styles.face, isDark && styles.faceDark]}>
@@ -47,7 +47,7 @@ export default function FaceSide({ data, isDark }: FaceSideProps) {
       <View style={styles.footer} />
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   face: {
@@ -120,5 +120,6 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: "center",
     paddingBottom: 0,
+    height: 40, // Keeping height to maintain layout consistency if needed, or can remove if flex handles it
   },
 });

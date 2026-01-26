@@ -10,7 +10,7 @@ interface ExplanationSectionProps {
   isDark: boolean;
 }
 
-export default function ExplanationSection({
+export default React.memo(function ExplanationSection({
   explanation,
   isOpen,
   onToggle,
@@ -40,23 +40,7 @@ export default function ExplanationSection({
       </Collapsible>
     </View>
   );
-}
-
-function InitExplanationSection({
-  explanation,
-  isDark,
-}: {
-  explanation: string;
-  isDark: boolean;
-}) {
-  return (
-    <View style={styles.sectionContent}>
-      <Text style={[styles.value, isDark && styles.textDark]}>
-        {explanation}
-      </Text>
-    </View>
-  );
-}
+});
 
 const styles = StyleSheet.create({
   header: {

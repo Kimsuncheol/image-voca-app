@@ -10,7 +10,11 @@ interface BackSideProps {
   isVisible: boolean;
 }
 
-export default function BackSide({ data, isDark, isVisible }: BackSideProps) {
+export default React.memo(function BackSide({
+  data,
+  isDark,
+  isVisible,
+}: BackSideProps) {
   const [activeSection, setActiveSection] = useState<"explanation" | "example">(
     "explanation",
   );
@@ -18,6 +22,14 @@ export default function BackSide({ data, isDark, isVisible }: BackSideProps) {
 
   const isExplanationOpen = isVisible && activeSection === "explanation";
   const isExampleOpen = isVisible && activeSection === "example";
+
+  const handleToggleExplanation = React.useCallback(() => {
+    setActiveSection("explanation");
+  }, []);
+
+  const handleToggleExample = React.useCallback(() => {
+    setActiveSection("example");
+  }, []);
 
   return (
     <View style={[styles.back, isDark && styles.backDark]}>
@@ -31,7 +43,7 @@ export default function BackSide({ data, isDark, isVisible }: BackSideProps) {
         <ExplanationSection
           explanation={data.explanation}
           isOpen={isExplanationOpen}
-          onToggle={() => setActiveSection("explanation")}
+          onToggle={handleToggleExplanation}
           isDark={isDark}
         />
 
@@ -39,7 +51,7 @@ export default function BackSide({ data, isDark, isVisible }: BackSideProps) {
           example={data.example}
           translation={data.translation}
           isOpen={isExampleOpen}
-          onToggle={() => setActiveSection("example")}
+          onToggle={handleToggleExample}
           isDark={isDark}
           parentHeight={containerHeight}
         />
@@ -48,7 +60,7 @@ export default function BackSide({ data, isDark, isVisible }: BackSideProps) {
       <View style={styles.footer} />
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   back: {
@@ -89,5 +101,6 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: "center",
     paddingBottom: 0,
+    height: 40,
   },
 });

@@ -10,8 +10,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import Collapsible from "react-native-collapsible";
-import { parseRoleplaySegments } from "../../src/utils/roleplayUtils";
-import { RoleplayDialogueRow } from "../RoleplayDialogueRow";
+import { RoleplayRenderer } from "./RoleplayRenderer";
 
 interface ExampleSectionProps {
   example: string;
@@ -22,7 +21,7 @@ interface ExampleSectionProps {
   parentHeight?: number;
 }
 
-export default function ExampleSection({
+export default React.memo(function ExampleSection({
   example,
   translation,
   isOpen,
@@ -32,9 +31,9 @@ export default function ExampleSection({
 }: ExampleSectionProps) {
   const { height: windowHeight } = useWindowDimensions();
   const height = parentHeight || windowHeight;
-  const speak = () => {
+  const speak = React.useCallback(() => {
     Speech.speak(example);
-  };
+  }, [example]);
 
   return (
     <View>
@@ -55,66 +54,14 @@ export default function ExampleSection({
         <ScrollView
           style={[styles.sectionContent, { maxHeight: height * 0.7 }]}
           nestedScrollEnabled
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 16 }}
         >
           {example ? (
+            // roleplay
             <View style={styles.exampleRow}>
               <View style={{ flex: 1, marginRight: 8, gap: 8 }}>
-                {(() => {
-                  const segments = parseRoleplaySegments(example);
-                  if (!segments) return null;
-
-                  const nodes = [];
-                  let i = 0;
-                  while (i < segments.length) {
-                    const segment = segments[i];
-                    if (segment.type === "role") {
-                      let textContent = "";
-                      if (
-                        i + 1 < segments.length &&
-                        segments[i + 1].type === "text"
-                      ) {
-                        textContent = segments[i + 1].content;
-                        i += 2;
-                      } else {
-                        i += 1;
-                      }
-
-                      nodes.push(
-                        <RoleplayDialogueRow
-                          key={`dialogue-${i}`}
-                          role={segment.content}
-                          text={
-                            <Text
-                              style={[
-                                styles.value,
-                                isDark && styles.textDark,
-                                styles.exampleText,
-                                { fontStyle: "normal" }, // Reset italic for dialogue
-                              ]}
-                            >
-                              &quot;{textContent}&quot;
-                            </Text>
-                          }
-                        />,
-                      );
-                    } else {
-                      nodes.push(
-                        <Text
-                          key={`text-${i}`}
-                          style={[
-                            styles.value,
-                            isDark && styles.textDark,
-                            styles.exampleText,
-                          ]}
-                        >
-                          &quot;{segment.content}&quot;
-                        </Text>,
-                      );
-                      i += 1;
-                    }
-                  }
-                  return nodes;
-                })()}
+                <RoleplayRenderer content={example} isDark={isDark} />
               </View>
               <TouchableOpacity onPress={speak} style={styles.speakerButton}>
                 <Ionicons
@@ -138,7 +85,7 @@ export default function ExampleSection({
       </Collapsible>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   header: {

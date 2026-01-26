@@ -9,7 +9,7 @@ interface RoleplayDialogueRowProps {
   contentStyle?: object;
 }
 
-export function RoleplayDialogueRow({
+export const RoleplayDialogueRow = React.memo(function RoleplayDialogueRow({
   role,
   text,
   contentStyle,
@@ -29,7 +29,7 @@ export function RoleplayDialogueRow({
       <View style={{ flex: 1 }}>{text}</View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   dialogueRow: {
