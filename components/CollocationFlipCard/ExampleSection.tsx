@@ -3,6 +3,8 @@ import * as Speech from "expo-speech";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Collapsible from "react-native-collapsible";
+import { parseRoleplaySegments } from "../../src/utils/roleplayUtils";
+import { RoleplayDialogueRow } from "../RoleplayDialogueRow";
 
 interface ExampleSectionProps {
   example: string;
@@ -42,15 +44,64 @@ export default function ExampleSection({
         <View style={styles.sectionContent}>
           {example ? (
             <View style={styles.exampleRow}>
-              <Text
-                style={[
-                  styles.value,
-                  isDark && styles.textDark,
-                  styles.exampleText,
-                ]}
-              >
-                &quot;{example}&quot;
-              </Text>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                {(() => {
+                  const segments = parseRoleplaySegments(example);
+                  if (!segments) return null;
+
+                  const nodes = [];
+                  let i = 0;
+                  while (i < segments.length) {
+                    const segment = segments[i];
+                    if (segment.type === "role") {
+                      let textContent = "";
+                      if (
+                        i + 1 < segments.length &&
+                        segments[i + 1].type === "text"
+                      ) {
+                        textContent = segments[i + 1].content;
+                        i += 2;
+                      } else {
+                        i += 1;
+                      }
+
+                      nodes.push(
+                        <RoleplayDialogueRow
+                          key={`dialogue-${i}`}
+                          role={segment.content}
+                          text={
+                            <Text
+                              style={[
+                                styles.value,
+                                isDark && styles.textDark,
+                                styles.exampleText,
+                                { fontStyle: "normal" }, // Reset italic for dialogue
+                              ]}
+                            >
+                              &quot;{textContent}&quot;
+                            </Text>
+                          }
+                        />,
+                      );
+                    } else {
+                      nodes.push(
+                        <Text
+                          key={`text-${i}`}
+                          style={[
+                            styles.value,
+                            isDark && styles.textDark,
+                            styles.exampleText,
+                          ]}
+                        >
+                          &quot;{segment.content}&quot;
+                        </Text>,
+                      );
+                      i += 1;
+                    }
+                  }
+                  return nodes;
+                })()}
+              </View>
               <TouchableOpacity onPress={speak} style={styles.speakerButton}>
                 <Ionicons
                   name="volume-medium"

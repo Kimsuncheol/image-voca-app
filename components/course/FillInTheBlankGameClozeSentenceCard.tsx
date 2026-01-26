@@ -2,6 +2,8 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
+import { parseRoleplaySegments } from "../../src/utils/roleplayUtils";
+import { RoleplayDialogueRow } from "../RoleplayDialogueRow";
 import { ThemedText } from "../themed-text";
 
 interface FillInTheBlankGameClozeSentenceCardProps {
@@ -25,17 +27,19 @@ export function FillInTheBlankGameClozeSentenceCard({
   const { t } = useTranslation();
 
   // Parse the sentence to separate text and blanks
-  const renderSentenceWithBlanks = () => {
+  const renderTextWithBlanks = (
+    text: string,
+    blankCounter: { current: number },
+  ) => {
     // Split by newlines to handle multiple sentences
-    const lines = clozeSentence.split("\n").filter((line) => line.trim());
-    let blankCounter = 0;
+    const lines = text.split("\n").filter((line) => line.trim());
 
     return lines.map((line, lineIndex) => {
       // Split each line by the blank marker
       const parts = line.split("___");
 
       return (
-        <View key={lineIndex} style={styles.sentenceLine}>
+        <View key={`${lineIndex}`} style={styles.sentenceLine}>
           <Text
             style={[styles.sentenceText, { color: isDark ? "#fff" : "#000" }]}
           >
@@ -45,7 +49,7 @@ export function FillInTheBlankGameClozeSentenceCard({
                 return <React.Fragment key={partIndex}>{part}</React.Fragment>;
               }
 
-              const currentBlankIndex = blankCounter++;
+              const currentBlankIndex = blankCounter.current++;
               // If correct answer is selected (isCorrect), show the proper tense form (correctForms[index])
               // Otherwise show the user's selected base word
               const displayWord =
@@ -109,6 +113,46 @@ export function FillInTheBlankGameClozeSentenceCard({
     });
   };
 
+  const renderContent = () => {
+    const segments = parseRoleplaySegments(clozeSentence);
+    if (!segments) return null;
+
+    const blankCounter = { current: 0 };
+    const nodes = [];
+    let i = 0;
+
+    while (i < segments.length) {
+      const segment = segments[i];
+      if (segment.type === "role") {
+        let textContent = "";
+        if (i + 1 < segments.length && segments[i + 1].type === "text") {
+          textContent = segments[i + 1].content;
+          i += 2;
+        } else {
+          i += 1;
+        }
+
+        nodes.push(
+          <RoleplayDialogueRow
+            key={`dialogue-${i}`}
+            role={segment.content}
+            text={
+              <View>{renderTextWithBlanks(textContent, blankCounter)}</View>
+            }
+          />,
+        );
+      } else {
+        nodes.push(
+          <React.Fragment key={`text-${i}`}>
+            {renderTextWithBlanks(segment.content, blankCounter)}
+          </React.Fragment>,
+        );
+        i += 1;
+      }
+    }
+    return <View style={{ gap: 8 }}>{nodes}</View>;
+  };
+
   return (
     <View
       style={[
@@ -119,7 +163,7 @@ export function FillInTheBlankGameClozeSentenceCard({
       <ThemedText style={styles.sentenceLabel}>
         {t("quiz.types.fillInBlank.completeSentence")}
       </ThemedText>
-      {renderSentenceWithBlanks()}
+      {renderContent()}
       {translation && (
         <ThemedText style={styles.translationText}>{translation}</ThemedText>
       )}
