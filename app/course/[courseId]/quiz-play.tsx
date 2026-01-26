@@ -108,8 +108,6 @@ const resolveQuizType = (quizType?: string): string => {
   switch (quizType) {
     case "gap-fill-sentence":
       return "fill-in-blank";
-    case "collocation-multiple-choice":
-      return "multiple-choice";
     case "collocation-matching":
       return "matching";
     case "word-order-tiles":

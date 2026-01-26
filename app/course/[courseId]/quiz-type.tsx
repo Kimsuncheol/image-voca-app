@@ -20,15 +20,6 @@ interface QuizType {
 
 const QUIZ_TYPES_GROUP_A: QuizType[] = [
   {
-    id: "multiple-choice",
-    title: "Multiple Choice",
-    titleKey: "quiz.types.multipleChoice.title",
-    description: "Choose the correct meaning",
-    descriptionKey: "quiz.types.multipleChoice.description",
-    icon: "list",
-    color: "#FF6B6B",
-  },
-  {
     id: "matching",
     title: "Matching",
     titleKey: "quiz.types.matching.title",
@@ -75,15 +66,6 @@ const QUIZ_TYPES_GROUP_B: QuizType[] = [
     descriptionKey: "quiz.types.gapFillSentence.description",
     icon: "create-outline",
     color: "#4ECDC4",
-  },
-  {
-    id: "collocation-multiple-choice",
-    title: "Multiple Choice",
-    titleKey: "quiz.types.collocationMultipleChoice.title",
-    description: "Choose the correct meaning of the collocation",
-    descriptionKey: "quiz.types.collocationMultipleChoice.description",
-    icon: "list",
-    color: "#FF6B6B",
   },
   {
     id: "collocation-matching",

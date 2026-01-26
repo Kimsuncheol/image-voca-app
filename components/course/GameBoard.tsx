@@ -2,7 +2,6 @@ import React from "react";
 import { View } from "react-native";
 import { CollocationGapFillSentenceGame } from "./CollocationGapFillSentenceGame";
 import { CollocationMatchingGame } from "./CollocationMatchingGame";
-import { CollocationMultipleChoiceGame } from "./CollocationMultipleChoiceGame";
 import { ErrorCorrectionGame } from "./ErrorCorrectionGame";
 import { FillInTheBlankGame } from "./FillInTheBlankGame";
 import { GameScore } from "./GameScore";
@@ -110,8 +109,6 @@ export function GameBoard({
   const variant = quizVariant || quizType;
   const isCollocationGapFill = variant === "gap-fill-sentence";
   const isCollocationMatching = variant === "collocation-matching";
-  const isCollocationMultipleChoice =
-    variant === "collocation-multiple-choice";
   const isErrorCorrection = variant === "error-correction";
   const isWordOrderTiles = variant === "word-order-tiles";
   const isMatching = quizType === "matching";
@@ -230,16 +227,6 @@ export function GameBoard({
               showResult={showResult}
               onAnswer={onAnswer}
               roleplay={currentQuestion.word}
-              questionLabel={currentQuestion.prompt}
-            />
-          ) : isCollocationMultipleChoice ? (
-            <CollocationMultipleChoiceGame
-              options={currentQuestion.options || []}
-              correctAnswer={currentQuestion.correctAnswer}
-              userAnswer={userAnswer}
-              showResult={showResult}
-              onAnswer={onAnswer}
-              word={currentQuestion.word}
               questionLabel={currentQuestion.prompt}
             />
           ) : (

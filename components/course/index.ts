@@ -1,7 +1,6 @@
 export { AllCoursesSection } from "./AllCoursesSection";
 export { CollocationGapFillSentenceGame } from "./CollocationGapFillSentenceGame";
 export { CollocationMatchingGame } from "./CollocationMatchingGame";
-export { CollocationMultipleChoiceGame } from "./CollocationMultipleChoiceGame";
 export { CourseCard } from "./CourseCard";
 export { DayCard } from "./DayCard";
 export { DayGrid } from "./DayGrid";
