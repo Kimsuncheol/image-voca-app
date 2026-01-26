@@ -1,7 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Speech from "expo-speech";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import Collapsible from "react-native-collapsible";
 import { parseRoleplaySegments } from "../../src/utils/roleplayUtils";
 import { RoleplayDialogueRow } from "../RoleplayDialogueRow";
@@ -12,6 +19,7 @@ interface ExampleSectionProps {
   isOpen: boolean;
   onToggle: () => void;
   isDark: boolean;
+  parentHeight?: number;
 }
 
 export default function ExampleSection({
@@ -20,7 +28,10 @@ export default function ExampleSection({
   isOpen,
   onToggle,
   isDark,
+  parentHeight,
 }: ExampleSectionProps) {
+  const { height: windowHeight } = useWindowDimensions();
+  const height = parentHeight || windowHeight;
   const speak = () => {
     Speech.speak(example);
   };
@@ -41,7 +52,10 @@ export default function ExampleSection({
       </TouchableOpacity>
 
       <Collapsible collapsed={!isOpen}>
-        <View style={styles.sectionContent}>
+        <ScrollView
+          style={[styles.sectionContent, { maxHeight: height * 0.8 }]}
+          nestedScrollEnabled
+        >
           {example ? (
             <View style={styles.exampleRow}>
               <View style={{ flex: 1, marginRight: 8, gap: 8 }}>
@@ -120,7 +134,7 @@ export default function ExampleSection({
               {translation}
             </Text>
           </View>
-        </View>
+        </ScrollView>
       </Collapsible>
     </View>
   );
@@ -161,6 +175,7 @@ const styles = StyleSheet.create({
   },
   textDark: {
     color: "#FFFFFF",
+    borderColor: "#FFFFFF", // Also useful for border colors in dark mode if needed
   },
   exampleRow: {
     flexDirection: "row",

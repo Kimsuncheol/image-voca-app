@@ -15,6 +15,7 @@ export default function BackSide({ data, isDark, isVisible }: BackSideProps) {
   const [activeSection, setActiveSection] = useState<"explanation" | "example">(
     "explanation",
   );
+  const [containerHeight, setContainerHeight] = useState(0);
 
   const isExplanationOpen = isVisible && activeSection === "explanation";
   const isExampleOpen = isVisible && activeSection === "example";
@@ -24,7 +25,10 @@ export default function BackSide({ data, isDark, isVisible }: BackSideProps) {
       {/* Accent Brand Mark */}
       <View style={styles.accentMark} />
 
-      <View style={styles.backContentContainer}>
+      <View
+        style={styles.backContentContainer}
+        onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
+      >
         <ExplanationSection
           explanation={data.explanation}
           isOpen={isExplanationOpen}
@@ -38,6 +42,7 @@ export default function BackSide({ data, isDark, isVisible }: BackSideProps) {
           isOpen={isExampleOpen}
           onToggle={() => setActiveSection("example")}
           isDark={isDark}
+          parentHeight={containerHeight}
         />
       </View>
 
