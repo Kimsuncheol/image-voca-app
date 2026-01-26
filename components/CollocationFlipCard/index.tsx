@@ -5,6 +5,8 @@ import BackSide from "./BackSide";
 import FaceSide from "./FaceSide";
 import { CollocationData } from "./types";
 
+export { default as CollocationSkeleton } from "./CollocationSkeleton";
+
 interface Props {
   data: CollocationData;
   isDark?: boolean;

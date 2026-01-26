@@ -42,6 +42,22 @@ export default function ExplanationSection({
   );
 }
 
+function InitExplanationSection({
+  explanation,
+  isDark,
+}: {
+  explanation: string;
+  isDark: boolean;
+}) {
+  return (
+    <View style={styles.sectionContent}>
+      <Text style={[styles.value, isDark && styles.textDark]}>
+        {explanation}
+      </Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   header: {
     flexDirection: "row",

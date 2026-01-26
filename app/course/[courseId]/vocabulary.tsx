@@ -26,6 +26,7 @@ import { VocabularyCardSkeleton } from "../../../components/swipe/VocabularyCard
 
 import { CollocationFlipCard } from "../../../components/CollocationFlipCard";
 
+import CollocationSkeleton from "@/components/CollocationFlipCard/CollocationSkeleton";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
@@ -253,7 +254,11 @@ export default function VocabularyScreen() {
           }}
         />
         <View style={styles.swipeContainer}>
-          <VocabularyCardSkeleton />
+          {courseId === "COLLOCATION" ? (
+            <CollocationSkeleton />
+          ) : (
+            <VocabularyCardSkeleton />
+          )}
         </View>
       </SafeAreaView>
     );
