@@ -6,10 +6,11 @@ import { RoleplayDialogueRow } from "../RoleplayDialogueRow";
 interface RoleplayRendererProps {
   content: string;
   isDark: boolean;
+  renderText?: (text: string) => React.ReactNode;
 }
 
 export const RoleplayRenderer: React.FC<RoleplayRendererProps> = React.memo(
-  ({ content, isDark }) => {
+  ({ content, isDark, renderText }) => {
     const segments = useMemo(() => parseRoleplaySegments(content), [content]);
     if (!segments) return null;
 
@@ -31,31 +32,41 @@ export const RoleplayRenderer: React.FC<RoleplayRendererProps> = React.memo(
             key={`dialogue-${i}`}
             role={segment.content}
             text={
-              <Text
-                style={[
-                  styles.value,
-                  isDark && styles.textDark,
-                  styles.exampleText,
-                  { fontStyle: "normal" }, // Reset italic for dialogue
-                ]}
-              >
-                &quot;{textContent}&quot;
-              </Text>
+              renderText ? (
+                renderText(textContent)
+              ) : (
+                <Text
+                  style={[
+                    styles.value,
+                    isDark && styles.textDark,
+                    styles.exampleText,
+                    { fontStyle: "normal" }, // Reset italic for dialogue
+                  ]}
+                >
+                  &quot;{textContent}&quot;
+                </Text>
+              )
             }
           />,
         );
       } else {
         nodes.push(
-          <Text
-            key={`text-${i}`}
-            style={[
-              styles.value,
-              isDark && styles.textDark,
-              styles.exampleText,
-            ]}
-          >
-            &quot;{segment.content}&quot;
-          </Text>,
+          renderText ? (
+            <React.Fragment key={`text-${i}`}>
+              {renderText(segment.content)}
+            </React.Fragment>
+          ) : (
+            <Text
+              key={`text-${i}`}
+              style={[
+                styles.value,
+                isDark && styles.textDark,
+                styles.exampleText,
+              ]}
+            >
+              &quot;{segment.content}&quot;
+            </Text>
+          ),
         );
         i += 1;
       }

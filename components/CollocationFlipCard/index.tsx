@@ -36,6 +36,8 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
   },
 );
 
+CollocationFlipCard.displayName = "CollocationFlipCard";
+
 const { height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({

@@ -2,8 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
-import { parseRoleplaySegments } from "../../src/utils/roleplayUtils";
-import { RoleplayDialogueRow } from "../RoleplayDialogueRow";
+import { RoleplayRenderer } from "../CollocationFlipCard/RoleplayRenderer";
 import { ThemedText } from "../themed-text";
 
 interface FillInTheBlankGameClozeSentenceCardProps {
@@ -114,43 +113,18 @@ export function FillInTheBlankGameClozeSentenceCard({
   };
 
   const renderContent = () => {
-    const segments = parseRoleplaySegments(clozeSentence);
-    if (!segments) return null;
-
+    // We use a mutable ref for blank counting across the whole renderer
     const blankCounter = { current: 0 };
-    const nodes = [];
-    let i = 0;
 
-    while (i < segments.length) {
-      const segment = segments[i];
-      if (segment.type === "role") {
-        let textContent = "";
-        if (i + 1 < segments.length && segments[i + 1].type === "text") {
-          textContent = segments[i + 1].content;
-          i += 2;
-        } else {
-          i += 1;
-        }
-
-        nodes.push(
-          <RoleplayDialogueRow
-            key={`dialogue-${i}`}
-            role={segment.content}
-            text={
-              <View>{renderTextWithBlanks(textContent, blankCounter)}</View>
-            }
-          />,
-        );
-      } else {
-        nodes.push(
-          <React.Fragment key={`text-${i}`}>
-            {renderTextWithBlanks(segment.content, blankCounter)}
-          </React.Fragment>,
-        );
-        i += 1;
-      }
-    }
-    return <View style={{ gap: 8 }}>{nodes}</View>;
+    return (
+      <View style={{ gap: 8 }}>
+        <RoleplayRenderer
+          content={clozeSentence}
+          isDark={isDark}
+          renderText={(text) => renderTextWithBlanks(text, blankCounter)}
+        />
+      </View>
+    );
   };
 
   return (
