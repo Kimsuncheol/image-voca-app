@@ -1,0 +1,113 @@
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { Platform, StyleSheet, Text, View } from "react-native";
+import { CollocationData } from "./types";
+
+interface FaceSideProps {
+  data: CollocationData;
+  isDark: boolean;
+}
+
+export default function FaceSide({ data, isDark }: FaceSideProps) {
+  return (
+    <View style={[styles.face, isDark && styles.faceDark]}>
+      {/* Accent Brand Mark */}
+      <View style={styles.accentMark} />
+
+      <View style={styles.contentContainer}>
+        <Text style={[styles.collocationText, isDark && styles.textDark]}>
+          {data.collocation}
+        </Text>
+        <Text style={[styles.meaningText, isDark && styles.textDark]}>
+          {data.meaning}
+        </Text>
+      </View>
+
+      <View style={styles.footer}>
+        {/* Minimal indicator */}
+        <View
+          style={[
+            styles.indicator,
+            { backgroundColor: isDark ? "#444" : "#eee" },
+          ]}
+        >
+          <Ionicons
+            name="swap-horizontal"
+            size={16}
+            color={isDark ? "#888" : "#aaa"}
+          />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  face: {
+    flex: 1,
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    padding: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 8,
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.02)",
+  },
+  faceDark: {
+    backgroundColor: "#1c1c1e",
+    borderColor: "#333",
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+  },
+  accentMark: {
+    position: "absolute",
+    top: 32,
+    right: 32,
+    width: 6,
+    height: 24,
+    backgroundColor: "#4A90E2",
+    borderRadius: 3,
+    transform: [{ rotate: "15deg" }],
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  collocationText: {
+    fontSize: 42,
+    fontWeight: "700",
+    textAlign: "center",
+    color: "#111",
+    lineHeight: 52,
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    letterSpacing: -0.5,
+  },
+  meaningText: {
+    fontSize: 22,
+    fontWeight: "400",
+    textAlign: "center",
+    color: "#666",
+    marginTop: 24,
+    lineHeight: 30,
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+  },
+  textDark: {
+    color: "#FFFFFF",
+  },
+  footer: {
+    alignItems: "center",
+    paddingBottom: 0,
+  },
+  indicator: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});
