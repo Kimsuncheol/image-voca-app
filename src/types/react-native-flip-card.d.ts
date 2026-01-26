@@ -1,6 +1,6 @@
 declare module "react-native-flip-card" {
   import { Component } from "react";
-    import { StyleProp, ViewStyle } from "react-native";
+  import { StyleProp, ViewStyle } from "react-native";
 
   export interface FlipCardProps {
     style?: StyleProp<ViewStyle>;
