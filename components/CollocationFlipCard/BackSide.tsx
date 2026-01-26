@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import ExampleSection from "./ExampleSection";
@@ -46,20 +45,7 @@ export default function BackSide({ data, isDark, isVisible }: BackSideProps) {
         />
       </View>
 
-      <View style={styles.footer}>
-        <View
-          style={[
-            styles.indicator,
-            { backgroundColor: isDark ? "#444" : "#eee" },
-          ]}
-        >
-          <Ionicons
-            name="swap-horizontal"
-            size={16}
-            color={isDark ? "#888" : "#aaa"}
-          />
-        </View>
-      </View>
+      <View style={styles.footer} />
     </View>
   );
 }
@@ -103,12 +89,5 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: "center",
     paddingBottom: 0,
-  },
-  indicator: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
   },
 });

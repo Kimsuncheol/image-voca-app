@@ -53,7 +53,7 @@ export default function ExampleSection({
 
       <Collapsible collapsed={!isOpen}>
         <ScrollView
-          style={[styles.sectionContent, { maxHeight: height * 0.8 }]}
+          style={[styles.sectionContent, { maxHeight: height * 0.7 }]}
           nestedScrollEnabled
         >
           {example ? (

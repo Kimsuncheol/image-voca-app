@@ -44,21 +44,7 @@ export default function FaceSide({ data, isDark }: FaceSideProps) {
         </View>
       </View>
 
-      <View style={styles.footer}>
-        {/* Minimal indicator */}
-        <View
-          style={[
-            styles.indicator,
-            { backgroundColor: isDark ? "#444" : "#eee" },
-          ]}
-        >
-          <Ionicons
-            name="swap-horizontal"
-            size={16}
-            color={isDark ? "#888" : "#aaa"}
-          />
-        </View>
-      </View>
+      <View style={styles.footer} />
     </View>
   );
 }
@@ -134,12 +120,5 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: "center",
     paddingBottom: 0,
-  },
-  indicator: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
   },
 });

@@ -24,7 +24,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { SwipeCardItem } from "../../../components/swipe/SwipeCardItem";
 import { VocabularyCardSkeleton } from "../../../components/swipe/VocabularyCardSkeleton";
 
-import { CollocationFlipCard } from "../../../components/CollocationFlipCard";
+import { CollocationSwipeable } from "../../../components/CollocationFlipCard/CollocationSwipeable";
 
 import CollocationSkeleton from "@/components/CollocationFlipCard/CollocationSkeleton";
 import { useAuth } from "../../../src/context/AuthContext";
@@ -222,6 +222,20 @@ export default function VocabularyScreen() {
     }
   };
 
+  const handlePageChange = (index: number) => {
+    // Determine which word was just "viewed".
+    // PagerView: current index is visible.
+    // If we want to mark it as learned when viewed:
+    if (cards[index]) {
+      const item = cards[index];
+      // console.log("Learned (Pager):", item.word);
+      if (user) {
+        const wordId = `${courseId}-${item.id}`;
+        bufferWordLearned(user.uid, wordId);
+      }
+    }
+  };
+
   const handleRestart = () => {
     setCards([...cards]); // Re-set cards to trigger re-render if needed, but keys might need update.
     // Ideally fetch again or just reset index. TinderSwipe might need a key change to reset.
@@ -264,6 +278,28 @@ export default function VocabularyScreen() {
     );
   }
 
+  const renderFinishedView = () => (
+    <View style={styles.finishedContainer}>
+      <Text style={[styles.finishedText, { color: isDark ? "#fff" : "#000" }]}>
+        {t("course.checked")}
+      </Text>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={[styles.button, styles.quizButton]}
+          onPress={handleQuiz}
+        >
+          <Text style={styles.buttonText}>{t("course.takeQuiz")}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.restartButton]}
+          onPress={handleRestart}
+        >
+          <Text style={styles.buttonText}>{t("common.review")}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
@@ -280,37 +316,36 @@ export default function VocabularyScreen() {
             style={{
               flex: 1,
               width: "100%",
-              display: isFinished ? "none" : "flex",
+              // For Collocation, we keep the view visible to show the finish page inside the pager
+              display:
+                isFinished && courseId !== "COLLOCATION" ? "none" : "flex",
             }}
           >
-            <TinderSwipe
-              ref={swipeRef}
-              data={cards}
-              renderCard={(item) =>
-                courseId === "COLLOCATION" ? (
-                  <CollocationFlipCard
-                    data={{
-                      collocation: item.word,
-                      meaning: item.meaning,
-                      explanation: item.pronunciation || "", // mapped from pronunciation
-                      example: item.example,
-                      translation: item.translation || "",
-                    }}
-                    isDark={isDark}
-                  />
-                ) : (
+            {courseId === "COLLOCATION" ? (
+              <CollocationSwipeable
+                data={cards}
+                isDark={isDark}
+                onIndexChange={handlePageChange}
+                onFinish={handleRunOutOfCards}
+                renderFinalPage={renderFinishedView}
+              />
+            ) : (
+              <TinderSwipe
+                ref={swipeRef}
+                data={cards}
+                renderCard={(item) => (
                   <SwipeCardItem
                     item={item}
                     initialIsSaved={savedWordIds.has(item.id)}
                     day={dayNumber}
                   />
-                )
-              }
-              onSwipeRight={onSwipeRight}
-              onSwipeLeft={onSwipeLeft}
-              loop={false}
-              onRunOutOfCards={handleRunOutOfCards}
-            />
+                )}
+                onSwipeRight={onSwipeRight}
+                onSwipeLeft={onSwipeLeft}
+                loop={false}
+                onRunOutOfCards={handleRunOutOfCards}
+              />
+            )}
           </View>
         ) : (
           <View
@@ -322,29 +357,7 @@ export default function VocabularyScreen() {
           </View>
         )}
 
-        {isFinished && (
-          <View style={styles.finishedContainer}>
-            <Text
-              style={[styles.finishedText, { color: isDark ? "#fff" : "#000" }]}
-            >
-              {t("course.checked")}
-            </Text>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[styles.button, styles.quizButton]}
-                onPress={handleQuiz}
-              >
-                <Text style={styles.buttonText}>{t("course.takeQuiz")}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.restartButton]}
-                onPress={handleRestart}
-              >
-                <Text style={styles.buttonText}>{t("common.review")}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+        {isFinished && courseId !== "COLLOCATION" && renderFinishedView()}
       </View>
     </SafeAreaView>
   );

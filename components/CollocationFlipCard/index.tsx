@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
 import FlipCard from "react-native-flip-card";
 import BackSide from "./BackSide";
 import FaceSide from "./FaceSide";
@@ -37,9 +37,11 @@ export const CollocationFlipCard: React.FC<Props> = ({
   );
 };
 
+const { height } = Dimensions.get("window");
+
 const styles = StyleSheet.create({
   card: {
-    minHeight: 480,
+    minHeight: height * 0.7,
     width: "90%",
     alignSelf: "center",
     marginVertical: 20,
