@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Speech from "expo-speech";
 import React from "react";
 import {
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -31,9 +32,53 @@ export default React.memo(function ExampleSection({
 }: ExampleSectionProps) {
   const { height: windowHeight } = useWindowDimensions();
   const height = parentHeight || windowHeight;
-  const speak = React.useCallback(() => {
-    Speech.speak(example);
-  }, [example]);
+
+  const [isSpeaking, setIsSpeaking] = React.useState(false);
+  const [isPaused, setIsPaused] = React.useState(false);
+
+  const handleSpeech = React.useCallback(async () => {
+    if (isPaused) {
+      await Speech.resume();
+      setIsPaused(false);
+      setIsSpeaking(true);
+    } else if (isSpeaking) {
+      if (Platform.OS === "android") {
+        await Speech.stop();
+        setIsSpeaking(false);
+        setIsPaused(false);
+      } else {
+        await Speech.pause();
+        setIsPaused(true);
+        setIsSpeaking(false);
+      }
+    } else {
+      Speech.speak(example, {
+        onStart: () => {
+          setIsSpeaking(true);
+          setIsPaused(false);
+        },
+        onDone: () => {
+          setIsSpeaking(false);
+          setIsPaused(false);
+        },
+        onStopped: () => {
+          setIsSpeaking(false);
+          setIsPaused(false);
+        },
+        onError: () => {
+          setIsSpeaking(false);
+          setIsPaused(false);
+        },
+      });
+    }
+  }, [example, isPaused, isSpeaking]);
+
+  // Clean up on unmount
+  React.useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, []);
 
   return (
     <View>
@@ -63,9 +108,14 @@ export default React.memo(function ExampleSection({
               <View style={{ flex: 1, marginRight: 8, gap: 8 }}>
                 <RoleplayRenderer content={example} isDark={isDark} />
               </View>
-              <TouchableOpacity onPress={speak} style={styles.speakerButton}>
+              <TouchableOpacity
+                onPress={handleSpeech}
+                style={styles.speakerButton}
+              >
                 <Ionicons
-                  name="volume-medium"
+                  name={
+                    isSpeaking ? "pause" : isPaused ? "play" : "volume-medium"
+                  }
                   size={20}
                   color={isDark ? "#ccc" : "#999"}
                 />
