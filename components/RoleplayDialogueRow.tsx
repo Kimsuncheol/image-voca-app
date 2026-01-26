@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   },
   roleBadge: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 12,
   },
   roleText: {

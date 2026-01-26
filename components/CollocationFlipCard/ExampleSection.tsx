@@ -44,7 +44,7 @@ export default function ExampleSection({
         <View style={styles.sectionContent}>
           {example ? (
             <View style={styles.exampleRow}>
-              <View style={{ flex: 1, marginRight: 8 }}>
+              <View style={{ flex: 1, marginRight: 8, gap: 8 }}>
                 {(() => {
                   const segments = parseRoleplaySegments(example);
                   if (!segments) return null;
