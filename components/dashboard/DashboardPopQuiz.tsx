@@ -36,8 +36,8 @@ export function DashboardPopQuiz() {
   // Animation
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // Helper to get course path
-  const getCoursePath = useCallback((courseId: string) => {
+  // helper to get course path
+  const getCoursePath = (courseId: string) => {
     switch (courseId) {
       case "수능":
         return process.env.EXPO_PUBLIC_COURSE_PATH_CSAT || "";
@@ -54,7 +54,7 @@ export function DashboardPopQuiz() {
       default:
         return "";
     }
-  }, []);
+  };
 
   // Fetch a batch of 10 words
   const fetchBatch = useCallback(async () => {
@@ -101,7 +101,7 @@ export function DashboardPopQuiz() {
       console.error("Batch fetch error", e);
       return [];
     }
-  }, [getCoursePath]);
+  }, []);
 
   // Prefetch next batch
   const prefetchNextBatch = useCallback(async () => {
@@ -218,6 +218,31 @@ export function DashboardPopQuiz() {
     };
   }, [user, flushQuizStats]);
 
+  const handleOptionPress = useCallback(
+    (option: string) => {
+      if (isCorrect !== null || !quizItem) return; // Only lock if already answered
+
+      const isAnswerCorrect = option === quizItem.meaning;
+      setSelectedOption(option);
+      setIsCorrect(isAnswerCorrect);
+
+      // Record quiz answer for accuracy stats
+      if (user) {
+        bufferQuizAnswer(user.uid, isAnswerCorrect);
+      }
+
+      if (isAnswerCorrect) {
+        // Auto-advance to next question after brief delay
+        setTimeout(() => {
+          setSelectedOption(null);
+          setIsCorrect(null);
+          loadNextQuiz();
+        }, 500);
+      }
+    },
+    [isCorrect, quizItem, user, bufferQuizAnswer, loadNextQuiz],
+  );
+
   if (loading || !quizItem) return <PopQuizSkeleton />;
 
   return (
@@ -253,55 +278,63 @@ export function DashboardPopQuiz() {
           </View>
 
           <View style={styles.popQuizOptions}>
-            {options.map((option, index) => {
-              const selected = selectedOption === option;
-              const correct = option === quizItem.meaning;
-              return (
-                <TouchableOpacity
-                  key={`${option}-${index}`}
-                  style={[
-                    styles.popQuizOption,
-                    { backgroundColor: isDark ? "#2c2c2e" : "#fff" },
-                    selected &&
-                      (correct
-                        ? styles.popQuizOptionCorrect
-                        : styles.popQuizOptionIncorrect),
-                  ]}
-                  onPress={() => {
-                    if (isCorrect) return; // Only lock if already answered correctly
-
-                    const isAnswerCorrect = option === quizItem.meaning;
-                    setSelectedOption(option);
-                    setIsCorrect(isAnswerCorrect);
-
-                    // Record quiz answer for accuracy stats
-                    if (user) {
-                      bufferQuizAnswer(user.uid, isAnswerCorrect);
-                    }
-
-                    if (isAnswerCorrect) {
-                      // Auto-advance to next question after brief delay
-                      setTimeout(() => {
-                        setSelectedOption(null);
-                        setIsCorrect(null);
-                        loadNextQuiz();
-                      }, 500);
-                    }
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <ThemedText style={styles.popQuizOptionText}>
-                    {option}
-                  </ThemedText>
-                </TouchableOpacity>
-              );
-            })}
+            {options.map((option, index) => (
+              <PopQuizOption
+                key={`${option}-${index}`}
+                option={option}
+                isSelected={selectedOption === option}
+                isCorrect={option === quizItem.meaning}
+                isAnswered={isCorrect !== null}
+                isDark={isDark}
+                onPress={handleOptionPress}
+              />
+            ))}
           </View>
         </Animated.View>
       </View>
     </View>
   );
 }
+
+interface PopQuizOptionProps {
+  option: string;
+  isSelected: boolean;
+  isCorrect: boolean;
+  isAnswered: boolean;
+  isDark: boolean;
+  onPress: (option: string) => void;
+}
+
+const PopQuizOption = React.memo(
+  ({
+    option,
+    isSelected,
+    isCorrect,
+    isAnswered,
+    isDark,
+    onPress,
+  }: PopQuizOptionProps) => {
+    return (
+      <TouchableOpacity
+        style={[
+          styles.popQuizOption,
+          { backgroundColor: isDark ? "#2c2c2e" : "#fff" },
+          isSelected &&
+            (isCorrect
+              ? styles.popQuizOptionCorrect
+              : styles.popQuizOptionIncorrect),
+        ]}
+        onPress={() => onPress(option)}
+        activeOpacity={0.8}
+        disabled={isAnswered}
+      >
+        <ThemedText style={styles.popQuizOptionText}>{option}</ThemedText>
+      </TouchableOpacity>
+    );
+  },
+);
+
+PopQuizOption.displayName = "PopQuizOption";
 
 const styles = StyleSheet.create({
   section: {
