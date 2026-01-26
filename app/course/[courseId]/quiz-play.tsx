@@ -41,6 +41,7 @@ interface QuizQuestion {
   clozeSentence?: string;
   translation?: string;
   correctForms?: string[];
+  prompt?: string;
 }
 
 interface VocabData {
@@ -88,6 +89,11 @@ const getCourseConfig = (courseId: CourseType) => {
         path: process.env.EXPO_PUBLIC_COURSE_PATH_IELTS,
         prefix: "IELTS",
       };
+    case "COLLOCATION":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION,
+        prefix: "COLLOCATION",
+      };
     case "OPIC":
       return {
         path: process.env.EXPO_PUBLIC_COURSE_PATH_OPIC,
@@ -98,17 +104,65 @@ const getCourseConfig = (courseId: CourseType) => {
   }
 };
 
+const resolveQuizType = (quizType?: string): string => {
+  switch (quizType) {
+    case "gap-fill-sentence":
+      return "fill-in-blank";
+    case "collocation-multiple-choice":
+      return "multiple-choice";
+    case "collocation-matching":
+      return "matching";
+    case "word-order-tiles":
+      return "word-arrangement";
+    case "error-correction":
+      return "multiple-choice";
+    default:
+      return quizType || "multiple-choice";
+  }
+};
+
+const escapeRegex = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 // Generate quiz questions from real vocabulary data
 const generateQuizQuestions = (
   vocabData: VocabData[],
   quizType: string,
   targetScore: number = 10,
+  quizVariant?: string,
 ): QuizQuestion[] => {
   // Shuffle and take random questions (up to targetScore)
   const selectedWords = shuffleArray([...vocabData]).slice(
     0,
     Math.min(targetScore, vocabData.length),
   );
+
+  if (quizVariant === "error-correction") {
+    const otherWords = vocabData.map((v) => v.word);
+    return selectedWords.map((vocab, index) => {
+      const wrongOptions = shuffleArray(
+        otherWords.filter((word) => word !== vocab.word),
+      );
+      const incorrectWord = wrongOptions[0];
+      const baseSentence = vocab.example || vocab.word;
+      const replacementRegex = new RegExp(escapeRegex(vocab.word), "gi");
+      const errorSentence = incorrectWord
+        ? baseSentence.replace(replacementRegex, incorrectWord)
+        : baseSentence;
+
+      return {
+        id: `q${index}`,
+        word: errorSentence,
+        meaning: vocab.meaning,
+        options: shuffleArray([
+          vocab.word,
+          ...wrongOptions.slice(0, 3),
+        ]),
+        correctAnswer: vocab.word,
+        prompt: "Fix the incorrect collocation",
+      };
+    });
+  }
 
   return selectedWords.map((vocab, index) => {
     const isWordAnswer =
@@ -158,7 +212,7 @@ const generateQuizQuestions = (
       const variationArray = Array.from(variations)
         .filter((v) => v)
         // Escape regex special characters just in case
-        .map((v) => v.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+        .map((v) => escapeRegex(v));
 
       // Match any of the variations in the sentence
       // We use a regex constructor with the variations joined by |
@@ -264,6 +318,8 @@ export default function QuizPlayScreen() {
     day: string;
     quizType: string;
   }>();
+  const quizVariant = quizType || "multiple-choice";
+  const resolvedQuizType = resolveQuizType(quizVariant);
 
   const course = COURSES.find((c) => c.id === courseId);
   const dayNumber = parseInt(day || "1", 10);
@@ -335,6 +391,15 @@ export default function QuizPlayScreen() {
 
         const fetchedVocab: VocabData[] = querySnapshot.docs.map((doc) => {
           const data = doc.data();
+          if (courseId === "COLLOCATION") {
+            return {
+              word: data.collocation,
+              meaning: data.meaning,
+              pronunciation: data.explanation,
+              example: data.example,
+              translation: data.translation,
+            };
+          }
           return {
             word: data.word,
             meaning: data.meaning,
@@ -351,8 +416,6 @@ export default function QuizPlayScreen() {
         if (fetchedVocab.length < 4) {
           console.warn("Not enough vocabulary for quiz (need at least 4)");
         }
-
-        const resolvedQuizType = quizType || "multiple-choice";
 
         if (resolvedQuizType === "word-arrangement") {
           const arrangementPool = fetchedVocab.filter((v) => v.example);
@@ -375,6 +438,7 @@ export default function QuizPlayScreen() {
             fetchedVocab,
             resolvedQuizType,
             targetScore,
+            quizVariant,
           );
           setQuestions(generatedQuestions);
           setWordArrangementItems([]);
@@ -398,11 +462,11 @@ export default function QuizPlayScreen() {
     };
 
     fetchVocabulary();
-  }, [courseId, dayNumber, quizType, targetScore]);
+  }, [courseId, dayNumber, quizVariant, resolvedQuizType, targetScore]);
 
   const currentQuestion = questions[currentIndex];
-  const isMatching = quizType === "matching";
-  const isWordArrangement = quizType === "word-arrangement";
+  const isMatching = resolvedQuizType === "matching";
+  const isWordArrangement = resolvedQuizType === "word-arrangement";
   const matchedCount = Object.keys(matchedPairs).length;
   const totalQuestions = isWordArrangement
     ? wordArrangementItems.length
@@ -883,7 +947,8 @@ export default function QuizPlayScreen() {
           showsVerticalScrollIndicator={false}
         >
           <GameBoard
-            quizType={quizType || "multiple-choice"}
+            quizType={resolvedQuizType}
+            quizVariant={quizVariant}
             currentQuestion={currentQuestion}
             questions={questions}
             progressCurrent={progressCurrent}

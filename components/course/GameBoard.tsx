@@ -1,11 +1,16 @@
 import React from "react";
 import { View } from "react-native";
+import { CollocationGapFillSentenceGame } from "./CollocationGapFillSentenceGame";
+import { CollocationMatchingGame } from "./CollocationMatchingGame";
+import { CollocationMultipleChoiceGame } from "./CollocationMultipleChoiceGame";
+import { ErrorCorrectionGame } from "./ErrorCorrectionGame";
 import { FillInTheBlankGame } from "./FillInTheBlankGame";
 import { GameScore } from "./GameScore";
 import { MatchingGame } from "./MatchingGame";
 import { MultipleChoiceGame } from "./MultipleChoiceGame";
 import { QuizFeedback } from "./QuizFeedback";
 import { SpellingGame } from "./SpellingGame";
+import { WordOrderTilesGame } from "./WordOrderTilesGame";
 import { WordArrangementGame } from "./WordArrangementGame";
 
 interface QuizQuestion {
@@ -17,6 +22,7 @@ interface QuizQuestion {
   clozeSentence?: string;
   translation?: string;
   correctForms?: string[];
+  prompt?: string;
 }
 
 interface VocabData {
@@ -30,6 +36,7 @@ interface VocabData {
 interface GameBoardProps {
   // Quiz type and state
   quizType: string;
+  quizVariant?: string;
   currentQuestion: QuizQuestion;
   questions: QuizQuestion[];
 
@@ -71,6 +78,7 @@ interface GameBoardProps {
 
 export function GameBoard({
   quizType,
+  quizVariant,
   currentQuestion,
   questions,
   progressCurrent,
@@ -99,6 +107,13 @@ export function GameBoard({
   onChunkDeselect,
   onArrangementNext,
 }: GameBoardProps) {
+  const variant = quizVariant || quizType;
+  const isCollocationGapFill = variant === "gap-fill-sentence";
+  const isCollocationMatching = variant === "collocation-matching";
+  const isCollocationMultipleChoice =
+    variant === "collocation-multiple-choice";
+  const isErrorCorrection = variant === "error-correction";
+  const isWordOrderTiles = variant === "word-order-tiles";
   const isMatching = quizType === "matching";
   const isSpelling = quizType === "spelling";
   const isFillInBlank = quizType === "fill-in-blank";
@@ -115,7 +130,19 @@ export function GameBoard({
       />
 
       {/* Game Section */}
-      {isMatching ? (
+      {isCollocationMatching ? (
+        <CollocationMatchingGame
+          questions={questions}
+          meanings={matchingMeanings}
+          selectedWord={selectedWord}
+          selectedMeaning={selectedMeaning}
+          matchedPairs={matchedPairs}
+          onSelectWord={onSelectWord}
+          onSelectMeaning={onSelectMeaning}
+          courseColor={courseColor}
+          isDark={isDark}
+        />
+      ) : isMatching ? (
         <MatchingGame
           questions={questions}
           meanings={matchingMeanings}
@@ -137,6 +164,18 @@ export function GameBoard({
           courseColor={courseColor}
           meaning={currentQuestion.meaning}
         />
+      ) : isCollocationGapFill ? (
+        <CollocationGapFillSentenceGame
+          word={currentQuestion.word}
+          clozeSentence={currentQuestion.clozeSentence || ""}
+          translation={currentQuestion.translation}
+          options={currentQuestion.options || []}
+          correctAnswer={currentQuestion.correctAnswer}
+          userAnswer={userAnswer}
+          showResult={showResult}
+          onAnswer={onAnswer}
+          correctForms={currentQuestion.correctForms}
+        />
       ) : isFillInBlank ? (
         <FillInTheBlankGame
           word={currentQuestion.word}
@@ -148,6 +187,22 @@ export function GameBoard({
           showResult={showResult}
           onAnswer={onAnswer}
           correctForms={currentQuestion.correctForms}
+        />
+      ) : isWordOrderTiles ? (
+        <WordOrderTilesGame
+          word={currentArrangementWord?.word || ""}
+          meaning={currentArrangementWord?.meaning || ""}
+          translation={currentArrangementWord?.translation}
+          selectedChunksByArea={selectedChunksByArea}
+          availableChunks={shuffledChunks}
+          isComplete={arrangementComplete}
+          sentenceChunkCounts={sentenceChunkCounts}
+          courseColor={courseColor}
+          focusedSentenceIndex={focusedSentenceIndex}
+          onFocusChange={onFocusChange}
+          onChunkSelect={onChunkSelect}
+          onChunkDeselect={onChunkDeselect}
+          onNext={onArrangementNext}
         />
       ) : isWordArrangement ? (
         <WordArrangementGame
@@ -166,14 +221,39 @@ export function GameBoard({
           onNext={onArrangementNext}
         />
       ) : (
-        <MultipleChoiceGame
-          options={currentQuestion.options || []}
-          correctAnswer={currentQuestion.correctAnswer}
-          userAnswer={userAnswer}
-          showResult={showResult}
-          onAnswer={onAnswer}
-          word={currentQuestion.word}
-        />
+        <>
+          {isErrorCorrection ? (
+            <ErrorCorrectionGame
+              options={currentQuestion.options || []}
+              correctAnswer={currentQuestion.correctAnswer}
+              userAnswer={userAnswer}
+              showResult={showResult}
+              onAnswer={onAnswer}
+              roleplay={currentQuestion.word}
+              questionLabel={currentQuestion.prompt}
+            />
+          ) : isCollocationMultipleChoice ? (
+            <CollocationMultipleChoiceGame
+              options={currentQuestion.options || []}
+              correctAnswer={currentQuestion.correctAnswer}
+              userAnswer={userAnswer}
+              showResult={showResult}
+              onAnswer={onAnswer}
+              word={currentQuestion.word}
+              questionLabel={currentQuestion.prompt}
+            />
+          ) : (
+            <MultipleChoiceGame
+              options={currentQuestion.options || []}
+              correctAnswer={currentQuestion.correctAnswer}
+              userAnswer={userAnswer}
+              showResult={showResult}
+              onAnswer={onAnswer}
+              word={currentQuestion.word}
+              questionLabel={currentQuestion.prompt}
+            />
+          )}
+        </>
       )}
 
       {/* Result Feedback */}

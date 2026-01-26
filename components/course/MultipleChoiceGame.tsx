@@ -10,7 +10,11 @@ interface MultipleChoiceGameProps {
   userAnswer: string;
   showResult: boolean;
   onAnswer: (answer: string) => void;
-  word: string;
+  word?: string;
+  roleplay?: string;
+  questionLabel?: string;
+  questionLabelStyle?: object;
+  contentStyle?: object;
 }
 
 export function MultipleChoiceGame({
@@ -20,9 +24,14 @@ export function MultipleChoiceGame({
   showResult,
   onAnswer,
   word,
+  roleplay,
+  questionLabel,
+  questionLabelStyle,
+  contentStyle,
 }: MultipleChoiceGameProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
+  const label = questionLabel || t("quiz.questions.meaningOf");
 
   return (
     <View style={styles.container}>
@@ -32,11 +41,11 @@ export function MultipleChoiceGame({
           { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
         ]}
       >
-        <ThemedText style={styles.questionLabel}>
-          {t("quiz.questions.meaningOf")}
+        <ThemedText style={[styles.questionLabel, questionLabelStyle]}>
+          {label}
         </ThemedText>
-        <ThemedText type="title" style={styles.wordText}>
-          {word}
+        <ThemedText type="title" style={[styles.wordText, contentStyle]}>
+          {roleplay || word}
         </ThemedText>
       </View>
 
