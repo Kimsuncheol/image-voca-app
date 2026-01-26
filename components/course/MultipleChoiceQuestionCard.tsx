@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import { RoleplayRenderer } from "../CollocationFlipCard/RoleplayRenderer";
 import { ThemedText } from "../themed-text";
@@ -11,6 +11,7 @@ interface MultipleChoiceQuestionCardProps {
   questionLabel?: string;
   questionLabelStyle?: object;
   contentStyle?: object;
+  highlightText?: string;
 }
 
 export function MultipleChoiceQuestionCard({
@@ -19,6 +20,7 @@ export function MultipleChoiceQuestionCard({
   questionLabel,
   questionLabelStyle,
   contentStyle,
+  highlightText,
 }: MultipleChoiceQuestionCardProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -39,14 +41,48 @@ export function MultipleChoiceQuestionCard({
           <RoleplayRenderer
             content={roleplay}
             isDark={isDark}
-            renderText={(text) => (
-              <ThemedText
-                type="title"
-                style={[styles.roleplayText, contentStyle]}
-              >
-                {text}
-              </ThemedText>
-            )}
+            renderText={(text) => {
+              if (
+                highlightText &&
+                text.toLowerCase().includes(highlightText.toLowerCase())
+              ) {
+                const parts = text.split(
+                  new RegExp(`(${highlightText})`, "gi"),
+                );
+                return (
+                  <ThemedText
+                    type="title"
+                    style={[styles.roleplayText, contentStyle]}
+                  >
+                    {parts.map((part, index) =>
+                      part.toLowerCase() === highlightText.toLowerCase() ? (
+                        <Text
+                          key={index}
+                          style={{
+                            textDecorationLine: "underline",
+                            textDecorationColor: "#ff3b30",
+                            color: "#ff3b30",
+                          }}
+                        >
+                          {part}
+                        </Text>
+                      ) : (
+                        <Text key={index}>{part}</Text>
+                      ),
+                    )}
+                  </ThemedText>
+                );
+              }
+
+              return (
+                <ThemedText
+                  type="title"
+                  style={[styles.roleplayText, contentStyle]}
+                >
+                  {text}
+                </ThemedText>
+              );
+            }}
           />
         </View>
       ) : (

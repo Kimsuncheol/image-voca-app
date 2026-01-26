@@ -14,6 +14,7 @@ interface MultipleChoiceGameProps {
   questionLabel?: string;
   questionLabelStyle?: object;
   contentStyle?: object;
+  highlightText?: string;
 }
 
 export function MultipleChoiceGame({
@@ -27,6 +28,7 @@ export function MultipleChoiceGame({
   questionLabel,
   questionLabelStyle,
   contentStyle,
+  highlightText,
 }: MultipleChoiceGameProps) {
   return (
     <View style={styles.container}>
@@ -36,6 +38,7 @@ export function MultipleChoiceGame({
         questionLabel={questionLabel}
         questionLabelStyle={questionLabelStyle}
         contentStyle={contentStyle}
+        highlightText={highlightText}
       />
 
       <MultipleChoiceOptions
