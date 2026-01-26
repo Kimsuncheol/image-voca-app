@@ -6,16 +6,18 @@ interface AddAnotherButtonProps {
   onPress: () => void;
   disabled: boolean;
   text: string;
+  borderColor?: string;
 }
 
 export default function AddAnotherButton({
   onPress,
   disabled,
   text,
+  borderColor,
 }: AddAnotherButtonProps) {
   return (
     <TouchableOpacity
-      style={styles.addButton}
+      style={[styles.addButton, { borderColor }]}
       onPress={onPress}
       disabled={disabled}
     >
@@ -30,6 +32,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: 12,
+    borderWidth: 1,
     padding: 16,
     gap: 8,
   },

@@ -9,8 +9,8 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AddVocaHeader from "../../src/components/admin/AddVocaHeader";
@@ -371,45 +371,49 @@ export default function AddVocaScreen() {
         style={{ flex: 1 }}
         keyboardVerticalOffset={100}
       >
-        <ScrollView style={styles.content}>
-          <AddVocaHeader
-            selectedCourse={selectedCourse}
-            setSelectedCourse={setSelectedCourse}
-            isDark={isDark}
-            courses={COURSES}
-          />
+        <View style={{ flex: 1 }}>
+          <View style={styles.topSection}>
+            <AddVocaHeader
+              selectedCourse={selectedCourse}
+              setSelectedCourse={setSelectedCourse}
+              isDark={isDark}
+              courses={COURSES}
+            />
 
-          {/* Tab Switcher */}
-          <TabSwitcher
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            isDark={isDark}
-          />
+            {/* Tab Switcher */}
+            <TabSwitcher
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              isDark={isDark}
+            />
+          </View>
 
           {/* Tab Content */}
-          {activeTab === "csv" ? (
-            <UploadCSVFileView
-              items={csvItems}
-              setItems={setCsvItems}
-              loading={loading}
-              progress={progress}
-              isDark={isDark}
-              onPickDocument={handlePickDocument}
-              onUpload={handleBatchUpload}
-            />
-          ) : (
-            <UploadViaLinkView
-              items={sheetItems}
-              setItems={setSheetItems}
-              loading={loading}
-              progress={progress}
-              isDark={isDark}
-              token={token}
-              waitingForToken={waitingForToken}
-              onImport={handleSheetImportButton}
-            />
-          )}
-        </ScrollView>
+          <View style={{ flex: 1 }}>
+            {activeTab === "csv" ? (
+              <UploadCSVFileView
+                items={csvItems}
+                setItems={setCsvItems}
+                loading={loading}
+                progress={progress}
+                isDark={isDark}
+                onPickDocument={handlePickDocument}
+                onUpload={handleBatchUpload}
+              />
+            ) : (
+              <UploadViaLinkView
+                items={sheetItems}
+                setItems={setSheetItems}
+                loading={loading}
+                progress={progress}
+                isDark={isDark}
+                token={token}
+                waitingForToken={waitingForToken}
+                onImport={handleSheetImportButton}
+              />
+            )}
+          </View>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -426,6 +430,10 @@ const getStyles = (isDark: boolean) =>
     },
     headerTitle: {
       color: isDark ? "#fff" : "#000",
+    },
+    topSection: {
+      paddingHorizontal: 20,
+      paddingTop: 20,
     },
     content: {
       padding: 20,
