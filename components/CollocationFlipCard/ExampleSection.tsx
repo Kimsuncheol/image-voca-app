@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as Speech from "expo-speech";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Collapsible from "react-native-collapsible";
@@ -18,6 +19,10 @@ export default function ExampleSection({
   onToggle,
   isDark,
 }: ExampleSectionProps) {
+  const speak = () => {
+    Speech.speak(example);
+  };
+
   return (
     <View>
       <TouchableOpacity
@@ -36,16 +41,23 @@ export default function ExampleSection({
       <Collapsible collapsed={!isOpen}>
         <View style={styles.sectionContent}>
           {example ? (
-            <View style={{ marginBottom: 16 }}>
+            <View style={styles.exampleRow}>
               <Text
                 style={[
                   styles.value,
                   isDark && styles.textDark,
-                  { fontStyle: "italic" },
+                  styles.exampleText,
                 ]}
               >
                 &quot;{example}&quot;
               </Text>
+              <TouchableOpacity onPress={speak} style={styles.speakerButton}>
+                <Ionicons
+                  name="volume-medium"
+                  size={20}
+                  color={isDark ? "#ccc" : "#999"}
+                />
+              </TouchableOpacity>
             </View>
           ) : null}
 
@@ -98,5 +110,20 @@ const styles = StyleSheet.create({
   },
   textDark: {
     color: "#FFFFFF",
+  },
+  exampleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    marginBottom: 16,
+  },
+  exampleText: {
+    fontStyle: "italic",
+    flex: 1,
+    marginRight: 8,
+  },
+  speakerButton: {
+    padding: 4,
+    marginTop: -2, // Align with text
   },
 });

@@ -1,6 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as Speech from "expo-speech";
 import React from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { CollocationData } from "./types";
 
 interface FaceSideProps {
@@ -9,6 +16,10 @@ interface FaceSideProps {
 }
 
 export default function FaceSide({ data, isDark }: FaceSideProps) {
+  const speak = () => {
+    Speech.speak(data.collocation);
+  };
+
   return (
     <View style={[styles.face, isDark && styles.faceDark]}>
       {/* Accent Brand Mark */}
@@ -18,9 +29,19 @@ export default function FaceSide({ data, isDark }: FaceSideProps) {
         <Text style={[styles.collocationText, isDark && styles.textDark]}>
           {data.collocation}
         </Text>
-        <Text style={[styles.meaningText, isDark && styles.textDark]}>
-          {data.meaning}
-        </Text>
+
+        <View style={styles.meaningContainer}>
+          <Text style={[styles.meaningText, isDark && styles.textDark]}>
+            {data.meaning}
+          </Text>
+          <TouchableOpacity onPress={speak} style={styles.speakerButton}>
+            <Ionicons
+              name="volume-medium"
+              size={24}
+              color={isDark ? "#ccc" : "#666"}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.footer}>
@@ -77,6 +98,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    width: "100%",
+  },
+  meaningContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 24,
+    width: "100%",
+  },
+  speakerButton: {
+    marginLeft: 8,
+    padding: 4,
   },
   collocationText: {
     fontSize: 42,
@@ -92,7 +125,6 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     textAlign: "center",
     color: "#666",
-    marginTop: 24,
     lineHeight: 30,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
