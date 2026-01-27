@@ -1,6 +1,5 @@
-import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import PagerView from "react-native-pager-view";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { CollocationFlipCard } from "./index";
@@ -12,6 +11,8 @@ interface Props {
   onFinish?: () => void;
   renderFinalPage?: () => React.ReactNode;
   isDark?: boolean;
+  day?: number;
+  savedWordIds?: Set<string>;
 }
 
 export const CollocationSwipeable: React.FC<Props> = ({
@@ -21,6 +22,8 @@ export const CollocationSwipeable: React.FC<Props> = ({
   onFinish,
   renderFinalPage,
   isDark = false,
+  day,
+  savedWordIds,
 }) => {
   const handlePageSelected = (e: any) => {
     const position = e.nativeEvent.position;
@@ -50,27 +53,15 @@ export const CollocationSwipeable: React.FC<Props> = ({
               translation: item.translation || "",
             }}
             isDark={isDark}
+            wordBankConfig={{
+              id: item.id,
+              course: item.course,
+              day,
+              initialIsSaved: savedWordIds?.has(item.id) ?? false,
+              enableAdd: true,
+              enableDelete: false,
+            }}
           />
-          {/* Page Indicator */}
-          <Text
-            style={[styles.pageIndicator, { color: isDark ? "#fff" : "#000" }]}
-          >
-            {index + 1} / {data.length}
-          </Text>
-
-          {/* Minimal indicator */}
-          <View
-            style={[
-              styles.indicator,
-              { backgroundColor: isDark ? "#444" : "#eee" },
-            ]}
-          >
-            <Ionicons
-              name="swap-horizontal"
-              size={16}
-              color={isDark ? "#888" : "#aaa"}
-            />
-          </View>
         </View>
       ))}
       {renderFinalPage && (
@@ -89,21 +80,6 @@ const styles = StyleSheet.create({
   },
   page: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  pageIndicator: {
-    position: "absolute",
-    bottom: 25,
-    fontSize: 14,
-    opacity: 0.5,
-  },
-  indicator: {
-    position: "absolute",
-    bottom: 60,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
   },

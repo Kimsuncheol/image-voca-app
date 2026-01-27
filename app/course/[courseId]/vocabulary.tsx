@@ -328,6 +328,8 @@ export default function VocabularyScreen() {
                 onIndexChange={handlePageChange}
                 onFinish={handleRunOutOfCards}
                 renderFinalPage={renderFinishedView}
+                day={dayNumber}
+                savedWordIds={savedWordIds}
               />
             ) : (
               <TinderSwipe

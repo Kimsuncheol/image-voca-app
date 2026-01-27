@@ -1,24 +1,130 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Speech from "expo-speech";
 import React from "react";
+import { arrayUnion, doc, setDoc } from "firebase/firestore";
+import { useTranslation } from "react-i18next";
 import {
   Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
-import { CollocationData } from "./types";
+import { useAuth } from "../../src/context/AuthContext";
+import { db } from "../../src/services/firebase";
+import { useUserStatsStore } from "../../src/stores";
+import { CollocationData, CollocationWordBankConfig } from "./types";
 
 interface FaceSideProps {
   data: CollocationData;
   isDark: boolean;
+  wordBankConfig?: CollocationWordBankConfig;
 }
 
-export default React.memo(function FaceSide({ data, isDark }: FaceSideProps) {
+export default React.memo(function FaceSide({
+  data,
+  isDark,
+  wordBankConfig,
+}: FaceSideProps) {
+  const { user } = useAuth();
+  const { recordWordLearned } = useUserStatsStore();
+  const { t } = useTranslation();
+  const [isAdding, setIsAdding] = React.useState(false);
+  const [isAdded, setIsAdded] = React.useState(
+    wordBankConfig?.initialIsSaved ?? false,
+  );
+
+  React.useEffect(() => {
+    setIsAdded(wordBankConfig?.initialIsSaved ?? false);
+  }, [wordBankConfig?.initialIsSaved]);
+
   const speak = React.useCallback(() => {
     Speech.speak(data.collocation);
   }, [data.collocation]);
+
+  const canAddToWordBank =
+    wordBankConfig?.enableAdd !== false &&
+    Boolean(wordBankConfig?.id) &&
+    Boolean(wordBankConfig?.course);
+
+  const canDelete =
+    wordBankConfig?.enableDelete === true && Boolean(wordBankConfig?.onDelete);
+
+  const handleAddToWordBank = React.useCallback(async () => {
+    if (!canAddToWordBank || !wordBankConfig) {
+      return;
+    }
+
+    if (!user) {
+      Alert.alert(t("common.error"), t("swipe.errors.loginRequired"));
+      return;
+    }
+
+    if (isAdded) {
+      Alert.alert(t("common.info"), t("swipe.errors.alreadyAdded"));
+      return;
+    }
+
+    setIsAdding(true);
+    try {
+      const wordRef = doc(
+        db,
+        "vocabank",
+        user.uid,
+        "course",
+        wordBankConfig.course,
+      );
+      await setDoc(
+        wordRef,
+        {
+          words: arrayUnion({
+            id: wordBankConfig.id,
+            word: data.collocation,
+            meaning: data.meaning,
+            translation: data.translation || "",
+            pronunciation: data.explanation || "",
+            example: data.example,
+            course: wordBankConfig.course,
+            day: wordBankConfig.day,
+            addedAt: new Date().toISOString(),
+          }),
+        },
+        { merge: true },
+      );
+
+      setIsAdded(true);
+      await recordWordLearned(user.uid);
+      Alert.alert(
+        t("common.success"),
+        t("swipe.success.addedToWordBank", { word: data.collocation }),
+      );
+    } catch (error) {
+      console.error("Error adding collocation to word bank:", error);
+      Alert.alert(t("common.error"), t("swipe.errors.addFailed"));
+    } finally {
+      setIsAdding(false);
+    }
+  }, [
+    canAddToWordBank,
+    data.collocation,
+    data.example,
+    data.explanation,
+    data.meaning,
+    data.translation,
+    isAdded,
+    recordWordLearned,
+    t,
+    user,
+    wordBankConfig,
+  ]);
+
+  const handleDelete = React.useCallback(() => {
+    if (!canDelete || !wordBankConfig?.onDelete || !wordBankConfig?.id) {
+      return;
+    }
+    wordBankConfig.onDelete(wordBankConfig.id);
+  }, [canDelete, wordBankConfig]);
 
   return (
     <View style={[styles.face, isDark && styles.faceDark]}>
@@ -44,7 +150,51 @@ export default React.memo(function FaceSide({ data, isDark }: FaceSideProps) {
         </View>
       </View>
 
-      <View style={styles.footer} />
+      <View style={styles.footer}>
+        {canAddToWordBank && (
+          <TouchableOpacity
+            style={[
+              styles.addButton,
+              isAdded && styles.addButtonAdded,
+              isAdding && styles.addButtonDisabled,
+              !isAdded && (isDark ? styles.addButtonDark : styles.addButtonLight),
+            ]}
+            onPress={handleAddToWordBank}
+            disabled={isAdding || isAdded}
+          >
+            <Ionicons
+              name={isAdded ? "checkmark-circle" : "add-circle-outline"}
+              size={20}
+              color={isAdded ? "#fff" : isDark ? "#0a84ff" : "#007AFF"}
+            />
+            <Text
+              style={[
+                styles.addButtonText,
+                isAdded && styles.addButtonTextAdded,
+                !isAdded && { color: isDark ? "#0a84ff" : "#007AFF" },
+              ]}
+            >
+              {isAdding
+                ? t("swipe.actions.adding")
+                : isAdded
+                  ? t("swipe.actions.added")
+                  : t("swipe.actions.addToWordBank")}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {canDelete && (
+          <TouchableOpacity
+            style={[styles.deleteButton, isDark && styles.deleteButtonDark]}
+            onPress={handleDelete}
+          >
+            <Ionicons name="trash-outline" size={18} color="#FF3B30" />
+            <Text style={styles.deleteButtonText}>
+              {t("common.delete", { defaultValue: "Delete" })}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 });
@@ -118,8 +268,65 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   footer: {
+    width: "100%",
     alignItems: "center",
-    paddingBottom: 0,
-    height: 40, // Keeping height to maintain layout consistency if needed, or can remove if flex handles it
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 12,
+    paddingTop: 12,
+    minHeight: 52,
+  },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 22,
+    gap: 8,
+    borderWidth: 1,
+  },
+  addButtonLight: {
+    backgroundColor: "#E8F4FD",
+    borderColor: "#007AFF40",
+  },
+  addButtonDark: {
+    backgroundColor: "#1c3a52",
+    borderColor: "#0a84ff80",
+  },
+  addButtonAdded: {
+    backgroundColor: "#28a745",
+    borderColor: "#28a745",
+  },
+  addButtonDisabled: {
+    opacity: 0.6,
+  },
+  addButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#007AFF",
+  },
+  addButtonTextAdded: {
+    color: "#fff",
+  },
+  deleteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 22,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "#FF3B30",
+    backgroundColor: "rgba(255,59,48,0.08)",
+  },
+  deleteButtonDark: {
+    backgroundColor: "rgba(255,59,48,0.16)",
+  },
+  deleteButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FF3B30",
   },
 });

@@ -23,31 +23,7 @@ import { SavedWord, WordCard } from "../../components/wordbank/WordCard";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
-import { COURSES } from "../../src/types/vocabulary";
-
-const COLLOCATION_DATA = [
-  {
-    collocation: "make a decision",
-    meaning: "decide something",
-    explanation: "Used when you choose one option",
-    example: "I had to make a decision quickly",
-    translation: "결정을 내리다",
-  },
-  {
-    collocation: "do a favor",
-    meaning: "help someone",
-    explanation: "Used when you help someone",
-    example: "Can you do me a favor?",
-    translation: "부탁을 들어주다",
-  },
-  {
-    collocation: "make a mistake",
-    meaning: "do something wrong",
-    explanation: "Used when you do something incorrect",
-    example: "I made a mistake on the test.",
-    translation: "실수를 하다",
-  },
-];
+import { COURSES, CourseType } from "../../src/types/vocabulary";
 
 export default function CourseWordBankScreen() {
   const { isDark } = useTheme();
@@ -61,7 +37,7 @@ export default function CourseWordBankScreen() {
   const courseData = COURSES.find((c) => c.id === course);
 
   const fetchWords = useCallback(async () => {
-    if (!user) return;
+    if (!user || !course) return;
     setLoading(true);
     try {
       const courseDoc = await getDoc(
@@ -156,10 +132,6 @@ export default function CourseWordBankScreen() {
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#007AFF" />
           </View>
-        ) : course === "COLLOCATION" ? (
-          COLLOCATION_DATA.map((item, index) => (
-            <CollocationFlipCard key={index} data={item} isDark={isDark} />
-          ))
         ) : words.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons
@@ -190,6 +162,29 @@ export default function CourseWordBankScreen() {
               </ThemedText>
             </Pressable>
           </View>
+        ) : course === "COLLOCATION" ? (
+          words.map((word, index) => (
+            <CollocationFlipCard
+              key={`${word.id}-${index}`}
+              data={{
+                collocation: word.word,
+                meaning: word.meaning,
+                explanation: word.pronunciation || "",
+                example: word.example,
+                translation: word.translation || "",
+              }}
+              isDark={isDark}
+              wordBankConfig={{
+                id: word.id,
+                course: course as CourseType,
+                day: word.day,
+                initialIsSaved: true,
+                enableAdd: false,
+                enableDelete: true,
+                onDelete: handleDelete,
+              }}
+            />
+          ))
         ) : (
           words.map((word, index) => (
             <WordCard

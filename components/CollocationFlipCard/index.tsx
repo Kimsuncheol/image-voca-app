@@ -3,17 +3,18 @@ import { Dimensions, StyleSheet } from "react-native";
 import FlipCard from "react-native-flip-card";
 import BackSide from "./BackSide";
 import FaceSide from "./FaceSide";
-import { CollocationData } from "./types";
+import { CollocationData, CollocationWordBankConfig } from "./types";
 
 export { default as CollocationSkeleton } from "./CollocationSkeleton";
 
 interface Props {
   data: CollocationData;
   isDark?: boolean;
+  wordBankConfig?: CollocationWordBankConfig;
 }
 
 export const CollocationFlipCard: React.FC<Props> = React.memo(
-  ({ data, isDark = false }) => {
+  ({ data, isDark = false, wordBankConfig }) => {
     const [isBackVisible, setIsBackVisible] = useState(false);
 
     return (
@@ -27,7 +28,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
         onFlipEnd={setIsBackVisible}
       >
         {/* Face Side */}
-        <FaceSide data={data} isDark={isDark} />
+        <FaceSide data={data} isDark={isDark} wordBankConfig={wordBankConfig} />
 
         {/* Back Side */}
         <BackSide data={data} isDark={isDark} isVisible={isBackVisible} />
