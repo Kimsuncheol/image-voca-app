@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Dimensions, StyleSheet } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -22,12 +22,26 @@ export const TinderCard = ({
   onSwipeLeft,
   onSwipeRight,
   children,
-}: TinderCardProps) => {
+  disableSwipeLeft = false,
+  resetTrigger,
+}: TinderCardProps & {
+  disableSwipeLeft?: boolean;
+  resetTrigger?: number;
+}) => {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const prevTranslationX = useSharedValue(0);
   const prevTranslationY = useSharedValue(0);
   const rotate = useSharedValue(0);
+
+  useEffect(() => {
+    // Force reset position when resetTrigger changes
+    if (resetTrigger) {
+      translateX.value = withSpring(0);
+      translateY.value = withSpring(0);
+      rotate.value = withSpring(0);
+    }
+  }, [resetTrigger, translateX, translateY, rotate]);
 
   const PanGesture = Gesture.Pan()
     .onStart((event) => {
@@ -35,6 +49,9 @@ export const TinderCard = ({
       prevTranslationY.value = event.translationY;
     })
     .onUpdate((event) => {
+      // If left swipe is disabled, limit movement to the right (positive X)
+      // or allows some resistance?
+      // For now, let's allow movement but bounce back on release if disabled.
       translateX.value = prevTranslationX.value + event.translationX;
       translateY.value =
         prevTranslationY.value + Math.min(0, event.translationY);
@@ -45,8 +62,14 @@ export const TinderCard = ({
         translateX.value = withTiming(width * 2, { duration: 400 });
         runOnJS(onSwipeRight)();
       } else if (translateX.value < -SWIPE_THRESHOLD) {
-        translateX.value = withTiming(-width * 2, { duration: 400 });
-        runOnJS(onSwipeLeft)();
+        if (disableSwipeLeft) {
+          translateX.value = withSpring(0);
+          translateY.value = withSpring(0);
+          rotate.value = withSpring(0);
+        } else {
+          translateX.value = withTiming(-width * 2, { duration: 400 });
+          runOnJS(onSwipeLeft)();
+        }
       } else {
         translateX.value = withSpring(0);
         translateY.value = withSpring(0);

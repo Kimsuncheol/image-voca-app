@@ -344,6 +344,7 @@ export default function VocabularyScreen() {
                 onSwipeLeft={onSwipeLeft}
                 loop={false}
                 onRunOutOfCards={handleRunOutOfCards}
+                swipeLeftMode="rewind"
               />
             )}
           </View>

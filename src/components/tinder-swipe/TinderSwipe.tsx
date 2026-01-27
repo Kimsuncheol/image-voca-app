@@ -2,7 +2,6 @@ import React, {
   forwardRef,
   useEffect,
   useImperativeHandle,
-  useRef,
   useState,
 } from "react";
 import { StyleSheet, View } from "react-native";
@@ -19,6 +18,7 @@ interface TinderSwipeProps {
   onSwipeRight?: (item: any) => void;
   onRunOutOfCards?: () => void;
   loop?: boolean;
+  swipeLeftMode?: "remove" | "rewind";
 }
 
 export const TinderSwipe = forwardRef<TinderSwipeRef, TinderSwipeProps>(
@@ -30,24 +30,30 @@ export const TinderSwipe = forwardRef<TinderSwipeRef, TinderSwipeProps>(
       onSwipeRight,
       onRunOutOfCards,
       loop = false,
+      swipeLeftMode = "remove",
     },
     ref,
   ) => {
     const [cards, setCards] = useState(data);
-    const historyRef = useRef<any[]>([]);
+    const [history, setHistory] = useState<any[]>([]);
+    const [resetToken, setResetToken] = useState(0);
+
+    const performUndo = () => {
+      if (history.length === 0) return;
+      const lastItem = history[history.length - 1];
+      const newHistory = history.slice(0, -1);
+      setHistory(newHistory);
+      setCards((prev) => [lastItem, ...prev]);
+      setResetToken((prev) => prev + 1);
+    };
 
     useImperativeHandle(ref, () => ({
-      undo: () => {
-        const lastItem = historyRef.current.pop();
-        if (lastItem) {
-          setCards((prev) => [lastItem, ...prev]);
-        }
-      },
+      undo: performUndo,
     }));
 
     useEffect(() => {
       setCards(data);
-      historyRef.current = [];
+      setHistory([]);
     }, [data]);
 
     useEffect(() => {
@@ -58,6 +64,11 @@ export const TinderSwipe = forwardRef<TinderSwipeRef, TinderSwipeProps>(
 
     const handleSwipeLeft = (index: number) => {
       const item = cards[index];
+      if (swipeLeftMode === "rewind") {
+        performUndo();
+        return;
+      }
+
       if (onSwipeLeft) onSwipeLeft(item);
       setTimeout(() => {
         setCards((currentCards) => {
@@ -66,7 +77,7 @@ export const TinderSwipe = forwardRef<TinderSwipeRef, TinderSwipeProps>(
           if (loop) {
             newCards.unshift(removed); // Put it at the bottom if looping
           } else {
-            historyRef.current.push(removed);
+            setHistory((prev) => [...prev, removed]);
           }
           return newCards;
         });
@@ -83,7 +94,7 @@ export const TinderSwipe = forwardRef<TinderSwipeRef, TinderSwipeProps>(
           if (loop) {
             newCards.unshift(removed);
           } else {
-            historyRef.current.push(removed);
+            setHistory((prev) => [...prev, removed]);
           }
           return newCards;
         });
@@ -133,6 +144,10 @@ export const TinderSwipe = forwardRef<TinderSwipeRef, TinderSwipeProps>(
                 <TinderCard
                   onSwipeLeft={() => handleSwipeLeft(0)} // Always swipe the top card (which is index 0 of cards state)
                   onSwipeRight={() => handleSwipeRight(0)}
+                  disableSwipeLeft={
+                    swipeLeftMode === "rewind" && history.length === 0
+                  }
+                  resetTrigger={resetToken}
                 >
                   {renderCard(item)}
                 </TinderCard>
