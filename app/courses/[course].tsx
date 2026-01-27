@@ -1,34 +1,24 @@
 // React and React Native imports
-import { Ionicons } from "@expo/vector-icons";
-import {
-  Stack,
-  useFocusEffect,
-  useLocalSearchParams,
-  useRouter,
-} from "expo-router";
+import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { doc, getDoc, setDoc } from "firebase/firestore"; // Firestore database operations
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next"; // Internationalization
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Alert, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Custom components
-import { CollocationFlipCard } from "../../components/CollocationFlipCard"; // Special card for collocations
-import { ThemedText } from "../../components/themed-text";
-import { SavedWord, WordCard } from "../../components/wordbank/WordCard"; // Standard word card
+import {
+  EmptyWordBankView,
+  LoadingView,
+  WordList,
+} from "../../components/course-wordbank";
+import { SavedWord } from "../../components/wordbank/WordCard";
 
 // Context, services, and types
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
-import { COURSES, CourseType } from "../../src/types/vocabulary";
+import { COURSES } from "../../src/types/vocabulary";
 
 /**
  * Course Word Bank Screen
@@ -53,7 +43,6 @@ export default function CourseWordBankScreen() {
 
   const { isDark } = useTheme(); // Dark mode state
   const { user } = useAuth(); // Current authenticated user
-  const router = useRouter(); // Navigation router
   const { course } = useLocalSearchParams<{ course: string }>(); // Course ID from URL
   const { t } = useTranslation(); // Translation function for i18n
 
@@ -211,75 +200,23 @@ export default function CourseWordBankScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Loading State: Show spinner while fetching data */}
+        {/* Conditional rendering based on loading and data state */}
         {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
-          </View>
+          <LoadingView />
         ) : words.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons
-              name="book-outline"
-              size={64}
-              color={isDark ? "#444" : "#ccc"}
-            />
-            <ThemedText style={styles.emptyText}>
-              {t("wordBank.empty.title")}
-            </ThemedText>
-            <ThemedText style={styles.emptySubtext}>
-              {t("wordBank.empty.subtitle")}
-            </ThemedText>
-            {/* Call-to-action button to start learning */}
-            <Pressable
-              style={[
-                styles.startButton,
-                { backgroundColor: courseData?.color || "#007AFF" },
-              ]}
-              onPress={() =>
-                router.push({
-                  pathname: "/course/[courseId]/days",
-                  params: { courseId: course },
-                })
-              }
-            >
-              <ThemedText style={styles.startButtonText}>
-                {t("course.startLearning", { defaultValue: "Start Learning" })}
-              </ThemedText>
-            </Pressable>
-          </View>
-        ) : course === "COLLOCATION" ? (
-          words.map((word, index) => (
-            <CollocationFlipCard
-              key={`${word.id}-${index}`}
-              data={{
-                collocation: word.word,
-                meaning: word.meaning,
-                explanation: word.pronunciation || "", // Explanation stored in pronunciation field
-                example: word.example,
-                translation: word.translation || "",
-              }}
-              isDark={isDark}
-              wordBankConfig={{
-                id: word.id,
-                course: course as CourseType,
-                day: word.day,
-                initialIsSaved: true, // Already saved in word bank
-                enableAdd: false, // Can't add again
-                enableDelete: true, // Can delete from word bank
-                onDelete: handleDelete,
-              }}
-            />
-          ))
+          <EmptyWordBankView
+            courseId={course}
+            courseColor={courseData?.color}
+            isDark={isDark}
+          />
         ) : (
-          words.map((word, index) => (
-            <WordCard
-              key={word.id + index}
-              word={word}
-              courseColor={courseData?.color}
-              isDark={isDark}
-              onDelete={handleDelete}
-            />
-          ))
+          <WordList
+            words={words}
+            courseId={course}
+            courseColor={courseData?.color}
+            isDark={isDark}
+            onDelete={handleDelete}
+          />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -295,48 +232,5 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
     paddingBottom: 40,
-  },
-  // Loading state styles
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 100,
-  },
-  // Empty state styles
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 100,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginTop: 16,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    opacity: 0.6,
-    textAlign: "center",
-    marginTop: 8,
-    paddingHorizontal: 40,
-  },
-  startButton: {
-    marginTop: 24,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3, // Android shadow
-  },
-  startButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-    textAlign: "center",
   },
 });

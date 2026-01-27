@@ -160,6 +160,15 @@ export default React.memo(function FaceSide({
       <View style={styles.accentMark} />
 
       <View style={styles.contentContainer}>
+        {/* Day Badge - positioned at the top */}
+        {wordBankConfig?.day && (
+          <View style={styles.dayBadgeContainer}>
+            <Text style={[styles.dayBadge, isDark && styles.dayBadgeDark]}>
+              Day {wordBankConfig.day}
+            </Text>
+          </View>
+        )}
+
         <Text style={[styles.collocationText, isDark && styles.textDark]}>
           {data.collocation}
         </Text>
@@ -265,6 +274,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     width: "100%",
+  },
+  dayBadgeContainer: {
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  dayBadge: {
+    fontSize: 13,
+    opacity: 0.6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: "rgba(0, 122, 255, 0.1)",
+    color: "#007AFF",
+    fontWeight: "600",
+  },
+  dayBadgeDark: {
+    backgroundColor: "rgba(10, 132, 255, 0.2)",
+    color: "#0a84ff",
   },
   meaningContainer: {
     flexDirection: "row",
