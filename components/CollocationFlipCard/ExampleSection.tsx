@@ -3,36 +3,27 @@ import * as Speech from "expo-speech";
 import React from "react";
 import {
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  useWindowDimensions,
 } from "react-native";
 import Collapsible from "react-native-collapsible";
 import { RoleplayRenderer } from "./RoleplayRenderer";
 
 interface ExampleSectionProps {
   example: string;
-  translation: string;
   isOpen: boolean;
   onToggle: () => void;
   isDark: boolean;
-  parentHeight?: number;
 }
 
 export default React.memo(function ExampleSection({
   example,
-  translation,
   isOpen,
   onToggle,
   isDark,
-  parentHeight,
 }: ExampleSectionProps) {
-  const { height: windowHeight } = useWindowDimensions();
-  const height = parentHeight || windowHeight;
-
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [isPaused, setIsPaused] = React.useState(false);
 
@@ -96,14 +87,8 @@ export default React.memo(function ExampleSection({
       </TouchableOpacity>
 
       <Collapsible collapsed={!isOpen}>
-        <ScrollView
-          style={[styles.sectionContent, { maxHeight: height * 0.7 }]}
-          nestedScrollEnabled
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 16 }}
-        >
+        <View style={styles.sectionContent}>
           {example ? (
-            // roleplay
             <View style={styles.exampleRow}>
               <View style={{ flex: 1, marginRight: 8, gap: 8 }}>
                 <RoleplayRenderer content={example} isDark={isDark} />
@@ -122,16 +107,7 @@ export default React.memo(function ExampleSection({
               </TouchableOpacity>
             </View>
           ) : null}
-
-          <View>
-            <Text style={[styles.subLabel, { marginBottom: 4 }]}>
-              TRANSLATION
-            </Text>
-            <Text style={[styles.value, isDark && styles.textDark]}>
-              {translation}
-            </Text>
-          </View>
-        </ScrollView>
+        </View>
       </Collapsible>
     </View>
   );
@@ -157,33 +133,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginBottom: 16,
   },
-  value: {
-    fontSize: 18,
-    color: "#333",
-    lineHeight: 26,
-    fontWeight: "400",
-  },
-  subLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#bbb",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  textDark: {
-    color: "#FFFFFF",
-    borderColor: "#FFFFFF", // Also useful for border colors in dark mode if needed
-  },
   exampleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    marginBottom: 16,
-  },
-  exampleText: {
-    fontStyle: "italic",
-    flex: 1,
-    marginRight: 8,
   },
   speakerButton: {
     padding: 4,

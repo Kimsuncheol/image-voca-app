@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import ExampleSection from "./ExampleSection";
 import ExplanationSection from "./ExplanationSection";
+import TranslationSection from "./TranslationSection";
 import { CollocationData } from "./types";
 
 interface BackSideProps {
@@ -15,13 +16,13 @@ export default React.memo(function BackSide({
   isDark,
   isVisible,
 }: BackSideProps) {
-  const [activeSection, setActiveSection] = useState<"explanation" | "example">(
-    "explanation",
-  );
-  const [containerHeight, setContainerHeight] = useState(0);
+  const [activeSection, setActiveSection] = useState<
+    "explanation" | "example" | "translation"
+  >("explanation");
 
   const isExplanationOpen = isVisible && activeSection === "explanation";
   const isExampleOpen = isVisible && activeSection === "example";
+  const isTranslationOpen = isVisible && activeSection === "translation";
 
   const handleToggleExplanation = React.useCallback(() => {
     setActiveSection("explanation");
@@ -31,15 +32,16 @@ export default React.memo(function BackSide({
     setActiveSection("example");
   }, []);
 
+  const handleToggleTranslation = React.useCallback(() => {
+    setActiveSection("translation");
+  }, []);
+
   return (
     <View style={[styles.back, isDark && styles.backDark]}>
       {/* Accent Brand Mark */}
       <View style={styles.accentMark} />
 
-      <View
-        style={styles.backContentContainer}
-        onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
-      >
+      <View style={styles.backContentContainer}>
         <ExplanationSection
           explanation={data.explanation}
           isOpen={isExplanationOpen}
@@ -49,11 +51,16 @@ export default React.memo(function BackSide({
 
         <ExampleSection
           example={data.example}
-          translation={data.translation}
           isOpen={isExampleOpen}
           onToggle={handleToggleExample}
           isDark={isDark}
-          parentHeight={containerHeight}
+        />
+
+        <TranslationSection
+          translation={data.translation}
+          isOpen={isTranslationOpen}
+          onToggle={handleToggleTranslation}
+          isDark={isDark}
         />
       </View>
 
