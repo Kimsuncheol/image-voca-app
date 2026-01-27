@@ -9,16 +9,18 @@ interface BackSideProps {
   data: CollocationData;
   isDark: boolean;
   isVisible: boolean;
+  initialSection?: "explanation" | "example" | "translation";
 }
 
 export default React.memo(function BackSide({
   data,
   isDark,
   isVisible,
+  initialSection = "explanation",
 }: BackSideProps) {
   const [activeSection, setActiveSection] = useState<
     "explanation" | "example" | "translation"
-  >("explanation");
+  >(initialSection);
 
   // Track if this is the first time the back becomes visible
   const hasOpenedRef = useRef(false);
@@ -29,13 +31,13 @@ export default React.memo(function BackSide({
     if (!isVisible) {
       hasOpenedRef.current = false;
       // Reset to explanation when card is flipped back to front
-      setActiveSection("explanation");
+      setActiveSection(initialSection);
     } else if (!hasOpenedRef.current) {
       // First time back is visible - ensure explanation is active
       hasOpenedRef.current = true;
-      setActiveSection("explanation");
+      setActiveSection(initialSection);
     }
-  }, [isVisible]);
+  }, [isVisible, initialSection]);
 
   const isExplanationOpen = isVisible && activeSection === "explanation";
   const isExampleOpen = isVisible && activeSection === "example";
