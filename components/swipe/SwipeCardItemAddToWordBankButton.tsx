@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { arrayUnion, doc, setDoc } from "firebase/firestore";
+import { doc, runTransaction } from "firebase/firestore";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, StyleSheet, Text, TouchableOpacity } from "react-native";
@@ -7,6 +7,7 @@ import { useAuth } from "../../src/context/AuthContext";
 import { db } from "../../src/services/firebase";
 import { useUserStatsStore } from "../../src/stores";
 import { VocabularyCard } from "../../src/types/vocabulary";
+import { SavedWord } from "../wordbank/WordCard";
 
 interface SwipeCardItemAddToWordBankButtonProps {
   item: VocabularyCard;
@@ -45,23 +46,48 @@ export function SwipeCardItemAddToWordBankButton({
     setIsAdding(true);
     try {
       const wordRef = doc(db, "vocabank", user.uid, "course", item.course);
-      await setDoc(
-        wordRef,
-        {
-          words: arrayUnion({
-            id: item.id,
-            word: item.word,
-            meaning: item.meaning,
-            translation: item.translation || "",
-            pronunciation: item.pronunciation || "",
-            example: item.example,
-            course: item.course,
-            day: day,
-            addedAt: new Date().toISOString(),
-          }),
-        },
-        { merge: true },
-      );
+      const action = await runTransaction(db, async (transaction) => {
+        const snap = await transaction.get(wordRef);
+        const existingWords: SavedWord[] = snap.exists()
+          ? snap.data().words || []
+          : [];
+
+        // Normalize away duplicates that may already exist.
+        const dedupedWords = Array.from(
+          new Map(existingWords.map((word) => [word.id, word])).values(),
+        );
+
+        if (dedupedWords.some((word) => word.id === item.id)) {
+          transaction.set(wordRef, { words: dedupedWords }, { merge: true });
+          return "exists" as const;
+        }
+
+        const newWord: SavedWord = {
+          id: item.id,
+          word: item.word,
+          meaning: item.meaning,
+          translation: item.translation || "",
+          pronunciation: item.pronunciation || "",
+          example: item.example,
+          course: item.course,
+          day,
+          addedAt: new Date().toISOString(),
+        };
+
+        transaction.set(
+          wordRef,
+          { words: [...dedupedWords, newWord] },
+          { merge: true },
+        );
+        return "added" as const;
+      });
+
+      if (action === "exists") {
+        setIsAdded(true);
+        Alert.alert(t("common.info"), t("swipe.errors.alreadyAdded"));
+        return;
+      }
+
       setIsAdded(true);
       // Record word learned for stats
       await recordWordLearned(user.uid);

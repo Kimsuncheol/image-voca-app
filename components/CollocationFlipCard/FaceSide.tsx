@@ -1,19 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Speech from "expo-speech";
+import { doc, runTransaction } from "firebase/firestore";
 import React from "react";
-import { arrayUnion, doc, setDoc } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
 import {
+  Alert,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Alert,
 } from "react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import { db } from "../../src/services/firebase";
 import { useUserStatsStore } from "../../src/stores";
+import { SavedWord } from "../wordbank/WordCard";
 import { CollocationData, CollocationWordBankConfig } from "./types";
 
 interface FaceSideProps {
@@ -51,18 +53,13 @@ export default React.memo(function FaceSide({
   const canDelete =
     wordBankConfig?.enableDelete === true && Boolean(wordBankConfig?.onDelete);
 
-  const handleAddToWordBank = React.useCallback(async () => {
+  const handleToggleWordBank = React.useCallback(async () => {
     if (!canAddToWordBank || !wordBankConfig) {
       return;
     }
 
     if (!user) {
       Alert.alert(t("common.error"), t("swipe.errors.loginRequired"));
-      return;
-    }
-
-    if (isAdded) {
-      Alert.alert(t("common.info"), t("swipe.errors.alreadyAdded"));
       return;
     }
 
@@ -75,23 +72,55 @@ export default React.memo(function FaceSide({
         "course",
         wordBankConfig.course,
       );
-      await setDoc(
-        wordRef,
-        {
-          words: arrayUnion({
-            id: wordBankConfig.id,
-            word: data.collocation,
-            meaning: data.meaning,
-            translation: data.translation || "",
-            pronunciation: data.explanation || "",
-            example: data.example,
-            course: wordBankConfig.course,
-            day: wordBankConfig.day,
-            addedAt: new Date().toISOString(),
-          }),
-        },
-        { merge: true },
-      );
+      const action = await runTransaction(db, async (transaction) => {
+        const snap = await transaction.get(wordRef);
+        const existingWords: SavedWord[] = snap.exists()
+          ? snap.data().words || []
+          : [];
+
+        // Normalize away duplicates that may already exist.
+        const dedupedWords = Array.from(
+          new Map(existingWords.map((word) => [word.id, word])).values(),
+        );
+
+        const existsInBank = dedupedWords.some(
+          (word) => word.id === wordBankConfig.id,
+        );
+
+        if (existsInBank) {
+          const updatedWords = dedupedWords.filter(
+            (word) => word.id !== wordBankConfig.id,
+          );
+          transaction.set(wordRef, { words: updatedWords }, { merge: true });
+          return "removed" as const;
+        }
+
+        const newWord: SavedWord = {
+          id: wordBankConfig.id,
+          word: data.collocation,
+          meaning: data.meaning,
+          translation: data.translation || "",
+          pronunciation: data.explanation || "",
+          example: data.example,
+          course: wordBankConfig.course,
+          day: wordBankConfig.day,
+          addedAt: new Date().toISOString(),
+        };
+
+        transaction.set(
+          wordRef,
+          { words: [...dedupedWords, newWord] },
+          { merge: true },
+        );
+        return "added" as const;
+      });
+
+      if (action === "removed") {
+        setIsAdded(false);
+        wordBankConfig.onDelete?.(wordBankConfig.id);
+        Alert.alert(t("common.success"), "Removed from Word Bank.");
+        return;
+      }
 
       setIsAdded(true);
       await recordWordLearned(user.uid);
@@ -100,7 +129,7 @@ export default React.memo(function FaceSide({
         t("swipe.success.addedToWordBank", { word: data.collocation }),
       );
     } catch (error) {
-      console.error("Error adding collocation to word bank:", error);
+      console.error("Error toggling collocation word bank:", error);
       Alert.alert(t("common.error"), t("swipe.errors.addFailed"));
     } finally {
       setIsAdding(false);
@@ -112,7 +141,6 @@ export default React.memo(function FaceSide({
     data.explanation,
     data.meaning,
     data.translation,
-    isAdded,
     recordWordLearned,
     t,
     user,
@@ -152,15 +180,17 @@ export default React.memo(function FaceSide({
 
       <View style={styles.footer}>
         {canAddToWordBank && (
-          <TouchableOpacity
-            style={[
+          <Pressable
+            style={({ pressed }) => [
               styles.addButton,
               isAdded && styles.addButtonAdded,
               isAdding && styles.addButtonDisabled,
-              !isAdded && (isDark ? styles.addButtonDark : styles.addButtonLight),
+              !isAdded &&
+                (isDark ? styles.addButtonDark : styles.addButtonLight),
+              pressed && { opacity: 0.7 },
             ]}
-            onPress={handleAddToWordBank}
-            disabled={isAdding || isAdded}
+            onPress={handleToggleWordBank}
+            disabled={isAdding}
           >
             <Ionicons
               name={isAdded ? "checkmark-circle" : "add-circle-outline"}
@@ -177,10 +207,10 @@ export default React.memo(function FaceSide({
               {isAdding
                 ? t("swipe.actions.adding")
                 : isAdded
-                  ? t("swipe.actions.added")
+                  ? "Added"
                   : t("swipe.actions.addToWordBank")}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         )}
 
         {canDelete && (
