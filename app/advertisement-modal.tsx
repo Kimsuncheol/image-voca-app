@@ -1,9 +1,9 @@
 // React Native and Expo imports
-import { Ionicons } from "@expo/vector-icons"; // Icon library
-import { Image } from "expo-image"; // Optimized image component
-import { useLocalSearchParams, useRouter } from "expo-router"; // Navigation and route params
-import { useVideoPlayer, VideoView } from "expo-video"; // Modern video player (replaces expo-av)
-import React, { useEffect, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { AVPlaybackStatus, ResizeMode, Video } from "expo-av"; // Video player (deprecated, will migrate to expo-video)
+import { Image } from "expo-image";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -13,15 +13,17 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Context and store imports
+// Context and stores
 import { useAuth } from "../src/context/AuthContext";
 import { useSubscriptionStore } from "../src/stores/subscriptionStore";
 
-// Advertisement duration in seconds before reward can be claimed
+// Duration in seconds before user can claim reward
 const AD_DURATION = 5; // seconds
 
-// Sample video sources for testing - simulates different advertisement videos
-// In production, these would come from an ad network API
+/**
+ * Sample video URLs for testing advertisement functionality
+ * In production, these would be replaced with actual ad network videos
+ */
 const TEST_ADS = [
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
@@ -31,65 +33,50 @@ const TEST_ADS = [
 ];
 
 /**
- * Advertisement Modal Component
+ * Advertisement Modal Screen
  *
- * Displays a video advertisement that users must watch for a specified duration
- * before they can claim a reward (e.g., unlock premium features temporarily).
+ * Shows a video advertisement that users can watch to unlock premium features temporarily.
+ * After watching for AD_DURATION seconds, users can claim the reward to unlock the feature.
  *
- * Features:
- * - Random ad selection from test pool
- * - 5-second countdown before reward can be claimed
- * - Automatic fallback to static image if video fails to load
- * - Looping video playback
+ * Flow:
+ * 1. Display loading screen while ad prepares
+ * 2. Play video advertisement with countdown timer
+ * 3. After timer expires, show "Grant Reward" button
+ * 4. User claims reward and feature is unlocked via ad
+ *
+ * @param featureId - The ID of the feature to unlock (passed via route params)
  */
 export default function AdvertisementModal() {
   const router = useRouter();
   const { user } = useAuth();
-  const params = useLocalSearchParams<{ featureId: string }>(); // Feature to unlock after ad
+  const params = useLocalSearchParams<{ featureId: string }>();
   const { unlockViaAd } = useSubscriptionStore();
 
   // === State Management ===
-  const [timeLeft, setTimeLeft] = useState(AD_DURATION); // Countdown timer
-  const [isAdLoaded, setIsAdLoaded] = useState(false); // Loading state
-  const [isRewardEarned, setIsRewardEarned] = useState(false); // Reward claimed state
-  const [useVideoFallback, setUseVideoFallback] = useState(false); // Fallback to image on error
 
-  // Random video source selected on mount
+  const [timeLeft, setTimeLeft] = useState(AD_DURATION); // Countdown timer for reward eligibility
+  const [isAdLoaded, setIsAdLoaded] = useState(false); // Whether ad has finished loading
+  const [isRewardEarned, setIsRewardEarned] = useState(false); // Whether user has claimed the reward
+  const [useVideoFallback, setUseVideoFallback] = useState(false); // Fallback to image if video fails
+  const videoRef = useRef<Video>(null); // Reference to video player
+
+  // Randomly selected video source (selected on component mount)
   const [videoSource, setVideoSource] = useState("");
 
-  // === Video Player Setup (expo-video) ===
-  // Initialize video player with configuration
-  const player = useVideoPlayer(videoSource, (player) => {
-    player.loop = true; // Loop video continuously
-    player.muted = false; // Play with sound
-    player.play(); // Auto-play when ready
-  });
+  // === Effects ===
 
-  // Monitor video player status and handle errors
-  // If video fails to load, automatically switch to fallback image
-  useEffect(() => {
-    const subscription = player.addListener(
-      "statusChange",
-      ({ status, error }) => {
-        if (status === "error" || error) {
-          console.log("[Ad] Video player error, using fallback image:", error);
-          setUseVideoFallback(true);
-        }
-      },
-    );
-
-    return () => {
-      subscription.remove();
-    };
-  }, [player]);
-
-  // Select a random advertisement video when component mounts
+  /**
+   * Select a random advertisement video on component mount
+   */
   useEffect(() => {
     const randomAd = TEST_ADS[Math.floor(Math.random() * TEST_ADS.length)];
     setVideoSource(randomAd);
   }, []);
 
-  // Simulate advertisement loading delay (e.g., fetching from ad network)
+  /**
+   * Simulate ad loading delay
+   * In production, this would wait for actual ad network response
+   */
   useEffect(() => {
     const loadTimer = setTimeout(() => {
       setIsAdLoaded(true);
@@ -98,35 +85,61 @@ export default function AdvertisementModal() {
     return () => clearTimeout(loadTimer);
   }, []);
 
-  // Countdown timer - decrements every second while ad is playing
-  // User cannot claim reward until timer reaches 0
+  /**
+   * Countdown timer effect
+   * Decrements timeLeft every second until it reaches 0
+   * When timer reaches 0, the "Grant Reward" button becomes available
+   */
   useEffect(() => {
     if (isAdLoaded && !isRewardEarned) {
       if (timeLeft > 0) {
         const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
         return () => clearTimeout(timer);
       }
-      // Timer finished: reward button will appear automatically
+      // Timer finished: User can now claim reward
     }
   }, [isAdLoaded, timeLeft, isRewardEarned]);
 
+  // === Event Handlers ===
+
   /**
-   * Handles reward claiming after user watches the full ad
-   * Unlocks the specified feature temporarily via ad reward system
+   * Handles reward claim when user clicks "Grant Reward"
+   * Unlocks the feature via ad and closes the modal
    */
   const handleClaimReward = async () => {
     setIsRewardEarned(true);
     if (params.featureId && user?.uid) {
       await unlockViaAd(user.uid, params.featureId);
     }
-    // Close modal after brief delay to show success state
+    // Close modal after a short delay to show success state
     setTimeout(() => {
       router.back();
     }, 1000);
   };
 
+  /**
+   * Video playback status update handler
+   * Could be used to track video progress or handle completion
+   */
+  const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+    // Optional: Auto-enable reward button when video completes
+    // Currently relies on timer instead of video completion
+  };
+
+  /**
+   * Handles video loading errors
+   * Falls back to static image if video fails to load
+   */
+  const handleVideoError = () => {
+    console.log("[Ad] Video failed to load, using fallback image");
+    setUseVideoFallback(true);
+  };
+
+  // === Render ===
+
   return (
     <SafeAreaView style={styles.container}>
+      {/* Loading State: Show spinner while ad is preparing */}
       {!isAdLoaded ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#ffffff" />
@@ -134,9 +147,9 @@ export default function AdvertisementModal() {
         </View>
       ) : (
         <View style={styles.adContent}>
-          {/* Ad Reward Timer - Always Visible */}
-          {/* Top Bar: Timer or Close Button */}
+          {/* Top Bar: Shows countdown timer or reward button */}
           <View style={styles.topBar}>
+            {/* Show countdown timer while waiting, then show reward button */}
             {timeLeft > 0 ? (
               <View style={styles.timerContainer}>
                 <Text style={styles.timerText}>Reward in {timeLeft}s</Text>
@@ -152,7 +165,7 @@ export default function AdvertisementModal() {
             )}
           </View>
 
-          {/* Video or Fallback Image */}
+          {/* Advertisement Video Player or Fallback Image */}
           <View style={styles.videoContainer}>
             {useVideoFallback ? (
               <Image
@@ -161,17 +174,22 @@ export default function AdvertisementModal() {
                 contentFit="contain"
               />
             ) : (
-              <VideoView
-                player={player}
+              <Video
+                ref={videoRef}
+                source={{ uri: videoSource }}
                 style={styles.video}
-                contentFit="contain"
-                allowsFullscreen={false}
-                allowsPictureInPicture={false}
-                nativeControls={false}
+                resizeMode={ResizeMode.CONTAIN}
+                shouldPlay={true}
+                isLooping={true} // Loop video until user claims reward
+                onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+                onError={handleVideoError}
+                useNativeControls={false}
+                isMuted={false}
               />
             )}
           </View>
 
+          {/* Footer: Advertisement label */}
           <View style={styles.footer}>
             <View style={styles.adLabelContainer}>
               <Ionicons name="volume-high" size={20} color="#666" />
@@ -184,14 +202,12 @@ export default function AdvertisementModal() {
   );
 }
 
-/**
- * Styles for the advertisement modal
- * Dark theme optimized for video playback experience
- */
+// === Styles ===
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000000", // Black background for video viewing
+    backgroundColor: "#000000", // Black background for ad experience
   },
   loadingContainer: {
     flex: 1,
@@ -210,7 +226,7 @@ const styles = StyleSheet.create({
   },
   topBar: {
     flexDirection: "row",
-    justifyContent: "flex-end", // Align timer/button to right
+    justifyContent: "flex-end", // Align to right
     paddingHorizontal: 8,
     paddingVertical: 8,
     zIndex: 10,
@@ -218,7 +234,7 @@ const styles = StyleSheet.create({
   timerContainer: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: "rgba(0,0,0,0.6)", // Semi-transparent overlay
+    backgroundColor: "rgba(0,0,0,0.6)", // Semi-transparent background
     borderRadius: 20,
   },
   closeButton: {
@@ -270,7 +286,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 8,
   },
-  // Unused legacy styles (kept for backward compatibility)
+  // Unused styles (kept for future use)
   claimButton: {
     display: "none",
   },
