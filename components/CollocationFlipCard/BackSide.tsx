@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import ExampleSection from "./ExampleSection";
 import ExplanationSection from "./ExplanationSection";
@@ -19,6 +19,23 @@ export default React.memo(function BackSide({
   const [activeSection, setActiveSection] = useState<
     "explanation" | "example" | "translation"
   >("explanation");
+
+  // Track if this is the first time the back becomes visible
+  const hasOpenedRef = useRef(false);
+
+  // Reset active section when card flips back to front
+  // This prevents flickering on the next flip
+  useEffect(() => {
+    if (!isVisible) {
+      hasOpenedRef.current = false;
+      // Reset to explanation when card is flipped back to front
+      setActiveSection("explanation");
+    } else if (!hasOpenedRef.current) {
+      // First time back is visible - ensure explanation is active
+      hasOpenedRef.current = true;
+      setActiveSection("explanation");
+    }
+  }, [isVisible]);
 
   const isExplanationOpen = isVisible && activeSection === "explanation";
   const isExampleOpen = isVisible && activeSection === "example";

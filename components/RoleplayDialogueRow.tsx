@@ -1,6 +1,5 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { useTheme } from "../src/context/ThemeContext";
 import { ThemedText } from "./themed-text";
 
 interface RoleplayDialogueRowProps {
@@ -14,16 +13,9 @@ export const RoleplayDialogueRow = React.memo(function RoleplayDialogueRow({
   text,
   contentStyle,
 }: RoleplayDialogueRowProps) {
-  const { isDark } = useTheme();
-
   return (
     <View style={styles.dialogueRow}>
-      <View
-        style={[
-          styles.roleBadge,
-          { backgroundColor: isDark ? "#2c2c2e" : "#e0e0e0" },
-        ]}
-      >
+      <View style={[styles.roleBadge]}>
         <ThemedText style={styles.roleText}>{role}</ThemedText>
       </View>
       <View style={{ flex: 1 }}>{text}</View>
@@ -40,8 +32,6 @@ const styles = StyleSheet.create({
   },
   roleBadge: {
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
   },
   roleText: {
     fontSize: 14,
