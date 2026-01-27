@@ -1,37 +1,42 @@
-import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system/legacy";
-import { Stack } from "expo-router";
-import { addDoc, collection, deleteDoc, getDocs } from "firebase/firestore";
-import { getMetadata, ref, uploadBytes } from "firebase/storage";
-import Papa from "papaparse";
+// Expo and React Native imports
+import * as DocumentPicker from "expo-document-picker"; // For selecting CSV files from device
+import * as FileSystem from "expo-file-system/legacy"; // For reading file contents
+import { Stack } from "expo-router"; // For navigation header configuration
+import { addDoc, collection, deleteDoc, getDocs } from "firebase/firestore"; // Firestore database operations
+import { getMetadata, ref, uploadBytes } from "firebase/storage"; // Firebase Storage operations
+import Papa from "papaparse"; // CSV parsing library
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AddVocaHeader from "../../src/components/admin/AddVocaHeader";
-import TabSwitcher from "../../src/components/admin/TabSwitcher";
+
+// Custom components
+import AddVocaHeader from "../../src/components/admin/AddVocaHeader"; // Course selector header
+import TabSwitcher from "../../src/components/admin/TabSwitcher"; // Toggle between CSV and Google Sheets
 import UploadCSVFileView, {
   CsvUploadItem,
-} from "../../src/components/admin/UploadCSVFileView";
+} from "../../src/components/admin/UploadCSVFileView"; // CSV upload interface
 import UploadViaLinkView, {
   SheetUploadItem,
-} from "../../src/components/admin/UploadViaLinkView";
+} from "../../src/components/admin/UploadViaLinkView"; // Google Sheets import interface
+
+// Hooks and utilities
 import { useTheme } from "../../src/context/ThemeContext";
-import useGoogleSheetsAuth from "../../src/hooks/useGoogleSheetsAuth";
+import useGoogleSheetsAuth from "../../src/hooks/useGoogleSheetsAuth"; // Google OAuth authentication
 import { db, storage } from "../../src/services/firebase";
 import { parseSheetValues } from "../../src/utils/googleSheetsUtils";
 
+// Type definition for tab switching
 type TabType = "csv" | "link";
 
+/**
+ * Admin screen for importing vocabulary data into Firestore
+ * Supports two import methods: CSV file upload and Google Sheets import
+ */
 export default function AddVocaScreen() {
   const { isDark } = useTheme();
   const styles = getStyles(isDark);
 
+  // Available courses with their Firestore collection paths
   const COURSES = [
     { name: "CSAT", path: process.env.EXPO_PUBLIC_COURSE_PATH_CSAT || "" },
     { name: "IELTS", path: process.env.EXPO_PUBLIC_COURSE_PATH_IELTS || "" },
@@ -43,27 +48,34 @@ export default function AddVocaScreen() {
     },
   ];
 
-  // State
-  const [activeTab, setActiveTab] = useState<TabType>("csv");
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState(COURSES[0]);
+  // === State Management ===
 
-  // CSV Items State
+  // UI state
+  const [activeTab, setActiveTab] = useState<TabType>("csv"); // Current active tab (CSV or Google Sheets)
+  const [loading, setLoading] = useState(false); // Loading indicator during upload
+  const [progress, setProgress] = useState(""); // Progress message for user feedback
+  const [selectedCourse, setSelectedCourse] = useState(COURSES[0]); // Currently selected course
+
+  // CSV upload state - array of items to upload (supports batch upload)
   const [csvItems, setCsvItems] = useState<CsvUploadItem[]>([
     { id: "1", day: "", file: null },
   ]);
 
-  // Sheet Items State
+  // Google Sheets import state - array of sheet items to import
   const [sheetItems, setSheetItems] = useState<SheetUploadItem[]>([
     { id: "1", day: "", sheetId: "", range: "Sheet1!A:E" },
   ]);
 
-  // Google Sheets integration
+  // Google Sheets OAuth authentication
   const { token, promptAsync } = useGoogleSheetsAuth();
-  const [waitingForToken, setWaitingForToken] = useState(false);
+  const [waitingForToken, setWaitingForToken] = useState(false); // Flag for auth flow
 
-  // CSV Handlers
+  // === CSV Upload Handlers ===
+
+  /**
+   * Opens document picker for selecting CSV files
+   * Updates the corresponding item in csvItems array with selected file
+   */
   const handlePickDocument = async (itemId: string) => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -88,8 +100,12 @@ export default function AddVocaScreen() {
     }
   };
 
+  /**
+   * Validates and processes batch upload of CSV files
+   * Each CSV file is uploaded to Storage and parsed into Firestore
+   */
   const handleBatchUpload = async () => {
-    // Validation
+    // Validate that all items have required fields
     const invalidItems = csvItems.filter(
       (item) => !item.day.trim() || !item.file,
     );
@@ -122,11 +138,17 @@ export default function AddVocaScreen() {
     }
   };
 
+  /**
+   * Processes a single CSV item:
+   * 1. Uploads CSV file to Firebase Storage
+   * 2. Reads and parses the CSV content
+   * 3. Uploads parsed data to Firestore
+   */
   const processCsvItem = async (
     item: CsvUploadItem,
     progressPrefix: string,
   ) => {
-    // 1. Upload CSV to Storage
+    // Step 1: Upload CSV file to Firebase Storage for backup
     setProgress(`${progressPrefix}Checking Storage...`);
     const storageRef = ref(
       storage,
@@ -151,7 +173,7 @@ export default function AddVocaScreen() {
       // Continue anyway
     }
 
-    // 2. Read and Parse
+    // Step 2: Read file content and parse CSV using PapaParse
     setProgress(`${progressPrefix}Reading file...`);
     const fileContent = await FileSystem.readAsStringAsync(item.file.uri);
 
@@ -175,9 +197,14 @@ export default function AddVocaScreen() {
     });
   };
 
-  // Google Sheets Handlers
+  // === Google Sheets Import Handlers ===
+
+  /**
+   * Initiates Google Sheets import
+   * Validates input and triggers OAuth flow if needed
+   */
   const handleSheetImportButton = async () => {
-    // Validation
+    // Validate that all items have required fields
     const invalidItems = sheetItems.filter(
       (item) => !item.day.trim() || !item.sheetId.trim(),
     );
@@ -202,12 +229,18 @@ export default function AddVocaScreen() {
     }
   };
 
-  // Shared upload logic
+  // === Shared Upload Logic ===
+
+  /**
+   * Uploads vocabulary data to Firestore
+   * Used by both CSV and Google Sheets import methods
+   * Clears existing data for the day before uploading new data
+   */
   const uploadData = useCallback(
     async (data: any[], day: string, progressPrefix: string) => {
       const fullPath = `${selectedCourse.path}/Day${day}`;
 
-      // Clear existing data
+      // Clear existing data for this day to avoid duplicates
       setProgress(`${progressPrefix}Clearing existing data...`);
       try {
         const querySnapshot = await getDocs(collection(db, fullPath));
@@ -219,7 +252,7 @@ export default function AddVocaScreen() {
         throw new Error(`Failed to clear existing data for Day ${day}`);
       }
 
-      // Upload new data
+      // Upload new vocabulary data to Firestore
       setProgress(`${progressPrefix}Uploading ${data.length} records...`);
 
       let successCount = 0;
@@ -228,14 +261,21 @@ export default function AddVocaScreen() {
       for (let i = 0; i < data.length; i++) {
         const item = data[i];
         try {
+          // Extract word/collocation from multiple possible column names
           const word = String(
-            item["Word"] || item["word"] || item["_1"] || "",
+            item["Word"] ||
+              item["word"] ||
+              item["_1"] ||
+              item["collocation"] ||
+              "",
           ).trim();
 
+          // Skip header row or empty entries
           if (word === "Word" || !word) continue;
 
           let docData: any = {};
 
+          // Different data structure for COLLOCATION vs other courses
           if (selectedCourse.name === "COLLOCATION") {
             docData = {
               collocation: word,
@@ -300,6 +340,10 @@ export default function AddVocaScreen() {
     [selectedCourse],
   );
 
+  /**
+   * Fetches data from Google Sheets and uploads to Firestore
+   * Requires valid OAuth token
+   */
   const handleBatchSheetImport = useCallback(async () => {
     if (!token) return;
 
@@ -348,6 +392,7 @@ export default function AddVocaScreen() {
     }
   }, [token, sheetItems, uploadData]);
 
+  // Trigger import automatically after OAuth authentication completes
   useEffect(() => {
     if (waitingForToken && token) {
       setWaitingForToken(false);
@@ -356,7 +401,7 @@ export default function AddVocaScreen() {
   }, [token, waitingForToken, handleBatchSheetImport]);
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
+    <SafeAreaView style={styles.container} edges={["left", "right"]}>
       <Stack.Screen
         options={{
           title: "Import Vocabulary",
@@ -366,59 +411,56 @@ export default function AddVocaScreen() {
         }}
       />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={100}
-      >
-        <View style={{ flex: 1 }}>
-          <View style={styles.topSection}>
-            <AddVocaHeader
-              selectedCourse={selectedCourse}
-              setSelectedCourse={setSelectedCourse}
-              isDark={isDark}
-              courses={COURSES}
-            />
+      <View style={{ flex: 1 }}>
+        <View style={styles.topSection}>
+          <AddVocaHeader
+            selectedCourse={selectedCourse}
+            setSelectedCourse={setSelectedCourse}
+            isDark={isDark}
+            courses={COURSES}
+          />
 
-            {/* Tab Switcher */}
-            <TabSwitcher
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              isDark={isDark}
-            />
-          </View>
-
-          {/* Tab Content */}
-          <View style={{ flex: 1 }}>
-            {activeTab === "csv" ? (
-              <UploadCSVFileView
-                items={csvItems}
-                setItems={setCsvItems}
-                loading={loading}
-                progress={progress}
-                isDark={isDark}
-                onPickDocument={handlePickDocument}
-                onUpload={handleBatchUpload}
-              />
-            ) : (
-              <UploadViaLinkView
-                items={sheetItems}
-                setItems={setSheetItems}
-                loading={loading}
-                progress={progress}
-                isDark={isDark}
-                token={token}
-                waitingForToken={waitingForToken}
-                onImport={handleSheetImportButton}
-              />
-            )}
-          </View>
+          {/* Tab Switcher */}
+          <TabSwitcher
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            isDark={isDark}
+          />
         </View>
-      </KeyboardAvoidingView>
+
+        {/* Tab Content */}
+        <View style={{ flex: 1 }}>
+          {activeTab === "csv" ? (
+            <UploadCSVFileView
+              items={csvItems}
+              setItems={setCsvItems}
+              loading={loading}
+              progress={progress}
+              isDark={isDark}
+              onPickDocument={handlePickDocument}
+              onUpload={handleBatchUpload}
+            />
+          ) : (
+            <UploadViaLinkView
+              items={sheetItems}
+              setItems={setSheetItems}
+              loading={loading}
+              progress={progress}
+              isDark={isDark}
+              token={token}
+              waitingForToken={waitingForToken}
+              onImport={handleSheetImportButton}
+            />
+          )}
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
 
+/**
+ * Dynamic styles based on theme (dark/light mode)
+ */
 const getStyles = (isDark: boolean) =>
   StyleSheet.create({
     container: {
