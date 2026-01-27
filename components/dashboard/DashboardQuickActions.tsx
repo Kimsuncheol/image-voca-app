@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { Href, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
@@ -11,7 +11,7 @@ export function DashboardQuickActions() {
   const { t } = useTranslation();
   const tabLayout = useTabLayout();
 
-  const handleTabAction = (key: string, href: string) => {
+  const handleTabAction = (key: string, href: Href) => {
     if (tabLayout) {
       tabLayout.goToTab(key);
       return;
