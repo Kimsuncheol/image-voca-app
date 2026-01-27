@@ -13,3 +13,5 @@ export { WordCardExample } from "./WordCardExample";
 export { WordCardHeader } from "./WordCardHeader";
 export { WordCardMeaning } from "./WordCardMeaning";
 
+// Skeleton components
+export { WordCardSkeleton } from "./WordCardSkeleton";

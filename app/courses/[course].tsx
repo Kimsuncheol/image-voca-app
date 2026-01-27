@@ -9,7 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 // Custom components
 import {
   EmptyWordBankView,
-  LoadingView,
+  SkeletonList,
   WordList,
 } from "../../components/course-wordbank";
 import { SavedWord } from "../../components/wordbank/WordCard";
@@ -202,7 +202,7 @@ export default function CourseWordBankScreen() {
       >
         {/* Conditional rendering based on loading and data state */}
         {loading ? (
-          <LoadingView />
+          <SkeletonList courseId={course} isDark={isDark} count={3} />
         ) : words.length === 0 ? (
           <EmptyWordBankView
             courseId={course}
