@@ -12,6 +12,8 @@ interface MultipleChoiceQuestionCardProps {
   questionLabelStyle?: object;
   contentStyle?: object;
   highlightText?: string;
+  showResult?: boolean;
+  correctAnswer?: string;
 }
 
 export function MultipleChoiceQuestionCard({
@@ -21,6 +23,8 @@ export function MultipleChoiceQuestionCard({
   questionLabelStyle,
   contentStyle,
   highlightText,
+  showResult,
+  correctAnswer,
 }: MultipleChoiceQuestionCardProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -46,6 +50,35 @@ export function MultipleChoiceQuestionCard({
                 highlightText &&
                 text.toLowerCase().includes(highlightText.toLowerCase())
               ) {
+                // If showing result, replace the highlighted text with correct answer
+                if (showResult && correctAnswer) {
+                  const parts = text.split(
+                    new RegExp(`(${highlightText})`, "gi"),
+                  );
+                  return (
+                    <ThemedText
+                      type="title"
+                      style={[styles.roleplayText, contentStyle]}
+                    >
+                      {parts.map((part, index) =>
+                        part.toLowerCase() === highlightText.toLowerCase() ? (
+                          <Text
+                            key={index}
+                            style={{
+                              color: "#34c759", // Green for correct
+                              fontWeight: "700",
+                            }}
+                          >
+                            {correctAnswer}
+                          </Text>
+                        ) : (
+                          <Text key={index}>{part}</Text>
+                        ),
+                      )}
+                    </ThemedText>
+                  );
+                }
+
                 const parts = text.split(
                   new RegExp(`(${highlightText})`, "gi"),
                 );

@@ -9,8 +9,8 @@ import { MatchingGame } from "./MatchingGame";
 import { MultipleChoiceGame } from "./MultipleChoiceGame";
 import { QuizFeedback } from "./QuizFeedback";
 import { SpellingGame } from "./SpellingGame";
-import { WordOrderTilesGame } from "./WordOrderTilesGame";
 import { WordArrangementGame } from "./WordArrangementGame";
+import { WordOrderTilesGame } from "./WordOrderTilesGame";
 
 interface QuizQuestion {
   id: string;
@@ -22,6 +22,7 @@ interface QuizQuestion {
   translation?: string;
   correctForms?: string[];
   prompt?: string;
+  highlightText?: string;
 }
 
 interface VocabData {
@@ -228,6 +229,7 @@ export function GameBoard({
               onAnswer={onAnswer}
               roleplay={currentQuestion.word}
               questionLabel={currentQuestion.prompt}
+              highlightText={currentQuestion.highlightText}
             />
           ) : (
             <MultipleChoiceGame

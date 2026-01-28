@@ -39,6 +39,8 @@ export function MultipleChoiceGame({
         questionLabelStyle={questionLabelStyle}
         contentStyle={contentStyle}
         highlightText={highlightText}
+        showResult={showResult}
+        correctAnswer={correctAnswer}
       />
 
       <MultipleChoiceOptions

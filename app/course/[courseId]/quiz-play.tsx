@@ -42,6 +42,7 @@ interface QuizQuestion {
   translation?: string;
   correctForms?: string[];
   prompt?: string;
+  highlightText?: string;
 }
 
 interface VocabData {
@@ -152,12 +153,10 @@ const generateQuizQuestions = (
         id: `q${index}`,
         word: errorSentence,
         meaning: vocab.meaning,
-        options: shuffleArray([
-          vocab.word,
-          ...wrongOptions.slice(0, 3),
-        ]),
+        options: shuffleArray([vocab.word, ...wrongOptions.slice(0, 3)]),
         correctAnswer: vocab.word,
         prompt: "Fix the incorrect collocation",
+        highlightText: incorrectWord,
       };
     });
   }

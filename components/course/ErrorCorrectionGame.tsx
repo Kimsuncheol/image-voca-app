@@ -17,7 +17,7 @@ export function ErrorCorrectionGame({
       questionLabel={questionLabel}
       questionLabelStyle={{ fontSize: 11 }}
       contentStyle={{ fontSize: 16, fontWeight: "light", textAlign: "left" }}
-      highlightText={word}
+      highlightText={props.highlightText ?? word}
     />
   );
 }
