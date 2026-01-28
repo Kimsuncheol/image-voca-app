@@ -70,6 +70,7 @@ interface GameBoardProps {
   arrangementComplete: boolean;
   sentenceChunkCounts: number[];
   focusedSentenceIndex: number;
+  roleLabelsByArea: string[];
   onFocusChange: (index: number) => void;
   onChunkSelect: (chunk: string, index: number) => void;
   onChunkDeselect: (areaIndex: number, chunkIndex: number) => void;
@@ -102,6 +103,7 @@ export function GameBoard({
   arrangementComplete,
   sentenceChunkCounts,
   focusedSentenceIndex,
+  roleLabelsByArea,
   onFocusChange,
   onChunkSelect,
   onChunkDeselect,
@@ -197,6 +199,7 @@ export function GameBoard({
           sentenceChunkCounts={sentenceChunkCounts}
           courseColor={courseColor}
           focusedSentenceIndex={focusedSentenceIndex}
+          roleLabelsByArea={roleLabelsByArea}
           onFocusChange={onFocusChange}
           onChunkSelect={onChunkSelect}
           onChunkDeselect={onChunkDeselect}
@@ -213,6 +216,7 @@ export function GameBoard({
           sentenceChunkCounts={sentenceChunkCounts}
           courseColor={courseColor}
           focusedSentenceIndex={focusedSentenceIndex}
+          roleLabelsByArea={roleLabelsByArea}
           onFocusChange={onFocusChange}
           onChunkSelect={onChunkSelect}
           onChunkDeselect={onChunkDeselect}

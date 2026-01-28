@@ -5,7 +5,6 @@ import { WordArrangementAnswerZone } from "./WordArrangementAnswerZone";
 import { WordArrangementAvailableChunks } from "./WordArrangementAvailableChunks";
 import { WordArrangementComplete } from "./WordArrangementComplete";
 import { WordArrangementInstructions } from "./WordArrangementInstructions";
-import { WordArrangementTargetCard } from "./WordArrangementTargetCard";
 
 interface WordArrangementGameProps {
   word: string;
@@ -17,6 +16,7 @@ interface WordArrangementGameProps {
   sentenceChunkCounts?: number[];
   courseColor?: string;
   focusedSentenceIndex?: number;
+  roleLabelsByArea?: string[];
   onFocusChange?: (index: number) => void;
   onChunkSelect: (chunk: string, index: number) => void;
   onChunkDeselect: (areaIndex: number, chunkIndex: number) => void;
@@ -33,6 +33,7 @@ export function WordArrangementGame({
   sentenceChunkCounts,
   courseColor,
   focusedSentenceIndex = 0,
+  roleLabelsByArea,
   onFocusChange,
   onChunkSelect,
   onChunkDeselect,
@@ -42,8 +43,6 @@ export function WordArrangementGame({
 
   return (
     <View style={styles.container}>
-      <WordArrangementTargetCard word={word} meaning={meaning} />
-
       <WordArrangementInstructions
         text={t("quiz.wordArrangement.instructions")}
       />
@@ -55,6 +54,7 @@ export function WordArrangementGame({
         onChunkDeselect={onChunkDeselect}
         translation={translation}
         focusedSentenceIndex={focusedSentenceIndex}
+        roleLabelsByArea={roleLabelsByArea}
         onFocusChange={onFocusChange}
       />
 

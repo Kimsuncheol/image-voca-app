@@ -12,6 +12,7 @@ interface WordArrangementAnswerZoneProps {
   onChunkDeselect: (areaIndex: number, chunkIndex: number) => void;
   translation?: string;
   focusedSentenceIndex?: number;
+  roleLabelsByArea?: string[];
   onFocusChange?: (index: number) => void;
 }
 
@@ -22,6 +23,7 @@ export function WordArrangementAnswerZone({
   onChunkDeselect,
   translation,
   focusedSentenceIndex = 0,
+  roleLabelsByArea,
   onFocusChange,
 }: WordArrangementAnswerZoneProps) {
   const { t } = useTranslation();
@@ -69,59 +71,65 @@ export function WordArrangementAnswerZone({
         {t("quiz.wordArrangement.yourSentence")}
       </ThemedText>
       <View style={styles.sentences}>
-        {selectedChunksByArea.map((areaChunks, areaIndex) => (
-          <TouchableOpacity
-            key={`sentence-${areaIndex}`}
-            style={[styles.sentenceContainer, getFocusedStyle(areaIndex)]}
-            onPress={() => handleSentenceFocus(areaIndex)}
-            activeOpacity={isComplete ? 1 : 0.7}
-            disabled={isComplete}
-          >
-            <View style={styles.sentenceRow}>
-              {showMultiple && (
+        {selectedChunksByArea.map((areaChunks, areaIndex) => {
+          const roleLabel = roleLabelsByArea?.[areaIndex];
+          return (
+            <TouchableOpacity
+              key={`sentence-${areaIndex}`}
+              style={[styles.sentenceContainer, getFocusedStyle(areaIndex)]}
+              onPress={() => handleSentenceFocus(areaIndex)}
+              activeOpacity={isComplete ? 1 : 0.7}
+              disabled={isComplete}
+            >
+              <View style={styles.sentenceRow}>
+                {showMultiple && (
+                  <ThemedText
+                    style={[
+                      styles.sentenceIndex,
+                      areaIndex === focusedSentenceIndex &&
+                        !isComplete &&
+                        styles.sentenceIndexFocused,
+                    ]}
+                  >
+                    {areaIndex + 1}.
+                  </ThemedText>
+                )}
+                {roleLabel ? (
+                  <ThemedText style={styles.roleLabel}>{roleLabel}</ThemedText>
+                ) : null}
+                <View style={styles.chunksRow}>
+                  {areaChunks.length === 0 ? (
+                    <ThemedText style={styles.placeholder}>
+                      {t("quiz.wordArrangement.tapToRemove")}
+                    </ThemedText>
+                  ) : (
+                    areaChunks.map((chunk, chunkIndex) => (
+                      <WordArrangementChunk
+                        key={`selected-${areaIndex}-${chunkIndex}`}
+                        chunk={chunk}
+                        onPress={() => onChunkDeselect(areaIndex, chunkIndex)}
+                        selected
+                        complete={isComplete}
+                        disabled={isComplete}
+                      />
+                    ))
+                  )}
+                </View>
+              </View>
+              {/* Show translation always */}
+              {translations[areaIndex] && (
                 <ThemedText
                   style={[
-                    styles.sentenceIndex,
-                    areaIndex === focusedSentenceIndex &&
-                      !isComplete &&
-                      styles.sentenceIndexFocused,
+                    styles.translationText,
+                    { color: isDark ? "#a8e6a1" : "#2d5f2d" },
                   ]}
                 >
-                  {areaIndex + 1}.
+                  {translations[areaIndex].trim()}
                 </ThemedText>
               )}
-              <View style={styles.chunksRow}>
-                {areaChunks.length === 0 ? (
-                  <ThemedText style={styles.placeholder}>
-                    {t("quiz.wordArrangement.tapToRemove")}
-                  </ThemedText>
-                ) : (
-                  areaChunks.map((chunk, chunkIndex) => (
-                    <WordArrangementChunk
-                      key={`selected-${areaIndex}-${chunkIndex}`}
-                      chunk={chunk}
-                      onPress={() => onChunkDeselect(areaIndex, chunkIndex)}
-                      selected
-                      complete={isComplete}
-                      disabled={isComplete}
-                    />
-                  ))
-                )}
-              </View>
-            </View>
-            {/* Show translation always */}
-            {translations[areaIndex] && (
-              <ThemedText
-                style={[
-                  styles.translationText,
-                  { color: isDark ? "#a8e6a1" : "#2d5f2d" },
-                ]}
-              >
-                {translations[areaIndex].trim()}
-              </ThemedText>
-            )}
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </View>
   );
@@ -165,6 +173,11 @@ const styles = StyleSheet.create({
   sentenceIndexFocused: {
     opacity: 1,
     fontWeight: "600",
+  },
+  roleLabel: {
+    fontSize: 15,
+    fontWeight: "600",
+    marginTop: 2,
   },
   chunksRow: {
     flexDirection: "row",

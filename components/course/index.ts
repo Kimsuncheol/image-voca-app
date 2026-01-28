@@ -24,7 +24,6 @@ export { QuizTypeHeader } from "./QuizTypeHeader";
 export { RecentCourseSection } from "./RecentCourseSection";
 export { SpellingGame } from "./SpellingGame";
 export { VocaHeader } from "./VocaHeader";
-export { WordOrderTilesGame } from "./WordOrderTilesGame";
 export { WordArrangementAnswerZone } from "./WordArrangementAnswerZone";
 export { WordArrangementAvailableChunks } from "./WordArrangementAvailableChunks";
 export { WordArrangementChunk } from "./WordArrangementChunk";
@@ -32,3 +31,5 @@ export { WordArrangementComplete } from "./WordArrangementComplete";
 export { WordArrangementGame } from "./WordArrangementGame";
 export { WordArrangementInstructions } from "./WordArrangementInstructions";
 export { WordArrangementTargetCard } from "./WordArrangementTargetCard";
+export { WordOrderTilesGame } from "./WordOrderTilesGame";
+

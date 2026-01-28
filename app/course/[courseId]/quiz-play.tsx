@@ -267,6 +267,17 @@ const tokenizeSentence = (sentence: string): string[] => {
 const normalizeSentence = (sentence: string) =>
   sentence.split(/\s+/).filter(Boolean).join(" ");
 
+const parseRoleplayLine = (
+  line: string,
+): { role: string; sentence: string } | null => {
+  const match = line.match(/^([^:]+):\s*(.+)$/);
+  if (!match) return null;
+  const role = match[1].trim();
+  const sentence = match[2].trim();
+  if (!role || !sentence) return null;
+  return { role, sentence };
+};
+
 const splitExampleSentences = (example: string): string[] => {
   const normalized = example.replace(/\r\n/g, "\n").trim();
   if (!normalized) return [];
@@ -317,6 +328,7 @@ export default function QuizPlayScreen() {
   }>();
   const quizVariant = quizType || "multiple-choice";
   const resolvedQuizType = resolveQuizType(quizVariant);
+  const isWordOrderTiles = quizVariant === "word-order-tiles";
 
   const course = COURSES.find((c) => c.id === courseId);
   const dayNumber = parseInt(day || "1", 10);
@@ -351,6 +363,7 @@ export default function QuizPlayScreen() {
     useState<string[]>([]);
   const [sentenceChunkCounts, setSentenceChunkCounts] = useState<number[]>([]);
   const [focusedSentenceIndex, setFocusedSentenceIndex] = useState(0);
+  const [roleLabelsByArea, setRoleLabelsByArea] = useState<string[]>([]);
 
   useEffect(() => {
     if (user && courseId) {
@@ -599,26 +612,69 @@ export default function QuizPlayScreen() {
   };
 
   // Word Arrangement: Initialize a new word for arrangement
-  const initWordArrangement = React.useCallback((vocab: VocabData) => {
-    if (!vocab.example) return;
-    const sentences = splitExampleSentences(vocab.example)
-      .map((sentence) => normalizeSentence(sentence))
-      .filter(Boolean);
-    if (sentences.length === 0) return;
+  const initWordArrangement = React.useCallback(
+    (vocab: VocabData) => {
+      if (!vocab.example) return;
+      const sentences = splitExampleSentences(vocab.example)
+        .map((sentence) => normalizeSentence(sentence))
+        .filter(Boolean);
+      if (sentences.length === 0) return;
 
-    const sentenceChunks = sentences.map((sentence) =>
-      tokenizeSentence(sentence),
-    );
-    const chunks = sentenceChunks.flat();
-    setCurrentArrangementWord(vocab);
-    setCurrentArrangementSentences(sentences);
-    setSentenceChunkCounts(sentenceChunks.map((chunk) => chunk.length));
-    setShuffledChunks(shuffleArray([...chunks]));
-    // Initialize empty arrays for each sentence area
-    setSelectedChunksByArea(sentences.map(() => []));
-    setArrangementComplete(false);
-    setFocusedSentenceIndex(0);
-  }, []);
+      const translationLines = vocab.translation
+        ? splitExampleSentences(vocab.translation)
+            .map((line) => normalizeSentence(line))
+            .filter(Boolean)
+        : [];
+
+      const roleplayLines = sentences.map((sentence) =>
+        parseRoleplayLine(sentence),
+      );
+      const isRoleplay = roleplayLines.every(Boolean);
+
+      const shouldPickSingle = isWordOrderTiles && sentences.length > 1;
+      const selectedIndex = shouldPickSingle
+        ? Math.floor(Math.random() * sentences.length)
+        : null;
+      const selectedIndices = shouldPickSingle
+        ? [selectedIndex as number]
+        : sentences.map((_, index) => index);
+
+      const selectedSentences = selectedIndices.map((index) => {
+        if (isRoleplay && roleplayLines[index]) {
+          return roleplayLines[index]?.sentence ?? sentences[index];
+        }
+        return sentences[index];
+      });
+
+      const selectedRoleLabels = selectedIndices.map((index) => {
+        if (isRoleplay && roleplayLines[index]) {
+          return `${roleplayLines[index]?.role}:`;
+        }
+        return "";
+      });
+
+      const sentenceChunks = selectedSentences.map((sentence) =>
+        tokenizeSentence(sentence),
+      );
+      const chunks = sentenceChunks.flat();
+      const selectedTranslation = shouldPickSingle
+        ? translationLines[selectedIndex as number]
+        : vocab.translation;
+
+      setCurrentArrangementWord({
+        ...vocab,
+        translation: selectedTranslation ?? vocab.translation,
+      });
+      setCurrentArrangementSentences(selectedSentences);
+      setSentenceChunkCounts(sentenceChunks.map((chunk) => chunk.length));
+      setShuffledChunks(shuffleArray([...chunks]));
+      setSelectedChunksByArea(selectedSentences.map(() => []));
+      setRoleLabelsByArea(selectedRoleLabels);
+      setArrangementComplete(false);
+      setFocusedSentenceIndex(0);
+    },
+    [isWordOrderTiles],
+  );
 
   // Word Arrangement: Handle selecting a chunk from available
   const handleChunkSelect = (chunk: string, index: number) => {
@@ -973,6 +1029,7 @@ export default function QuizPlayScreen() {
             arrangementComplete={arrangementComplete}
             sentenceChunkCounts={sentenceChunkCounts}
             focusedSentenceIndex={focusedSentenceIndex}
+            roleLabelsByArea={roleLabelsByArea}
             onFocusChange={handleFocusChange}
             onChunkSelect={handleChunkSelect}
             onChunkDeselect={handleChunkDeselect}
