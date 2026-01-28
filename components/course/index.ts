@@ -30,6 +30,5 @@ export { WordArrangementChunk } from "./WordArrangementChunk";
 export { WordArrangementComplete } from "./WordArrangementComplete";
 export { WordArrangementGame } from "./WordArrangementGame";
 export { WordArrangementInstructions } from "./WordArrangementInstructions";
-export { WordArrangementTargetCard } from "./WordArrangementTargetCard";
 export { WordOrderTilesGame } from "./WordOrderTilesGame";
 
