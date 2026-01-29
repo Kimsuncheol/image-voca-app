@@ -1,8 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as Speech from "expo-speech";
 import React from "react";
 import {
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +9,7 @@ import {
 } from "react-native";
 import Collapsible from "react-native-collapsible";
 import { RoleplayRenderer } from "./RoleplayRenderer";
+import { SpeakerButton } from "./SpeakerButton";
 
 interface ExampleSectionProps {
   example: string;
@@ -27,53 +26,6 @@ export default React.memo(function ExampleSection({
   isDark,
   maxHeight,
 }: ExampleSectionProps) {
-  const [isSpeaking, setIsSpeaking] = React.useState(false);
-  const [isPaused, setIsPaused] = React.useState(false);
-
-  const handleSpeech = React.useCallback(async () => {
-    if (isPaused) {
-      await Speech.resume();
-      setIsPaused(false);
-      setIsSpeaking(true);
-    } else if (isSpeaking) {
-      if (Platform.OS === "android") {
-        await Speech.stop();
-        setIsSpeaking(false);
-        setIsPaused(false);
-      } else {
-        await Speech.pause();
-        setIsPaused(true);
-        setIsSpeaking(false);
-      }
-    } else {
-      Speech.speak(example, {
-        onStart: () => {
-          setIsSpeaking(true);
-          setIsPaused(false);
-        },
-        onDone: () => {
-          setIsSpeaking(false);
-          setIsPaused(false);
-        },
-        onStopped: () => {
-          setIsSpeaking(false);
-          setIsPaused(false);
-        },
-        onError: () => {
-          setIsSpeaking(false);
-          setIsPaused(false);
-        },
-      });
-    }
-  }, [example, isPaused, isSpeaking]);
-
-  // Clean up on unmount
-  React.useEffect(() => {
-    return () => {
-      Speech.stop();
-    };
-  }, []);
-
   return (
     <View>
       <TouchableOpacity
@@ -103,21 +55,14 @@ export default React.memo(function ExampleSection({
                   showsVerticalScrollIndicator
                   nestedScrollEnabled={true}
                 >
-                  <RoleplayRenderer content={example} isDark={isDark} />
+                  <View style={styles.scrollContentRow}>
+                    <View style={styles.scrollText}>
+                      <RoleplayRenderer content={example} isDark={isDark} />
+                    </View>
+                    <SpeakerButton text={example} isDark={isDark} />
+                  </View>
                 </ScrollView>
               </View>
-              <TouchableOpacity
-                onPress={handleSpeech}
-                style={styles.speakerButton}
-              >
-                <Ionicons
-                  name={
-                    isSpeaking ? "pause" : isPaused ? "play" : "volume-medium"
-                  }
-                  size={20}
-                  color={isDark ? "#ccc" : "#999"}
-                />
-              </TouchableOpacity>
             </View>
           ) : null}
         </View>
@@ -162,8 +107,12 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
     gap: 8,
   },
-  speakerButton: {
-    padding: 4,
-    marginTop: -2, // Align with text
+  scrollContentRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+  },
+  scrollText: {
+    flex: 1,
   },
 });
