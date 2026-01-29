@@ -17,6 +17,7 @@ interface ExampleSectionProps {
   isOpen: boolean;
   onToggle: () => void;
   isDark: boolean;
+  maxHeight?: number;
 }
 
 export default React.memo(function ExampleSection({
@@ -24,6 +25,7 @@ export default React.memo(function ExampleSection({
   isOpen,
   onToggle,
   isDark,
+  maxHeight,
 }: ExampleSectionProps) {
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [isPaused, setIsPaused] = React.useState(false);
@@ -93,7 +95,10 @@ export default React.memo(function ExampleSection({
             <View style={styles.exampleRow}>
               <View style={styles.exampleContent}>
                 <ScrollView
-                  style={styles.exampleScroll}
+                  style={[
+                    styles.exampleScroll,
+                    maxHeight ? { maxHeight } : null,
+                  ]}
                   contentContainerStyle={styles.exampleScrollContent}
                   showsVerticalScrollIndicator
                   nestedScrollEnabled={true}

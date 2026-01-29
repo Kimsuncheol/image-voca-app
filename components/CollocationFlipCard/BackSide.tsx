@@ -23,6 +23,7 @@ export default React.memo(function BackSide({
   const [activeSection, setActiveSection] = useState<
     "explanation" | "example" | "translation"
   >(initialSection);
+  const [contentHeight, setContentHeight] = useState(0);
 
   // Track if this is the first time the back becomes visible
   const hasOpenedRef = useRef(false);
@@ -57,6 +58,18 @@ export default React.memo(function BackSide({
     setActiveSection("translation");
   }, []);
 
+  const handleContentLayout = React.useCallback(
+    (event: { nativeEvent: { layout: { height: number } } }) => {
+      const nextHeight = event.nativeEvent.layout.height;
+      if (nextHeight && nextHeight !== contentHeight) {
+        setContentHeight(nextHeight);
+      }
+    },
+    [contentHeight],
+  );
+
+  const exampleMaxHeight = contentHeight ? contentHeight * 0.7 : undefined;
+
   return (
     <View style={[styles.back, isDark && styles.backDark]}>
       {onFlip && <Pressable style={styles.flipOverlay} onPress={onFlip} />}
@@ -64,7 +77,11 @@ export default React.memo(function BackSide({
       {/* Accent Brand Mark */}
       <View style={styles.accentMark} />
 
-      <View style={styles.backContentContainer} pointerEvents="box-none">
+      <View
+        style={styles.backContentContainer}
+        pointerEvents="box-none"
+        onLayout={handleContentLayout}
+      >
         <ExplanationSection
           explanation={data.explanation}
           isOpen={isExplanationOpen}
@@ -77,6 +94,7 @@ export default React.memo(function BackSide({
           isOpen={isExampleOpen}
           onToggle={handleToggleExample}
           isDark={isDark}
+          maxHeight={exampleMaxHeight}
         />
 
         <TranslationSection
