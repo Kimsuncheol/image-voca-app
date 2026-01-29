@@ -266,12 +266,20 @@ export default function AddVocaScreen() {
             item["Word"] ||
               item["word"] ||
               item["_1"] ||
+              item["Collocation"] ||
               item["collocation"] ||
               "",
           ).trim();
 
           // Skip header row or empty entries
-          if (word === "Word" || !word) continue;
+          if (
+            word === "Word" ||
+            word === "word" ||
+            !word ||
+            word === "Collocation" ||
+            word === "collocation"
+          )
+            continue;
 
           let docData: any = {};
 
