@@ -11,13 +11,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 // Custom components
 import AddVocaHeader from "../../src/components/admin/AddVocaHeader"; // Course selector header
+import { CsvUploadItem } from "../../src/components/admin/CsvUploadItemView";
+import { SheetUploadItem } from "../../src/components/admin/GoogleSheetUploadItemView";
 import TabSwitcher from "../../src/components/admin/TabSwitcher"; // Toggle between CSV and Google Sheets
-import UploadCSVFileView, {
-  CsvUploadItem,
-} from "../../src/components/admin/UploadCSVFileView"; // CSV upload interface
-import UploadViaLinkView, {
-  SheetUploadItem,
-} from "../../src/components/admin/UploadViaLinkView"; // Google Sheets import interface
+import UploadCSVFileView from "../../src/components/admin/UploadCSVFileView"; // CSV upload interface
+import UploadViaLinkView from "../../src/components/admin/UploadViaLinkView"; // Google Sheets import interface
 
 // Hooks and utilities
 import { useTheme } from "../../src/context/ThemeContext";

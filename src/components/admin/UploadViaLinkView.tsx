@@ -1,18 +1,10 @@
 import React from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import AddAnotherButton from "./AddAnotherButton";
-import DayInput from "./DayInput";
-import RangeInput from "./RangeInput";
-import SheetIdInput from "./SheetIdInput";
+import GoogleSheetUploadItemView, {
+  SheetUploadItem,
+} from "./GoogleSheetUploadItemView";
 import UploadActionButton from "./UploadActionButton";
-import UploadItemHeader from "./UploadItemHeader";
-
-export interface SheetUploadItem {
-  id: string;
-  day: string;
-  sheetId: string;
-  range: string;
-}
 
 interface UploadViaLinkViewProps {
   items: SheetUploadItem[];
@@ -81,42 +73,21 @@ export default function UploadViaLinkView({
         <Text style={styles.sectionTitle}>Import from Google Sheets</Text>
 
         {items.map((item, index) => (
-          <View key={item.id} style={styles.itemContainer}>
-            <UploadItemHeader
-              index={index}
-              showDelete={items.length > 1}
-              onDelete={() => handleRemoveItem(item.id)}
-              titlePrefix="Import"
-              isDark={isDark}
-            />
-
-            <DayInput
-              value={item.day}
-              onChangeText={(text) => handleUpdateItem(item.id, "day", text)}
-              editable={!loading}
-              isDark={isDark}
-            />
-
-            <SheetIdInput
-              value={item.sheetId}
-              onChangeText={(text) =>
-                handleUpdateItem(item.id, "sheetId", text)
-              }
-              editable={!loading}
-              isDark={isDark}
-            />
-
-            <RangeInput
-              value={item.range}
-              onChangeText={(text) => handleUpdateItem(item.id, "range", text)}
-              editable={!loading}
-              isDark={isDark}
-            />
-          </View>
+          <GoogleSheetUploadItemView
+            key={item.id}
+            index={index}
+            item={item}
+            showDelete={items.length > 1}
+            onDelete={() => handleRemoveItem(item.id)}
+            onUpdate={(field, value) => handleUpdateItem(item.id, field, value)}
+            loading={loading}
+            isDark={isDark}
+          />
         ))}
         {loading && <Text style={styles.progressText}>{progress}</Text>}
       </ScrollView>
 
+      {/* Bottom Component */}
       <View style={styles.bottomComponent}>
         <AddAnotherButton
           onPress={handleAddItem}
@@ -151,14 +122,6 @@ const getStyles = (isDark: boolean) =>
       fontWeight: "bold",
       color: isDark ? "#fff" : "#000",
       marginBottom: 16,
-    },
-    itemContainer: {
-      backgroundColor: isDark ? "#2c2c2e" : "#fff",
-      padding: 16,
-      borderRadius: 12,
-      marginBottom: 16,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: isDark ? "#38383a" : "#c6c6c8",
     },
     divider: {
       height: 1,

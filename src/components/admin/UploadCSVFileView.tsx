@@ -1,16 +1,8 @@
 import React from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import AddAnotherButton from "./AddAnotherButton";
-import DayInput from "./DayInput";
-import FilePicker from "./FilePicker";
+import CsvUploadItemView, { CsvUploadItem } from "./CsvUploadItemView";
 import UploadActionButton from "./UploadActionButton";
-import UploadItemHeader from "./UploadItemHeader";
-
-export interface CsvUploadItem {
-  id: string;
-  day: string;
-  file: any;
-}
 
 interface UploadCSVFileViewProps {
   items: CsvUploadItem[];
@@ -59,33 +51,22 @@ export default function UploadCSVFileView({
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {items.map((item, index) => (
-          <View key={item.id} style={styles.itemContainer}>
-            <UploadItemHeader
-              index={index}
-              showDelete={items.length > 1}
-              onDelete={() => handleRemoveItem(item.id)}
-              titlePrefix="Upload"
-              isDark={isDark}
-            />
-
-            <DayInput
-              value={item.day}
-              onChangeText={(text) => handleUpdateDay(item.id, text)}
-              editable={!loading}
-              isDark={isDark}
-            />
-
-            <FilePicker
-              file={item.file}
-              onPick={() => onPickDocument(item.id)}
-              loading={loading}
-              isDark={isDark}
-            />
-          </View>
+          <CsvUploadItemView
+            key={item.id}
+            index={index}
+            item={item}
+            showDelete={items.length > 1}
+            onDelete={() => handleRemoveItem(item.id)}
+            onUpdateDay={(text) => handleUpdateDay(item.id, text)}
+            onPickFile={() => onPickDocument(item.id)}
+            loading={loading}
+            isDark={isDark}
+          />
         ))}
         {loading && <Text style={styles.progressText}>{progress}</Text>}
       </ScrollView>
 
+      {/* Bottom Component */}
       <View style={styles.bottomComponent}>
         <AddAnotherButton
           onPress={handleAddItem}
@@ -108,14 +89,6 @@ export default function UploadCSVFileView({
 
 const getStyles = (isDark: boolean) =>
   StyleSheet.create({
-    itemContainer: {
-      backgroundColor: isDark ? "#2c2c2e" : "#fff",
-      padding: 16,
-      borderRadius: 12,
-      marginBottom: 16,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: isDark ? "#38383a" : "#c6c6c8",
-    },
     divider: {
       height: 1,
       backgroundColor: isDark ? "#38383a" : "#e5e5ea",
