@@ -1,10 +1,7 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
-  collection,
   doc,
   getDoc,
-  getDocs,
-  query,
   updateDoc,
 } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
@@ -17,6 +14,12 @@ import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
 import { db } from "../../../src/services/firebase";
+import {
+  fetchVocabularyCards,
+  getCachedVocabularyCards,
+  hydrateVocabularyCache,
+  isVocabularyCacheFresh,
+} from "../../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../../src/stores";
 import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
 
@@ -27,44 +30,6 @@ import { VocabularyLoadingSkeleton } from "../../../components/course/vocabulary
 import { VocabularySwipeDeck } from "../../../components/course/vocabulary/VocabularySwipeDeck";
 
 const { width, height } = Dimensions.get("window");
-
-// --- Helper Functions ---
-
-/**
- * Maps the course ID to the corresponding Firestore collection path and prefix.
- * This determines where to fetch the vocabulary data from.
- */
-const getCourseConfig = (courseId: CourseType) => {
-  switch (courseId) {
-    case "수능":
-      return {
-        path: process.env.EXPO_PUBLIC_COURSE_PATH_CSAT,
-        prefix: "CSAT",
-      };
-    case "TOEIC":
-      return {
-        path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC,
-        prefix: "TOEIC",
-      };
-    case "TOEFL":
-      return {
-        path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL,
-        prefix: "TOEFL",
-      };
-    case "IELTS":
-      return {
-        path: process.env.EXPO_PUBLIC_COURSE_PATH_IELTS,
-        prefix: "IELTS",
-      };
-    case "COLLOCATION":
-      return {
-        path: process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION,
-        prefix: "COLLOCATION",
-      };
-    default:
-      return { path: "", prefix: "" };
-  }
-};
 
 export default function VocabularyScreen() {
   // --- Hooks & Contexts ---
@@ -99,68 +64,80 @@ export default function VocabularyScreen() {
    * Runs when courseId or dayNumber changes.
    */
   useEffect(() => {
-    const fetchVocabulary = async () => {
-      setLoading(true);
+    if (!courseId) return;
+    let isMounted = true;
+
+    const fetchVocabulary = async (showLoading: boolean) => {
+      if (showLoading && isMounted) {
+        setLoading(true);
+      }
       try {
-        const config = getCourseConfig(courseId as CourseType);
-
-        if (!config.path) {
-          console.error("No path configuration for course:", courseId);
-          setLoading(false);
-          return;
-        }
-
-        // Construct the subcollection name (e.g., "Day1")
-        const subCollectionName = `Day${dayNumber}`;
-        const targetCollection = collection(db, config.path, subCollectionName);
-
-        // Query Firestore for all documents in the day's collection
-        const q = query(targetCollection);
-        const querySnapshot = await getDocs(q);
-
-        // Map Firestore documents to VocabularyCard objects
-        const fetchedCards: VocabularyCard[] = querySnapshot.docs.map((doc) => {
-          const data = doc.data();
-
-          // Handle special structure for Collocation course
-          if (courseId === "COLLOCATION") {
-            return {
-              id: doc.id,
-              word: data.collocation, // Map 'collocation' to 'word' property
-              meaning: data.meaning,
-              translation: data.translation,
-              pronunciation: data.explanation, // Temporarily map 'explanation' to pronunciation
-              example: data.example,
-              image: data.image,
-              course: courseId as CourseType,
-            };
-          }
-
-          // Standard structure for other courses
-          return {
-            id: doc.id,
-            word: data.word,
-            meaning: data.meaning,
-            translation: data.translation,
-            pronunciation: data.pronunciation,
-            example: data.example,
-            image: data.image,
-            course: courseId as CourseType,
-          };
-        });
-
-        console.log(
-          `Fetched ${fetchedCards.length} words from ${subCollectionName}`,
+        const fetchedCards = await fetchVocabularyCards(
+          courseId as CourseType,
+          dayNumber,
         );
-        setCards(fetchedCards);
+        if (isMounted) {
+          setCards(fetchedCards);
+          setLoading(false);
+        }
       } catch (error) {
         console.error("Error fetching vocabulary:", error);
-      } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchVocabulary();
+    const bootstrap = async () => {
+      let hasCache = false;
+      let fresh = false;
+
+      const cached = getCachedVocabularyCards(
+        courseId as CourseType,
+        dayNumber,
+      );
+      if (cached && cached.length > 0) {
+        hasCache = true;
+        fresh = isVocabularyCacheFresh(courseId as CourseType, dayNumber);
+        if (isMounted) {
+          setCards(cached);
+          setLoading(false);
+        }
+      } else {
+        if (isMounted) {
+          setLoading(true);
+        }
+        try {
+          const stored = await hydrateVocabularyCache(
+            courseId as CourseType,
+            dayNumber,
+            { allowStale: true },
+          );
+          if (stored && stored.length > 0) {
+            hasCache = true;
+            fresh = isVocabularyCacheFresh(courseId as CourseType, dayNumber);
+            if (isMounted) {
+              setCards(stored);
+              setLoading(false);
+            }
+          }
+        } catch (error) {
+          console.warn("Failed to hydrate vocabulary cache:", error);
+        }
+      }
+
+      if (!hasCache) {
+        await fetchVocabulary(true);
+      } else if (!fresh) {
+        void fetchVocabulary(false);
+      }
+    };
+
+    bootstrap();
+
+    return () => {
+      isMounted = false;
+    };
   }, [courseId, dayNumber]);
 
   /**
