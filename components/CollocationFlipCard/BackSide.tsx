@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import ExampleSection from "./ExampleSection";
 import ExplanationSection from "./ExplanationSection";
 import TranslationSection from "./TranslationSection";
@@ -10,6 +10,7 @@ interface BackSideProps {
   isDark: boolean;
   isVisible: boolean;
   initialSection?: "explanation" | "example" | "translation";
+  onFlip?: () => void;
 }
 
 export default React.memo(function BackSide({
@@ -17,6 +18,7 @@ export default React.memo(function BackSide({
   isDark,
   isVisible,
   initialSection = "explanation",
+  onFlip,
 }: BackSideProps) {
   const [activeSection, setActiveSection] = useState<
     "explanation" | "example" | "translation"
@@ -57,10 +59,12 @@ export default React.memo(function BackSide({
 
   return (
     <View style={[styles.back, isDark && styles.backDark]}>
+      {onFlip && <Pressable style={styles.flipOverlay} onPress={onFlip} />}
+
       {/* Accent Brand Mark */}
       <View style={styles.accentMark} />
 
-      <View style={styles.backContentContainer}>
+      <View style={styles.backContentContainer} pointerEvents="box-none">
         <ExplanationSection
           explanation={data.explanation}
           isOpen={isExplanationOpen}
@@ -119,6 +123,14 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     transform: [{ rotate: "15deg" }],
   },
+  flipOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 24,
+  },
   backContentContainer: {
     flex: 1,
     paddingTop: 40,
@@ -127,6 +139,7 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: "center",
     paddingBottom: 0,
-    height: 40,
+    height: 52,
+    justifyContent: "center",
   },
 });

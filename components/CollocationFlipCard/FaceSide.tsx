@@ -22,12 +22,14 @@ interface FaceSideProps {
   data: CollocationData;
   isDark: boolean;
   wordBankConfig?: CollocationWordBankConfig;
+  onFlip?: () => void;
 }
 
 export default React.memo(function FaceSide({
   data,
   isDark,
   wordBankConfig,
+  onFlip,
 }: FaceSideProps) {
   const { user } = useAuth();
   const { recordWordLearned } = useUserStatsStore();
@@ -155,7 +157,11 @@ export default React.memo(function FaceSide({
   }, [canDelete, wordBankConfig]);
 
   return (
-    <View style={[styles.face, isDark && styles.faceDark]}>
+    <Pressable
+      style={[styles.face, isDark && styles.faceDark]}
+      onPress={onFlip}
+      disabled={!onFlip}
+    >
       {/* Accent Brand Mark */}
       <View style={styles.accentMark} />
 
@@ -233,8 +239,9 @@ export default React.memo(function FaceSide({
             </Text>
           </TouchableOpacity>
         )}
+
       </View>
-    </View>
+    </Pressable>
   );
 });
 

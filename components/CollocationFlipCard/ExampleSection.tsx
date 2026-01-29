@@ -3,6 +3,7 @@ import * as Speech from "expo-speech";
 import React from "react";
 import {
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -90,8 +91,15 @@ export default React.memo(function ExampleSection({
         <View style={styles.sectionContent}>
           {example ? (
             <View style={styles.exampleRow}>
-              <View style={{ flex: 1, marginRight: 8, gap: 8 }}>
-                <RoleplayRenderer content={example} isDark={isDark} />
+              <View style={styles.exampleContent}>
+                <ScrollView
+                  style={styles.exampleScroll}
+                  contentContainerStyle={styles.exampleScrollContent}
+                  showsVerticalScrollIndicator
+                  nestedScrollEnabled={true}
+                >
+                  <RoleplayRenderer content={example} isDark={isDark} />
+                </ScrollView>
               </View>
               <TouchableOpacity
                 onPress={handleSpeech}
@@ -137,6 +145,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
+  },
+  exampleContent: {
+    flex: 1,
+    marginRight: 8,
+  },
+  exampleScroll: {
+    maxHeight: 140,
+  },
+  exampleScrollContent: {
+    paddingBottom: 4,
+    gap: 8,
   },
   speakerButton: {
     padding: 4,

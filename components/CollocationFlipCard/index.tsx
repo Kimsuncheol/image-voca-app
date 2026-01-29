@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Dimensions, StyleSheet } from "react-native";
 import FlipCard from "react-native-flip-card";
 import BackSide from "./BackSide";
@@ -16,22 +16,42 @@ interface Props {
 export const CollocationFlipCard: React.FC<Props> = React.memo(
   ({ data, isDark = false, wordBankConfig }) => {
     const [isBackVisible, setIsBackVisible] = useState(false);
+    const [isFlipped, setIsFlipped] = useState(false);
+
+    const handleFlipToBack = useCallback(() => {
+      setIsFlipped(true);
+    }, []);
+
+    const handleFlipToFront = useCallback(() => {
+      setIsFlipped(false);
+    }, []);
 
     return (
       <FlipCard
         style={styles.card}
+        flip={isFlipped}
         friction={10}
         perspective={2000}
         flipHorizontal={true}
         flipVertical={false}
-        clickable={true}
+        clickable={false}
         onFlipEnd={setIsBackVisible}
       >
         {/* Face Side */}
-        <FaceSide data={data} isDark={isDark} wordBankConfig={wordBankConfig} />
+        <FaceSide
+          data={data}
+          isDark={isDark}
+          wordBankConfig={wordBankConfig}
+          onFlip={handleFlipToBack}
+        />
 
         {/* Back Side */}
-        <BackSide data={data} isDark={isDark} isVisible={isBackVisible} />
+        <BackSide
+          data={data}
+          isDark={isDark}
+          isVisible={isBackVisible}
+          onFlip={handleFlipToFront}
+        />
       </FlipCard>
     );
   },
