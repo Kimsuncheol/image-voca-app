@@ -3,7 +3,7 @@ import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { doc, getDoc, setDoc } from "firebase/firestore"; // Firestore database operations
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next"; // Internationalization
-import { Alert, ScrollView, StyleSheet } from "react-native";
+import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Custom components
@@ -53,6 +53,7 @@ export default function CourseWordBankScreen() {
 
   // Find course metadata (color, title, etc.) from course configuration
   const courseData = COURSES.find((c) => c.id === course);
+  const isCollocationCourse = course === "COLLOCATION";
 
   // === Data Fetching ===
 
@@ -196,29 +197,52 @@ export default function CourseWordBankScreen() {
         }}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Conditional rendering based on loading and data state */}
-        {loading ? (
-          <SkeletonList courseId={course} isDark={isDark} count={3} />
-        ) : words.length === 0 ? (
-          <EmptyWordBankView
-            courseId={course}
-            courseColor={courseData?.color}
-            isDark={isDark}
-          />
-        ) : (
-          <WordList
-            words={words}
-            courseId={course}
-            courseColor={courseData?.color}
-            isDark={isDark}
-            onDelete={handleDelete}
-          />
-        )}
-      </ScrollView>
+      {isCollocationCourse ? (
+        <View style={styles.pagerContainer}>
+          {/* Conditional rendering based on loading and data state */}
+          {loading ? (
+            <SkeletonList courseId={course} isDark={isDark} count={1} />
+          ) : words.length === 0 ? (
+            <EmptyWordBankView
+              courseId={course}
+              courseColor={courseData?.color}
+              isDark={isDark}
+            />
+          ) : (
+            <WordList
+              words={words}
+              courseId={course}
+              courseColor={courseData?.color}
+              isDark={isDark}
+              onDelete={handleDelete}
+            />
+          )}
+        </View>
+      ) : (
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Conditional rendering based on loading and data state */}
+          {loading ? (
+            <SkeletonList courseId={course} isDark={isDark} count={3} />
+          ) : words.length === 0 ? (
+            <EmptyWordBankView
+              courseId={course}
+              courseColor={courseData?.color}
+              isDark={isDark}
+            />
+          ) : (
+            <WordList
+              words={words}
+              courseId={course}
+              courseColor={courseData?.color}
+              isDark={isDark}
+              onDelete={handleDelete}
+            />
+          )}
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
@@ -232,5 +256,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
     paddingBottom: 40,
+  },
+  pagerContainer: {
+    flex: 1,
+    width: "100%",
   },
 });

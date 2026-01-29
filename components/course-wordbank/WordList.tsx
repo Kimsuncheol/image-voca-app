@@ -1,4 +1,6 @@
 import React from "react";
+import PagerView from "react-native-pager-view";
+import { StyleSheet, View } from "react-native";
 import { CourseType } from "../../src/types/vocabulary";
 import { CollocationFlipCard } from "../CollocationFlipCard";
 import { SavedWord, WordCard } from "../wordbank/WordCard";
@@ -28,30 +30,31 @@ export function WordList({
   // COLLOCATION course uses special flip card design
   if (courseId === "COLLOCATION") {
     return (
-      <>
-        {words.map((word, index) => (
-          <CollocationFlipCard
-            key={`${word.id}-${index}`}
-            data={{
-              collocation: word.word,
-              meaning: word.meaning,
-              explanation: word.pronunciation || "", // Explanation stored in pronunciation field
-              example: word.example,
-              translation: word.translation || "",
-            }}
-            isDark={isDark}
-            wordBankConfig={{
-              id: word.id,
-              course: courseId as CourseType,
-              day: word.day,
-              initialIsSaved: true, // Already saved in word bank
-              enableAdd: false, // Can't add again
-              enableDelete: true, // Can delete from word bank
-              onDelete,
-            }}
-          />
+      <PagerView style={styles.pagerView}>
+        {words.map((word) => (
+          <View key={word.id} style={styles.page}>
+            <CollocationFlipCard
+              data={{
+                collocation: word.word,
+                meaning: word.meaning,
+                explanation: word.pronunciation || "", // Explanation stored in pronunciation field
+                example: word.example,
+                translation: word.translation || "",
+              }}
+              isDark={isDark}
+              wordBankConfig={{
+                id: word.id,
+                course: courseId as CourseType,
+                day: word.day,
+                initialIsSaved: true, // Already saved in word bank
+                enableAdd: false, // Can't add again
+                enableDelete: true, // Can delete from word bank
+                onDelete,
+              }}
+            />
+          </View>
         ))}
-      </>
+      </PagerView>
     );
   }
 
@@ -70,3 +73,15 @@ export function WordList({
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  pagerView: {
+    flex: 1,
+    width: "100%",
+  },
+  page: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});
