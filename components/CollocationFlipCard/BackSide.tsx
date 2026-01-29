@@ -68,7 +68,8 @@ export default React.memo(function BackSide({
     [contentHeight],
   );
 
-  const exampleMaxHeight = contentHeight ? contentHeight * 0.7 : undefined;
+  const exampleMaxHeight = contentHeight ? contentHeight * 0.6 : undefined;
+  const translationMaxHeight = contentHeight ? contentHeight * 0.6 : undefined;
 
   return (
     <View style={[styles.back, isDark && styles.backDark]}>
@@ -102,6 +103,7 @@ export default React.memo(function BackSide({
           isOpen={isTranslationOpen}
           onToggle={handleToggleTranslation}
           isDark={isDark}
+          maxHeight={translationMaxHeight}
         />
       </View>
 

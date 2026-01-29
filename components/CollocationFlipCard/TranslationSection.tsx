@@ -1,6 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Collapsible from "react-native-collapsible";
 
 interface TranslationSectionProps {
@@ -8,6 +14,7 @@ interface TranslationSectionProps {
   isOpen: boolean;
   onToggle: () => void;
   isDark: boolean;
+  maxHeight?: number;
 }
 
 /**
@@ -21,6 +28,7 @@ export default React.memo(function TranslationSection({
   isOpen,
   onToggle,
   isDark,
+  maxHeight,
 }: TranslationSectionProps) {
   return (
     <View>
@@ -39,9 +47,16 @@ export default React.memo(function TranslationSection({
 
       <Collapsible collapsed={!isOpen}>
         <View style={styles.sectionContent}>
-          <Text style={[styles.value, isDark && styles.textDark]}>
-            {translation}
-          </Text>
+          <ScrollView
+            style={[styles.translationScroll, maxHeight ? { maxHeight } : null]}
+            contentContainerStyle={styles.translationScrollContent}
+            showsVerticalScrollIndicator
+            nestedScrollEnabled
+          >
+            <Text style={[styles.value, isDark && styles.textDark]}>
+              {translation}
+            </Text>
+          </ScrollView>
         </View>
       </Collapsible>
     </View>
@@ -73,6 +88,12 @@ const styles = StyleSheet.create({
     color: "#333",
     lineHeight: 26,
     fontWeight: "400",
+  },
+  translationScroll: {
+    maxHeight: 140,
+  },
+  translationScrollContent: {
+    paddingBottom: 4,
   },
   textDark: {
     color: "#FFFFFF",
