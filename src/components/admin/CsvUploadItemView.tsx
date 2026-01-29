@@ -66,7 +66,7 @@ const getStyles = (isDark: boolean) =>
       backgroundColor: isDark ? "#2c2c2e" : "#fff",
       padding: 16,
       borderRadius: 12,
-      marginBottom: 16,
+      marginBottom: 24,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: isDark ? "#38383a" : "#c6c6c8",
     },

@@ -1,10 +1,12 @@
 import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
 import AddAnotherButton from "./AddAnotherButton";
 import GoogleSheetUploadItemView, {
   SheetUploadItem,
 } from "./GoogleSheetUploadItemView";
-import UploadActionButton from "./UploadActionButton";
+import UploadFooter from "./UploadFooter";
+
+const { height } = Dimensions.get("window");
 
 interface UploadViaLinkViewProps {
   items: SheetUploadItem[];
@@ -84,33 +86,31 @@ export default function UploadViaLinkView({
             isDark={isDark}
           />
         ))}
-        {loading && <Text style={styles.progressText}>{progress}</Text>}
-      </ScrollView>
 
-      {/* Bottom Component */}
-      <View style={styles.bottomComponent}>
         <AddAnotherButton
           onPress={handleAddItem}
           disabled={loading}
           text="Add Another Link"
           borderColor={borderColor}
+          fontColor={borderColor}
         />
 
-        {/* <View style={styles.divider} /> */}
+        {loading && <Text style={styles.progressText}>{progress}</Text>}
+      </ScrollView>
 
-        <UploadActionButton
-          onPress={onImport}
-          loading={loading}
-          disabled={loading}
-          text={
-            token
-              ? `Import ${items.filter((i) => i.sheetId && i.day).length} Item(s)`
-              : "Connect & Import"
-          }
-          iconName="grid"
-          backgroundColor="#0F9D58"
-        />
-      </View>
+      <UploadFooter
+        onPress={onImport}
+        loading={loading}
+        disabled={loading}
+        text={
+          token
+            ? `Import ${items.filter((i) => i.sheetId && i.day).length} Item(s)`
+            : "Connect & Import"
+        }
+        iconName="grid"
+        backgroundColor="#0F9D58"
+        isDark={isDark}
+      />
     </View>
   );
 }
@@ -132,23 +132,10 @@ const getStyles = (isDark: boolean) =>
       textAlign: "center",
       fontSize: 14,
       color: isDark ? "#8e8e93" : "#6e6e73",
-      marginBottom: 20,
-    },
-    bottomComponent: {
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: isDark ? "#000" : "#f2f2f7", // Match screen background or container background
-      paddingHorizontal: 20,
-      paddingVertical: 16,
-      justifyContent: "center",
-      gap: 16,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: isDark ? "#38383a" : "#c6c6c8",
+      marginVertical: 20,
     },
     scrollContent: {
-      paddingBottom: 200, // Sufficient space for the bottom component
+      paddingBottom: height * 0.175, // Sufficient space for the bottom component
       paddingHorizontal: 20,
       paddingTop: 20,
     },

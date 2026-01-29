@@ -1,8 +1,10 @@
 import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
 import AddAnotherButton from "./AddAnotherButton";
 import CsvUploadItemView, { CsvUploadItem } from "./CsvUploadItemView";
-import UploadActionButton from "./UploadActionButton";
+import UploadFooter from "./UploadFooter";
+
+const { height } = Dimensions.get("window");
 
 interface UploadCSVFileViewProps {
   items: CsvUploadItem[];
@@ -63,11 +65,7 @@ export default function UploadCSVFileView({
             isDark={isDark}
           />
         ))}
-        {loading && <Text style={styles.progressText}>{progress}</Text>}
-      </ScrollView>
 
-      {/* Bottom Component */}
-      <View style={styles.bottomComponent}>
         <AddAnotherButton
           onPress={handleAddItem}
           disabled={loading}
@@ -75,14 +73,17 @@ export default function UploadCSVFileView({
           borderColor={borderColor}
         />
 
-        <UploadActionButton
-          onPress={onUpload}
-          loading={loading}
-          disabled={loading}
-          text={`Upload ${items.filter((i) => i.file && i.day).length} Item(s)`}
-          iconName="cloud-upload"
-        />
-      </View>
+        {loading && <Text style={styles.progressText}>{progress}</Text>}
+      </ScrollView>
+
+      <UploadFooter
+        onPress={onUpload}
+        loading={loading}
+        disabled={loading}
+        text={`Upload ${items.filter((i) => i.file && i.day).length} Item(s)`}
+        iconName="cloud-upload"
+        isDark={isDark}
+      />
     </View>
   );
 }
@@ -98,22 +99,10 @@ const getStyles = (isDark: boolean) =>
       textAlign: "center",
       fontSize: 14,
       color: isDark ? "#8e8e93" : "#6e6e73",
-      marginBottom: 20,
-    },
-    bottomComponent: {
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      justifyContent: "center",
-      gap: 16,
-      backgroundColor: isDark ? "#000" : "#f2f2f7", // Match screen background or container background
-      padding: 20,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: isDark ? "#38383a" : "#c6c6c8",
+      marginVertical: 20,
     },
     scrollContent: {
-      paddingBottom: 200, // Sufficient space for the bottom component
+      paddingBottom: height * 0.175, // Sufficient space for the bottom component
       paddingHorizontal: 20,
     },
   });

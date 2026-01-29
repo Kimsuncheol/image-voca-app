@@ -7,6 +7,7 @@ interface AddAnotherButtonProps {
   disabled: boolean;
   text: string;
   borderColor?: string;
+  fontColor?: string;
 }
 
 export default function AddAnotherButton({
@@ -14,6 +15,7 @@ export default function AddAnotherButton({
   disabled,
   text,
   borderColor,
+  fontColor = "#007AFF",
 }: AddAnotherButtonProps) {
   return (
     <TouchableOpacity
@@ -21,8 +23,8 @@ export default function AddAnotherButton({
       onPress={onPress}
       disabled={disabled}
     >
-      <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
-      <Text style={styles.addButtonText}>{text}</Text>
+      <Ionicons name="add-circle-outline" size={20} color={fontColor} />
+      <Text style={[styles.addButtonText, { color: fontColor }]}>{text}</Text>
     </TouchableOpacity>
   );
 }
@@ -38,7 +40,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   addButtonText: {
-    color: "#007AFF",
     fontSize: 16,
     fontWeight: "600",
   },

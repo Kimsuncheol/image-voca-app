@@ -1,5 +1,11 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface Course {
   name: string;
@@ -25,7 +31,11 @@ export default function AddVocaHeader({
     <>
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Select Course</Text>
-        <View style={styles.courseContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.courseContainer}
+        >
           {courses.map((course) => (
             <TouchableOpacity
               key={course.name}
@@ -50,7 +60,7 @@ export default function AddVocaHeader({
               </Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
       </View>
     </>
   );
@@ -85,8 +95,8 @@ const getStyles = (isDark: boolean) =>
     },
     courseContainer: {
       flexDirection: "row",
-      flexWrap: "wrap",
       gap: 10,
+      paddingRight: 20, // Add padding at the end for better scrolling experience
     },
     courseButton: {
       paddingVertical: 8,
