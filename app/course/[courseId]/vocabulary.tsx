@@ -1,7 +1,3 @@
-import {
-  TinderSwipe,
-  TinderSwipeRef,
-} from "@/src/components/tinder-swipe/TinderSwipe";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
   collection,
@@ -11,22 +7,12 @@ import {
   query,
   updateDoc,
 } from "firebase/firestore";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Dimensions,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Dimensions, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { SwipeCardItem } from "../../../components/swipe/SwipeCardItem";
-import { VocabularyCardSkeleton } from "../../../components/swipe/VocabularyCardSkeleton";
 
-import { CollocationSwipeable } from "../../../components/CollocationFlipCard/CollocationSwipeable";
-
-import CollocationSkeleton from "@/components/CollocationFlipCard/CollocationSkeleton";
+// Contexts & Service
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
@@ -34,8 +20,20 @@ import { db } from "../../../src/services/firebase";
 import { useUserStatsStore } from "../../../src/stores";
 import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
 
+// Components
+import { VocabularyEmptyState } from "../../../components/course/vocabulary/VocabularyEmptyState";
+import { VocabularyFinishView } from "../../../components/course/vocabulary/VocabularyFinishView";
+import { VocabularyLoadingSkeleton } from "../../../components/course/vocabulary/VocabularyLoadingSkeleton";
+import { VocabularySwipeDeck } from "../../../components/course/vocabulary/VocabularySwipeDeck";
+
 const { width, height } = Dimensions.get("window");
 
+// --- Helper Functions ---
+
+/**
+ * Maps the course ID to the corresponding Firestore collection path and prefix.
+ * This determines where to fetch the vocabulary data from.
+ */
 const getCourseConfig = (courseId: CourseType) => {
   switch (courseId) {
     case "수능":
@@ -69,26 +67,37 @@ const getCourseConfig = (courseId: CourseType) => {
 };
 
 export default function VocabularyScreen() {
+  // --- Hooks & Contexts ---
   const { isDark } = useTheme();
   const { user } = useAuth();
   const { bufferWordLearned, flushWordStats, updateCourseDayProgress } =
     useUserStatsStore();
-  useTimeTracking(); // Track time spent on this screen
+
+  // Track time spent learning on this screen
+  useTimeTracking();
+
+  // Navigation params: courseId (e.g., 'TOEIC') and day (e.g., '1')
   const { courseId, day } = useLocalSearchParams<{
     courseId: CourseType;
     day: string;
   }>();
   const router = useRouter();
-  const [isFinished, setIsFinished] = useState(false);
-  const swipeRef = useRef<TinderSwipeRef>(null);
   const { t } = useTranslation();
 
-  const [cards, setCards] = useState<VocabularyCard[]>([]);
-  const [savedWordIds, setSavedWordIds] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
+  // --- State Management ---
+  const [isFinished, setIsFinished] = useState(false); // Tracks if user completed all cards
+  const [cards, setCards] = useState<VocabularyCard[]>([]); // The list of vocabulary words
+  const [savedWordIds, setSavedWordIds] = useState<Set<string>>(new Set()); // IDs of words saved in WordBank
+  const [loading, setLoading] = useState(true); // Loading state for data fetching
 
   const dayNumber = parseInt(day || "1", 10);
 
+  // --- Effects: Data Fetching ---
+
+  /**
+   * Effect to fetch vocabulary data from Firestore based on courseId and day.
+   * Runs when courseId or dayNumber changes.
+   */
   useEffect(() => {
     const fetchVocabulary = async () => {
       setLoading(true);
@@ -101,34 +110,33 @@ export default function VocabularyScreen() {
           return;
         }
 
-        // Don't use prefix
-        // Don't modify this line
-        // Construct subcollection name: e.g. CSAT1_Day1
+        // Construct the subcollection name (e.g., "Day1")
         const subCollectionName = `Day${dayNumber}`;
-        // const subCollectionName = `${config.prefix}1_Day${dayNumber}`;
         const targetCollection = collection(db, config.path, subCollectionName);
 
-        // Fetch data
-        // Try ordering by word or just fetch as is
+        // Query Firestore for all documents in the day's collection
         const q = query(targetCollection);
         const querySnapshot = await getDocs(q);
 
+        // Map Firestore documents to VocabularyCard objects
         const fetchedCards: VocabularyCard[] = querySnapshot.docs.map((doc) => {
           const data = doc.data();
 
+          // Handle special structure for Collocation course
           if (courseId === "COLLOCATION") {
             return {
               id: doc.id,
-              word: data.collocation, // Map 'collocation' to 'word'
+              word: data.collocation, // Map 'collocation' to 'word' property
               meaning: data.meaning,
               translation: data.translation,
-              pronunciation: data.explanation, // Map 'explanation' to 'pronunciation' field for now, or we need to update VocabularyCard type
+              pronunciation: data.explanation, // Temporarily map 'explanation' to pronunciation
               example: data.example,
               image: data.image,
               course: courseId as CourseType,
             };
           }
 
+          // Standard structure for other courses
           return {
             id: doc.id,
             word: data.word,
@@ -136,7 +144,7 @@ export default function VocabularyScreen() {
             translation: data.translation,
             pronunciation: data.pronunciation,
             example: data.example,
-            image: data.image, // Optional if it exists
+            image: data.image,
             course: courseId as CourseType,
           };
         });
@@ -153,10 +161,12 @@ export default function VocabularyScreen() {
     };
 
     fetchVocabulary();
-    fetchVocabulary();
   }, [courseId, dayNumber]);
 
-  // Fetch saved words from Word Bank
+  /**
+   * Effect to fetch saved word IDs from the user's Word Bank.
+   * This allows the UI to show which cards are already saved.
+   */
   useEffect(() => {
     const fetchSavedWords = async () => {
       if (!user || !courseId) return;
@@ -179,38 +189,54 @@ export default function VocabularyScreen() {
     fetchSavedWords();
   }, [user, courseId]);
 
+  // --- Event Handlers: Swipe & Progress ---
+
+  /**
+   * Handler for swiping right (Learned).
+   * Buffers the word as learned in the user stats store.
+   */
   const onSwipeRight = (item: VocabularyCard) => {
     console.log("Learned:", item.word);
-    // Record unique word learned (prevents duplicates)
     if (user) {
       const wordId = `${courseId}-${item.id}`;
       bufferWordLearned(user.uid, wordId);
     }
   };
 
+  /**
+   * Handler for swiping left (Skipped/Review).
+   * Currently treats skipped words as 'viewed/learned' for progress tracking purposes.
+   */
   const onSwipeLeft = (item: VocabularyCard) => {
     console.log("Learned:", item.word);
-    // console.log("Skipped:", item.word);
-    // Still counts as viewing the word
     if (user) {
       const wordId = `${courseId}-${item.id}`;
       bufferWordLearned(user.uid, wordId);
     }
   };
 
+  /**
+   * Handler for when all cards in the deck have been swiped/viewed.
+   * 1. Marks the session as finished.
+   * 2. Flushes buffered stats to Firestore.
+   * 3. Updates the course progress (completion status) in Firestore.
+   */
   const handleRunOutOfCards = async () => {
     setIsFinished(true);
     if (user && courseId) {
-      // Flush buffered words
+      // Flush buffered words to database
       await flushWordStats(user.uid);
 
       try {
+        // Update user's progress for this specific course and day
         await updateDoc(doc(db, "users", user.uid), {
           [`courseProgress.${courseId}.${dayNumber}.completed`]: true,
           [`courseProgress.${courseId}.${dayNumber}.totalWords`]: cards.length,
           [`courseProgress.${courseId}.${dayNumber}.wordsLearned`]:
             cards.length,
         });
+
+        // Update local store state
         updateCourseDayProgress(courseId, dayNumber, {
           completed: true,
           totalWords: cards.length,
@@ -222,13 +248,13 @@ export default function VocabularyScreen() {
     }
   };
 
+  /**
+   * Handler for Collocation Swipeable page change.
+   * Records the word as learned when viewed in the pager.
+   */
   const handlePageChange = (index: number) => {
-    // Determine which word was just "viewed".
-    // PagerView: current index is visible.
-    // If we want to mark it as learned when viewed:
     if (cards[index]) {
       const item = cards[index];
-      // console.log("Learned (Pager):", item.word);
       if (user) {
         const wordId = `${courseId}-${item.id}`;
         bufferWordLearned(user.uid, wordId);
@@ -236,10 +262,11 @@ export default function VocabularyScreen() {
     }
   };
 
+  // --- Event Handlers: Navigation Actions ---
+
   const handleRestart = () => {
-    setCards([...cards]); // Re-set cards to trigger re-render if needed, but keys might need update.
-    // Ideally fetch again or just reset index. TinderSwipe might need a key change to reset.
-    // For now simplistic reload.
+    // Reset cards to force re-render/reset of deck
+    setCards([...cards]);
     router.replace({
       pathname: "/course/[courseId]/vocabulary",
       params: { courseId, day },
@@ -252,6 +279,19 @@ export default function VocabularyScreen() {
       params: { courseId, day },
     });
   };
+
+  // --- Render Helpers ---
+
+  const renderFinishedView = () => (
+    <VocabularyFinishView
+      isDark={isDark}
+      onQuiz={handleQuiz}
+      onRestart={handleRestart}
+      t={t}
+    />
+  );
+
+  // --- Main Render ---
 
   if (loading) {
     return (
@@ -267,42 +307,15 @@ export default function VocabularyScreen() {
             headerBackTitle: t("common.back"),
           }}
         />
-        <View style={styles.swipeContainer}>
-          {courseId === "COLLOCATION" ? (
-            <CollocationSkeleton />
-          ) : (
-            <VocabularyCardSkeleton />
-          )}
-        </View>
+        <VocabularyLoadingSkeleton courseId={courseId as CourseType} />
       </SafeAreaView>
     );
   }
 
-  const renderFinishedView = () => (
-    <View style={styles.finishedContainer}>
-      <Text style={[styles.finishedText, { color: isDark ? "#fff" : "#000" }]}>
-        {t("course.checked")}
-      </Text>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.button, styles.quizButton]}
-          onPress={handleQuiz}
-        >
-          <Text style={styles.buttonText}>{t("course.takeQuiz")}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.restartButton]}
-          onPress={handleRestart}
-        >
-          <Text style={styles.buttonText}>{t("common.review")}</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      edges={["top", "bottom"]}
     >
       <Stack.Screen
         options={{
@@ -316,50 +329,33 @@ export default function VocabularyScreen() {
             style={{
               flex: 1,
               width: "100%",
-              // For Collocation, we keep the view visible to show the finish page inside the pager
+              // For Collocation cards (PagerView), we keep the view visible to show the finish page inside the pager
+              // For TinderSwipe, we hide it when finished to show the separate completion view
               display:
                 isFinished && courseId !== "COLLOCATION" ? "none" : "flex",
             }}
           >
-            {courseId === "COLLOCATION" ? (
-              <CollocationSwipeable
-                data={cards}
-                isDark={isDark}
-                onIndexChange={handlePageChange}
-                onFinish={handleRunOutOfCards}
-                renderFinalPage={renderFinishedView}
-                day={dayNumber}
-                savedWordIds={savedWordIds}
-              />
-            ) : (
-              <TinderSwipe
-                ref={swipeRef}
-                data={cards}
-                renderCard={(item) => (
-                  <SwipeCardItem
-                    item={item}
-                    initialIsSaved={savedWordIds.has(item.id)}
-                    day={dayNumber}
-                  />
-                )}
-                onSwipeRight={onSwipeRight}
-                onSwipeLeft={onSwipeLeft}
-                loop={false}
-                onRunOutOfCards={handleRunOutOfCards}
-                swipeLeftMode="rewind"
-              />
-            )}
+            <VocabularySwipeDeck
+              cards={cards}
+              courseId={courseId as CourseType}
+              isDark={isDark}
+              dayNumber={dayNumber}
+              savedWordIds={savedWordIds}
+              onSwipeRight={onSwipeRight}
+              onSwipeLeft={onSwipeLeft}
+              onIndexChange={handlePageChange}
+              onFinish={handleRunOutOfCards}
+              renderFinishView={renderFinishedView}
+            />
           </View>
         ) : (
-          <View
-            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-          >
-            <Text style={{ color: isDark ? "#fff" : "#000" }}>
-              No words found for this day.
-            </Text>
-          </View>
+          <VocabularyEmptyState isDark={isDark} />
         )}
 
+        {/* 
+          Show finish view explicitly for non-Collocation courses.
+          Collocation courses handle the finish view internally within the PagerView.
+        */}
         {isFinished && courseId !== "COLLOCATION" && renderFinishedView()}
       </View>
     </SafeAreaView>
@@ -377,42 +373,5 @@ const styles = StyleSheet.create({
     width: width,
     alignItems: "center",
     justifyContent: "center",
-  },
-  finishedContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  finishedText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 30,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    gap: 20,
-    marginBottom: 16,
-  },
-  button: {
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 25,
-    minWidth: 120,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  quizButton: {
-    backgroundColor: "#28a745",
-  },
-  restartButton: {
-    backgroundColor: "#007bff",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
   },
 });
