@@ -4,15 +4,17 @@ import {
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { collection, getDocs, limit, query } from "firebase/firestore";
 
 import { DayGrid, DayPickerHeader } from "../../../components/course";
 import { SubscriptionBadge } from "../../../components/subscription";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { db } from "../../../src/services/firebase";
 import {
   DayProgress,
   useSubscriptionStore,
@@ -36,6 +38,27 @@ import { COURSES, CourseType } from "../../../src/types/vocabulary";
  * - Handle navigation to learning (Vocabulary) or testing (Quiz).
  * - Support Ad-based unlocking for specific days.
  */
+const getCoursePath = (id: CourseType) => {
+  switch (id) {
+    case "수능":
+      return process.env.EXPO_PUBLIC_COURSE_PATH_CSAT || "";
+    case "TOEIC":
+      return process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC || "";
+    case "TOEFL":
+      return process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL || "";
+    case "TOEIC_SPEAKING":
+      return process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC_SPEAKING || "";
+    case "IELTS":
+      return process.env.EXPO_PUBLIC_COURSE_PATH_IELTS || "";
+    case "OPIC":
+      return process.env.EXPO_PUBLIC_COURSE_PATH_OPIC || "";
+    case "COLLOCATION":
+      return process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION || "";
+    default:
+      return "";
+  }
+};
+
 export default function DayPickerScreen() {
   // ---------------------------------------------------------------------------
   // Hooks & Context
@@ -62,7 +85,7 @@ export default function DayPickerScreen() {
   // Derived State & Constants
   // ---------------------------------------------------------------------------
   const course = COURSES.find((c) => c.id === courseId);
-  const totalDays = 30; // Hardcoded 30-day curriculum per course
+  const [totalDays, setTotalDays] = useState(30);
   const freeDayLimit = 3; // Days 1-3 are always free
 
   // Progress data for this specific course
@@ -92,6 +115,68 @@ export default function DayPickerScreen() {
       fetchCourseProgress,
     ]),
   );
+
+  useEffect(() => {
+    if (!courseId) return;
+
+    let isActive = true;
+    const loadTotalDays = async () => {
+      const path = getCoursePath(courseId);
+      if (!path) {
+        console.warn("[Days] Missing course path for:", courseId);
+        if (isActive) {
+          setTotalDays(30);
+        }
+        return;
+      }
+
+      try {
+        const daysCollection = collection(db, path, "days");
+        const snapshot = await getDocs(daysCollection);
+        const daysCount = snapshot.size;
+        let maxDayFromVocabulary = 0;
+
+        if (daysCount <= 30) {
+          for (let day = 31; day <= 120; day += 1) {
+            const dayCollection = collection(db, path, `Day${day}`);
+            const daySnapshot = await getDocs(query(dayCollection, limit(1)));
+            if (daySnapshot.empty) {
+              break;
+            }
+            maxDayFromVocabulary = day;
+          }
+        }
+
+        const resolvedTotalDays = Math.max(30, daysCount, maxDayFromVocabulary);
+
+        if (isActive) {
+          setTotalDays(resolvedTotalDays);
+        }
+
+        console.log(
+          "[Days] courseId:",
+          courseId,
+          "daysCount:",
+          daysCount,
+          "maxDayFromVocabulary:",
+          maxDayFromVocabulary,
+          "totalDays:",
+          resolvedTotalDays,
+        );
+      } catch (error) {
+        console.error("[Days] Failed to load day count:", error);
+        if (isActive) {
+          setTotalDays(30);
+        }
+      }
+    };
+
+    loadTotalDays();
+
+    return () => {
+      isActive = false;
+    };
+  }, [courseId]);
 
   // ---------------------------------------------------------------------------
   // Handlers
