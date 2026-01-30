@@ -10,20 +10,36 @@ import { COURSES } from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
 import { PopQuizSkeleton } from "./PopQuizSkeleton";
 
+/**
+ * DashboardPopQuiz Component
+ *
+ * A simplified quiz widget displayed on the dashboard.
+ * Features:
+ * - Fetches random vocabulary words from various courses.
+ * - Displays a multiple-choice quiz format.
+ * - Handles batching and prefetching for infinite play.
+ * - Tracks user answers and updates statistics.
+ */
 export function DashboardPopQuiz() {
+  // ---------------------------------------------------------------------------
+  // Hooks & Context
+  // ---------------------------------------------------------------------------
   const { isDark } = useTheme();
   const { t } = useTranslation();
   const { user } = useAuth();
   const { bufferQuizAnswer, flushQuizStats } = useUserStatsStore();
 
-  // Batch prefetch state
+  // ---------------------------------------------------------------------------
+  // State Management
+  // ---------------------------------------------------------------------------
+  // Batch prefetch state: manages batches of words to minimize database reads
   const [currentBatch, setCurrentBatch] = useState<any[]>([]);
   const [nextBatch, setNextBatch] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [turnNumber, setTurnNumber] = useState(1);
   const [isPrefetching, setIsPrefetching] = useState(false);
 
-  // Quiz state
+  // Quiz state: manages the current question and UI interaction
   const [quizItem, setQuizItem] = useState<{
     word: string;
     meaning: string;
@@ -33,10 +49,17 @@ export function DashboardPopQuiz() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  // Animation
+  // ---------------------------------------------------------------------------
+  // Animations
+  // ---------------------------------------------------------------------------
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // helper to get course path
+  // ---------------------------------------------------------------------------
+  // Helper Functions
+  // ---------------------------------------------------------------------------
+  /**
+   * Helper to get Firestore collection path based on course ID.
+   */
   const getCoursePath = (courseId: string) => {
     switch (courseId) {
       case "수능":
@@ -56,7 +79,13 @@ export function DashboardPopQuiz() {
     }
   };
 
-  // Fetch a batch of 10 words
+  // ---------------------------------------------------------------------------
+  // Data Fetching Logic
+  // ---------------------------------------------------------------------------
+  /**
+   * Fetch a batch of 10 random words from random courses and days.
+   * Tries multiple random combinations until a valid batch is found.
+   */
   const fetchBatch = useCallback(async () => {
     try {
       const shuffledCourses = [...COURSES].sort(() => Math.random() - 0.5);
@@ -103,7 +132,9 @@ export function DashboardPopQuiz() {
     }
   }, []);
 
-  // Prefetch next batch
+  /**
+   * Prefetch the next batch in the background.
+   */
   const prefetchNextBatch = useCallback(async () => {
     if (isPrefetching) return;
 
@@ -114,7 +145,13 @@ export function DashboardPopQuiz() {
     console.log("Prefetched next batch");
   }, [fetchBatch, isPrefetching]);
 
-  // Generate quiz from current word
+  // ---------------------------------------------------------------------------
+  // Quiz Generation & Navigation Logic
+  // ---------------------------------------------------------------------------
+  /**
+   * Generates a single quiz item from the current batch.
+   * Creates distractors from other words in the same batch.
+   */
   const generateQuiz = useCallback((wordData: any, batch: any[]) => {
     if (batch.length < 4) return;
 
@@ -142,7 +179,10 @@ export function DashboardPopQuiz() {
     setOptions(allOptions);
   }, []);
 
-  // Load next quiz from current batch
+  /**
+   * Handle transitioning to the next quiz question.
+   * Manages batch switching and triggering prefetching.
+   */
   const loadNextQuiz = useCallback(() => {
     if (currentBatch.length === 0) return;
 
@@ -181,7 +221,12 @@ export function DashboardPopQuiz() {
     prefetchNextBatch,
   ]);
 
-  // Initial load
+  // ---------------------------------------------------------------------------
+  // Side Effects
+  // ---------------------------------------------------------------------------
+  /**
+   * effect: Initial load
+   */
   useEffect(() => {
     const init = async () => {
       setLoading(true);
@@ -197,7 +242,9 @@ export function DashboardPopQuiz() {
     init();
   }, [fetchBatch, generateQuiz]);
 
-  // Animate on quiz change
+  /**
+   * effect: Animate transition when quiz item changes
+   */
   useEffect(() => {
     if (quizItem) {
       fadeAnim.setValue(0);
@@ -209,7 +256,9 @@ export function DashboardPopQuiz() {
     }
   }, [quizItem, fadeAnim]);
 
-  // Flush stats on unmount
+  /**
+   * effect: Flush buffered stats to Firestore when component unmounts
+   */
   useEffect(() => {
     return () => {
       if (user) {
@@ -218,6 +267,9 @@ export function DashboardPopQuiz() {
     };
   }, [user, flushQuizStats]);
 
+  // ---------------------------------------------------------------------------
+  // Interaction Handlers
+  // ---------------------------------------------------------------------------
   const handleOptionPress = useCallback(
     (option: string) => {
       if (isCorrect !== null || !quizItem) return; // Only lock if already answered
@@ -243,6 +295,9 @@ export function DashboardPopQuiz() {
     [isCorrect, quizItem, user, bufferQuizAnswer, loadNextQuiz],
   );
 
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
   if (loading || !quizItem) return <PopQuizSkeleton />;
 
   return (
@@ -296,6 +351,9 @@ export function DashboardPopQuiz() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
 interface PopQuizOptionProps {
   option: string;
   isSelected: boolean;
@@ -336,6 +394,9 @@ const PopQuizOption = React.memo(
 
 PopQuizOption.displayName = "PopQuizOption";
 
+// ---------------------------------------------------------------------------
+// Styles
+// ---------------------------------------------------------------------------
 const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
