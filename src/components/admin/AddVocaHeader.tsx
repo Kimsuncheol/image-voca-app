@@ -83,7 +83,7 @@ const getStyles = (isDark: boolean) =>
       lineHeight: 20,
     },
     inputGroup: {
-      marginBottom: 24,
+      marginBottom: 12,
     },
     label: {
       fontSize: 14,

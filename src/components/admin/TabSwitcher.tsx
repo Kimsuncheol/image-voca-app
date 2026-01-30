@@ -46,7 +46,7 @@ const getStyles = (isDark: boolean) =>
   StyleSheet.create({
     tabContainer: {
       flexDirection: "row",
-      marginBottom: 24,
+      marginBottom: 12,
       borderRadius: 10,
       backgroundColor: isDark ? "#1c1c1e" : "#e5e5ea",
       padding: 4,

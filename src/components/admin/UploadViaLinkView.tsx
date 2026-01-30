@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
 import AddAnotherButton from "./AddAnotherButton";
 import GoogleSheetUploadItemView, {
@@ -31,6 +31,8 @@ export default function UploadViaLinkView({
 }: UploadViaLinkViewProps) {
   const styles = getStyles(isDark);
   const borderColor = "#0F9D58";
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [shouldScrollToEnd, setShouldScrollToEnd] = useState(false);
 
   const handleAddItem = () => {
     setItems((prev) => [
@@ -42,6 +44,7 @@ export default function UploadViaLinkView({
         range: "Sheet1!A:E",
       },
     ]);
+    setShouldScrollToEnd(true);
   };
 
   const handleRemoveItem = (id: string) => {
@@ -71,9 +74,18 @@ export default function UploadViaLinkView({
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.sectionTitle}>Import from Google Sheets</Text>
-
+      <Text style={styles.sectionTitle}>Import from Google Sheets</Text>
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={styles.scrollContent}
+        onContentSizeChange={() => {
+          if (!shouldScrollToEnd) {
+            return;
+          }
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+          setShouldScrollToEnd(false);
+        }}
+      >
         {items.map((item, index) => (
           <GoogleSheetUploadItemView
             key={item.id}
@@ -122,6 +134,7 @@ const getStyles = (isDark: boolean) =>
       fontWeight: "bold",
       color: isDark ? "#fff" : "#000",
       marginBottom: 16,
+      paddingHorizontal: 20,
     },
     divider: {
       height: 1,
