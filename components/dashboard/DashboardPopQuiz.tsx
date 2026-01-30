@@ -7,6 +7,7 @@ import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
 import { useUserStatsStore } from "../../src/stores";
 import { COURSES } from "../../src/types/vocabulary";
+import { QuizTimer } from "../course/QuizTimer";
 import { ThemedText } from "../themed-text";
 import { PopQuizSkeleton } from "./PopQuizSkeleton";
 
@@ -48,6 +49,7 @@ export function DashboardPopQuiz() {
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const quizKey = `${turnNumber}-${currentIndex}`;
 
   // ---------------------------------------------------------------------------
   // Animations
@@ -89,7 +91,9 @@ export function DashboardPopQuiz() {
   const fetchBatch = useCallback(async () => {
     try {
       const shuffledCourses = [...COURSES].sort(() => Math.random() - 0.5);
-      const daysToTry = [1, 2, 3, 4, 5];
+      const daysToTry = Array.from({ length: 30 }, (_, index) => index + 1)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 5);
 
       for (const course of shuffledCourses) {
         const path = getCoursePath(course.id);
@@ -295,6 +299,18 @@ export function DashboardPopQuiz() {
     [isCorrect, quizItem, user, bufferQuizAnswer, loadNextQuiz],
   );
 
+  const handleTimeUp = useCallback(() => {
+    if (isCorrect !== null || !quizItem) return;
+
+    if (user) {
+      bufferQuizAnswer(user.uid, false);
+    }
+
+    setSelectedOption(null);
+    setIsCorrect(null);
+    loadNextQuiz();
+  }, [isCorrect, quizItem, user, bufferQuizAnswer, loadNextQuiz]);
+
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
@@ -321,6 +337,12 @@ export function DashboardPopQuiz() {
             </ThemedText>
           </View>
         </View>
+        <QuizTimer
+          duration={15}
+          onTimeUp={handleTimeUp}
+          isRunning={isCorrect === null && !loading}
+          quizKey={quizKey}
+        />
 
         <Animated.View style={{ opacity: fadeAnim }}>
           <View style={styles.popQuizQuestion}>
