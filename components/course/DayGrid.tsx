@@ -2,12 +2,8 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { DayCard } from "./DayCard";
 
-interface DayProgress {
-  completed: boolean;
-  wordsLearned: number;
-  totalWords: number;
-  quizCompleted: boolean;
-}
+import { DayProgress } from "../../src/stores";
+// Removed local DayProgress interface
 
 interface DayGridProps {
   totalDays: number;

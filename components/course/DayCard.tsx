@@ -5,14 +5,9 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
 
-interface DayProgress {
-  completed: boolean;
-  wordsLearned: number;
-  totalWords: number;
-  quizCompleted: boolean;
-  quizScore?: number;
-  isRetake?: boolean;
-}
+import { DayProgress } from "../../src/stores";
+
+// Removed local DayProgress interface
 
 interface DayCardProps {
   day: number;
@@ -70,8 +65,8 @@ export function DayCard({
         {progress && !isLocked && (
           <ThemedText style={styles.progressText}>
             {t("course.progress", {
-              learned: progress.wordsLearned,
-              total: progress.totalWords,
+              learned: progress.wordsLearned || 0,
+              total: progress.totalWords || 0,
             })}
           </ThemedText>
         )}

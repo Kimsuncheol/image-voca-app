@@ -22,7 +22,7 @@ export interface UserStats {
   targetScore: number;
 }
 
-interface DayProgress {
+export interface DayProgress {
   completed?: boolean;
   wordsLearned?: number;
   totalWords?: number;
@@ -32,7 +32,7 @@ interface DayProgress {
   isRetake?: boolean;
 }
 
-type CourseProgress = Record<number, DayProgress>;
+export type CourseProgress = Record<number, DayProgress>;
 
 interface UserStatsState {
   stats: UserStats | null;

@@ -1,4 +1,9 @@
-import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import {
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, ScrollView, StyleSheet } from "react-native";
@@ -8,23 +13,42 @@ import { DayGrid, DayPickerHeader } from "../../../components/course";
 import { SubscriptionBadge } from "../../../components/subscription";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
-import { useSubscriptionStore, useUserStatsStore } from "../../../src/stores";
+import {
+  DayProgress,
+  useSubscriptionStore,
+  useUserStatsStore,
+} from "../../../src/stores";
 import { COURSES, CourseType } from "../../../src/types/vocabulary";
 
-interface DayProgress {
-  completed: boolean;
-  wordsLearned: number;
-  totalWords: number;
-  quizCompleted: boolean;
-  isRetake?: boolean;
-}
+// -----------------------------------------------------------------------------
+// Type Definitions
+// -----------------------------------------------------------------------------
+// DayProgress, CourseProgress imported from store
 
+/**
+ * DayPickerScreen Component
+ *
+ * Displays the grid of days for a specific course.
+ *
+ * Key Features:
+ * - Load and display progress for each day (learned status, quiz status).
+ * - Manage access control based on user subscription (Free vs Premium).
+ * - Handle navigation to learning (Vocabulary) or testing (Quiz).
+ * - Support Ad-based unlocking for specific days.
+ */
 export default function DayPickerScreen() {
+  // ---------------------------------------------------------------------------
+  // Hooks & Context
+  // ---------------------------------------------------------------------------
   const { isDark } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
   const { t } = useTranslation();
+
+  // Route params: Identify which course we are viewing
   const { courseId } = useLocalSearchParams<{ courseId: CourseType }>();
+
+  // Stores: Access stats and subscription logic
   const { courseProgress, fetchCourseProgress } = useUserStatsStore();
   const {
     canAccessUnlimitedVoca,
@@ -34,14 +58,25 @@ export default function DayPickerScreen() {
     loadUnlockedIds,
   } = useSubscriptionStore();
 
+  // ---------------------------------------------------------------------------
+  // Derived State & Constants
+  // ---------------------------------------------------------------------------
   const course = COURSES.find((c) => c.id === courseId);
-  const totalDays = 30;
-  const freeDayLimit = 3;
+  const totalDays = 30; // Hardcoded 30-day curriculum per course
+  const freeDayLimit = 3; // Days 1-3 are always free
 
+  // Progress data for this specific course
   const dayProgress: Record<number, DayProgress> = courseId
     ? courseProgress[courseId] || {}
     : {};
 
+  // ---------------------------------------------------------------------------
+  // Effects
+  // ---------------------------------------------------------------------------
+  /**
+   * Refetch subscription and progress whenever the screen gains focus.
+   * This ensures that if a user buys a sub or watches an ad, the UI updates immediately.
+   */
   useFocusEffect(
     useCallback(() => {
       if (!user || !courseId) return;
@@ -49,22 +84,39 @@ export default function DayPickerScreen() {
       fetchSubscription(user.uid);
       loadUnlockedIds(user.uid); // Load persisted ad unlocks for this user
       fetchCourseProgress(user.uid, courseId);
-    }, [user, courseId, fetchSubscription, loadUnlockedIds, fetchCourseProgress]),
+    }, [
+      user,
+      courseId,
+      fetchSubscription,
+      loadUnlockedIds,
+      fetchCourseProgress,
+    ]),
   );
 
+  // ---------------------------------------------------------------------------
+  // Handlers
+  // ---------------------------------------------------------------------------
+  /**
+   * Handle tapping on a specific day card.
+   * Checks for subscription status or free trial limits.
+   */
   const handleDayPress = (day: number) => {
     const hasUnlimitedAccess = canAccessUnlimitedVoca();
     const featureId = `${courseId}_day_${day}`;
     const isDayUnlocked = canAccessFeature(featureId);
 
+    // Access Check Logic
     if (!hasUnlimitedAccess && !isDayUnlocked && day > freeDayLimit) {
-      // Days 4-10: Show ad option; Days 11+: Premium only
+      // Scenario: User is Free, Day is locked, and beyond free limit.
+
+      // Check if this day is eligible for ad-unlock (e.g. Days 4-10)
       const canUseAd = canUnlockViaAd(day);
 
       const alertButtons: any[] = [
         { text: t("common.cancel"), style: "cancel" },
       ];
 
+      // Option 1: Watch Ad (if eligible)
       if (canUseAd) {
         alertButtons.push({
           text: t("course.watchAd", { defaultValue: "Watch Ad (Free Access)" }),
@@ -76,11 +128,13 @@ export default function DayPickerScreen() {
         });
       }
 
+      // Option 2: Upgrade to Premium
       alertButtons.push({
         text: t("common.upgrade"),
         onPress: () => router.push("/billing"),
       });
 
+      // Show Alert
       Alert.alert(
         t("alerts.premiumFeature.title"),
         canUseAd
@@ -92,12 +146,18 @@ export default function DayPickerScreen() {
       );
       return;
     }
+
+    // Access Granted: Navigate to Vocabulary List
     router.push({
       pathname: "/course/[courseId]/vocabulary",
       params: { courseId, day: day.toString() },
     });
   };
 
+  /**
+   * Handle tapping the Quiz button on a day card.
+   * Navigates to the Quiz Type selection screen.
+   */
   const handleQuizPress = (day: number) => {
     router.push({
       pathname: "/course/[courseId]/quiz-type",
@@ -105,6 +165,9 @@ export default function DayPickerScreen() {
     });
   };
 
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
@@ -122,8 +185,13 @@ export default function DayPickerScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Header Section: Course Title & Info */}
         <DayPickerHeader course={course} />
+
+        {/* Subscription Status Banner */}
         <SubscriptionBadge />
+
+        {/* Main Grid: Days 1-30 */}
         <DayGrid
           totalDays={totalDays}
           dayProgress={dayProgress}
@@ -140,6 +208,9 @@ export default function DayPickerScreen() {
   );
 }
 
+// -----------------------------------------------------------------------------
+// Styles
+// -----------------------------------------------------------------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
