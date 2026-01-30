@@ -4,11 +4,17 @@ import {
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { collection, getDocs, limit, query } from "firebase/firestore";
+import {
+  collection,
+  getCountFromServer,
+  getDocs,
+  limit,
+  query,
+} from "firebase/firestore";
 
 import { DayGrid, DayPickerHeader } from "../../../components/course";
 import { SubscriptionBadge } from "../../../components/subscription";
@@ -59,6 +65,9 @@ const getCoursePath = (id: CourseType) => {
   }
 };
 
+const MIN_TOTAL_DAYS = 30;
+const MAX_DAY_SCAN = 120;
+
 export default function DayPickerScreen() {
   // ---------------------------------------------------------------------------
   // Hooks & Context
@@ -84,14 +93,18 @@ export default function DayPickerScreen() {
   // ---------------------------------------------------------------------------
   // Derived State & Constants
   // ---------------------------------------------------------------------------
-  const course = COURSES.find((c) => c.id === courseId);
-  const [totalDays, setTotalDays] = useState(30);
+  const course = useMemo(
+    () => COURSES.find((c) => c.id === courseId),
+    [courseId],
+  );
+  const [totalDays, setTotalDays] = useState(MIN_TOTAL_DAYS);
   const freeDayLimit = 3; // Days 1-3 are always free
 
   // Progress data for this specific course
-  const dayProgress: Record<number, DayProgress> = courseId
-    ? courseProgress[courseId] || {}
-    : {};
+  const dayProgress: Record<number, DayProgress> = useMemo(() => {
+    if (!courseId) return {};
+    return courseProgress[courseId] || {};
+  }, [courseId, courseProgress]);
 
   // ---------------------------------------------------------------------------
   // Effects
@@ -125,19 +138,42 @@ export default function DayPickerScreen() {
       if (!path) {
         console.warn("[Days] Missing course path for:", courseId);
         if (isActive) {
-          setTotalDays(30);
+          setTotalDays(MIN_TOTAL_DAYS);
         }
         return;
       }
 
       try {
         const daysCollection = collection(db, path, "days");
-        const snapshot = await getDocs(daysCollection);
-        const daysCount = snapshot.size;
+        let daysCount = 0;
+        try {
+          const countSnapshot = await getCountFromServer(daysCollection);
+          daysCount = countSnapshot.data().count;
+        } catch (countError) {
+          const snapshot = await getDocs(daysCollection);
+          daysCount = snapshot.size;
+          console.warn(
+            "[Days] Count query failed, falling back to getDocs.",
+            countError,
+          );
+        }
+
         let maxDayFromVocabulary = 0;
 
-        if (daysCount <= 30) {
-          for (let day = 31; day <= 120; day += 1) {
+        if (daysCount === 0) {
+          for (let day = 1; day <= MAX_DAY_SCAN; day += 1) {
+            const dayCollection = collection(db, path, `Day${day}`);
+            const daySnapshot = await getDocs(query(dayCollection, limit(1)));
+            if (daySnapshot.empty) {
+              if (maxDayFromVocabulary > 0) {
+                break;
+              }
+              continue;
+            }
+            maxDayFromVocabulary = day;
+          }
+        } else if (daysCount <= MIN_TOTAL_DAYS) {
+          for (let day = MIN_TOTAL_DAYS + 1; day <= MAX_DAY_SCAN; day += 1) {
             const dayCollection = collection(db, path, `Day${day}`);
             const daySnapshot = await getDocs(query(dayCollection, limit(1)));
             if (daySnapshot.empty) {
@@ -147,7 +183,14 @@ export default function DayPickerScreen() {
           }
         }
 
-        const resolvedTotalDays = Math.max(30, daysCount, maxDayFromVocabulary);
+        const resolvedCourseDays =
+          daysCount > 0
+            ? Math.max(daysCount, maxDayFromVocabulary)
+            : maxDayFromVocabulary;
+        const resolvedTotalDays = Math.max(
+          MIN_TOTAL_DAYS,
+          resolvedCourseDays,
+        );
 
         if (isActive) {
           setTotalDays(resolvedTotalDays);
@@ -160,13 +203,15 @@ export default function DayPickerScreen() {
           daysCount,
           "maxDayFromVocabulary:",
           maxDayFromVocabulary,
+          "resolvedCourseDays:",
+          resolvedCourseDays,
           "totalDays:",
           resolvedTotalDays,
         );
       } catch (error) {
         console.error("[Days] Failed to load day count:", error);
         if (isActive) {
-          setTotalDays(30);
+          setTotalDays(MIN_TOTAL_DAYS);
         }
       }
     };
@@ -185,74 +230,94 @@ export default function DayPickerScreen() {
    * Handle tapping on a specific day card.
    * Checks for subscription status or free trial limits.
    */
-  const handleDayPress = (day: number) => {
-    const hasUnlimitedAccess = canAccessUnlimitedVoca();
-    const featureId = `${courseId}_day_${day}`;
-    const isDayUnlocked = canAccessFeature(featureId);
+  const handleDayPress = useCallback(
+    (day: number) => {
+      if (!courseId) return;
+      const hasUnlimitedAccess = canAccessUnlimitedVoca();
+      const featureId = `${courseId}_day_${day}`;
+      const isDayUnlocked = canAccessFeature(featureId);
 
-    // Access Check Logic
-    if (!hasUnlimitedAccess && !isDayUnlocked && day > freeDayLimit) {
-      // Scenario: User is Free, Day is locked, and beyond free limit.
+      // Access Check Logic
+      if (!hasUnlimitedAccess && !isDayUnlocked && day > freeDayLimit) {
+        // Scenario: User is Free, Day is locked, and beyond free limit.
 
-      // Check if this day is eligible for ad-unlock (e.g. Days 4-10)
-      const canUseAd = canUnlockViaAd(day);
+        // Check if this day is eligible for ad-unlock (e.g. Days 4-10)
+        const canUseAd = canUnlockViaAd(day);
 
-      const alertButtons: any[] = [
-        { text: t("common.cancel"), style: "cancel" },
-      ];
+        const alertButtons: any[] = [
+          { text: t("common.cancel"), style: "cancel" },
+        ];
 
-      // Option 1: Watch Ad (if eligible)
-      if (canUseAd) {
-        alertButtons.push({
-          text: t("course.watchAd", { defaultValue: "Watch Ad (Free Access)" }),
-          onPress: () =>
-            router.push({
-              pathname: "/advertisement-modal",
-              params: { featureId },
+        // Option 1: Watch Ad (if eligible)
+        if (canUseAd) {
+          alertButtons.push({
+            text: t("course.watchAd", {
+              defaultValue: "Watch Ad (Free Access)",
             }),
+            onPress: () =>
+              router.push({
+                pathname: "/advertisement-modal",
+                params: { featureId },
+              }),
+          });
+        }
+
+        // Option 2: Upgrade to Premium
+        alertButtons.push({
+          text: t("common.upgrade"),
+          onPress: () => router.push("/billing"),
         });
+
+        // Show Alert
+        Alert.alert(
+          t("alerts.premiumFeature.title"),
+          canUseAd
+            ? t("course.premiumLimitMessage", { day: freeDayLimit })
+            : t("course.premiumOnlyMessage", {
+                defaultValue: "Days beyond 10 require a premium subscription.",
+              }),
+          alertButtons,
+        );
+        return;
       }
 
-      // Option 2: Upgrade to Premium
-      alertButtons.push({
-        text: t("common.upgrade"),
-        onPress: () => router.push("/billing"),
+      // Access Granted: Navigate to Vocabulary List
+      router.push({
+        pathname: "/course/[courseId]/vocabulary",
+        params: { courseId, day: day.toString() },
       });
-
-      // Show Alert
-      Alert.alert(
-        t("alerts.premiumFeature.title"),
-        canUseAd
-          ? t("course.premiumLimitMessage", { day: freeDayLimit })
-          : t("course.premiumOnlyMessage", {
-              defaultValue: "Days beyond 10 require a premium subscription.",
-            }),
-        alertButtons,
-      );
-      return;
-    }
-
-    // Access Granted: Navigate to Vocabulary List
-    router.push({
-      pathname: "/course/[courseId]/vocabulary",
-      params: { courseId, day: day.toString() },
-    });
-  };
+    },
+    [
+      canAccessFeature,
+      canAccessUnlimitedVoca,
+      canUnlockViaAd,
+      courseId,
+      freeDayLimit,
+      router,
+      t,
+    ],
+  );
 
   /**
    * Handle tapping the Quiz button on a day card.
    * Navigates to the Quiz Type selection screen.
    */
-  const handleQuizPress = (day: number) => {
-    router.push({
-      pathname: "/course/[courseId]/quiz-type",
-      params: { courseId, day: day.toString() },
-    });
-  };
+  const handleQuizPress = useCallback(
+    (day: number) => {
+      if (!courseId) return;
+      router.push({
+        pathname: "/course/[courseId]/quiz-type",
+        params: { courseId, day: day.toString() },
+      });
+    },
+    [courseId, router],
+  );
 
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
+  const hasUnlimitedAccess = canAccessUnlimitedVoca();
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
@@ -276,12 +341,12 @@ export default function DayPickerScreen() {
         {/* Subscription Status Banner */}
         <SubscriptionBadge />
 
-        {/* Main Grid: Days 1-30 */}
+        {/* Main Grid: Days 1-N */}
         <DayGrid
           totalDays={totalDays}
           dayProgress={dayProgress}
           courseColor={course?.color}
-          canAccessUnlimitedVoca={canAccessUnlimitedVoca()}
+          canAccessUnlimitedVoca={hasUnlimitedAccess}
           canAccessFeature={canAccessFeature}
           courseId={courseId!}
           freeDayLimit={freeDayLimit}
