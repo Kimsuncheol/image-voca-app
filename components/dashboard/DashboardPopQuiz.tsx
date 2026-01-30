@@ -208,12 +208,6 @@ export function DashboardPopQuiz() {
       return;
     }
 
-    // Prefetch at position 10*n - 3 (e.g., 7, 17, 27...)
-    if (newIndex === 10 * turnNumber - 3 && nextBatch.length === 0) {
-      console.log(`Prefetching at position ${newIndex}`);
-      prefetchNextBatch();
-    }
-
     setCurrentIndex(newIndex);
     generateQuiz(currentBatch[newIndex], currentBatch);
   }, [
@@ -245,6 +239,23 @@ export function DashboardPopQuiz() {
     };
     init();
   }, [fetchBatch, generateQuiz]);
+
+  /**
+   * effect: Keep the next batch prefetched whenever possible
+   */
+  useEffect(() => {
+    if (loading || isPrefetching) return;
+    if (currentBatch.length === 0) return;
+    if (nextBatch.length > 0) return;
+
+    prefetchNextBatch();
+  }, [
+    loading,
+    isPrefetching,
+    currentBatch.length,
+    nextBatch.length,
+    prefetchNextBatch,
+  ]);
 
   /**
    * effect: Animate transition when quiz item changes
