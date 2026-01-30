@@ -287,11 +287,10 @@ export function DashboardPopQuiz() {
   // ---------------------------------------------------------------------------
   const handleOptionPress = useCallback(
     (option: string) => {
-      if (isCorrect !== null || !quizItem) return; // Only lock if already answered
+      if (isCorrect === true || !quizItem) return; // Only lock after correct answer
 
       const isAnswerCorrect = option === quizItem.meaning;
       setSelectedOption(option);
-      setIsCorrect(isAnswerCorrect);
 
       // Record quiz answer for accuracy stats
       if (user) {
@@ -299,6 +298,7 @@ export function DashboardPopQuiz() {
       }
 
       if (isAnswerCorrect) {
+        setIsCorrect(true);
         // Auto-advance to next question after brief delay
         setTimeout(() => {
           setSelectedOption(null);
@@ -311,7 +311,7 @@ export function DashboardPopQuiz() {
   );
 
   const handleTimeUp = useCallback(() => {
-    if (isCorrect !== null || !quizItem) return;
+    if (isCorrect === true || !quizItem) return;
 
     if (user) {
       bufferQuizAnswer(user.uid, false);
@@ -372,7 +372,7 @@ export function DashboardPopQuiz() {
                 option={option}
                 isSelected={selectedOption === option}
                 isCorrect={option === quizItem.meaning}
-                isAnswered={isCorrect !== null}
+                isAnswered={isCorrect === true}
                 isDark={isDark}
                 onPress={handleOptionPress}
               />
