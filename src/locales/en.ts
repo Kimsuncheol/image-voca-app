@@ -2,6 +2,7 @@ const en = {
   common: {
     back: "Back",
     cancel: "Cancel",
+    close: "Close",
     upgrade: "Upgrade",
     error: "Error",
     info: "Info",

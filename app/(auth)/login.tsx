@@ -1,10 +1,11 @@
+// --- Imports ---
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -15,30 +16,45 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useTranslation } from "react-i18next";
 import { useTheme } from "../../src/context/ThemeContext";
 import { auth } from "../../src/services/firebase";
 
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
 
+// --- Constants ---
+// Key used for storing the user's email in AsyncStorage for "Remember Me" functionality
 const REMEMBER_ME_KEY = "auth_remember_me_email";
 
 export default function LoginScreen() {
-  const { isDark } = useTheme();
-  const styles = getStyles(isDark);
+  // --- State & Hooks ---
+  const { isDark } = useTheme(); // Theme context for dark/light mode
+  const styles = getStyles(isDark); // Generate styles based on theme
+
+  // Form State
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const { promptAsync, loading: googleLoading } = useGoogleAuth();
-  const { t } = useTranslation();
+  const [passwordVisible, setPasswordVisible] = useState(false); // Toggle password visibility
+  const [rememberMe, setRememberMe] = useState(false); // Toggle "Remember Me" checkbox
+  const [loading, setLoading] = useState(false); // Loading state for login process
+  const [authError, setAuthError] = useState<string | null>(null); // Authentication error message
 
+  const router = useRouter(); // Navigation
+  // Google Auth Hook
+  const { promptAsync, loading: googleLoading } = useGoogleAuth();
+  const { t } = useTranslation(); // i18n Translation hook
+
+  // --- Effects ---
+  // Load saved email on initial render if one exists in storage
   useEffect(() => {
     loadSavedEmail();
   }, []);
 
+  // --- Helper Functions ---
+
+  /**
+   * Retrieves the saved email from AsyncStorage.
+   * If found, pre-fills the email field and checks "Remember Me".
+   */
   const loadSavedEmail = async () => {
     try {
       const savedEmail = await AsyncStorage.getItem(REMEMBER_ME_KEY);
@@ -51,11 +67,19 @@ export default function LoginScreen() {
     }
   };
 
+  /**
+   * Handles the Email/Password Login flow.
+   * 1. Validates inputs.
+   * 2. Manages "Remember Me" persistence (save or remove email).
+   * 3. Authenticates with Firebase.
+   * 4. Navigates to the main tabs on success.
+   */
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert(t("common.error"), t("auth.errors.missingCredentials"));
+      setAuthError(t("auth.errors.missingCredentials"));
       return;
     }
+    setAuthError(null);
     setLoading(true);
     try {
       // Handle Remember Me persistence
@@ -68,18 +92,24 @@ export default function LoginScreen() {
       await signInWithEmailAndPassword(auth, email, password);
       router.replace("/(tabs)");
     } catch (error: any) {
-      Alert.alert(t("auth.errors.loginTitle"), error.message);
+      setAuthError(error?.message ?? t("auth.errors.loginTitle"));
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Triggers the Google Sign-In flow using the useGoogleAuth hook.
+   */
   const handleGoogleLogin = () => {
+    setAuthError(null);
     promptAsync();
   };
 
+  // --- Render ---
   return (
     <SafeAreaView style={styles.container}>
+      {/* Handle keyboard behavior to prevent inputs from being hidden */}
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.keyboardView}
@@ -89,12 +119,43 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {/* --- Section: Header --- */}
           <View style={styles.headerContainer}>
             <Text style={styles.title}>{t("auth.login.title")}</Text>
             <Text style={styles.subtitle}>{t("auth.login.subtitle")}</Text>
           </View>
 
+          {/* --- Section: Login Form --- */}
           <View style={styles.formContainer}>
+            {/* Authentication Error Alert */}
+            {authError ? (
+              <View style={styles.errorAlert} accessibilityRole="alert">
+                <Ionicons
+                  name="alert-circle"
+                  size={18}
+                  color={isDark ? "#FF8A8A" : "#D93025"}
+                  style={styles.errorIcon}
+                />
+                <View style={styles.errorTextContainer}>
+                  <Text style={styles.errorTitle}>
+                    {t("auth.errors.loginTitle")}
+                  </Text>
+                  <Text style={styles.errorMessage}>{authError}</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setAuthError(null)}
+                  accessibilityLabel={t("common.close")}
+                >
+                  <Ionicons
+                    name="close"
+                    size={18}
+                    color={isDark ? "#FF8A8A" : "#D93025"}
+                  />
+                </TouchableOpacity>
+              </View>
+            ) : null}
+
+            {/* Feature: Email Input */}
             <View style={styles.inputContainer}>
               <Ionicons
                 name="mail-outline"
@@ -106,13 +167,19 @@ export default function LoginScreen() {
                 style={styles.input}
                 placeholder={t("auth.login.emailPlaceholder")}
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(value) => {
+                  if (authError) {
+                    setAuthError(null);
+                  }
+                  setEmail(value);
+                }}
                 autoCapitalize="none"
                 keyboardType="email-address"
                 placeholderTextColor={isDark ? "#666" : "#999"}
               />
             </View>
 
+            {/* Feature: Password Input with Visibility Toggle */}
             <View style={styles.inputContainer}>
               <Ionicons
                 name="lock-closed-outline"
@@ -124,7 +191,12 @@ export default function LoginScreen() {
                 style={styles.input}
                 placeholder={t("auth.login.passwordPlaceholder")}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(value) => {
+                  if (authError) {
+                    setAuthError(null);
+                  }
+                  setPassword(value);
+                }}
                 secureTextEntry={!passwordVisible}
                 placeholderTextColor={isDark ? "#666" : "#999"}
               />
@@ -139,6 +211,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
+            {/* Feature: Options Row (Remember Me & Forgot Password) */}
             <View style={styles.optionsContainer}>
               <TouchableOpacity
                 style={styles.rememberMeContainer}
@@ -167,6 +240,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
+            {/* Feature: Sign In Button */}
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleLogin}
@@ -177,12 +251,14 @@ export default function LoginScreen() {
               </Text>
             </TouchableOpacity>
 
+            {/* --- Section: Divider --- */}
             <View style={styles.dividerContainer}>
               <View style={styles.divider} />
               <Text style={styles.dividerText}>{t("common.or")}</Text>
               <View style={styles.divider} />
             </View>
 
+            {/* Feature: Google Sign In Button */}
             <TouchableOpacity
               style={[
                 styles.googleButton,
@@ -205,10 +281,10 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* --- Section: Footer (Register Link) --- */}
+          {/* Redirects user to Registration screen if they don't have an account */}
           <View style={styles.footerContainer}>
-            <Text style={styles.footerText}>
-              {t("auth.login.noAccount")}
-            </Text>
+            <Text style={styles.footerText}>{t("auth.login.noAccount")}</Text>
             <Link href="/(auth)/register" asChild>
               <TouchableOpacity>
                 <Text style={styles.link}>{t("auth.login.signUp")}</Text>
@@ -221,6 +297,8 @@ export default function LoginScreen() {
   );
 }
 
+// --- Styles ---
+// Generates styles based on the current theme (isDark)
 const getStyles = (isDark: boolean) =>
   StyleSheet.create({
     container: {
@@ -251,6 +329,33 @@ const getStyles = (isDark: boolean) =>
     },
     formContainer: {
       marginBottom: 24,
+    },
+    errorAlert: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      marginBottom: 16,
+      borderRadius: 12,
+      borderWidth: 1,
+      backgroundColor: isDark ? "#2A1414" : "#FFF1F1",
+      borderColor: isDark ? "#5C1F1F" : "#F5B5B5",
+    },
+    errorIcon: {
+      marginRight: 10,
+    },
+    errorTextContainer: {
+      flex: 1,
+    },
+    errorTitle: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: isDark ? "#FFB3B3" : "#D93025",
+      marginBottom: 2,
+    },
+    errorMessage: {
+      fontSize: 13,
+      color: isDark ? "#FFD5D5" : "#8A1C1C",
     },
     inputContainer: {
       flexDirection: "row",

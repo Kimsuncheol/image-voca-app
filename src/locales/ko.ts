@@ -2,6 +2,7 @@ const ko = {
   common: {
     back: "뒤로",
     cancel: "취소",
+    close: "닫기",
     upgrade: "업그레이드",
     error: "오류",
     info: "정보",
