@@ -1,12 +1,13 @@
 // React and React Native imports
 import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { doc, getDoc, setDoc } from "firebase/firestore"; // Firestore database operations
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next"; // Internationalization
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Custom components
+import { FilterChips } from "../../components/common/FilterChips";
 import {
   EmptyWordBankView,
   SkeletonList,
@@ -50,6 +51,38 @@ export default function CourseWordBankScreen() {
 
   const [words, setWords] = useState<SavedWord[]>([]); // Array of saved words for this course
   const [loading, setLoading] = useState(true); // Loading state while fetching data
+  const [selectedFilter, setSelectedFilter] = useState("all");
+
+  // Generate filter options dynamically based on available days
+  const filterOptions = useMemo(() => {
+    const options = [
+      { id: "all", label: t("common.all", { defaultValue: "All" }) },
+    ];
+
+    // Extract unique days
+    const uniqueDays = Array.from(
+      new Set(words.map((w) => w.day).filter(Boolean)),
+    ).sort((a, b) => (a || 0) - (b || 0));
+
+    uniqueDays.forEach((day) => {
+      options.push({
+        id: `day-${day}`,
+        label: `${t("common.day", { defaultValue: "Day" })} ${day}`,
+      });
+    });
+
+    return options;
+  }, [words, t]);
+
+  // Filter words based on selection
+  const filteredWords = useMemo(() => {
+    if (selectedFilter === "all") return words;
+    if (selectedFilter.startsWith("day-")) {
+      const day = parseInt(selectedFilter.replace("day-", ""), 10);
+      return words.filter((w) => w.day === day);
+    }
+    return words;
+  }, [words, selectedFilter]);
 
   // Find course metadata (color, title, etc.) from course configuration
   const courseData = COURSES.find((c) => c.id === course);
@@ -197,12 +230,23 @@ export default function CourseWordBankScreen() {
         }}
       />
 
+      {/* Filter Chips */}
+      {words.length > 0 && (
+        <View style={styles.filterContainer}>
+          <FilterChips
+            options={filterOptions}
+            selectedId={selectedFilter}
+            onSelect={setSelectedFilter}
+          />
+        </View>
+      )}
+
       {isCollocationCourse ? (
         <View style={styles.pagerContainer}>
           {/* Conditional rendering based on loading and data state */}
           {loading ? (
             <SkeletonList courseId={course} isDark={isDark} count={1} />
-          ) : words.length === 0 ? (
+          ) : filteredWords.length === 0 ? (
             <EmptyWordBankView
               courseId={course}
               courseColor={courseData?.color}
@@ -210,7 +254,7 @@ export default function CourseWordBankScreen() {
             />
           ) : (
             <WordList
-              words={words}
+              words={filteredWords}
               courseId={course}
               courseColor={courseData?.color}
               isDark={isDark}
@@ -226,7 +270,7 @@ export default function CourseWordBankScreen() {
           {/* Conditional rendering based on loading and data state */}
           {loading ? (
             <SkeletonList courseId={course} isDark={isDark} count={3} />
-          ) : words.length === 0 ? (
+          ) : filteredWords.length === 0 ? (
             <EmptyWordBankView
               courseId={course}
               courseColor={courseData?.color}
@@ -234,7 +278,7 @@ export default function CourseWordBankScreen() {
             />
           ) : (
             <WordList
-              words={words}
+              words={filteredWords}
               courseId={course}
               courseColor={courseData?.color}
               isDark={isDark}
@@ -260,5 +304,8 @@ const styles = StyleSheet.create({
   pagerContainer: {
     flex: 1,
     width: "100%",
+  },
+  filterContainer: {
+    paddingVertical: 12,
   },
 });
