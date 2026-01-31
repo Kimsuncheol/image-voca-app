@@ -5,7 +5,6 @@ import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -35,6 +34,14 @@ export default function RegisterScreen() {
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const { promptAsync, loading: googleLoading } = useGoogleAuth();
 
+  // ---------------------------------------------------------------------------
+  // ERROR STATE - Inline validation error messages
+  // ---------------------------------------------------------------------------
+  const [errors, setErrors] = useState({
+    general: "", // For Firebase and general errors at the top of the form
+    permission: "", // For image picker permission errors
+  });
+
   // Password validation states
   const [hasMinLength, setHasMinLength] = useState(false);
   const [hasNumber, setHasNumber] = useState(false);
@@ -44,6 +51,17 @@ export default function RegisterScreen() {
   const router = useRouter();
   const { t } = useTranslation();
 
+  // ---------------------------------------------------------------------------
+  // CLEAR ERRORS - Helper function to clear specific or all errors
+  // ---------------------------------------------------------------------------
+  const clearError = (field?: "general" | "permission") => {
+    if (field) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    } else {
+      setErrors({ general: "", permission: "" });
+    }
+  };
+
   useEffect(() => {
     setHasMinLength(password.length >= 8);
     setHasNumber(/\d/.test(password));
@@ -51,72 +69,129 @@ export default function RegisterScreen() {
     setPasswordsMatch(password === confirmPassword && password !== "");
   }, [password, confirmPassword]);
 
+  // ===========================================================================
+  // IMAGE PICKER FUNCTION
+  // ===========================================================================
+  /**
+   * Opens the device's image gallery for avatar selection
+   * - Requests media library permissions if not already granted
+   * - Opens image picker with 1:1 aspect ratio for profile pictures
+   * - Compresses image to 50% quality to reduce storage usage
+   * - Shows inline error message if permission is denied
+   */
   const pickImage = async () => {
+    // Clear previous permission errors
+    clearError("permission");
+
+    // Request permission to access the device's media library
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
+    // Handle permission denial with inline error message
     if (permissionResult.granted === false) {
-      Alert.alert(
-        t("auth.errors.permissionTitle"),
-        t("auth.errors.permissionMessage")
-      );
+      setErrors((prev) => ({
+        ...prev,
+        permission: t("auth.errors.permissionMessage"),
+      }));
       return;
     }
 
+    // Launch the image picker with configured options
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images",
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
+      mediaTypes: "images", // Only allow image selection
+      allowsEditing: true, // Enable cropping/editing
+      aspect: [1, 1], // Square aspect ratio for profile pictures
+      quality: 0.5, // Compress to 50% quality to save storage
     });
 
+    // Update avatar URI if user selected an image (didn't cancel)
     if (!result.canceled) {
       setAvatarUri(result.assets[0].uri);
     }
   };
 
+  // ===========================================================================
+  // EMAIL/PASSWORD REGISTRATION HANDLER
+  // ===========================================================================
+  /**
+   * Handles the email/password registration flow:
+   * 1. Validates all required fields are filled
+   * 2. Validates password meets security requirements
+   * 3. Validates password confirmation matches
+   * 4. Creates Firebase Authentication account
+   * 5. Updates user profile with display name and avatar
+   * 6. Creates user document in Firestore with initial data
+   * 7. Navigates to main app on success
+   *
+   * Shows inline error messages instead of modal alerts for better UX
+   */
   const handleRegister = async () => {
+    // Clear previous errors
+    clearError();
+
+    // --- Step 1: Validate required fields ---
     if (!displayName || !email || !password || !confirmPassword) {
-      Alert.alert(t("common.error"), t("auth.errors.missingFields"));
+      setErrors((prev) => ({
+        ...prev,
+        general: t("auth.errors.missingFields"),
+      }));
       return;
     }
 
+    // --- Step 2: Validate password requirements ---
     if (!hasMinLength || !hasNumber || !hasSpecial) {
-      Alert.alert(t("common.error"), t("auth.errors.passwordRequirements"));
+      setErrors((prev) => ({
+        ...prev,
+        general: t("auth.errors.passwordRequirements"),
+      }));
       return;
     }
 
+    // --- Step 3: Validate password confirmation ---
     if (!passwordsMatch) {
-      Alert.alert(t("common.error"), t("auth.errors.passwordMismatch"));
+      setErrors((prev) => ({
+        ...prev,
+        general: t("auth.errors.passwordMismatch"),
+      }));
       return;
     }
 
+    // --- Step 4-7: Firebase registration flow ---
     setLoading(true);
     try {
+      // Create Firebase Authentication account
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
+
+      // Update the user's profile with display name and avatar
       await updateProfile(userCredential.user, {
         displayName: displayName,
         photoURL: avatarUri || null,
       });
 
-      // Save user data to Firestore
+      // Create user document in Firestore with initial data structure
       await setDoc(doc(db, "users", userCredential.user.uid), {
-        uid: userCredential.user.uid,
-        displayName: displayName,
-        email: email,
-        photoURL: avatarUri || null,
-        createdAt: new Date().toISOString(),
-        wordBank: [],
-        recentCourse: null,
+        uid: userCredential.user.uid, // Firebase user ID
+        displayName: displayName, // User's display name
+        email: email, // User's email address
+        photoURL: avatarUri || null, // Profile picture URL (local URI)
+        createdAt: new Date().toISOString(), // Account creation timestamp
+        wordBank: [], // Empty word bank for vocabulary learning
+        recentCourse: null, // No recent course initially
       });
 
+      // Navigate to main app (tabs) on successful registration
       router.replace("/(tabs)");
     } catch (error: any) {
-      Alert.alert(t("auth.errors.registerTitle"), error.message);
+      // Display Firebase error message inline
+      setErrors((prev) => ({
+        ...prev,
+        general: error.message || t("auth.errors.registerTitle"),
+      }));
     } finally {
+      // Reset loading state regardless of success/failure
       setLoading(false);
     }
   };
@@ -160,6 +235,23 @@ export default function RegisterScreen() {
           </View>
 
           {/* ===================================================================
+              GENERAL ERROR BANNER
+              - Displays validation and Firebase errors at the top of the form
+              - Only visible when there's an error message
+              =================================================================== */}
+          {errors.general && (
+            <View style={styles.errorBanner}>
+              <Ionicons
+                name="alert-circle"
+                size={20}
+                color="#DC3545"
+                style={styles.errorIcon}
+              />
+              <Text style={styles.errorBannerText}>{errors.general}</Text>
+            </View>
+          )}
+
+          {/* ===================================================================
               FORM CONTAINER - All form inputs and buttons
               =================================================================== */}
           <View style={styles.formContainer}>
@@ -169,6 +261,7 @@ export default function RegisterScreen() {
                 - Allows user to select a profile picture from device gallery
                 - Shows camera icon placeholder when no image selected
                 - Displays selected image in circular frame
+                - Shows inline error if permission is denied
             ----------------------------------------------------------------- */}
             <View style={styles.avatarContainer}>
               <TouchableOpacity onPress={pickImage} style={styles.avatarButton}>
@@ -189,6 +282,10 @@ export default function RegisterScreen() {
               <Text style={styles.avatarLabel}>
                 {t("auth.register.avatarLabel")}
               </Text>
+              {/* Permission error message */}
+              {errors.permission && (
+                <Text style={styles.errorText}>{errors.permission}</Text>
+              )}
             </View>
             {/* -----------------------------------------------------------------
                 DISPLAY NAME INPUT
@@ -736,5 +833,42 @@ const getStyles = (isDark: boolean) =>
     avatarLabel: {
       fontSize: 12,
       color: isDark ? "#888" : "#999",
+    },
+
+    // -------------------------------------------------------------------------
+    // ERROR STYLES - Error banners and inline error messages
+    // -------------------------------------------------------------------------
+
+    /** Error banner - Displayed at top of form for general/validation errors */
+    errorBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: isDark ? "#2C1618" : "#FEE",
+      borderWidth: 1,
+      borderColor: isDark ? "#5C2B2E" : "#FCC",
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 16,
+    },
+
+    /** Error icon - Icon displayed in error banner */
+    errorIcon: {
+      marginRight: 8,
+    },
+
+    /** Error banner text - Message text in error banner */
+    errorBannerText: {
+      flex: 1,
+      color: isDark ? "#FF6B6B" : "#DC3545",
+      fontSize: 14,
+      lineHeight: 20,
+    },
+
+    /** Error text - Small inline error text below inputs */
+    errorText: {
+      color: isDark ? "#FF6B6B" : "#DC3545",
+      fontSize: 12,
+      marginTop: 4,
+      paddingHorizontal: 4,
     },
   });
