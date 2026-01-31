@@ -1,18 +1,14 @@
-import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,6 +16,17 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
 import { auth, db } from "../../src/services/firebase";
+import {
+  ErrorBanner,
+  Divider,
+  FormInput,
+  PasswordInput,
+  PasswordHints,
+  AvatarPicker,
+  PrimaryButton,
+  GoogleButton,
+  FooterLink,
+} from "./components";
 
 export default function RegisterScreen() {
   const { isDark } = useTheme();
@@ -28,8 +35,6 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const { promptAsync, loading: googleLoading } = useGoogleAuth();
@@ -48,6 +53,10 @@ export default function RegisterScreen() {
   const [hasSpecial, setHasSpecial] = useState(false);
   const [passwordsMatch, setPasswordsMatch] = useState(false);
 
+  // Email validation state
+  const [isValidEmail, setIsValidEmail] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+
   const router = useRouter();
   const { t } = useTranslation();
 
@@ -62,6 +71,29 @@ export default function RegisterScreen() {
     }
   };
 
+  // ===========================================================================
+  // EMAIL VALIDATION EFFECT
+  // ===========================================================================
+  /**
+   * Real-time email format validation
+   * Uses standard email regex pattern to validate format
+   */
+  useEffect(() => {
+    if (email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      setIsValidEmail(emailRegex.test(email));
+    } else {
+      setIsValidEmail(false);
+    }
+  }, [email]);
+
+  // ===========================================================================
+  // PASSWORD VALIDATION EFFECT
+  // ===========================================================================
+  /**
+   * Real-time password validation
+   * Runs whenever password or confirmPassword changes to update validation states
+   */
   useEffect(() => {
     setHasMinLength(password.length >= 8);
     setHasNumber(/\d/.test(password));
@@ -137,7 +169,17 @@ export default function RegisterScreen() {
       return;
     }
 
-    // --- Step 2: Validate password requirements ---
+    // --- Step 2: Validate email format ---
+    if (!isValidEmail) {
+      setErrors((prev) => ({
+        ...prev,
+        general: t("auth.errors.invalidEmail") || "Please enter a valid email address",
+      }));
+      setEmailTouched(true);
+      return;
+    }
+
+    // --- Step 3: Validate password requirements ---
     if (!hasMinLength || !hasNumber || !hasSpecial) {
       setErrors((prev) => ({
         ...prev,
@@ -146,7 +188,7 @@ export default function RegisterScreen() {
       return;
     }
 
-    // --- Step 3: Validate password confirmation ---
+    // --- Step 4: Validate password confirmation ---
     if (!passwordsMatch) {
       setErrors((prev) => ({
         ...prev,
@@ -155,7 +197,7 @@ export default function RegisterScreen() {
       return;
     }
 
-    // --- Step 4-7: Firebase registration flow ---
+    // --- Step 5-8: Firebase registration flow ---
     setLoading(true);
     try {
       // Create Firebase Authentication account
@@ -236,20 +278,8 @@ export default function RegisterScreen() {
 
           {/* ===================================================================
               GENERAL ERROR BANNER
-              - Displays validation and Firebase errors at the top of the form
-              - Only visible when there's an error message
               =================================================================== */}
-          {errors.general && (
-            <View style={styles.errorBanner}>
-              <Ionicons
-                name="alert-circle"
-                size={20}
-                color="#DC3545"
-                style={styles.errorIcon}
-              />
-              <Text style={styles.errorBannerText}>{errors.general}</Text>
-            </View>
-          )}
+          <ErrorBanner message={errors.general} />
 
           {/* ===================================================================
               FORM CONTAINER - All form inputs and buttons
@@ -258,306 +288,109 @@ export default function RegisterScreen() {
 
             {/* -----------------------------------------------------------------
                 AVATAR PICKER SECTION
-                - Allows user to select a profile picture from device gallery
-                - Shows camera icon placeholder when no image selected
-                - Displays selected image in circular frame
-                - Shows inline error if permission is denied
             ----------------------------------------------------------------- */}
-            <View style={styles.avatarContainer}>
-              <TouchableOpacity onPress={pickImage} style={styles.avatarButton}>
-                {avatarUri ? (
-                  // Display selected image
-                  <Image source={{ uri: avatarUri }} style={styles.avatar} />
-                ) : (
-                  // Display placeholder with camera icon
-                  <View style={styles.avatarPlaceholder}>
-                    <Ionicons
-                      name="camera-outline"
-                      size={32}
-                      color={isDark ? "#666" : "#999"}
-                    />
-                  </View>
-                )}
-              </TouchableOpacity>
-              <Text style={styles.avatarLabel}>
-                {t("auth.register.avatarLabel")}
-              </Text>
-              {/* Permission error message */}
-              {errors.permission && (
-                <Text style={styles.errorText}>{errors.permission}</Text>
-              )}
-            </View>
+            <AvatarPicker
+              avatarUri={avatarUri}
+              onPress={pickImage}
+              label={t("auth.register.avatarLabel")}
+              errorMessage={errors.permission}
+            />
             {/* -----------------------------------------------------------------
                 DISPLAY NAME INPUT
-                - Text input for user's full name
-                - Auto-capitalizes each word for proper name formatting
-                - Person icon indicates it's a name field
             ----------------------------------------------------------------- */}
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="person-outline"
-                size={20}
-                color={isDark ? "#ccc" : "#666"}
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder={t("auth.register.fullNamePlaceholder")}
-                value={displayName}
-                onChangeText={setDisplayName}
-                autoCapitalize="words"
-                placeholderTextColor={isDark ? "#666" : "#999"}
-              />
-            </View>
+            <FormInput
+              icon="person-outline"
+              placeholder={t("auth.register.fullNamePlaceholder")}
+              value={displayName}
+              onChangeText={setDisplayName}
+              autoCapitalize="words"
+            />
 
             {/* -----------------------------------------------------------------
                 EMAIL INPUT
-                - Email address input with email keyboard type
-                - No auto-capitalization for email addresses
-                - Mail icon indicates it's an email field
             ----------------------------------------------------------------- */}
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color={isDark ? "#ccc" : "#666"}
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder={t("auth.register.emailPlaceholder")}
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                placeholderTextColor={isDark ? "#666" : "#999"}
-              />
-            </View>
+            <FormInput
+              icon="mail-outline"
+              placeholder={t("auth.register.emailPlaceholder")}
+              value={email}
+              onChangeText={setEmail}
+              onBlur={() => setEmailTouched(true)}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              showValidation={true}
+              isValid={isValidEmail}
+              isTouched={emailTouched}
+              errorMessage={t("auth.errors.invalidEmail") || "Please enter a valid email address"}
+            />
 
             {/* -----------------------------------------------------------------
                 PASSWORD INPUT
-                - Secure text entry with toggle visibility button
-                - Eye icon button toggles between showing/hiding password
-                - Lock icon indicates it's a password field
-                - Triggers real-time validation in useEffect
             ----------------------------------------------------------------- */}
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="lock-closed-outline"
-                size={20}
-                color={isDark ? "#ccc" : "#666"}
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder={t("auth.register.passwordPlaceholder")}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!passwordVisible}
-                placeholderTextColor={isDark ? "#666" : "#999"}
-              />
-              {/* Toggle password visibility button */}
-              <TouchableOpacity
-                onPress={() => setPasswordVisible(!passwordVisible)}
-              >
-                <Ionicons
-                  name={passwordVisible ? "eye-off-outline" : "eye-outline"}
-                  size={20}
-                  color={isDark ? "#ccc" : "#666"}
-                />
-              </TouchableOpacity>
-            </View>
+            <PasswordInput
+              placeholder={t("auth.register.passwordPlaceholder")}
+              value={password}
+              onChangeText={setPassword}
+            />
 
             {/* -----------------------------------------------------------------
                 CONFIRM PASSWORD INPUT
-                - Secure text entry with toggle visibility button
-                - Must match the password field for validation
-                - Eye icon button toggles between showing/hiding password
-                - Lock icon indicates it's a password field
             ----------------------------------------------------------------- */}
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="lock-closed-outline"
-                size={20}
-                color={isDark ? "#ccc" : "#666"}
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder={t("auth.register.confirmPasswordPlaceholder")}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry={!confirmPasswordVisible}
-                placeholderTextColor={isDark ? "#666" : "#999"}
-              />
-              {/* Toggle confirm password visibility button */}
-              <TouchableOpacity
-                onPress={() =>
-                  setConfirmPasswordVisible(!confirmPasswordVisible)
-                }
-              >
-                <Ionicons
-                  name={
-                    confirmPasswordVisible ? "eye-off-outline" : "eye-outline"
-                  }
-                  size={20}
-                  color={isDark ? "#ccc" : "#666"}
-                />
-              </TouchableOpacity>
-            </View>
+            <PasswordInput
+              placeholder={t("auth.register.confirmPasswordPlaceholder")}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
 
             {/* -----------------------------------------------------------------
                 PASSWORD VALIDATION HINTS SECTION
-                - Real-time visual feedback for password requirements
-                - Each requirement shows checkmark when satisfied
-                - Icons change from outline to checkmark-circle when valid
-                - Text color changes to green when requirement is met
-
-                Four validation requirements:
-                1. Minimum 8 characters
-                2. Contains at least one number
-                3. Contains at least one special character
-                4. Password and confirmation match
             ----------------------------------------------------------------- */}
-            <View style={styles.hintsContainer}>
-              {/* Minimum length requirement (8+ characters) */}
-              <View style={styles.hintRow}>
-                <Ionicons
-                  name={hasMinLength ? "checkmark-circle" : "ellipse-outline"}
-                  size={16}
-                  color={hasMinLength ? "green" : isDark ? "#666" : "#666"}
-                />
-                <Text
-                  style={[
-                    styles.hintText,
-                    hasMinLength && styles.hintTextValid,
-                  ]}
-                >
-                  {t("auth.register.passwordHint.length")}
-                </Text>
-              </View>
-
-              {/* Number requirement */}
-              <View style={styles.hintRow}>
-                <Ionicons
-                  name={hasNumber ? "checkmark-circle" : "ellipse-outline"}
-                  size={16}
-                  color={hasNumber ? "green" : isDark ? "#666" : "#666"}
-                />
-                <Text
-                  style={[styles.hintText, hasNumber && styles.hintTextValid]}
-                >
-                  {t("auth.register.passwordHint.number")}
-                </Text>
-              </View>
-
-              {/* Special character requirement */}
-              <View style={styles.hintRow}>
-                <Ionicons
-                  name={hasSpecial ? "checkmark-circle" : "ellipse-outline"}
-                  size={16}
-                  color={hasSpecial ? "green" : isDark ? "#666" : "#666"}
-                />
-                <Text
-                  style={[styles.hintText, hasSpecial && styles.hintTextValid]}
-                >
-                  {t("auth.register.passwordHint.special")}
-                </Text>
-              </View>
-
-              {/* Password match requirement */}
-              <View style={styles.hintRow}>
-                <Ionicons
-                  name={passwordsMatch ? "checkmark-circle" : "ellipse-outline"}
-                  size={16}
-                  color={passwordsMatch ? "green" : isDark ? "#666" : "#666"}
-                />
-                <Text
-                  style={[
-                    styles.hintText,
-                    passwordsMatch && styles.hintTextValid,
-                  ]}
-                >
-                  {t("auth.register.passwordHint.match")}
-                </Text>
-              </View>
-            </View>
+            <PasswordHints
+              hasMinLength={hasMinLength}
+              hasNumber={hasNumber}
+              hasSpecial={hasSpecial}
+              passwordsMatch={passwordsMatch}
+              hints={{
+                length: t("auth.register.passwordHint.length"),
+                number: t("auth.register.passwordHint.number"),
+                special: t("auth.register.passwordHint.special"),
+                match: t("auth.register.passwordHint.match"),
+              }}
+            />
 
             {/* -----------------------------------------------------------------
                 REGISTER BUTTON
-                - Primary action button for email/password registration
-                - Disabled and shows reduced opacity during loading
-                - Button text changes to show loading state
-                - Triggers handleRegister function
             ----------------------------------------------------------------- */}
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
+            <PrimaryButton
+              title={t("auth.register.register")}
               onPress={handleRegister}
-              disabled={loading}
-            >
-              <Text style={styles.buttonText}>
-                {loading
-                  ? t("auth.register.creatingAccount")
-                  : t("auth.register.register")}
-              </Text>
-            </TouchableOpacity>
+              loading={loading}
+              loadingTitle={t("auth.register.creatingAccount")}
+            />
 
             {/* -----------------------------------------------------------------
-                DIVIDER - "OR" Section
-                - Visual separator between registration methods
-                - Shows "OR" text centered between two lines
+                DIVIDER
             ----------------------------------------------------------------- */}
-            <View style={styles.dividerContainer}>
-              <View style={styles.divider} />
-              <Text style={styles.dividerText}>{t("common.or")}</Text>
-              <View style={styles.divider} />
-            </View>
+            <Divider text={t("common.or")} />
 
             {/* -----------------------------------------------------------------
                 GOOGLE SIGN-IN BUTTON
-                - Alternative registration method using Google OAuth
-                - Shows Google logo icon
-                - Disabled and shows reduced opacity during loading
-                - Button text changes to show loading state
-                - Triggers handleGoogleLogin function
             ----------------------------------------------------------------- */}
-            <TouchableOpacity
-              style={[
-                styles.googleButton,
-                googleLoading && styles.buttonDisabled,
-              ]}
+            <GoogleButton
+              title={t("auth.register.googleSignIn")}
               onPress={handleGoogleLogin}
-              disabled={googleLoading}
-            >
-              <Ionicons
-                name="logo-google"
-                size={20}
-                color="#DB4437"
-                style={styles.googleIcon}
-              />
-              <Text style={styles.googleButtonText}>
-                {googleLoading
-                  ? t("auth.register.googleSigningIn")
-                  : t("auth.register.googleSignIn")}
-              </Text>
-            </TouchableOpacity>
+              loading={googleLoading}
+              loadingTitle={t("auth.register.googleSigningIn")}
+            />
           </View>
 
           {/* ===================================================================
-              FOOTER SECTION - Link to Login
-              - For users who already have an account
-              - Links to login screen
+              FOOTER SECTION
               =================================================================== */}
-          <View style={styles.footerContainer}>
-            <Text style={styles.footerText}>
-              {t("auth.register.hasAccount")}
-            </Text>
-            <Link href="/(auth)/login" asChild>
-              <TouchableOpacity>
-                <Text style={styles.link}>{t("auth.register.signIn")}</Text>
-              </TouchableOpacity>
-            </Link>
-          </View>
+          <FooterLink
+            text={t("auth.register.hasAccount")}
+            linkText={t("auth.register.signIn")}
+            href="/(auth)/login"
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -640,6 +473,18 @@ const getStyles = (isDark: boolean) =>
       paddingVertical: 14,
       marginBottom: 16,
       backgroundColor: isDark ? "#1c1c1e" : "#F9F9F9",
+    },
+
+    /** Input error state - Red border for invalid input */
+    inputError: {
+      borderColor: isDark ? "#5C2B2E" : "#DC3545",
+      backgroundColor: isDark ? "#2C1618" : "#FFF5F5",
+    },
+
+    /** Input success state - Green border for valid input */
+    inputSuccess: {
+      borderColor: isDark ? "#1E4620" : "#28A745",
+      backgroundColor: isDark ? "#0F2410" : "#F0FFF4",
     },
 
     /** Input field icon - Spacing for icons next to inputs */
