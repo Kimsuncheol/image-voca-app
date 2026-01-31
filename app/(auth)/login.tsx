@@ -1,7 +1,6 @@
 // --- Imports ---
-import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -12,14 +11,22 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import { auth } from "../../src/services/firebase";
-
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
+import {
+  ErrorBanner,
+  Divider,
+  FormInput,
+  PasswordInput,
+  RememberMeCheckbox,
+  LinkButton,
+  PrimaryButton,
+  GoogleButton,
+  FooterLink,
+} from "./components";
 
 // --- Constants ---
 // Key used for storing the user's email in AsyncStorage for "Remember Me" functionality
@@ -33,7 +40,6 @@ export default function LoginScreen() {
   // Form State
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [passwordVisible, setPasswordVisible] = useState(false); // Toggle password visibility
   const [rememberMe, setRememberMe] = useState(false); // Toggle "Remember Me" checkbox
   const [loading, setLoading] = useState(false); // Loading state for login process
   const [authError, setAuthError] = useState<string | null>(null); // Authentication error message
@@ -128,169 +134,81 @@ export default function LoginScreen() {
           {/* --- Section: Login Form --- */}
           <View style={styles.formContainer}>
             {/* Authentication Error Alert */}
-            {authError ? (
-              <View style={styles.errorAlert} accessibilityRole="alert">
-                <Ionicons
-                  name="alert-circle"
-                  size={18}
-                  color={isDark ? "#FF8A8A" : "#D93025"}
-                  style={styles.errorIcon}
-                />
-                <View style={styles.errorTextContainer}>
-                  <Text style={styles.errorTitle}>
-                    {t("auth.errors.loginTitle")}
-                  </Text>
-                  <Text style={styles.errorMessage}>{authError}</Text>
-                </View>
-                <TouchableOpacity
-                  onPress={() => setAuthError(null)}
-                  accessibilityLabel={t("common.close")}
-                >
-                  <Ionicons
-                    name="close"
-                    size={18}
-                    color={isDark ? "#FF8A8A" : "#D93025"}
-                  />
-                </TouchableOpacity>
-              </View>
-            ) : null}
+            <ErrorBanner
+              title={t("auth.errors.loginTitle")}
+              message={authError || ""}
+              onClose={() => setAuthError(null)}
+            />
 
             {/* Feature: Email Input */}
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color={isDark ? "#ccc" : "#666"}
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder={t("auth.login.emailPlaceholder")}
-                value={email}
-                onChangeText={(value) => {
-                  if (authError) {
-                    setAuthError(null);
-                  }
-                  setEmail(value);
-                }}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                placeholderTextColor={isDark ? "#666" : "#999"}
-              />
-            </View>
+            <FormInput
+              icon="mail-outline"
+              placeholder={t("auth.login.emailPlaceholder")}
+              value={email}
+              onChangeText={(value) => {
+                if (authError) {
+                  setAuthError(null);
+                }
+                setEmail(value);
+              }}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
 
             {/* Feature: Password Input with Visibility Toggle */}
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="lock-closed-outline"
-                size={20}
-                color={isDark ? "#ccc" : "#666"}
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder={t("auth.login.passwordPlaceholder")}
-                value={password}
-                onChangeText={(value) => {
-                  if (authError) {
-                    setAuthError(null);
-                  }
-                  setPassword(value);
-                }}
-                secureTextEntry={!passwordVisible}
-                placeholderTextColor={isDark ? "#666" : "#999"}
-              />
-              <TouchableOpacity
-                onPress={() => setPasswordVisible(!passwordVisible)}
-              >
-                <Ionicons
-                  name={passwordVisible ? "eye-off-outline" : "eye-outline"}
-                  size={20}
-                  color={isDark ? "#ccc" : "#666"}
-                />
-              </TouchableOpacity>
-            </View>
+            <PasswordInput
+              placeholder={t("auth.login.passwordPlaceholder")}
+              value={password}
+              onChangeText={(value) => {
+                if (authError) {
+                  setAuthError(null);
+                }
+                setPassword(value);
+              }}
+            />
 
             {/* Feature: Options Row (Remember Me & Forgot Password) */}
             <View style={styles.optionsContainer}>
-              <TouchableOpacity
-                style={styles.rememberMeContainer}
-                onPress={() => setRememberMe(!rememberMe)}
-                activeOpacity={0.7}
-              >
-                <View
-                  style={[
-                    styles.checkbox,
-                    rememberMe && styles.checkboxChecked,
-                  ]}
-                >
-                  {rememberMe && (
-                    <Ionicons name="checkmark" size={14} color="#fff" />
-                  )}
-                </View>
-                <Text style={styles.rememberMeText}>
-                  {t("auth.login.rememberMe")}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.forgotPassword}>
-                <Text style={styles.forgotPasswordText}>
-                  {t("auth.login.forgotPassword")}
-                </Text>
-              </TouchableOpacity>
+              <RememberMeCheckbox
+                checked={rememberMe}
+                onToggle={() => setRememberMe(!rememberMe)}
+                label={t("auth.login.rememberMe")}
+              />
+              <LinkButton
+                text={t("auth.login.forgotPassword")}
+                onPress={() => {
+                  // TODO: Implement forgot password functionality
+                }}
+              />
             </View>
 
             {/* Feature: Sign In Button */}
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
+            <PrimaryButton
+              title={t("auth.login.signIn")}
               onPress={handleLogin}
-              disabled={loading}
-            >
-              <Text style={styles.buttonText}>
-                {loading ? t("auth.login.signingIn") : t("auth.login.signIn")}
-              </Text>
-            </TouchableOpacity>
+              loading={loading}
+              loadingTitle={t("auth.login.signingIn")}
+            />
 
             {/* --- Section: Divider --- */}
-            <View style={styles.dividerContainer}>
-              <View style={styles.divider} />
-              <Text style={styles.dividerText}>{t("common.or")}</Text>
-              <View style={styles.divider} />
-            </View>
+            <Divider text={t("common.or")} />
 
             {/* Feature: Google Sign In Button */}
-            <TouchableOpacity
-              style={[
-                styles.googleButton,
-                googleLoading && styles.buttonDisabled,
-              ]}
+            <GoogleButton
+              title={t("auth.login.googleSignIn")}
               onPress={handleGoogleLogin}
-              disabled={googleLoading}
-            >
-              <Ionicons
-                name="logo-google"
-                size={20}
-                color="#DB4437"
-                style={styles.googleIcon}
-              />
-              <Text style={styles.googleButtonText}>
-                {googleLoading
-                  ? t("auth.login.googleSigningIn")
-                  : t("auth.login.googleSignIn")}
-              </Text>
-            </TouchableOpacity>
+              loading={googleLoading}
+              loadingTitle={t("auth.login.googleSigningIn")}
+            />
           </View>
 
           {/* --- Section: Footer (Register Link) --- */}
           {/* Redirects user to Registration screen if they don't have an account */}
-          <View style={styles.footerContainer}>
-            <Text style={styles.footerText}>{t("auth.login.noAccount")}</Text>
-            <Link href="/(auth)/register" asChild>
-              <TouchableOpacity>
-                <Text style={styles.link}>{t("auth.login.signUp")}</Text>
-              </TouchableOpacity>
-            </Link>
-          </View>
+          <FooterLink
+            text={t("auth.login.noAccount")}
+            linkText={t("auth.login.signUp")}
+            href="/(auth)/register"
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -330,155 +248,10 @@ const getStyles = (isDark: boolean) =>
     formContainer: {
       marginBottom: 24,
     },
-    errorAlert: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: 12,
-      paddingHorizontal: 14,
-      marginBottom: 16,
-      borderRadius: 12,
-      borderWidth: 1,
-      backgroundColor: isDark ? "#2A1414" : "#FFF1F1",
-      borderColor: isDark ? "#5C1F1F" : "#F5B5B5",
-    },
-    errorIcon: {
-      marginRight: 10,
-    },
-    errorTextContainer: {
-      flex: 1,
-    },
-    errorTitle: {
-      fontSize: 14,
-      fontWeight: "700",
-      color: isDark ? "#FFB3B3" : "#D93025",
-      marginBottom: 2,
-    },
-    errorMessage: {
-      fontSize: 13,
-      color: isDark ? "#FFD5D5" : "#8A1C1C",
-    },
-    inputContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      borderWidth: 1,
-      borderColor: isDark ? "#333" : "#E0E0E0",
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      marginBottom: 16,
-      backgroundColor: isDark ? "#1c1c1e" : "#F9F9F9",
-    },
-    inputIcon: {
-      marginRight: 12,
-    },
-    input: {
-      flex: 1,
-      fontSize: 16,
-      color: isDark ? "#fff" : "#333",
-    },
     optionsContainer: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       marginBottom: 24,
-    },
-    rememberMeContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    checkbox: {
-      width: 20,
-      height: 20,
-      borderRadius: 6,
-      borderWidth: 1.5,
-      borderColor: isDark ? "#888" : "#666",
-      marginRight: 8,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    checkboxChecked: {
-      backgroundColor: "#007AFF",
-      borderColor: "#007AFF",
-    },
-    rememberMeText: {
-      color: isDark ? "#ccc" : "#666",
-      fontSize: 14,
-    },
-    forgotPassword: {
-      // alignSelf: "flex-end", // Removed as it's now in a row
-    },
-    forgotPasswordText: {
-      color: "#007AFF",
-      fontSize: 14,
-      fontWeight: "600",
-    },
-    button: {
-      backgroundColor: "#007AFF",
-      paddingVertical: 16,
-      borderRadius: 12,
-      alignItems: "center",
-      shadowColor: "#007AFF",
-      shadowOffset: {
-        width: 0,
-        height: 4,
-      },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      elevation: 8,
-    },
-    buttonDisabled: {
-      opacity: 0.7,
-    },
-    buttonText: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "bold",
-    },
-    dividerContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginVertical: 24,
-    },
-    divider: {
-      flex: 1,
-      height: 1,
-      backgroundColor: isDark ? "#333" : "#E0E0E0",
-    },
-    dividerText: {
-      marginHorizontal: 16,
-      color: isDark ? "#888" : "#999",
-      fontWeight: "600",
-    },
-    googleButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
-      borderWidth: 1,
-      borderColor: isDark ? "#333" : "#E0E0E0",
-      paddingVertical: 16,
-      borderRadius: 12,
-    },
-    googleIcon: {
-      marginRight: 12,
-    },
-    googleButtonText: {
-      color: isDark ? "#fff" : "#333",
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    footerContainer: {
-      flexDirection: "row",
-      justifyContent: "center",
-      marginTop: 16,
-    },
-    footerText: {
-      color: isDark ? "#ccc" : "#666",
-      fontSize: 14,
-    },
-    link: {
-      color: "#007AFF",
-      fontSize: 14,
-      fontWeight: "bold",
     },
   });

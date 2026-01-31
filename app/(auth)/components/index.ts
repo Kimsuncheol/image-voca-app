@@ -15,3 +15,5 @@ export { AvatarPicker } from "./AvatarPicker";
 export { PrimaryButton } from "./PrimaryButton";
 export { GoogleButton } from "./GoogleButton";
 export { FooterLink } from "./FooterLink";
+export { RememberMeCheckbox } from "./RememberMeCheckbox";
+export { LinkButton } from "./LinkButton";
