@@ -25,28 +25,60 @@ interface FaceSideProps {
   onFlip?: () => void;
 }
 
+/**
+ * FaceSide Component for CollocationFlipCard
+ *
+ * Displays the "Front" of the flashcard.
+ *
+ * Main Content:
+ * - Collocation text (e.g., "make a decision")
+ * - Meaning/Translation
+ * - Audio pronunciation button
+ *
+ * Actions (Footer):
+ * - Add/Remove from Word Bank
+ * - Delete (if configured)
+ *
+ * Visuals:
+ * - Badge showing the 'Day' number
+ * - Accent mark for branding
+ */
 export default React.memo(function FaceSide({
   data,
   isDark,
   wordBankConfig,
   onFlip,
 }: FaceSideProps) {
+  // ============================================================================
+  // Contexts & State
+  // ============================================================================
   const { user } = useAuth();
   const { recordWordLearned } = useUserStatsStore();
   const { t } = useTranslation();
+
+  // Local state for 'Add to Word Bank' operation
   const [isAdding, setIsAdding] = React.useState(false);
   const [isAdded, setIsAdded] = React.useState(
     wordBankConfig?.initialIsSaved ?? false,
   );
 
+  // Sync initial 'saved' state when config changes (e.g., paging through cards)
   React.useEffect(() => {
     setIsAdded(wordBankConfig?.initialIsSaved ?? false);
   }, [wordBankConfig?.initialIsSaved]);
 
+  // ============================================================================
+  // Event Handlers
+  // ============================================================================
+
+  /**
+   * Plays the audio pronunciation of the collocation using Expo Speech.
+   */
   const speak = React.useCallback(() => {
     Speech.speak(data.collocation);
   }, [data.collocation]);
 
+  // Determine permissions based on config
   const canAddToWordBank =
     wordBankConfig?.enableAdd !== false &&
     Boolean(wordBankConfig?.id) &&
@@ -55,6 +87,10 @@ export default React.memo(function FaceSide({
   const canDelete =
     wordBankConfig?.enableDelete === true && Boolean(wordBankConfig?.onDelete);
 
+  /**
+   * Toggles the word's presence in the user's Word Bank.
+   * Uses a Firestore transaction to ensure data integrity (deduplication).
+   */
   const handleToggleWordBank = React.useCallback(async () => {
     if (!canAddToWordBank || !wordBankConfig) {
       return;
@@ -74,13 +110,15 @@ export default React.memo(function FaceSide({
         "course",
         wordBankConfig.course,
       );
+
+      // Transaction: Read current words -> Check existence -> Add/Remove -> Write back
       const action = await runTransaction(db, async (transaction) => {
         const snap = await transaction.get(wordRef);
         const existingWords: SavedWord[] = snap.exists()
           ? snap.data().words || []
           : [];
 
-        // Normalize away duplicates that may already exist.
+        // Normalize away duplicates that may already exist in the array.
         const dedupedWords = Array.from(
           new Map(existingWords.map((word) => [word.id, word])).values(),
         );
@@ -89,6 +127,7 @@ export default React.memo(function FaceSide({
           (word) => word.id === wordBankConfig.id,
         );
 
+        // Scenario 1: Remove from Bank
         if (existsInBank) {
           const updatedWords = dedupedWords.filter(
             (word) => word.id !== wordBankConfig.id,
@@ -97,6 +136,7 @@ export default React.memo(function FaceSide({
           return "removed" as const;
         }
 
+        // Scenario 2: Add to Bank
         const newWord: SavedWord = {
           id: wordBankConfig.id,
           word: data.collocation,
@@ -117,19 +157,20 @@ export default React.memo(function FaceSide({
         return "added" as const;
       });
 
+      // Handle UI updates based on transaction result
       if (action === "removed") {
         setIsAdded(false);
         wordBankConfig.onDelete?.(wordBankConfig.id);
-        Alert.alert(t("common.success"), "Removed from Word Bank.");
+        // Alert.alert(t("common.success"), "Removed from Word Bank.");
         return;
       }
 
       setIsAdded(true);
       await recordWordLearned(user.uid);
-      Alert.alert(
-        t("common.success"),
-        t("swipe.success.addedToWordBank", { word: data.collocation }),
-      );
+      // Alert.alert(
+      //   t("common.success"),
+      //   t("swipe.success.addedToWordBank", { word: data.collocation }),
+      // );
     } catch (error) {
       console.error("Error toggling collocation word bank:", error);
       Alert.alert(t("common.error"), t("swipe.errors.addFailed"));
@@ -149,6 +190,10 @@ export default React.memo(function FaceSide({
     wordBankConfig,
   ]);
 
+  /**
+   * Action: Delete Word
+   * Calls the parent's onDelete callback (used primarily in the Word Bank screen).
+   */
   const handleDelete = React.useCallback(() => {
     if (!canDelete || !wordBankConfig?.onDelete || !wordBankConfig?.id) {
       return;
@@ -156,17 +201,20 @@ export default React.memo(function FaceSide({
     wordBankConfig.onDelete(wordBankConfig.id);
   }, [canDelete, wordBankConfig]);
 
+  // ============================================================================
+  // Main Render
+  // ============================================================================
   return (
     <Pressable
       style={[styles.face, isDark && styles.faceDark]}
       onPress={onFlip}
       disabled={!onFlip}
     >
-      {/* Accent Brand Mark */}
+      {/* Visual Accent Mark (Top Right) */}
       <View style={styles.accentMark} />
 
       <View style={styles.contentContainer}>
-        {/* Day Badge - positioned at the top */}
+        {/* Section: Day Badge */}
         {wordBankConfig?.day && (
           <View style={styles.dayBadgeContainer}>
             <Text style={[styles.dayBadge, isDark && styles.dayBadgeDark]}>
@@ -175,10 +223,12 @@ export default React.memo(function FaceSide({
           </View>
         )}
 
+        {/* Section: Main Content (Word) */}
         <Text style={[styles.collocationText, isDark && styles.textDark]}>
           {data.collocation}
         </Text>
 
+        {/* Section: Meaning & Audio */}
         <View style={styles.meaningContainer}>
           <Text style={[styles.meaningText, isDark && styles.textDark]}>
             {data.meaning}
@@ -193,6 +243,7 @@ export default React.memo(function FaceSide({
         </View>
       </View>
 
+      {/* Section: Footer Actions (Word Bank / Delete) */}
       <View style={styles.footer}>
         {canAddToWordBank && (
           <Pressable
@@ -239,7 +290,6 @@ export default React.memo(function FaceSide({
             </Text>
           </TouchableOpacity>
         )}
-
       </View>
     </Pressable>
   );

@@ -1,9 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import {
-  doc,
-  getDoc,
-  updateDoc,
-} from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Dimensions, StyleSheet, View } from "react-native";
@@ -31,17 +27,33 @@ import { VocabularySwipeDeck } from "../../../components/course/vocabulary/Vocab
 
 const { width, height } = Dimensions.get("window");
 
+/**
+ * Vocabulary Learning Screen
+ *
+ * This screen is the main interface for users to learn vocabulary words.
+ * It presents a deck of cards that users can swipe through.
+ *
+ * Core Features:
+ * 1. Data Fetching: Fetches vocabulary from Firestore with caching support.
+ * 2. Progress Tracking: Updates user stats for words learned and daily progress.
+ * 3. Word Bank Integration: Checks if words are saved in the user's Word Bank.
+ * 4. Swipe Interface: Uses a tinder-like swipe deck for standard courses and a pager for collocations.
+ */
 export default function VocabularyScreen() {
-  // --- Hooks & Contexts ---
+  // ============================================================================
+  // Section 1: Hooks & Contexts
+  // ============================================================================
   const { isDark } = useTheme();
   const { user } = useAuth();
+
+  // Zustand store actions for managing user statistics and progress
   const { bufferWordLearned, flushWordStats, updateCourseDayProgress } =
     useUserStatsStore();
 
-  // Track time spent learning on this screen
+  // Custom hook to track time spent learning based on screen focus
   useTimeTracking();
 
-  // Navigation params: courseId (e.g., 'TOEIC') and day (e.g., '1')
+  // Navigation parameters: courseId (e.g., 'TOEIC') and day (e.g., '1')
   const { courseId, day } = useLocalSearchParams<{
     courseId: CourseType;
     day: string;
@@ -49,24 +61,41 @@ export default function VocabularyScreen() {
   const router = useRouter();
   const { t } = useTranslation();
 
-  // --- State Management ---
-  const [isFinished, setIsFinished] = useState(false); // Tracks if user completed all cards
-  const [cards, setCards] = useState<VocabularyCard[]>([]); // The list of vocabulary words
-  const [savedWordIds, setSavedWordIds] = useState<Set<string>>(new Set()); // IDs of words saved in WordBank
-  const [loading, setLoading] = useState(true); // Loading state for data fetching
+  // ============================================================================
+  // Section 2: State Management
+  // ============================================================================
+
+  // Tracks if the user has completed swiping through all cards
+  const [isFinished, setIsFinished] = useState(false);
+
+  // The list of vocabulary words to display
+  const [cards, setCards] = useState<VocabularyCard[]>([]);
+
+  // Set of IDs for words that are already saved in the user's Word Bank
+  const [savedWordIds, setSavedWordIds] = useState<Set<string>>(new Set());
+
+  // Loading state for asynchronous data fetching
+  const [loading, setLoading] = useState(true);
 
   const dayNumber = parseInt(day || "1", 10);
 
-  // --- Effects: Data Fetching ---
+  // ============================================================================
+  // Section 3: Data Fetching Effects
+  // ============================================================================
 
   /**
-   * Effect to fetch vocabulary data from Firestore based on courseId and day.
-   * Runs when courseId or dayNumber changes.
+   * Effect: Fetch Vocabulary Data
+   *
+   * Strategy:
+   * 1. Check local cache first for instant load.
+   * 2. If valid cache exists, use it.
+   * 3. If cache is stale or missing, rehydrate or fetch fresh from Firestore.
    */
   useEffect(() => {
     if (!courseId) return;
     let isMounted = true;
 
+    // Helper to fetch fresh data from Firestore
     const fetchVocabulary = async (showLoading: boolean) => {
       if (showLoading && isMounted) {
         setLoading(true);
@@ -88,10 +117,12 @@ export default function VocabularyScreen() {
       }
     };
 
+    // Bootstrap function to implement the caching strategy
     const bootstrap = async () => {
       let hasCache = false;
       let fresh = false;
 
+      // sync synchronous check for in-memory cache
       const cached = getCachedVocabularyCards(
         courseId as CourseType,
         dayNumber,
@@ -104,6 +135,7 @@ export default function VocabularyScreen() {
           setLoading(false);
         }
       } else {
+        // Asynchronous check for persistent cache
         if (isMounted) {
           setLoading(true);
         }
@@ -126,6 +158,8 @@ export default function VocabularyScreen() {
         }
       }
 
+      // If no data found in cache, fetch fresh.
+      // If cache exists but is stale, fetch background update.
       if (!hasCache) {
         await fetchVocabulary(true);
       } else if (!fresh) {
@@ -141,8 +175,10 @@ export default function VocabularyScreen() {
   }, [courseId, dayNumber]);
 
   /**
-   * Effect to fetch saved word IDs from the user's Word Bank.
-   * This allows the UI to show which cards are already saved.
+   * Effect: Fetch User's Saved Words
+   *
+   * Retrieves the list of words the user has saved to their "Word Bank" for this course.
+   * This is used to display the "Added" status on cards.
    */
   useEffect(() => {
     const fetchSavedWords = async () => {
@@ -166,11 +202,13 @@ export default function VocabularyScreen() {
     fetchSavedWords();
   }, [user, courseId]);
 
-  // --- Event Handlers: Swipe & Progress ---
+  // ============================================================================
+  // Section 4: Event Handlers (Swipe & Progress)
+  // ============================================================================
 
   /**
-   * Handler for swiping right (Learned).
-   * Buffers the word as learned in the user stats store.
+   * Handler: Swipe Right (Learned)
+   * Records the word as learned in the local buffer.
    */
   const onSwipeRight = (item: VocabularyCard) => {
     console.log("Learned:", item.word);
@@ -181,8 +219,9 @@ export default function VocabularyScreen() {
   };
 
   /**
-   * Handler for swiping left (Skipped/Review).
-   * Currently treats skipped words as 'viewed/learned' for progress tracking purposes.
+   * Handler: Swipe Left (Review/Skipped)
+   * Currently treats skipped words as 'viewed' for progress tracking.
+   * Logic could be updated to differentiate 'Review Later' vs 'Learned'.
    */
   const onSwipeLeft = (item: VocabularyCard) => {
     console.log("Learned:", item.word);
@@ -193,10 +232,13 @@ export default function VocabularyScreen() {
   };
 
   /**
-   * Handler for when all cards in the deck have been swiped/viewed.
-   * 1. Marks the session as finished.
-   * 2. Flushes buffered stats to Firestore.
-   * 3. Updates the course progress (completion status) in Firestore.
+   * Handler: Deck Finished
+   * Triggered when the user runs out of cards (completes the day).
+   *
+   * Actions:
+   * 1. Sets 'isFinished' state to show completion view.
+   * 2. Flushes buffered learning stats to Firestore.
+   * 3. Marks the course day as 'completed' in user profile.
    */
   const handleRunOutOfCards = async () => {
     setIsFinished(true);
@@ -213,7 +255,7 @@ export default function VocabularyScreen() {
             cards.length,
         });
 
-        // Update local store state
+        // Update local store state for immediate UI reflection
         updateCourseDayProgress(courseId, dayNumber, {
           completed: true,
           totalWords: cards.length,
@@ -226,8 +268,9 @@ export default function VocabularyScreen() {
   };
 
   /**
-   * Handler for Collocation Swipeable page change.
-   * Records the word as learned when viewed in the pager.
+   * Handler: Page Change (for Collocation PagerView)
+   * Since Collocation cards use a PagerView instead of SwipeDeck,
+   * we simply record the word as learned when the user navigates to its page.
    */
   const handlePageChange = (index: number) => {
     if (cards[index]) {
@@ -239,8 +282,14 @@ export default function VocabularyScreen() {
     }
   };
 
-  // --- Event Handlers: Navigation Actions ---
+  // ============================================================================
+  // Section 5: Navigation Actions
+  // ============================================================================
 
+  /**
+   * Action: Restart Day
+   * Resets the current learning session.
+   */
   const handleRestart = () => {
     // Reset cards to force re-render/reset of deck
     setCards([...cards]);
@@ -250,6 +299,10 @@ export default function VocabularyScreen() {
     });
   };
 
+  /**
+   * Action: Start Quiz
+   * Navigates to the Quiz selection screen for this day.
+   */
   const handleQuiz = () => {
     router.push({
       pathname: "/course/[courseId]/quiz-type",
@@ -257,7 +310,9 @@ export default function VocabularyScreen() {
     });
   };
 
-  // --- Render Helpers ---
+  // ============================================================================
+  // Section 6: Render Helpers & Main Render
+  // ============================================================================
 
   const renderFinishedView = () => (
     <VocabularyFinishView
@@ -267,8 +322,6 @@ export default function VocabularyScreen() {
       t={t}
     />
   );
-
-  // --- Main Render ---
 
   if (loading) {
     return (
@@ -312,6 +365,7 @@ export default function VocabularyScreen() {
                 isFinished && courseId !== "COLLOCATION" ? "none" : "flex",
             }}
           >
+            {/* The core deck component that handles either swiping or paging */}
             <VocabularySwipeDeck
               cards={cards}
               courseId={courseId as CourseType}
