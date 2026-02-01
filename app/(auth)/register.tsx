@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
 import { auth, db } from "../../src/services/firebase";
+import { UserRole } from "../../src/stores/subscriptionStore";
 import {
   ErrorBanner,
   Divider,
@@ -27,6 +28,9 @@ import {
   GoogleButton,
   FooterLink,
 } from "./components";
+
+// Pre-approved admin email addresses (case-insensitive)
+const ADMIN_EMAILS = ["benjaminadmin@example.com"];
 
 export default function RegisterScreen() {
   const { isDark } = useTheme();
@@ -213,12 +217,18 @@ export default function RegisterScreen() {
         photoURL: avatarUri || null,
       });
 
+      // Determine user role based on email (case-insensitive check)
+      const role: UserRole = ADMIN_EMAILS.includes(email.toLowerCase())
+        ? "admin"
+        : "user";
+
       // Create user document in Firestore with initial data structure
       await setDoc(doc(db, "users", userCredential.user.uid), {
         uid: userCredential.user.uid, // Firebase user ID
         displayName: displayName, // User's display name
         email: email, // User's email address
         photoURL: avatarUri || null, // Profile picture URL (local URI)
+        role: role, // User role (admin or user)
         createdAt: new Date().toISOString(), // Account creation timestamp
         wordBank: [], // Empty word bank for vocabulary learning
         recentCourse: null, // No recent course initially

@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { ThemedText } from "../../components/themed-text";
+import { PromotionCodeInput } from "../../components/promotion/PromotionCodeInput";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { PLANS, Plan, useSubscriptionStore } from "../../src/stores";
@@ -51,6 +52,22 @@ export default function BillingScreen() {
           <ThemedText style={styles.subtitle}>
             {t("billing.selectSubtitle")}
           </ThemedText>
+        </View>
+
+        {/* Promotion Code Section */}
+        <View style={styles.promotionSection}>
+          <ThemedText type="subtitle" style={styles.promotionTitle}>
+            {t("promotion.section.title")}
+          </ThemedText>
+          <PromotionCodeInput
+            userId={user?.uid || ""}
+            onSuccess={() => {
+              // Refresh subscription after successful redemption
+              if (user) {
+                fetchSubscription(user.uid);
+              }
+            }}
+          />
         </View>
 
         {/* Current Plan Badge */}
@@ -193,6 +210,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     opacity: 0.6,
     marginTop: 8,
+    textAlign: "center",
+  },
+  promotionSection: {
+    marginBottom: 24,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: "rgba(0, 122, 255, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(0, 122, 255, 0.2)",
+  },
+  promotionTitle: {
+    fontSize: 16,
+    marginBottom: 12,
     textAlign: "center",
   },
   currentPlanBadge: {

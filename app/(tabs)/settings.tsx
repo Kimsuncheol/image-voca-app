@@ -14,7 +14,7 @@ import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { setLanguage, SupportedLanguage } from "../../src/i18n";
 import { auth } from "../../src/services/firebase";
-import { useUserStatsStore } from "../../src/stores";
+import { useSubscriptionStore, useUserStatsStore } from "../../src/stores";
 import {
   cancelAllScheduledNotifications,
   configureNotifications,
@@ -39,13 +39,15 @@ export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { stats, fetchStats, updateTargetScore } = useUserStatsStore();
+  const { fetchSubscription } = useSubscriptionStore();
 
   useEffect(() => {
     checkNotificationStatus();
     if (user) {
       fetchStats(user.uid);
+      fetchSubscription(user.uid);
     }
-  }, [user, fetchStats]);
+  }, [user, fetchStats, fetchSubscription]);
 
   const checkNotificationStatus = async () => {
     try {
@@ -223,7 +225,7 @@ export default function SettingsScreen() {
           t={t}
         />
 
-        <AdminSection styles={styles} user={user} t={t} />
+        <AdminSection styles={styles} t={t} isDark={isDark} />
 
         <SignOutSection styles={styles} onSignOut={handleSignOut} t={t} />
       </ScrollView>

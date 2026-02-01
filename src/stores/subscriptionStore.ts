@@ -8,6 +8,7 @@ export const AD_UNLOCK_LIMIT = 10;
 const UNLOCKED_IDS_KEY = "@unlocked_ids";
 
 export type PlanType = "free" | "voca_unlimited" | "voca_speaking";
+export type UserRole = "user" | "admin";
 
 export interface Plan {
   id: PlanType;
@@ -52,6 +53,7 @@ interface SubscriptionData {
 interface SubscriptionState {
   currentPlan: PlanType;
   orderId: string | null;
+  role: UserRole;
   loading: boolean;
   error: string | null;
   unlockedIds: string[];
@@ -68,6 +70,7 @@ interface SubscriptionState {
   canAccessFeature: (featureId: string) => boolean;
   canAccessSpeaking: () => boolean;
   canUnlockViaAd: (day: number) => boolean;
+  isAdmin: () => boolean;
   resetSubscription: () => void;
 }
 
@@ -90,6 +93,7 @@ const buildSubscription = (
 export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   currentPlan: "free",
   orderId: null,
+  role: "user",
   loading: false,
   error: null,
   unlockedIds: [],
@@ -107,6 +111,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
           | undefined;
         const normalizedPlan = normalizePlanId(subscription?.planId);
         const orderId = subscription?.orderId ?? null;
+        const role: UserRole = data.role === "admin" ? "admin" : "user";
 
         if (!subscription?.planId) {
           await setDoc(
@@ -121,11 +126,11 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
           );
         }
 
-        set({ currentPlan: normalizedPlan, orderId, loading: false });
+        set({ currentPlan: normalizedPlan, orderId, role, loading: false });
       } else {
         const subscription = buildSubscription("free");
         await setDoc(userRef, { subscription }, { merge: true });
-        set({ currentPlan: "free", orderId: null, loading: false });
+        set({ currentPlan: "free", orderId: null, role: "user", loading: false });
       }
     } catch (error: any) {
       set({
@@ -252,18 +257,24 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   },
 
   canAccessUnlimitedVoca: () => {
-    const { currentPlan } = get();
+    const { currentPlan, role } = get();
+    // Admins have free premium access
+    if (role === "admin") return true;
     return currentPlan !== "free";
   },
 
   canAccessFeature: (featureId: string) => {
-    const { currentPlan, unlockedIds } = get();
+    const { currentPlan, unlockedIds, role } = get();
+    // Admins have free premium access
+    if (role === "admin") return true;
     if (currentPlan !== "free") return true;
     return unlockedIds.includes(featureId);
   },
 
   canAccessSpeaking: () => {
-    const { currentPlan, unlockedIds } = get();
+    const { currentPlan, unlockedIds, role } = get();
+    // Admins have free premium access
+    if (role === "admin") return true;
     return (
       currentPlan === "voca_speaking" ||
       unlockedIds.includes("speaking_feature")
@@ -274,10 +285,16 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     return day > 3 && day <= AD_UNLOCK_LIMIT;
   },
 
+  isAdmin: () => {
+    const { role } = get();
+    return role === "admin";
+  },
+
   resetSubscription: () =>
     set({
       currentPlan: "free",
       orderId: null,
+      role: "user",
       loading: false,
       error: null,
       unlockedIds: [],
