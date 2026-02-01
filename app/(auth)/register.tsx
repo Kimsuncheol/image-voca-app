@@ -18,6 +18,10 @@ import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
 import { auth, db } from "../../src/services/firebase";
 import { UserRole } from "../../src/stores/subscriptionStore";
 import {
+  validateAdminCode,
+  markAdminCodeAsUsed,
+} from "../../src/services/adminCodeService";
+import {
   ErrorBanner,
   Divider,
   FormInput,
@@ -41,6 +45,9 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [adminCode, setAdminCode] = useState("");
+  const [isValidAdminCode, setIsValidAdminCode] = useState(false);
+  const [adminCodeError, setAdminCodeError] = useState("");
   const { promptAsync, loading: googleLoading } = useGoogleAuth();
 
   // ---------------------------------------------------------------------------
@@ -104,6 +111,31 @@ export default function RegisterScreen() {
     setHasSpecial(/[!@#$%^&*(),.?":{}|<>]/.test(password));
     setPasswordsMatch(password === confirmPassword && password !== "");
   }, [password, confirmPassword]);
+
+  // ===========================================================================
+  // ADMIN CODE VALIDATION EFFECT
+  // ===========================================================================
+  /**
+   * Real-time admin code validation
+   * Validates the admin code against Firestore when user enters a code
+   */
+  useEffect(() => {
+    const validateCode = async () => {
+      if (!adminCode) {
+        setIsValidAdminCode(false);
+        setAdminCodeError("");
+        return;
+      }
+
+      const result = await validateAdminCode(adminCode);
+      setIsValidAdminCode(result.isValid);
+      setAdminCodeError(result.errorMessage || "");
+    };
+
+    // Debounce validation to avoid too many Firestore calls
+    const timeoutId = setTimeout(validateCode, 500);
+    return () => clearTimeout(timeoutId);
+  }, [adminCode]);
 
   // ===========================================================================
   // IMAGE PICKER FUNCTION
@@ -217,10 +249,11 @@ export default function RegisterScreen() {
         photoURL: avatarUri || null,
       });
 
-      // Determine user role based on email (case-insensitive check)
-      const role: UserRole = ADMIN_EMAILS.includes(email.toLowerCase())
-        ? "admin"
-        : "user";
+      // Determine user role based on admin code or email (case-insensitive check)
+      const role: UserRole =
+        isValidAdminCode || ADMIN_EMAILS.includes(email.toLowerCase())
+          ? "admin"
+          : "user";
 
       // Create user document in Firestore with initial data structure
       await setDoc(doc(db, "users", userCredential.user.uid), {
@@ -233,6 +266,11 @@ export default function RegisterScreen() {
         wordBank: [], // Empty word bank for vocabulary learning
         recentCourse: null, // No recent course initially
       });
+
+      // Mark admin code as used if one was provided
+      if (isValidAdminCode && adminCode) {
+        await markAdminCodeAsUsed(adminCode);
+      }
 
       // Navigate to main app (tabs) on successful registration
       router.replace("/(tabs)");
@@ -366,6 +404,33 @@ export default function RegisterScreen() {
                 match: t("auth.register.passwordHint.match"),
               }}
             />
+
+            {/* -----------------------------------------------------------------
+                ADMIN CODE INPUT (OPTIONAL)
+            ----------------------------------------------------------------- */}
+            <View style={styles.adminCodeContainer}>
+              <Text style={styles.adminCodeLabel}>
+                {t("auth.register.adminCodeLabel")}
+              </Text>
+              <FormInput
+                icon="shield-checkmark-outline"
+                placeholder={t("auth.register.adminCodePlaceholder")}
+                value={adminCode}
+                onChangeText={setAdminCode}
+                autoCapitalize="characters"
+                showValidation={adminCode.length > 0}
+                isValid={isValidAdminCode}
+                isTouched={adminCode.length > 0}
+                errorMessage={adminCodeError}
+              />
+              {isValidAdminCode && (
+                <View style={styles.adminCodeSuccessBadge}>
+                  <Text style={styles.adminCodeSuccessText}>
+                    ✓ {t("auth.register.validAdminCode")}
+                  </Text>
+                </View>
+              )}
+            </View>
 
             {/* -----------------------------------------------------------------
                 REGISTER BUTTON
@@ -725,5 +790,45 @@ const getStyles = (isDark: boolean) =>
       fontSize: 12,
       marginTop: 4,
       paddingHorizontal: 4,
+    },
+
+    // -------------------------------------------------------------------------
+    // ADMIN CODE STYLES - Optional admin code input section
+    // -------------------------------------------------------------------------
+
+    /** Admin code container - Wrapper for admin code section */
+    adminCodeContainer: {
+      marginBottom: 24,
+      padding: 16,
+      backgroundColor: isDark ? "#1c1c1e" : "#F9F9F9",
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: isDark ? "#333" : "#E0E0E0",
+    },
+
+    /** Admin code label - Label text above input */
+    adminCodeLabel: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: isDark ? "#ccc" : "#666",
+      marginBottom: 12,
+    },
+
+    /** Admin code success badge - Shown when valid code is entered */
+    adminCodeSuccessBadge: {
+      marginTop: 8,
+      padding: 8,
+      backgroundColor: isDark ? "#0F2410" : "#F0FFF4",
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: isDark ? "#1E4620" : "#28A745",
+    },
+
+    /** Admin code success text - Text inside success badge */
+    adminCodeSuccessText: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: isDark ? "#4ADE80" : "#28A745",
+      textAlign: "center",
     },
   });

@@ -83,6 +83,26 @@ export const AdminSection: React.FC<AdminSectionProps> = ({
           </View>
           <Ionicons name="chevron-forward" size={20} color={chevronColor} />
         </TouchableOpacity>
+
+        <View style={styles.separator} />
+
+        {/* Admin Codes */}
+        <TouchableOpacity
+          style={styles.option}
+          onPress={() => router.push("/admin/admin-codes")}
+        >
+          <View style={styles.optionLeft}>
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={22}
+              color={isDark ? "#fff" : "#000"}
+            />
+            <Text style={styles.optionText}>
+              {t("settings.admin.adminCodes")}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={chevronColor} />
+        </TouchableOpacity>
       </View>
     </View>
   );
