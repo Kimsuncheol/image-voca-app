@@ -1,4 +1,4 @@
-import { collection, getDocs, query } from "firebase/firestore";
+import { collection, getDocs, limit, query } from "firebase/firestore";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
@@ -52,9 +52,12 @@ export function DashboardPopQuiz() {
   const quizKey = `${turnNumber}-${currentIndex}`;
 
   // ---------------------------------------------------------------------------
-  // Animations
+  // Animations & Cache
   // ---------------------------------------------------------------------------
   const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Cache for fetched batches (key: "courseId-dayNum", value: word array)
+  const batchCache = useRef<Map<string, any[]>>(new Map());
 
   // ---------------------------------------------------------------------------
   // Helper Functions
@@ -86,6 +89,7 @@ export function DashboardPopQuiz() {
   // ---------------------------------------------------------------------------
   /**
    * Fetch a batch of 10 random words from random courses and days.
+   * Optimized with caching and Firestore limit() to reduce data transfer.
    * Tries multiple random combinations until a valid batch is found.
    */
   const fetchBatch = useCallback(async () => {
@@ -103,14 +107,33 @@ export function DashboardPopQuiz() {
 
         for (const dayNum of shuffledDays) {
           const subCollectionName = `Day${dayNum}`;
+          const cacheKey = `${course.id}-${dayNum}`;
+
+          // Check cache first
+          if (batchCache.current.has(cacheKey)) {
+            const cachedData = batchCache.current.get(cacheKey)!;
+            const shuffled = [...cachedData].sort(() => Math.random() - 0.5);
+            const batch = shuffled.slice(0, 10);
+            console.log(
+              `Using cached batch from ${course.id} - ${subCollectionName} (${batch.length} words)`,
+            );
+            return batch;
+          }
 
           try {
-            const q = query(collection(db, path, subCollectionName));
+            // Fetch only 15 words instead of all (optimized with limit)
+            const q = query(
+              collection(db, path, subCollectionName),
+              limit(15),
+            );
             const snapshot = await getDocs(q);
 
             if (!snapshot.empty && snapshot.docs.length >= 10) {
-              // Shuffle and take 10 words
+              // Store in cache for future use
               const allDocs = snapshot.docs.map((d) => d.data());
+              batchCache.current.set(cacheKey, allDocs);
+
+              // Shuffle and take 10 words
               const shuffled = allDocs.sort(() => Math.random() - 0.5);
               const batch = shuffled.slice(0, 10);
 
@@ -137,16 +160,52 @@ export function DashboardPopQuiz() {
   }, []);
 
   /**
-   * Prefetch the next batch in the background.
+   * Prefetch the next batch in the background with retry logic.
+   * Uses exponential backoff for failed attempts.
    */
   const prefetchNextBatch = useCallback(async () => {
     if (isPrefetching) return;
 
     setIsPrefetching(true);
-    const batch = await fetchBatch();
-    setNextBatch(batch);
+
+    // Retry logic with exponential backoff
+    const maxRetries = 3;
+    let attempt = 0;
+
+    while (attempt < maxRetries) {
+      try {
+        const batch = await fetchBatch();
+
+        if (batch.length > 0) {
+          setNextBatch(batch);
+          setIsPrefetching(false);
+          console.log(`Prefetched next batch (attempt ${attempt + 1})`);
+          return;
+        }
+
+        // If empty batch, retry
+        attempt++;
+        if (attempt < maxRetries) {
+          const delay = Math.pow(2, attempt) * 500; // 1s, 2s, 4s
+          console.log(
+            `Retrying prefetch in ${delay}ms (attempt ${attempt + 1})`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      } catch (error) {
+        console.error(`Prefetch attempt ${attempt + 1} failed:`, error);
+        attempt++;
+
+        if (attempt < maxRetries) {
+          const delay = Math.pow(2, attempt) * 500;
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    // All retries failed
+    console.warn("Failed to prefetch next batch after all retries");
     setIsPrefetching(false);
-    console.log("Prefetched next batch");
   }, [fetchBatch, isPrefetching]);
 
   // ---------------------------------------------------------------------------
@@ -242,17 +301,24 @@ export function DashboardPopQuiz() {
 
   /**
    * effect: Keep the next batch prefetched whenever possible
+   * Optimized: Starts prefetching at 70% progress (question 7/10) for smoother transitions
    */
   useEffect(() => {
     if (loading || isPrefetching) return;
     if (currentBatch.length === 0) return;
     if (nextBatch.length > 0) return;
 
-    prefetchNextBatch();
+    // Start prefetching when user reaches 70% of current batch (question 7)
+    const shouldPrefetch = currentIndex >= 6;
+
+    if (shouldPrefetch) {
+      prefetchNextBatch();
+    }
   }, [
     loading,
     isPrefetching,
     currentBatch.length,
+    currentIndex,
     nextBatch.length,
     prefetchNextBatch,
   ]);
