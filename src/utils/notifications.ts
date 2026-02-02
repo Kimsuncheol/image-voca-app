@@ -27,14 +27,18 @@ let cachedNotifications: NotificationsModule | null = null;
 let handlerConfigured = false;
 
 const getNotificationsModule = (): NotificationsModule | null => {
-  if (cachedNotifications) return cachedNotifications;
+  if (cachedNotifications !== null) return cachedNotifications;
   try {
+    // Attempt to require expo-notifications
+    // This may fail in Expo Go SDK 53+ or if the module is not installed
     cachedNotifications = require("expo-notifications");
-  } catch (error) {
-    console.warn("expo-notifications is unavailable", error);
+    return cachedNotifications;
+  } catch {
+    // Silently handle the error - notifications are unavailable
+    // This is expected in Expo Go SDK 53+ and development builds without the package
     cachedNotifications = null;
+    return null;
   }
-  return cachedNotifications;
 };
 
 const formatDateKey = (date: Date) => date.toISOString().split("T")[0];
@@ -64,14 +68,21 @@ const getScheduleDates = (
   return dates;
 };
 
-const buildDateTrigger = (date: Date) => {
+const buildDateTrigger = (
+  date: Date,
+): NotificationsType.DateTriggerInput => {
   if (Platform.OS === "android") {
     return {
+      type: "date" as NotificationsType.SchedulableTriggerInputTypes.DATE,
       date,
       channelId: ANDROID_CHANNEL_ID,
-    } as NotificationsType.DateTriggerInput;
+    };
   }
-  return date;
+  // iOS also uses DateTriggerInput, just without channelId
+  return {
+    type: "date" as NotificationsType.SchedulableTriggerInputTypes.DATE,
+    date,
+  };
 };
 
 const getStoredIds = async (key: string): Promise<string[]> => {
