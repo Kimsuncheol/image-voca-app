@@ -33,10 +33,6 @@ import { AccountActionsSection } from "../components/profile/AccountActionsSecti
 import { AccountInfoSection } from "../components/profile/AccountInfoSection";
 import { useTheme } from "../src/context/ThemeContext";
 import { auth, db, storage } from "../src/services/firebase";
-import {
-  checkUserDataExists,
-  testAccountDeletion,
-} from "../src/utils/testAccountDeletion";
 
 export default function ProfileScreen() {
   const { isDark } = useTheme();
@@ -281,26 +277,6 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleTestDataStatus = async () => {
-    if (!user) return;
-    console.log("\n" + "=".repeat(60));
-    console.log("🧪 TESTING DATA STATUS");
-    console.log("=".repeat(60));
-    try {
-      const result = await checkUserDataExists(user.uid);
-      Alert.alert(
-        "Data Status Check",
-        `Firestore: ${result.firestoreExists ? "EXISTS ✅" : "DELETED ❌"}\n` +
-          `Storage: ${result.storageExists ? "EXISTS ✅" : "DELETED ❌"}\n\n` +
-          `Check console for detailed logs.`,
-      );
-    } catch (error: any) {
-      Alert.alert("Error", `Failed to check data status: ${error.message}`);
-      console.error(error);
-    }
-    console.log("=".repeat(60) + "\n");
-  };
-
   return (
     <SafeAreaView style={styles.container} edges={["left", "right"]}>
       <KeyboardAvoidingView
@@ -358,24 +334,6 @@ export default function ProfileScreen() {
             onDeleteAccount={handleDeleteAccount}
             t={t}
           />
-
-          {/* Test/Debug Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🧪 TESTING & DEBUG</Text>
-            <View style={styles.card}>
-              <TouchableOpacity
-                style={styles.testButton}
-                onPress={handleTestDataStatus}
-              >
-                <Text style={styles.testButtonText}>
-                  Check Data Status
-                </Text>
-              </TouchableOpacity>
-              <Text style={styles.testHint}>
-                Verify if your data exists in Firestore and Storage. Check console logs for details.
-              </Text>
-            </View>
-          </View>
 
           {showPasswordInput && (
             <View style={styles.reauthContainer}>
@@ -624,24 +582,5 @@ const getStyles = (isDark: boolean) =>
       color: "#FFF",
       fontSize: 16,
       fontWeight: "600",
-    },
-    testButton: {
-      backgroundColor: "#FF9500",
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-      borderRadius: 12,
-      alignItems: "center",
-      marginBottom: 12,
-    },
-    testButtonText: {
-      color: "#FFF",
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    testHint: {
-      fontSize: 12,
-      color: isDark ? "#888" : "#999",
-      textAlign: "center",
-      lineHeight: 18,
     },
   });
