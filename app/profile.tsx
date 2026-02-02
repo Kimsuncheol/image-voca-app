@@ -12,7 +12,8 @@ import {
   reauthenticateWithCredential,
   updateProfile,
 } from "firebase/auth";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { deleteDoc, doc } from "firebase/firestore";
+import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -31,7 +32,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AccountActionsSection } from "../components/profile/AccountActionsSection";
 import { AccountInfoSection } from "../components/profile/AccountInfoSection";
 import { useTheme } from "../src/context/ThemeContext";
-import { auth, storage } from "../src/services/firebase";
+import { auth, db, storage } from "../src/services/firebase";
+import {
+  checkUserDataExists,
+  testAccountDeletion,
+} from "../src/utils/testAccountDeletion";
 
 export default function ProfileScreen() {
   const { isDark } = useTheme();
@@ -167,6 +172,37 @@ export default function ProfileScreen() {
     }
   };
 
+  const cleanupUserData = async (userId: string) => {
+    console.log("🧹 Starting cleanup for user:", userId);
+
+    try {
+      // Step 1: Delete profile image from Storage if it exists
+      console.log("📸 Step 1: Attempting to delete profile image...");
+      try {
+        const profileImageRef = ref(storage, `profile_images/${userId}`);
+        await deleteObject(profileImageRef);
+        console.log("✅ Profile image deleted from Storage");
+      } catch (storageError: any) {
+        // Ignore if image doesn't exist
+        if (storageError.code === "storage/object-not-found") {
+          console.log("ℹ️ No profile image found in Storage (this is ok)");
+        } else {
+          console.warn("⚠️ Error deleting profile image:", storageError);
+        }
+      }
+
+      // Step 2: Delete user document from Firestore
+      console.log("📄 Step 2: Attempting to delete Firestore document...");
+      await deleteDoc(doc(db, "users", userId));
+      console.log("✅ User document deleted from Firestore");
+
+      console.log("🎉 Cleanup completed successfully for user:", userId);
+    } catch (error: any) {
+      console.error("❌ Error cleaning up user data:", error);
+      throw error;
+    }
+  };
+
   const handleDeleteAccount = async () => {
     if (!user) return;
 
@@ -185,13 +221,25 @@ export default function ProfileScreen() {
   };
 
   const performDelete = async () => {
+    console.log("🗑️ Starting account deletion process...");
     setLoading(true);
     try {
+      // Clean up Firestore and Storage data first
+      console.log("🔄 Step 1: Cleaning up user data...");
+      await cleanupUserData(user!.uid);
+
+      // Then delete the Firebase Auth user
+      console.log("🔄 Step 2: Deleting Firebase Auth user...");
       await deleteUser(user!);
+      console.log("✅ Firebase Auth user deleted successfully");
+
       // Auth state listener in _layout will redirect to login
+      console.log("🚪 Account deletion complete, redirecting to login...");
     } catch (error: any) {
+      console.error("❌ Account deletion failed:", error);
       setLoading(false);
       if (error.code === "auth/requires-recent-login") {
+        console.log("🔐 Requires recent login, showing password prompt");
         Alert.alert(
           t("profile.delete.securityTitle"),
           t("profile.delete.securityMessage"),
@@ -208,16 +256,49 @@ export default function ProfileScreen() {
       Alert.alert(t("common.error"), t("profile.delete.passwordRequired"));
       return;
     }
+    console.log("🔐 Starting re-authentication and deletion process...");
     setLoading(true);
     try {
+      console.log("🔑 Step 1: Re-authenticating user...");
       const credential = EmailAuthProvider.credential(user.email, password);
       await reauthenticateWithCredential(user, credential);
+      console.log("✅ Re-authentication successful");
+
+      // Clean up Firestore and Storage data first
+      console.log("🔄 Step 2: Cleaning up user data...");
+      await cleanupUserData(user.uid);
+
+      // Then delete the Firebase Auth user
+      console.log("🔄 Step 3: Deleting Firebase Auth user...");
       await deleteUser(user);
+      console.log("✅ Firebase Auth user deleted successfully");
+      console.log("🚪 Account deletion complete, redirecting to login...");
     } catch (error: any) {
+      console.error("❌ Re-authentication or deletion failed:", error);
       setLoading(false);
       Alert.alert(t("common.error"), t("profile.delete.failed"));
       console.error(error);
     }
+  };
+
+  const handleTestDataStatus = async () => {
+    if (!user) return;
+    console.log("\n" + "=".repeat(60));
+    console.log("🧪 TESTING DATA STATUS");
+    console.log("=".repeat(60));
+    try {
+      const result = await checkUserDataExists(user.uid);
+      Alert.alert(
+        "Data Status Check",
+        `Firestore: ${result.firestoreExists ? "EXISTS ✅" : "DELETED ❌"}\n` +
+          `Storage: ${result.storageExists ? "EXISTS ✅" : "DELETED ❌"}\n\n` +
+          `Check console for detailed logs.`,
+      );
+    } catch (error: any) {
+      Alert.alert("Error", `Failed to check data status: ${error.message}`);
+      console.error(error);
+    }
+    console.log("=".repeat(60) + "\n");
   };
 
   return (
@@ -277,6 +358,24 @@ export default function ProfileScreen() {
             onDeleteAccount={handleDeleteAccount}
             t={t}
           />
+
+          {/* Test/Debug Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🧪 TESTING & DEBUG</Text>
+            <View style={styles.card}>
+              <TouchableOpacity
+                style={styles.testButton}
+                onPress={handleTestDataStatus}
+              >
+                <Text style={styles.testButtonText}>
+                  Check Data Status
+                </Text>
+              </TouchableOpacity>
+              <Text style={styles.testHint}>
+                Verify if your data exists in Firestore and Storage. Check console logs for details.
+              </Text>
+            </View>
+          </View>
 
           {showPasswordInput && (
             <View style={styles.reauthContainer}>
@@ -525,5 +624,24 @@ const getStyles = (isDark: boolean) =>
       color: "#FFF",
       fontSize: 16,
       fontWeight: "600",
+    },
+    testButton: {
+      backgroundColor: "#FF9500",
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 12,
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    testButtonText: {
+      color: "#FFF",
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    testHint: {
+      fontSize: 12,
+      color: isDark ? "#888" : "#999",
+      textAlign: "center",
+      lineHeight: 18,
     },
   });
