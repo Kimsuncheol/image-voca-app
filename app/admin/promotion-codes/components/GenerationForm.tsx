@@ -127,7 +127,7 @@ export const GenerationForm: React.FC<GenerationFormProps> = ({
   // ---------------------------------------------------------------------------
   /** Selected subscription plan to unlock */
   const [selectedPlan, setSelectedPlan] =
-    useState&lt;PlanType&gt;("voca_unlimited");
+    useState<PlanType>("voca_unlimited");
   /** Whether subscription is permanent or temporary */
   const [isPermanent, setIsPermanent] = useState(true);
   /** Duration in days (only used if !isPermanent) */
@@ -155,7 +155,7 @@ export const GenerationForm: React.FC<GenerationFormProps> = ({
   /** Loading flag during code generation */
   const [generating, setGenerating] = useState(false);
   /** Array of successfully generated codes */
-  const [generatedCodes, setGeneratedCodes] = useState&lt;string[]&gt;([]);
+  const [generatedCodes, setGeneratedCodes] = useState<string[]>([]);
 
   // ---------------------------------------------------------------------------
   // HANDLER: Generate Codes
@@ -189,7 +189,7 @@ export const GenerationForm: React.FC<GenerationFormProps> = ({
 
     // Validate code count
     const count = parseInt(codeCount);
-    if (isNaN(count) || count &lt; 1 || count &gt; 100) {
+    if (isNaN(count) || count < 1 || count > 100) {
       Alert.alert("Error", "Please enter a valid count (1-100)");
       return;
     }
@@ -541,7 +541,7 @@ export const GenerationForm: React.FC<GenerationFormProps> = ({
  * - High contrast text colors
  * - Clear visual feedback for interactive elements
  */
-const getStyles = (isDark: boolean) =&gt;
+const getStyles = (isDark: boolean) =>
   StyleSheet.create({
     // =========================================================================
     // LAYOUT & CONTAINERS

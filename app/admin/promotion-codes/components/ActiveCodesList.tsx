@@ -240,7 +240,7 @@ export const ActiveCodesList: React.FC<ActiveCodesListProps> = ({
  * - Minimum touch target sizes for buttons
  * - Letter spacing for code readability
  */
-const getStyles = (isDark: boolean) =&gt;
+const getStyles = (isDark: boolean) =>
   StyleSheet.create({
     // =========================================================================
     // LAYOUT & CONTAINERS
