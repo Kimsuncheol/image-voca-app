@@ -3,35 +3,35 @@ import { useRouter } from "expo-router";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
+  // TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
+// import {
+//   markAdminCodeAsUsed,
+//   validateAdminCode,
+// } from "../../src/services/adminCodeService";
 import { auth, db } from "../../src/services/firebase";
 import { UserRole } from "../../src/stores/subscriptionStore";
 import {
-  validateAdminCode,
-  markAdminCodeAsUsed,
-} from "../../src/services/adminCodeService";
-import {
-  ErrorBanner,
-  Divider,
-  FormInput,
-  PasswordInput,
-  PasswordHints,
   AvatarPicker,
-  PrimaryButton,
-  GoogleButton,
+  Divider,
+  ErrorBanner,
   FooterLink,
+  FormInput,
+  GoogleButton,
+  PasswordHints,
+  PasswordInput,
+  PrimaryButton,
 } from "./components";
 
 // Pre-approved admin email addresses (case-insensitive)
@@ -46,10 +46,10 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
-  const [adminCode, setAdminCode] = useState("");
-  const [isValidAdminCode, setIsValidAdminCode] = useState(false);
-  const [adminCodeError, setAdminCodeError] = useState("");
-  const [requestAdmin, setRequestAdmin] = useState(false);
+  // const [adminCode, setAdminCode] = useState("");
+  // const [isValidAdminCode, setIsValidAdminCode] = useState(false);
+  // const [adminCodeError, setAdminCodeError] = useState("");
+  // const [requestAdmin, setRequestAdmin] = useState(false);
   const { promptAsync, loading: googleLoading } = useGoogleAuth();
 
   // ---------------------------------------------------------------------------
@@ -121,23 +121,23 @@ export default function RegisterScreen() {
    * Real-time admin code validation
    * Validates the admin code against Firestore when user enters a code
    */
-  useEffect(() => {
-    const validateCode = async () => {
-      if (!adminCode) {
-        setIsValidAdminCode(false);
-        setAdminCodeError("");
-        return;
-      }
+  // useEffect(() => {
+  //   const validateCode = async () => {
+  //     if (!adminCode) {
+  //       setIsValidAdminCode(false);
+  //       setAdminCodeError("");
+  //       return;
+  //     }
 
-      const result = await validateAdminCode(adminCode);
-      setIsValidAdminCode(result.isValid);
-      setAdminCodeError(result.errorMessage || "");
-    };
+  //     const result = await validateAdminCode(adminCode);
+  //     setIsValidAdminCode(result.isValid);
+  //     setAdminCodeError(result.errorMessage || "");
+  //   };
 
-    // Debounce validation to avoid too many Firestore calls
-    const timeoutId = setTimeout(validateCode, 500);
-    return () => clearTimeout(timeoutId);
-  }, [adminCode]);
+  //   // Debounce validation to avoid too many Firestore calls
+  //   const timeoutId = setTimeout(validateCode, 500);
+  //   return () => clearTimeout(timeoutId);
+  // }, [adminCode]);
 
   // ===========================================================================
   // IMAGE PICKER FUNCTION
@@ -154,7 +154,8 @@ export default function RegisterScreen() {
     clearError("permission");
 
     // Request permission to access the device's media library
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     // Handle permission denial with inline error message
     if (permissionResult.granted === false) {
@@ -211,7 +212,8 @@ export default function RegisterScreen() {
     if (!isValidEmail) {
       setErrors((prev) => ({
         ...prev,
-        general: t("auth.errors.invalidEmail") || "Please enter a valid email address",
+        general:
+          t("auth.errors.invalidEmail") || "Please enter a valid email address",
       }));
       setEmailTouched(true);
       return;
@@ -242,7 +244,7 @@ export default function RegisterScreen() {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
 
       // Update the user's profile with display name and avatar
@@ -253,7 +255,9 @@ export default function RegisterScreen() {
 
       // Determine user role based on admin code, email, or manual admin request
       const role: UserRole =
-        isValidAdminCode || ADMIN_EMAILS.includes(email.toLowerCase()) || requestAdmin
+        // isValidAdminCode ||
+        ADMIN_EMAILS.includes(email.toLowerCase()) // ||
+        // requestAdmin
           ? "admin"
           : "user";
 
@@ -270,9 +274,9 @@ export default function RegisterScreen() {
       });
 
       // Mark admin code as used if one was provided
-      if (isValidAdminCode && adminCode) {
-        await markAdminCodeAsUsed(adminCode);
-      }
+      // if (isValidAdminCode && adminCode) {
+      //   await markAdminCodeAsUsed(adminCode);
+      // }
 
       // Navigate to main app (tabs) on successful registration
       router.replace("/(tabs)");
@@ -335,7 +339,6 @@ export default function RegisterScreen() {
               FORM CONTAINER - All form inputs and buttons
               =================================================================== */}
           <View style={styles.formContainer}>
-
             {/* -----------------------------------------------------------------
                 AVATAR PICKER SECTION
             ----------------------------------------------------------------- */}
@@ -370,7 +373,10 @@ export default function RegisterScreen() {
               showValidation={true}
               isValid={isValidEmail}
               isTouched={emailTouched}
-              errorMessage={t("auth.errors.invalidEmail") || "Please enter a valid email address"}
+              errorMessage={
+                t("auth.errors.invalidEmail") ||
+                "Please enter a valid email address"
+              }
             />
 
             {/* -----------------------------------------------------------------
@@ -410,7 +416,7 @@ export default function RegisterScreen() {
             {/* -----------------------------------------------------------------
                 ADMIN CODE INPUT (OPTIONAL)
             ----------------------------------------------------------------- */}
-            <View style={styles.adminCodeContainer}>
+            {/* <View style={styles.adminCodeContainer}>
               <Text style={styles.adminCodeLabel}>
                 {t("auth.register.adminCodeLabel")}
               </Text>
@@ -432,12 +438,12 @@ export default function RegisterScreen() {
                   </Text>
                 </View>
               )}
-            </View>
+            </View> */}
 
             {/* -----------------------------------------------------------------
                 ADMIN TOGGLE BUTTON (Development/Testing)
             ----------------------------------------------------------------- */}
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={[
                 styles.adminToggleButton,
                 requestAdmin && styles.adminToggleButtonActive,
@@ -452,7 +458,7 @@ export default function RegisterScreen() {
               >
                 {requestAdmin ? "✓ Register as Admin" : "Register as Admin"}
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             {/* -----------------------------------------------------------------
                 REGISTER BUTTON
