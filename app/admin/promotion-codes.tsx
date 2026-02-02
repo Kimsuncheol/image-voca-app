@@ -1,75 +1,122 @@
 /**
- * Promotion Codes Admin Dashboard
+ * =============================================================================
+ * PROMOTION CODES ADMINISTRATION DASHBOARD
+ * =============================================================================
+ * Main admin screen for generating and managing promotion codes
  *
- * Admin screen for generating, viewing, and managing promotion codes.
- * Includes code generation form, active codes list, and basic analytics.
+ * FEATURES:
+ * - Admin-only access control with permission check
+ * - Two main sections:
+ *   1. Generation Form: Create new promotion codes with configuration
+ *   2. Active Codes List: View and manage existing codes
+ * - Code generation with customizable parameters:
+ *   - Event period (start/end dates)
+ *   - Subscription plan (Unlimited/Speaking)
+ *   - Duration type (Permanent/Temporary)
+ *   - Usage limits (total uses, per-user uses)
+ *   - Batch generation (1-100 codes at once)
+ * - Code management:
+ *   - View all codes sorted by creation date
+ *   - Copy codes to clipboard
+ *   - Deactivate active codes
+ *   - Refresh codes list
+ * - Theme-aware UI (dark/light mode)
+ *
+ * COMPONENTS USED:
+ * - GenerationForm: Comprehensive form for creating codes
+ * - ActiveCodesList: List view with code management actions
+ *
+ * DATA SOURCES:
+ * - Firestore promotionCodes collection: All promotion codes
+ * - promotionCodeService: API for code generation and management
+ *
+ * PERMISSIONS:
+ * - Only users with role='admin' can access this screen
+ * - Non-admin users see access denied message
+ * - Unauthenticated users are redirected
+ *
+ * WORKFLOW:
+ * 1. Check user authentication and admin status
+ * 2. Load all promotion codes from Firestore
+ * 3. Admin can generate new codes via form
+ * 4. Admin can view and manage existing codes
+ * 5. Changes are saved to Firestore
+ * 6. UI updates reflect changes immediately
+ * =============================================================================
  */
 
-import { Ionicons } from '@expo/vector-icons';
-import { Stack, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
+import { doc, getDoc } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
-  Alert,
-  ActivityIndicator,
-  Clipboard,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { useAuth } from '../../src/context/AuthContext';
-import { useTheme } from '../../src/context/ThemeContext';
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../../src/context/AuthContext";
+import { useTheme } from "../../src/context/ThemeContext";
+import { db } from "../../src/services/firebase";
 import {
+  deactivateCode,
   generatePromotionCodes,
   getAllPromotionCodes,
-  deactivateCode,
-} from '../../src/services/promotionCodeService';
-import type {
-  PromotionCode,
-  CodeGenerationRequest,
-  PlanType,
-} from '../../src/types/promotionCode';
-import { getDoc, doc } from 'firebase/firestore';
-import { db } from '../../src/services/firebase';
+} from "../../src/services/promotionCodeService";
+import type { PromotionCode } from "../../src/types/promotionCode";
+
+// Import extracted components
+import { ActiveCodesList, GenerationForm } from "./promotion-codes/components";
+
+// =============================================================================
+// COMPONENT: PromotionCodesAdmin
+// =============================================================================
 
 export default function PromotionCodesAdmin() {
+  // ---------------------------------------------------------------------------
+  // HOOKS & CONTEXT
+  // ---------------------------------------------------------------------------
   const { user } = useAuth();
   const { isDark } = useTheme();
   const router = useRouter();
   const styles = getStyles(isDark);
 
-  // Auth check
+  // ---------------------------------------------------------------------------
+  // STATE: Authentication & Authorization
+  // ---------------------------------------------------------------------------
+  /** Admin status flag (true if user has role='admin') */
   const [isAdmin, setIsAdmin] = useState(false);
+  /** Loading state for admin permission check */
   const [checkingAdmin, setCheckingAdmin] = useState(true);
 
-  // Generation form state
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(() => {
-    const date = new Date();
-    date.setDate(date.getDate() + 30);
-    return date;
-  });
-  const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker, setShowEndPicker] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>('voca_unlimited');
-  const [isPermanent, setIsPermanent] = useState(true);
-  const [durationDays, setDurationDays] = useState('30');
-  const [maxUses, setMaxUses] = useState('100');
-  const [maxUsesPerUser, setMaxUsesPerUser] = useState('1');
-  const [description, setDescription] = useState('');
-  const [codeCount, setCodeCount] = useState('1');
-  const [generating, setGenerating] = useState(false);
-  const [generatedCodes, setGeneratedCodes] = useState<string[]>([]);
-
-  // Codes list state
+  // ---------------------------------------------------------------------------
+  // STATE: Codes List
+  // ---------------------------------------------------------------------------
+  /** Complete list of all promotion codes from Firestore */
   const [codes, setCodes] = useState<PromotionCode[]>([]);
+  /** Loading state for codes fetch operation */
   const [loadingCodes, setLoadingCodes] = useState(false);
 
-  // Check if user is admin
+  // ---------------------------------------------------------------------------
+  // EFFECT: Admin Permission Check
+  // ---------------------------------------------------------------------------
+  /**
+   * Check if current user has admin role
+   *
+   * WORKFLOW:
+   * 1. Verify user is authenticated
+   * 2. Fetch user document from Firestore
+   * 3. Check if role field equals 'admin'
+   * 4. Update isAdmin state accordingly
+   * 5. Set checkingAdmin to false when complete
+   *
+   * DEPENDENCIES:
+   * - user: Re-runs when authentication state changes
+   */
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!user) {
@@ -78,15 +125,15 @@ export default function PromotionCodesAdmin() {
       }
 
       try {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          if (userData.role === 'admin') {
+          if (userData.role === "admin") {
             setIsAdmin(true);
           }
         }
       } catch (error) {
-        console.error('Admin check error:', error);
+        console.error("Admin check error:", error);
       } finally {
         setCheckingAdmin(false);
       }
@@ -95,97 +142,93 @@ export default function PromotionCodesAdmin() {
     checkAdminStatus();
   }, [user]);
 
-  // Load codes on mount
+  // ---------------------------------------------------------------------------
+  // EFFECT: Load Codes on Mount
+  // ---------------------------------------------------------------------------
+  /**
+   * Load all promotion codes when admin access is confirmed
+   *
+   * DEPENDENCIES:
+   * - isAdmin: Only runs when user is confirmed as admin
+   */
   useEffect(() => {
     if (isAdmin) {
       loadCodes();
     }
   }, [isAdmin]);
 
+  // ---------------------------------------------------------------------------
+  // HANDLER: Load Promotion Codes
+  // ---------------------------------------------------------------------------
+  /**
+   * Fetches all promotion codes from Firestore via promotionCodeService
+   * Sorts codes by creation date (newest first)
+   *
+   * DATA INCLUDES:
+   * - Code: The promotion code string
+   * - Status: active or inactive
+   * - Benefit: Plan type and duration
+   * - Event period: Start and end dates
+   * - Usage: Current uses and limits
+   * - Description: Internal note
+   * - Created by: Admin user ID
+   */
   const loadCodes = async () => {
     setLoadingCodes(true);
     try {
       const allCodes = await getAllPromotionCodes();
-      setCodes(allCodes.sort((a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      ));
+      // Sort by creation date (newest first)
+      setCodes(
+        allCodes.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+      );
     } catch (error) {
-      console.error('Load codes error:', error);
-      Alert.alert('Error', 'Failed to load promotion codes');
+      console.error("Load codes error:", error);
+      Alert.alert("Error", "Failed to load promotion codes");
     } finally {
       setLoadingCodes(false);
     }
   };
 
-  const handleGenerateCodes = async () => {
-    if (!description.trim()) {
-      Alert.alert('Error', 'Please enter a description');
-      return;
-    }
-
-    const count = parseInt(codeCount);
-    if (isNaN(count) || count < 1 || count > 100) {
-      Alert.alert('Error', 'Please enter a valid count (1-100)');
-      return;
-    }
-
-    const request: CodeGenerationRequest = {
-      eventPeriod: {
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-      },
-      benefit: {
-        type: 'subscription_upgrade',
-        planId: selectedPlan,
-        isPermanent,
-        durationDays: isPermanent ? undefined : parseInt(durationDays),
-      },
-      maxUses: parseInt(maxUses),
-      maxUsesPerUser: parseInt(maxUsesPerUser),
-      description: description.trim(),
-      count,
-    };
-
-    setGenerating(true);
-    try {
-      const result = await generatePromotionCodes(request, user!.uid);
-      setGeneratedCodes(result.codes);
-      Alert.alert(
-        'Success',
-        `Generated ${result.codes.length} promotion codes successfully!`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              loadCodes();
-            },
-          },
-        ]
-      );
-    } catch (error: any) {
-      console.error('Generation error:', error);
-      Alert.alert('Error', error.message || 'Failed to generate codes');
-    } finally {
-      setGenerating(false);
-    }
-  };
-
+  // ---------------------------------------------------------------------------
+  // HANDLER: Deactivate Code
+  // ---------------------------------------------------------------------------
+  /**
+   * Deactivates a promotion code after confirmation
+   *
+   * WORKFLOW:
+   * 1. Show confirmation alert
+   * 2. If confirmed, call deactivateCode API
+   * 3. Show success alert
+   * 4. Reload codes list to reflect change
+   *
+   * SIDE EFFECTS:
+   * - Updates Firestore promotionCodes/{code}/status field
+   * - Refreshes local codes list
+   *
+   * @param code - The promotion code to deactivate
+   */
   const handleDeactivateCode = async (code: string) => {
     Alert.alert(
-      'Deactivate Code',
+      "Deactivate Code",
       `Are you sure you want to deactivate ${code}?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Deactivate',
-          style: 'destructive',
+          text: "Deactivate",
+          style: "destructive",
           onPress: async () => {
             try {
               await deactivateCode(code);
-              Alert.alert('Success', 'Code deactivated');
-              loadCodes();
+              Alert.alert("Success", "Code deactivated");
+              loadCodes(); // Refresh list
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to deactivate code');
+              Alert.alert(
+                "Error",
+                error.message || "Failed to deactivate code"
+              );
             }
           },
         },
@@ -193,31 +236,44 @@ export default function PromotionCodesAdmin() {
     );
   };
 
-  const copyCode = (code: string) => {
-    Clipboard.setString(code);
-    Alert.alert('Copied', `Code ${code} copied to clipboard`);
-  };
-
+  // ---------------------------------------------------------------------------
+  // RENDER: Loading State (Checking Permissions)
+  // ---------------------------------------------------------------------------
+  /**
+   * Displayed while verifying admin permissions
+   * Shows spinner and loading message
+   */
   if (checkingAdmin) {
     return (
       <View style={[styles.container, styles.centered]}>
-        <ActivityIndicator size="large" color={isDark ? '#fff' : '#000'} />
+        <ActivityIndicator size="large" color={isDark ? "#fff" : "#000"} />
         <Text style={styles.loadingText}>Checking permissions...</Text>
       </View>
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // RENDER: Access Denied State (Non-Admin Users)
+  // ---------------------------------------------------------------------------
+  /**
+   * Displayed when user is authenticated but not an admin
+   * Shows lock icon, error message, and back button
+   */
   if (!isAdmin) {
     return (
       <SafeAreaView style={styles.container}>
         <Stack.Screen
           options={{
-            title: 'Access Denied',
-            headerBackTitle: 'Back',
+            title: "Access Denied",
+            headerBackTitle: "Back",
           }}
         />
         <View style={styles.centered}>
-          <Ionicons name="lock-closed" size={64} color={isDark ? '#666' : '#ccc'} />
+          <Ionicons
+            name="lock-closed"
+            size={64}
+            color={isDark ? "#666" : "#ccc"}
+          />
           <Text style={styles.errorTitle}>Access Denied</Text>
           <Text style={styles.errorText}>
             You don't have permission to access this page.
@@ -233,12 +289,28 @@ export default function PromotionCodesAdmin() {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // RENDER: Main Admin Dashboard (Authorized Users)
+  // ---------------------------------------------------------------------------
+  /**
+   * Main dashboard view for admin users
+   *
+   * LAYOUT STRUCTURE:
+   * 1. Header with navigation
+   * 2. Generation Form - Create new promotion codes
+   * 3. Active Codes List - View and manage existing codes
+   *
+   * SCROLL BEHAVIOR:
+   * - Both sections are in a single scrollable container
+   * - Form and list are visually separated by spacing
+   */
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
+      {/* Navigation Header */}
       <Stack.Screen
         options={{
-          title: 'Promotion Codes Admin',
-          headerBackTitle: 'Back',
+          title: "Promotion Codes Admin",
+          headerBackTitle: "Back",
         }}
       />
 
@@ -246,527 +318,112 @@ export default function PromotionCodesAdmin() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Generation Form */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Generate Promotion Codes</Text>
+        {/* =================================================================
+            GENERATION FORM SECTION
+            Form for creating new promotion codes with all configuration
+            ================================================================= */}
+        <GenerationForm
+          onCodesGenerated={loadCodes}
+          userId={user!.uid}
+          isDark={isDark}
+          generateCodes={generatePromotionCodes}
+        />
 
-          {/* Event Period */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Event Period</Text>
-            <View style={styles.dateRow}>
-              <TouchableOpacity
-                style={styles.dateButton}
-                onPress={() => setShowStartPicker(true)}
-              >
-                <Text style={styles.dateText}>
-                  {startDate.toLocaleDateString()}
-                </Text>
-              </TouchableOpacity>
-              <Text style={styles.dateSeparator}>to</Text>
-              <TouchableOpacity
-                style={styles.dateButton}
-                onPress={() => setShowEndPicker(true)}
-              >
-                <Text style={styles.dateText}>
-                  {endDate.toLocaleDateString()}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            {showStartPicker && (
-              <DateTimePicker
-                value={startDate}
-                mode="date"
-                onChange={(event, date) => {
-                  setShowStartPicker(false);
-                  if (date) setStartDate(date);
-                }}
-              />
-            )}
-            {showEndPicker && (
-              <DateTimePicker
-                value={endDate}
-                mode="date"
-                onChange={(event, date) => {
-                  setShowEndPicker(false);
-                  if (date) setEndDate(date);
-                }}
-              />
-            )}
-          </View>
-
-          {/* Plan Selection */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Subscription Plan</Text>
-            <View style={styles.planButtons}>
-              <TouchableOpacity
-                style={[
-                  styles.planButton,
-                  selectedPlan === 'voca_unlimited' && styles.planButtonActive,
-                ]}
-                onPress={() => setSelectedPlan('voca_unlimited')}
-              >
-                <Text
-                  style={[
-                    styles.planButtonText,
-                    selectedPlan === 'voca_unlimited' && styles.planButtonTextActive,
-                  ]}
-                >
-                  Voca Unlimited
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.planButton,
-                  selectedPlan === 'voca_speaking' && styles.planButtonActive,
-                ]}
-                onPress={() => setSelectedPlan('voca_speaking')}
-              >
-                <Text
-                  style={[
-                    styles.planButtonText,
-                    selectedPlan === 'voca_speaking' && styles.planButtonTextActive,
-                  ]}
-                >
-                  Voca + Speaking
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Permanent/Temporary */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Duration Type</Text>
-            <View style={styles.planButtons}>
-              <TouchableOpacity
-                style={[
-                  styles.planButton,
-                  isPermanent && styles.planButtonActive,
-                ]}
-                onPress={() => setIsPermanent(true)}
-              >
-                <Text
-                  style={[
-                    styles.planButtonText,
-                    isPermanent && styles.planButtonTextActive,
-                  ]}
-                >
-                  Permanent
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.planButton,
-                  !isPermanent && styles.planButtonActive,
-                ]}
-                onPress={() => setIsPermanent(false)}
-              >
-                <Text
-                  style={[
-                    styles.planButtonText,
-                    !isPermanent && styles.planButtonTextActive,
-                  ]}
-                >
-                  Temporary
-                </Text>
-              </TouchableOpacity>
-            </View>
-            {!isPermanent && (
-              <TextInput
-                style={styles.input}
-                value={durationDays}
-                onChangeText={setDurationDays}
-                placeholder="Duration in days"
-                placeholderTextColor={isDark ? '#666' : '#999'}
-                keyboardType="number-pad"
-              />
-            )}
-          </View>
-
-          {/* Usage Limits */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Max Total Uses (-1 for unlimited)</Text>
-            <TextInput
-              style={styles.input}
-              value={maxUses}
-              onChangeText={setMaxUses}
-              placeholder="100"
-              placeholderTextColor={isDark ? '#666' : '#999'}
-              keyboardType="number-pad"
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Max Uses Per User</Text>
-            <TextInput
-              style={styles.input}
-              value={maxUsesPerUser}
-              onChangeText={setMaxUsesPerUser}
-              placeholder="1"
-              placeholderTextColor={isDark ? '#666' : '#999'}
-              keyboardType="number-pad"
-            />
-          </View>
-
-          {/* Description */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Description</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={description}
-              onChangeText={setDescription}
-              placeholder="e.g., Launch 2026 promotion"
-              placeholderTextColor={isDark ? '#666' : '#999'}
-              multiline
-              numberOfLines={3}
-            />
-          </View>
-
-          {/* Code Count */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Number of Codes to Generate</Text>
-            <TextInput
-              style={styles.input}
-              value={codeCount}
-              onChangeText={setCodeCount}
-              placeholder="1"
-              placeholderTextColor={isDark ? '#666' : '#999'}
-              keyboardType="number-pad"
-            />
-          </View>
-
-          {/* Generate Button */}
-          <TouchableOpacity
-            style={[styles.generateButton, generating && styles.buttonDisabled]}
-            onPress={handleGenerateCodes}
-            disabled={generating}
-          >
-            {generating ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.generateButtonText}>Generate Codes</Text>
-            )}
-          </TouchableOpacity>
-
-          {/* Generated Codes Display */}
-          {generatedCodes.length > 0 && (
-            <View style={styles.generatedContainer}>
-              <Text style={styles.generatedTitle}>Generated Codes:</Text>
-              {generatedCodes.map((code, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.generatedCode}
-                  onPress={() => copyCode(code)}
-                >
-                  <Text style={styles.generatedCodeText}>{code}</Text>
-                  <Ionicons name="copy-outline" size={20} color="#007AFF" />
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
-
-        {/* Active Codes List */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Active Codes</Text>
-            <TouchableOpacity onPress={loadCodes} disabled={loadingCodes}>
-              <Ionicons
-                name="refresh"
-                size={24}
-                color={isDark ? '#fff' : '#000'}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {loadingCodes ? (
-            <ActivityIndicator size="large" color={isDark ? '#fff' : '#000'} />
-          ) : codes.length === 0 ? (
-            <Text style={styles.emptyText}>No promotion codes yet</Text>
-          ) : (
-            codes.map((code) => (
-              <View key={code.code} style={styles.codeCard}>
-                <View style={styles.codeHeader}>
-                  <TouchableOpacity onPress={() => copyCode(code.code)}>
-                    <Text style={styles.codeText}>{code.code}</Text>
-                  </TouchableOpacity>
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      code.status === 'active'
-                        ? styles.statusActive
-                        : styles.statusInactive,
-                    ]}
-                  >
-                    <Text style={styles.statusText}>{code.status}</Text>
-                  </View>
-                </View>
-
-                <Text style={styles.codeDescription}>{code.description}</Text>
-
-                <View style={styles.codeDetails}>
-                  <Text style={styles.detailText}>
-                    Plan: {code.benefit.planId.replace('_', ' ')}
-                  </Text>
-                  <Text style={styles.detailText}>
-                    Uses: {code.currentUses}/{code.maxUses === -1 ? '∞' : code.maxUses}
-                  </Text>
-                  <Text style={styles.detailText}>
-                    Expires: {new Date(code.eventPeriod.endDate).toLocaleDateString()}
-                  </Text>
-                </View>
-
-                {code.status === 'active' && (
-                  <TouchableOpacity
-                    style={styles.deactivateButton}
-                    onPress={() => handleDeactivateCode(code.code)}
-                  >
-                    <Text style={styles.deactivateButtonText}>Deactivate</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            ))
-          )}
-        </View>
+        {/* =================================================================
+            ACTIVE CODES LIST SECTION
+            Display and management of existing promotion codes
+            ================================================================= */}
+        <ActiveCodesList
+          codes={codes}
+          loading={loadingCodes}
+          onRefresh={loadCodes}
+          onDeactivateCode={handleDeactivateCode}
+          isDark={isDark}
+        />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
+// =============================================================================
+// STYLES
+// =============================================================================
+/**
+ * Styles for main container and states
+ * Component-specific styles have been moved to their respective component files
+ *
+ * REMAINING STYLES:
+ * - Container: Main app container and centered layout
+ * - Loading State: Permission check loading screen
+ * - Access Denied State: Non-admin error screen
+ * - Scroll Content: Padding and spacing for scroll view
+ *
+ * REMOVED STYLES (now in components):
+ * - Generation Form → GenerationForm.tsx
+ * - Active Codes List → ActiveCodesList.tsx
+ */
 const getStyles = (isDark: boolean) =>
   StyleSheet.create({
+    // =========================================================================
+    // CONTAINER & LAYOUT
+    // =========================================================================
+    /** Main container - full screen with theme background */
     container: {
       flex: 1,
-      backgroundColor: isDark ? '#000' : '#fff',
+      backgroundColor: isDark ? "#000" : "#fff",
     },
+    /** Centered layout - for loading and error states */
     centered: {
       flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
       padding: 20,
     },
+    /** Scroll view content container with padding */
     scrollContent: {
       padding: 20,
       paddingBottom: 40,
     },
-    section: {
-      marginBottom: 32,
-    },
-    sectionHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 16,
-    },
-    sectionTitle: {
-      fontSize: 20,
-      fontWeight: '700',
-      color: isDark ? '#fff' : '#000',
-      marginBottom: 16,
-    },
-    formGroup: {
-      marginBottom: 20,
-    },
-    label: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: isDark ? '#ccc' : '#666',
-      marginBottom: 8,
-    },
-    input: {
-      backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-      borderWidth: 1,
-      borderColor: isDark ? '#333' : '#ddd',
-      borderRadius: 8,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      fontSize: 16,
-      color: isDark ? '#fff' : '#000',
-    },
-    textArea: {
-      height: 80,
-      textAlignVertical: 'top',
-    },
-    dateRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    },
-    dateButton: {
-      flex: 1,
-      backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-      borderWidth: 1,
-      borderColor: isDark ? '#333' : '#ddd',
-      borderRadius: 8,
-      paddingVertical: 12,
-      alignItems: 'center',
-    },
-    dateText: {
-      fontSize: 16,
-      color: isDark ? '#fff' : '#000',
-    },
-    dateSeparator: {
-      fontSize: 16,
-      color: isDark ? '#666' : '#999',
-    },
-    planButtons: {
-      flexDirection: 'row',
-      gap: 12,
-    },
-    planButton: {
-      flex: 1,
-      backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-      borderWidth: 1,
-      borderColor: isDark ? '#333' : '#ddd',
-      borderRadius: 8,
-      paddingVertical: 12,
-      alignItems: 'center',
-    },
-    planButtonActive: {
-      backgroundColor: '#007AFF',
-      borderColor: '#007AFF',
-    },
-    planButtonText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: isDark ? '#fff' : '#000',
-    },
-    planButtonTextActive: {
-      color: '#fff',
-    },
-    generateButton: {
-      backgroundColor: '#007AFF',
-      borderRadius: 12,
-      paddingVertical: 16,
-      alignItems: 'center',
-    },
-    buttonDisabled: {
-      backgroundColor: isDark ? '#333' : '#ccc',
-    },
-    generateButtonText: {
-      color: '#fff',
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    generatedContainer: {
-      marginTop: 20,
-      padding: 16,
-      backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-      borderRadius: 12,
-    },
-    generatedTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: isDark ? '#fff' : '#000',
-      marginBottom: 12,
-    },
-    generatedCode: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      backgroundColor: isDark ? '#000' : '#fff',
-      borderRadius: 8,
-      marginBottom: 8,
-    },
-    generatedCodeText: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: isDark ? '#fff' : '#000',
-      letterSpacing: 2,
-    },
-    codeCard: {
-      backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 12,
-    },
-    codeHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 8,
-    },
-    codeText: {
-      fontSize: 20,
-      fontWeight: '700',
-      color: isDark ? '#fff' : '#000',
-      letterSpacing: 2,
-    },
-    statusBadge: {
-      paddingHorizontal: 12,
-      paddingVertical: 4,
-      borderRadius: 12,
-    },
-    statusActive: {
-      backgroundColor: '#28a745',
-    },
-    statusInactive: {
-      backgroundColor: '#6c757d',
-    },
-    statusText: {
-      color: '#fff',
-      fontSize: 12,
-      fontWeight: '600',
-      textTransform: 'uppercase',
-    },
-    codeDescription: {
-      fontSize: 14,
-      color: isDark ? '#ccc' : '#666',
-      marginBottom: 12,
-    },
-    codeDetails: {
-      gap: 6,
-      marginBottom: 12,
-    },
-    detailText: {
-      fontSize: 13,
-      color: isDark ? '#999' : '#666',
-    },
-    deactivateButton: {
-      backgroundColor: '#dc3545',
-      borderRadius: 8,
-      paddingVertical: 10,
-      alignItems: 'center',
-    },
-    deactivateButtonText: {
-      color: '#fff',
-      fontSize: 14,
-      fontWeight: '600',
-    },
-    emptyText: {
-      fontSize: 16,
-      color: isDark ? '#666' : '#999',
-      textAlign: 'center',
-      paddingVertical: 40,
-    },
+
+    // =========================================================================
+    // LOADING STATE (Permission Check)
+    // =========================================================================
+    /** Loading text below spinner during permission check */
     loadingText: {
       marginTop: 16,
       fontSize: 16,
-      color: isDark ? '#666' : '#999',
+      color: isDark ? "#666" : "#999",
     },
+
+    // =========================================================================
+    // ACCESS DENIED STATE (Non-Admin Users)
+    // =========================================================================
+    /** Error title for access denied screen */
     errorTitle: {
       fontSize: 24,
-      fontWeight: '700',
-      color: isDark ? '#fff' : '#000',
+      fontWeight: "700",
+      color: isDark ? "#fff" : "#000",
       marginTop: 16,
       marginBottom: 8,
     },
+    /** Error description text */
     errorText: {
       fontSize: 16,
-      color: isDark ? '#666' : '#999',
-      textAlign: 'center',
+      color: isDark ? "#666" : "#999",
+      textAlign: "center",
       marginBottom: 24,
     },
+    /** Back button for returning from access denied screen */
     backButton: {
-      backgroundColor: '#007AFF',
+      backgroundColor: "#007AFF",
       borderRadius: 12,
       paddingHorizontal: 32,
       paddingVertical: 14,
     },
+    /** Back button text */
     backButtonText: {
-      color: '#fff',
+      color: "#fff",
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
     },
   });
