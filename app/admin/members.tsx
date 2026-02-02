@@ -44,46 +44,46 @@
  * =============================================================================
  */
 
-import { Ionicons } from '@expo/vector-icons';
-import { Stack, useRouter } from 'expo-router';
-import React, { useEffect, useState, useMemo } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
+import { doc, getDoc } from "firebase/firestore";
+import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  View,
-  Text,
-  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../../src/context/AuthContext';
-import { useTheme } from '../../src/context/ThemeContext';
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../../src/context/AuthContext";
+import { useTheme } from "../../src/context/ThemeContext";
+import { db } from "../../src/services/firebase";
 import {
   getAllMembers,
+  getMemberCountsByPlan,
   getMemberDetails,
   updateMemberRole,
   updateMemberSubscription,
-  getMemberCountsByPlan,
-} from '../../src/services/memberService';
+} from "../../src/services/memberService";
 import type {
-  MemberListItem,
   Member,
+  MemberListItem,
   SubscriptionPlan,
   UserRole,
-} from '../../src/types/member';
-import { getDoc, doc } from 'firebase/firestore';
-import { db } from '../../src/services/firebase';
-import { useTranslation } from 'react-i18next';
+} from "../../src/types/member";
 
 // Import extracted components
 import {
-  StatsOverview,
-  SearchBar,
   FilterSection,
   MemberCard,
   MemberDetailModal,
-} from './components';
+  SearchBar,
+  StatsOverview,
+} from "./components";
 
 // =============================================================================
 // COMPONENT: MembersAdmin
@@ -115,17 +115,19 @@ export default function MembersAdmin() {
   /** Loading state for members fetch operation */
   const [loadingMembers, setLoadingMembers] = useState(false);
   /** Search query for filtering by name/email */
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   /** Selected plan filter ('all' or specific plan) */
-  const [filterPlan, setFilterPlan] = useState<SubscriptionPlan | 'all'>('all');
+  const [filterPlan, setFilterPlan] = useState<SubscriptionPlan | "all">("all");
   /** Selected role filter ('all' or 'admin') */
-  const [filterRole, setFilterRole] = useState<UserRole | 'all'>('all');
+  const [filterRole, setFilterRole] = useState<UserRole | "all">("all");
 
   // ---------------------------------------------------------------------------
   // STATE: Statistics
   // ---------------------------------------------------------------------------
   /** Count of members by subscription plan */
-  const [planCounts, setPlanCounts] = useState<Record<SubscriptionPlan, number>>({
+  const [planCounts, setPlanCounts] = useState<
+    Record<SubscriptionPlan, number>
+  >({
     free: 0,
     voca_unlimited: 0,
     voca_speaking: 0,
@@ -149,9 +151,9 @@ export default function MembersAdmin() {
   /** Plan editing mode flag */
   const [editingPlan, setEditingPlan] = useState(false);
   /** New role value during editing */
-  const [newRole, setNewRole] = useState<UserRole>('user');
+  const [newRole, setNewRole] = useState<UserRole>("user");
   /** New plan value during editing */
-  const [newPlan, setNewPlan] = useState<SubscriptionPlan>('free');
+  const [newPlan, setNewPlan] = useState<SubscriptionPlan>("free");
   /** Saving operation in progress flag */
   const [saving, setSaving] = useState(false);
 
@@ -179,15 +181,15 @@ export default function MembersAdmin() {
       }
 
       try {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          if (userData.role === 'admin') {
+          if (userData.role === "admin") {
             setIsAdmin(true);
           }
         }
       } catch (error) {
-        console.error('Admin check error:', error);
+        console.error("Admin check error:", error);
       } finally {
         setCheckingAdmin(false);
       }
@@ -230,8 +232,8 @@ export default function MembersAdmin() {
       const allMembers = await getAllMembers();
       setMembers(allMembers);
     } catch (error) {
-      console.error('Load members error:', error);
-      Alert.alert(t('common.error'), t('admin.members.loadError'));
+      console.error("Load members error:", error);
+      Alert.alert(t("common.error"), t("admin.members.loadError"));
     } finally {
       setLoadingMembers(false);
     }
@@ -249,7 +251,7 @@ export default function MembersAdmin() {
       const counts = await getMemberCountsByPlan();
       setPlanCounts(counts);
     } catch (error) {
-      console.error('Load plan counts error:', error);
+      console.error("Load plan counts error:", error);
     }
   };
 
@@ -278,8 +280,8 @@ export default function MembersAdmin() {
         setNewPlan(details.subscription.planId);
       }
     } catch (error) {
-      console.error('Load member details error:', error);
-      Alert.alert(t('common.error'), t('admin.members.detailsError'));
+      console.error("Load member details error:", error);
+      Alert.alert(t("common.error"), t("admin.members.detailsError"));
       setShowDetailModal(false);
     } finally {
       setLoadingDetails(false);
@@ -311,13 +313,16 @@ export default function MembersAdmin() {
       // Update list to reflect change
       setMembers((prev) =>
         prev.map((m) =>
-          m.uid === selectedMember.uid ? { ...m, role: newRole } : m
-        )
+          m.uid === selectedMember.uid ? { ...m, role: newRole } : m,
+        ),
       );
 
-      Alert.alert(t('common.success'), t('admin.members.roleUpdated'));
+      Alert.alert(t("common.success"), t("admin.members.roleUpdated"));
     } catch (error: any) {
-      Alert.alert(t('common.error'), error.message || t('admin.members.updateError'));
+      Alert.alert(
+        t("common.error"),
+        error.message || t("admin.members.updateError"),
+      );
     } finally {
       setSaving(false);
     }
@@ -352,16 +357,19 @@ export default function MembersAdmin() {
       // Update list to reflect change
       setMembers((prev) =>
         prev.map((m) =>
-          m.uid === selectedMember.uid ? { ...m, planId: newPlan } : m
-        )
+          m.uid === selectedMember.uid ? { ...m, planId: newPlan } : m,
+        ),
       );
 
       // Refresh stats to show updated counts
       loadPlanCounts();
 
-      Alert.alert(t('common.success'), t('admin.members.planUpdated'));
+      Alert.alert(t("common.success"), t("admin.members.planUpdated"));
     } catch (error: any) {
-      Alert.alert(t('common.error'), error.message || t('admin.members.updateError'));
+      Alert.alert(
+        t("common.error"),
+        error.message || t("admin.members.updateError"),
+      );
     } finally {
       setSaving(false);
     }
@@ -421,12 +429,12 @@ export default function MembersAdmin() {
       }
 
       // Plan filter: Match subscription plan
-      if (filterPlan !== 'all' && member.planId !== filterPlan) {
+      if (filterPlan !== "all" && member.planId !== filterPlan) {
         return false;
       }
 
       // Role filter: Match user role
-      if (filterRole !== 'all' && member.role !== filterRole) {
+      if (filterRole !== "all" && member.role !== filterRole) {
         return false;
       }
 
@@ -447,8 +455,10 @@ export default function MembersAdmin() {
   if (checkingAdmin) {
     return (
       <View style={[styles.container, styles.centered]}>
-        <ActivityIndicator size="large" color={isDark ? '#fff' : '#000'} />
-        <Text style={styles.loadingText}>{t('admin.members.checkingPermissions')}</Text>
+        <ActivityIndicator size="large" color={isDark ? "#fff" : "#000"} />
+        <Text style={styles.loadingText}>
+          {t("admin.members.checkingPermissions")}
+        </Text>
       </View>
     );
   }
@@ -465,21 +475,27 @@ export default function MembersAdmin() {
       <SafeAreaView style={styles.container}>
         <Stack.Screen
           options={{
-            title: t('admin.members.accessDenied'),
-            headerBackTitle: t('common.back'),
+            title: t("admin.members.accessDenied"),
+            headerBackTitle: t("common.back"),
           }}
         />
         <View style={styles.centered}>
-          <Ionicons name="lock-closed" size={64} color={isDark ? '#666' : '#ccc'} />
-          <Text style={styles.errorTitle}>{t('admin.members.accessDenied')}</Text>
+          <Ionicons
+            name="lock-closed"
+            size={64}
+            color={isDark ? "#666" : "#ccc"}
+          />
+          <Text style={styles.errorTitle}>
+            {t("admin.members.accessDenied")}
+          </Text>
           <Text style={styles.errorText}>
-            {t('admin.members.noPermission')}
+            {t("admin.members.noPermission")}
           </Text>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.backButtonText}>{t('common.back')}</Text>
+            <Text style={styles.backButtonText}>{t("common.back")}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -501,12 +517,12 @@ export default function MembersAdmin() {
    * 6. Member Detail Modal - Full member view (shown on card tap)
    */
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
       {/* Navigation Header */}
       <Stack.Screen
         options={{
-          title: t('admin.members.title'),
-          headerBackTitle: t('common.back'),
+          title: t("admin.members.title"),
+          headerBackTitle: t("common.back"),
         }}
       />
 
@@ -555,24 +571,26 @@ export default function MembersAdmin() {
           {/* Section Header with Refresh Button */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
-              {t('admin.members.members')} ({filteredMembers.length})
+              {t("admin.members.members")} ({filteredMembers.length})
             </Text>
             <TouchableOpacity onPress={loadMembers} disabled={loadingMembers}>
               <Ionicons
                 name="refresh"
                 size={24}
-                color={isDark ? '#fff' : '#000'}
+                color={isDark ? "#fff" : "#000"}
               />
             </TouchableOpacity>
           </View>
 
           {/* Loading State */}
           {loadingMembers ? (
-            <ActivityIndicator size="large" color={isDark ? '#fff' : '#000'} />
+            <ActivityIndicator size="large" color={isDark ? "#fff" : "#000"} />
           ) : filteredMembers.length === 0 ? (
             /* Empty State - No members or no search results */
             <Text style={styles.emptyText}>
-              {searchQuery ? t('admin.members.noResults') : t('admin.members.noMembers')}
+              {searchQuery
+                ? t("admin.members.noResults")
+                : t("admin.members.noMembers")}
             </Text>
           ) : (
             /* Member Cards List */
@@ -642,13 +660,13 @@ const getStyles = (isDark: boolean) =>
     /** Main container - full screen with theme background */
     container: {
       flex: 1,
-      backgroundColor: isDark ? '#000' : '#f2f2f7',
+      backgroundColor: isDark ? "#000" : "#f2f2f7",
     },
     /** Centered layout - for loading and error states */
     centered: {
       flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
       padding: 20,
     },
     /** Scroll view content container with padding */
@@ -664,7 +682,7 @@ const getStyles = (isDark: boolean) =>
     loadingText: {
       marginTop: 16,
       fontSize: 16,
-      color: isDark ? '#666' : '#999',
+      color: isDark ? "#666" : "#999",
     },
 
     // =========================================================================
@@ -673,30 +691,30 @@ const getStyles = (isDark: boolean) =>
     /** Error title for access denied screen */
     errorTitle: {
       fontSize: 24,
-      fontWeight: '700',
-      color: isDark ? '#fff' : '#000',
+      fontWeight: "700",
+      color: isDark ? "#fff" : "#000",
       marginTop: 16,
       marginBottom: 8,
     },
     /** Error description text */
     errorText: {
       fontSize: 16,
-      color: isDark ? '#666' : '#999',
-      textAlign: 'center',
+      color: isDark ? "#666" : "#999",
+      textAlign: "center",
       marginBottom: 24,
     },
     /** Back button for returning from access denied screen */
     backButton: {
-      backgroundColor: '#007AFF',
+      backgroundColor: "#007AFF",
       borderRadius: 12,
       paddingHorizontal: 32,
       paddingVertical: 14,
     },
     /** Back button text */
     backButtonText: {
-      color: '#fff',
+      color: "#fff",
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
     },
 
     // =========================================================================
@@ -708,22 +726,22 @@ const getStyles = (isDark: boolean) =>
     },
     /** Section header with title and refresh button */
     sectionHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       marginBottom: 16,
     },
     /** Section title text (e.g., "Members (10)") */
     sectionTitle: {
       fontSize: 20,
-      fontWeight: '700',
-      color: isDark ? '#fff' : '#000',
+      fontWeight: "700",
+      color: isDark ? "#fff" : "#000",
     },
     /** Empty state text when no members or no search results */
     emptyText: {
       fontSize: 16,
-      color: isDark ? '#666' : '#999',
-      textAlign: 'center',
+      color: isDark ? "#666" : "#999",
+      textAlign: "center",
       paddingVertical: 40,
     },
   });
