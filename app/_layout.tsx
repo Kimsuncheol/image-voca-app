@@ -23,7 +23,7 @@ import {
   hydrateVocabularyCache,
   isVocabularyCacheFresh,
 } from "../src/services/vocabularyPrefetch";
-import { useSubscriptionStore } from "../src/stores/subscriptionStore";
+import { useSubscriptionStore } from "../src/stores";
 import { CourseType } from "../src/types/vocabulary";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});

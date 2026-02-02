@@ -86,7 +86,7 @@ const buildSubscription = (
   orderId?: string,
 ): SubscriptionData => ({
   planId,
-  orderId,
+  ...(orderId && { orderId }),
   updatedAt: new Date().toISOString(),
 });
 
@@ -112,15 +112,21 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
         const normalizedPlan = normalizePlanId(subscription?.planId);
         const orderId = subscription?.orderId ?? null;
         const role: UserRole = data.role === "admin" ? "admin" : "user";
-        console.log("📋 Current User Role:", role, "| Raw role from Firestore:", data.role);
+        console.log(
+          "📋 Current User Role:",
+          role,
+          "| Raw role from Firestore:",
+          data.role,
+        );
 
         if (!subscription?.planId) {
+          console.log("not subscription");
           await setDoc(
             userRef,
             {
               subscription: buildSubscription(
                 normalizedPlan,
-                orderId ?? undefined,
+                orderId || undefined,
               ),
             },
             { merge: true },
@@ -143,6 +149,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
         error: error.message || "Failed to load subscription.",
         loading: false,
       });
+      console.log(error.message);
     }
   },
 

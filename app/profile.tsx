@@ -1,4 +1,4 @@
-import { useSubscriptionStore } from "@/src/stores";
+import { useSubscriptionStore } from "../src/stores";
 import { Ionicons } from "@expo/vector-icons";
 import {
   launchImageLibraryAsync,
