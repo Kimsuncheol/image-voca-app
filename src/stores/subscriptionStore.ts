@@ -112,6 +112,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
         const normalizedPlan = normalizePlanId(subscription?.planId);
         const orderId = subscription?.orderId ?? null;
         const role: UserRole = data.role === "admin" ? "admin" : "user";
+        console.log("📋 Current User Role:", role, "| Raw role from Firestore:", data.role);
 
         if (!subscription?.planId) {
           await setDoc(
@@ -130,7 +131,12 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       } else {
         const subscription = buildSubscription("free");
         await setDoc(userRef, { subscription }, { merge: true });
-        set({ currentPlan: "free", orderId: null, role: "user", loading: false });
+        set({
+          currentPlan: "free",
+          orderId: null,
+          role: "user",
+          loading: false,
+        });
       }
     } catch (error: any) {
       set({

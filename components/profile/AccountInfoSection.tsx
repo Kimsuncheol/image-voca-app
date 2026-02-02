@@ -7,6 +7,7 @@ interface AccountInfoSectionProps {
   displayName: string;
   onChangeDisplayName: (value: string) => void;
   email?: string | null;
+  role?: string;
   t: (key: string) => string;
 }
 
@@ -16,11 +17,14 @@ export function AccountInfoSection({
   displayName,
   onChangeDisplayName,
   email,
+  role,
   t,
 }: AccountInfoSectionProps) {
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{t("profile.sections.accountInfo")}</Text>
+      <Text style={styles.sectionTitle}>
+        {t("profile.sections.accountInfo")}
+      </Text>
       <View style={styles.card}>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>{t("profile.fields.name")}</Text>
@@ -37,6 +41,17 @@ export function AccountInfoSection({
           <Text style={styles.infoLabel}>{t("profile.fields.email")}</Text>
           <Text style={styles.infoValue}>{email}</Text>
         </View>
+        {role && (
+          <>
+            <View style={styles.separator} />
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{t("profile.fields.role")}</Text>
+              <Text style={styles.infoValue}>
+                {role === "admin" ? "Admin" : "User"}
+              </Text>
+            </View>
+          </>
+        )}
       </View>
     </View>
   );

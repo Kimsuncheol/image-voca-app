@@ -254,7 +254,8 @@ const en = {
       },
       adminCodeLabel: "Admin Code (Optional)",
       adminCodePlaceholder: "ADMIN-XXX-YYY",
-      validAdminCode: "Valid admin code - You will be registered as an administrator",
+      validAdminCode:
+        "Valid admin code - You will be registered as an administrator",
       creatingAccount: "Creating Account...",
       register: "Register",
       googleSigningIn: "Signing in...",
@@ -308,6 +309,7 @@ const en = {
       name: "Name",
       displayNamePlaceholder: "Display Name",
       email: "Email",
+      role: "Role",
       dailyGoal: "Daily Goal",
       wordsPerDay: "words/day",
     },

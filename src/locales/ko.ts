@@ -303,6 +303,7 @@ const ko = {
       name: "이름",
       displayNamePlaceholder: "표시 이름",
       email: "이메일",
+      role: "역할",
       dailyGoal: "일일 목표",
       wordsPerDay: "단어/일",
     },

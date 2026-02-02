@@ -1,3 +1,4 @@
+import { useSubscriptionStore } from "@/src/stores";
 import { Ionicons } from "@expo/vector-icons";
 import {
   launchImageLibraryAsync,
@@ -44,6 +45,7 @@ export default function ProfileScreen() {
   const [initialDisplayName, setInitialDisplayName] = useState("");
   const user = auth.currentUser;
   const navigation = useNavigation();
+  const role = useSubscriptionStore((state) => state.role);
 
   // State for re-authentication
   const [password, setPassword] = useState("");
@@ -253,6 +255,7 @@ export default function ProfileScreen() {
               setDisplayName(text);
             }}
             email={user?.email}
+            role={role}
             t={t}
           />
           <AccountActionsSection
