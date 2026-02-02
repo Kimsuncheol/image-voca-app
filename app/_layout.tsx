@@ -43,19 +43,18 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
   const { t } = useTranslation();
-  const { fetchSubscription, resetSubscription } = useSubscriptionStore();
 
   usePushNotifications();
 
   // Fetch user subscription (including admin role) when user is loaded
   useEffect(() => {
     if (user && !loading) {
-      fetchSubscription(user.uid);
+      useSubscriptionStore.getState().fetchSubscription(user.uid);
     } else if (!user && !loading) {
       // Reset subscription when user logs out
-      resetSubscription();
+      useSubscriptionStore.getState().resetSubscription();
     }
-  }, [user, loading, fetchSubscription, resetSubscription]);
+  }, [user, loading]);
 
   useEffect(() => {
     if (loading) return;

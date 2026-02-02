@@ -51,6 +51,19 @@ export default function ProfileScreen() {
   const [password, setPassword] = useState("");
   const [showPasswordInput, setShowPasswordInput] = useState(false);
 
+  // Refresh subscription when profile screen loads to ensure role is up-to-date
+  useEffect(() => {
+    if (user) {
+      console.log("🔄 Profile screen: Refreshing subscription for user", user.uid);
+      useSubscriptionStore.getState().fetchSubscription(user.uid);
+    }
+  }, [user]);
+
+  // Log role changes in profile screen for debugging
+  useEffect(() => {
+    console.log("👤 Profile screen: Current role =", role);
+  }, [role]);
+
   useEffect(() => {
     if (user) {
       const nextImage = user.photoURL || null;

@@ -9,6 +9,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -48,6 +49,7 @@ export default function RegisterScreen() {
   const [adminCode, setAdminCode] = useState("");
   const [isValidAdminCode, setIsValidAdminCode] = useState(false);
   const [adminCodeError, setAdminCodeError] = useState("");
+  const [requestAdmin, setRequestAdmin] = useState(false);
   const { promptAsync, loading: googleLoading } = useGoogleAuth();
 
   // ---------------------------------------------------------------------------
@@ -249,9 +251,9 @@ export default function RegisterScreen() {
         photoURL: avatarUri || null,
       });
 
-      // Determine user role based on admin code or email (case-insensitive check)
+      // Determine user role based on admin code, email, or manual admin request
       const role: UserRole =
-        isValidAdminCode || ADMIN_EMAILS.includes(email.toLowerCase())
+        isValidAdminCode || ADMIN_EMAILS.includes(email.toLowerCase()) || requestAdmin
           ? "admin"
           : "user";
 
@@ -431,6 +433,26 @@ export default function RegisterScreen() {
                 </View>
               )}
             </View>
+
+            {/* -----------------------------------------------------------------
+                ADMIN TOGGLE BUTTON (Development/Testing)
+            ----------------------------------------------------------------- */}
+            <TouchableOpacity
+              style={[
+                styles.adminToggleButton,
+                requestAdmin && styles.adminToggleButtonActive,
+              ]}
+              onPress={() => setRequestAdmin(!requestAdmin)}
+            >
+              <Text
+                style={[
+                  styles.adminToggleText,
+                  requestAdmin && styles.adminToggleTextActive,
+                ]}
+              >
+                {requestAdmin ? "✓ Register as Admin" : "Register as Admin"}
+              </Text>
+            </TouchableOpacity>
 
             {/* -----------------------------------------------------------------
                 REGISTER BUTTON
@@ -830,5 +852,39 @@ const getStyles = (isDark: boolean) =>
       fontWeight: "600",
       color: isDark ? "#4ADE80" : "#28A745",
       textAlign: "center",
+    },
+
+    // -------------------------------------------------------------------------
+    // ADMIN TOGGLE BUTTON STYLES - Development/Testing feature
+    // -------------------------------------------------------------------------
+
+    /** Admin toggle button - Button to request admin privileges */
+    adminToggleButton: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: isDark ? "#333" : "#E0E0E0",
+      backgroundColor: isDark ? "#1c1c1e" : "#F9F9F9",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+
+    /** Admin toggle button active state - When admin is selected */
+    adminToggleButtonActive: {
+      borderColor: "#007AFF",
+      backgroundColor: isDark ? "#0A1F3D" : "#E6F2FF",
+    },
+
+    /** Admin toggle text - Default text color */
+    adminToggleText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: isDark ? "#888" : "#666",
+    },
+
+    /** Admin toggle text active - When admin is selected */
+    adminToggleTextActive: {
+      color: "#007AFF",
     },
   });
