@@ -1,9 +1,47 @@
 /**
- * Member Administration Dashboard
+ * =============================================================================
+ * MEMBER ADMINISTRATION DASHBOARD
+ * =============================================================================
+ * Main admin screen for viewing and managing app members
  *
- * Admin screen for viewing and managing app members.
- * Includes member list, search, filtering, role management,
- * and subscription management.
+ * FEATURES:
+ * - Admin-only access control with permission check
+ * - Member list with pagination and filtering
+ * - Real-time search by name or email
+ * - Filter by subscription plan and user role
+ * - View detailed member profiles
+ * - Edit member roles (user/admin)
+ * - Manage subscription plans
+ * - View membership statistics
+ * - Theme-aware UI (dark/light mode)
+ *
+ * COMPONENTS USED:
+ * - StatsOverview: Displays total members and plan distribution
+ * - SearchBar: Search members by name or email
+ * - FilterSection: Filter by plan and role
+ * - MemberCard: Individual member list item
+ * - MemberDetailModal: Full member detail view with editing
+ *
+ * DATA SOURCES:
+ * - Firestore users collection: Member profiles and roles
+ * - Firestore subscriptions subcollection: Subscription data
+ * - Firestore stats subcollection: Learning statistics
+ *
+ * PERMISSIONS:
+ * - Only users with role='admin' can access this screen
+ * - Non-admin users see access denied message
+ * - Unauthenticated users are redirected
+ *
+ * WORKFLOW:
+ * 1. Check user authentication and admin status
+ * 2. Load all members from Firestore
+ * 3. Load subscription plan counts for stats
+ * 4. User can search, filter, and view members
+ * 5. Tap member card to open detail modal
+ * 6. Edit role or subscription in modal
+ * 7. Changes are saved to Firestore
+ * 8. UI updates reflect changes immediately
+ * =============================================================================
  */
 
 import { Ionicons } from '@expo/vector-icons';
@@ -12,14 +50,11 @@ import React, { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
   Alert,
   ActivityIndicator,
-  Modal,
-  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../src/context/AuthContext';
@@ -41,56 +76,101 @@ import { getDoc, doc } from 'firebase/firestore';
 import { db } from '../../src/services/firebase';
 import { useTranslation } from 'react-i18next';
 
-const PLAN_LABELS: Record<SubscriptionPlan, string> = {
-  free: 'Free',
-  voca_unlimited: 'Voca Unlimited',
-  voca_speaking: 'Voca + Speaking',
-};
+// Import extracted components
+import {
+  StatsOverview,
+  SearchBar,
+  FilterSection,
+  MemberCard,
+  MemberDetailModal,
+} from './components';
 
-const PLAN_COLORS: Record<SubscriptionPlan, string> = {
-  free: '#6c757d',
-  voca_unlimited: '#007AFF',
-  voca_speaking: '#28a745',
-};
+// =============================================================================
+// COMPONENT: MembersAdmin
+// =============================================================================
 
 export default function MembersAdmin() {
+  // ---------------------------------------------------------------------------
+  // HOOKS & CONTEXT
+  // ---------------------------------------------------------------------------
   const { user } = useAuth();
   const { isDark } = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
   const styles = getStyles(isDark);
 
-  // Auth check
+  // ---------------------------------------------------------------------------
+  // STATE: Authentication & Authorization
+  // ---------------------------------------------------------------------------
+  /** Admin status flag (true if user has role='admin') */
   const [isAdmin, setIsAdmin] = useState(false);
+  /** Loading state for admin permission check */
   const [checkingAdmin, setCheckingAdmin] = useState(true);
 
-  // Members list state
+  // ---------------------------------------------------------------------------
+  // STATE: Members List & Filtering
+  // ---------------------------------------------------------------------------
+  /** Complete list of all members from Firestore */
   const [members, setMembers] = useState<MemberListItem[]>([]);
+  /** Loading state for members fetch operation */
   const [loadingMembers, setLoadingMembers] = useState(false);
+  /** Search query for filtering by name/email */
   const [searchQuery, setSearchQuery] = useState('');
+  /** Selected plan filter ('all' or specific plan) */
   const [filterPlan, setFilterPlan] = useState<SubscriptionPlan | 'all'>('all');
+  /** Selected role filter ('all' or 'admin') */
   const [filterRole, setFilterRole] = useState<UserRole | 'all'>('all');
 
-  // Stats state
+  // ---------------------------------------------------------------------------
+  // STATE: Statistics
+  // ---------------------------------------------------------------------------
+  /** Count of members by subscription plan */
   const [planCounts, setPlanCounts] = useState<Record<SubscriptionPlan, number>>({
     free: 0,
     voca_unlimited: 0,
     voca_speaking: 0,
   });
 
-  // Member detail modal
+  // ---------------------------------------------------------------------------
+  // STATE: Member Detail Modal
+  // ---------------------------------------------------------------------------
+  /** Currently selected member for detail view */
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  /** Loading state for member details fetch */
   const [loadingDetails, setLoadingDetails] = useState(false);
+  /** Modal visibility flag */
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  // Edit mode
+  // ---------------------------------------------------------------------------
+  // STATE: Edit Mode
+  // ---------------------------------------------------------------------------
+  /** Role editing mode flag */
   const [editingRole, setEditingRole] = useState(false);
+  /** Plan editing mode flag */
   const [editingPlan, setEditingPlan] = useState(false);
+  /** New role value during editing */
   const [newRole, setNewRole] = useState<UserRole>('user');
+  /** New plan value during editing */
   const [newPlan, setNewPlan] = useState<SubscriptionPlan>('free');
+  /** Saving operation in progress flag */
   const [saving, setSaving] = useState(false);
 
-  // Check if user is admin
+  // ---------------------------------------------------------------------------
+  // EFFECT: Admin Permission Check
+  // ---------------------------------------------------------------------------
+  /**
+   * Check if current user has admin role
+   *
+   * WORKFLOW:
+   * 1. Verify user is authenticated
+   * 2. Fetch user document from Firestore
+   * 3. Check if role field equals 'admin'
+   * 4. Update isAdmin state accordingly
+   * 5. Set checkingAdmin to false when complete
+   *
+   * DEPENDENCIES:
+   * - user: Re-runs when authentication state changes
+   */
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!user) {
@@ -116,7 +196,15 @@ export default function MembersAdmin() {
     checkAdminStatus();
   }, [user]);
 
-  // Load members on mount
+  // ---------------------------------------------------------------------------
+  // EFFECT: Load Members on Mount
+  // ---------------------------------------------------------------------------
+  /**
+   * Load all members and plan counts when admin access is confirmed
+   *
+   * DEPENDENCIES:
+   * - isAdmin: Only runs when user is confirmed as admin
+   */
   useEffect(() => {
     if (isAdmin) {
       loadMembers();
@@ -124,6 +212,18 @@ export default function MembersAdmin() {
     }
   }, [isAdmin]);
 
+  // ---------------------------------------------------------------------------
+  // HANDLER: Load Members List
+  // ---------------------------------------------------------------------------
+  /**
+   * Fetches all members from Firestore via memberService
+   *
+   * DATA INCLUDES:
+   * - Basic profile: uid, displayName, email, photoURL
+   * - Role: user or admin
+   * - Subscription: current plan
+   * - Stats: streak, words learned, last active date
+   */
   const loadMembers = async () => {
     setLoadingMembers(true);
     try {
@@ -137,6 +237,13 @@ export default function MembersAdmin() {
     }
   };
 
+  // ---------------------------------------------------------------------------
+  // HANDLER: Load Plan Counts for Statistics
+  // ---------------------------------------------------------------------------
+  /**
+   * Fetches count of members for each subscription plan
+   * Used to populate the stats overview cards at the top
+   */
   const loadPlanCounts = async () => {
     try {
       const counts = await getMemberCountsByPlan();
@@ -146,6 +253,20 @@ export default function MembersAdmin() {
     }
   };
 
+  // ---------------------------------------------------------------------------
+  // HANDLER: View Member Details
+  // ---------------------------------------------------------------------------
+  /**
+   * Opens member detail modal and loads full member data
+   *
+   * WORKFLOW:
+   * 1. Set loading state and show modal
+   * 2. Fetch detailed member data from Firestore
+   * 3. Initialize edit mode state with current values
+   * 4. Display data in modal
+   *
+   * @param uid - Member's unique user ID
+   */
   const handleViewMember = async (uid: string) => {
     setLoadingDetails(true);
     setShowDetailModal(true);
@@ -165,6 +286,19 @@ export default function MembersAdmin() {
     }
   };
 
+  // ---------------------------------------------------------------------------
+  // HANDLER: Save Role Changes
+  // ---------------------------------------------------------------------------
+  /**
+   * Updates member's role in Firestore
+   *
+   * SIDE EFFECTS:
+   * - Updates Firestore users/{uid}/role field
+   * - Updates local state (selectedMember)
+   * - Updates members list display
+   * - Exits edit mode
+   * - Shows success alert
+   */
   const handleSaveRole = async () => {
     if (!selectedMember) return;
 
@@ -174,7 +308,7 @@ export default function MembersAdmin() {
       setSelectedMember({ ...selectedMember, role: newRole });
       setEditingRole(false);
 
-      // Update list
+      // Update list to reflect change
       setMembers((prev) =>
         prev.map((m) =>
           m.uid === selectedMember.uid ? { ...m, role: newRole } : m
@@ -189,6 +323,20 @@ export default function MembersAdmin() {
     }
   };
 
+  // ---------------------------------------------------------------------------
+  // HANDLER: Save Subscription Plan Changes
+  // ---------------------------------------------------------------------------
+  /**
+   * Updates member's subscription plan in Firestore
+   *
+   * SIDE EFFECTS:
+   * - Updates Firestore subscriptions/{uid} document
+   * - Updates local state (selectedMember)
+   * - Updates members list display
+   * - Refreshes plan counts for stats
+   * - Exits edit mode
+   * - Shows success alert
+   */
   const handleSavePlan = async () => {
     if (!selectedMember) return;
 
@@ -201,14 +349,14 @@ export default function MembersAdmin() {
       });
       setEditingPlan(false);
 
-      // Update list
+      // Update list to reflect change
       setMembers((prev) =>
         prev.map((m) =>
           m.uid === selectedMember.uid ? { ...m, planId: newPlan } : m
         )
       );
 
-      // Refresh counts
+      // Refresh stats to show updated counts
       loadPlanCounts();
 
       Alert.alert(t('common.success'), t('admin.members.planUpdated'));
@@ -219,6 +367,12 @@ export default function MembersAdmin() {
     }
   };
 
+  // ---------------------------------------------------------------------------
+  // HANDLER: Close Member Detail Modal
+  // ---------------------------------------------------------------------------
+  /**
+   * Closes modal and resets all edit-related state
+   */
   const closeModal = () => {
     setShowDetailModal(false);
     setSelectedMember(null);
@@ -226,10 +380,39 @@ export default function MembersAdmin() {
     setEditingPlan(false);
   };
 
-  // Filtered members
+  // ---------------------------------------------------------------------------
+  // COMPUTED: Filtered Members List
+  // ---------------------------------------------------------------------------
+  /**
+   * Filters member list based on search query and filter selections
+   *
+   * FILTER LOGIC:
+   * 1. Search Filter (optional):
+   *    - Case-insensitive search
+   *    - Matches against displayName OR email
+   *    - Must match at least one field to pass
+   *
+   * 2. Plan Filter (optional):
+   *    - If 'all' is selected, includes all plans
+   *    - Otherwise, only includes members with matching planId
+   *
+   * 3. Role Filter (optional):
+   *    - If 'all' is selected, includes all roles
+   *    - If 'admin' is selected, only includes admin users
+   *
+   * PERFORMANCE:
+   * - Uses useMemo to prevent unnecessary recalculation
+   * - Only recomputes when dependencies change
+   *
+   * DEPENDENCIES:
+   * - members: Raw members list
+   * - searchQuery: Search text
+   * - filterPlan: Selected plan filter
+   * - filterRole: Selected role filter
+   */
   const filteredMembers = useMemo(() => {
     return members.filter((member) => {
-      // Search filter
+      // Search filter: Check name and email
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const matchesName = member.displayName.toLowerCase().includes(query);
@@ -237,12 +420,12 @@ export default function MembersAdmin() {
         if (!matchesName && !matchesEmail) return false;
       }
 
-      // Plan filter
+      // Plan filter: Match subscription plan
       if (filterPlan !== 'all' && member.planId !== filterPlan) {
         return false;
       }
 
-      // Role filter
+      // Role filter: Match user role
       if (filterRole !== 'all' && member.role !== filterRole) {
         return false;
       }
@@ -251,8 +434,16 @@ export default function MembersAdmin() {
     });
   }, [members, searchQuery, filterPlan, filterRole]);
 
+  /** Total member count (before filtering) */
   const totalMembers = members.length;
 
+  // ---------------------------------------------------------------------------
+  // RENDER: Loading State (Checking Permissions)
+  // ---------------------------------------------------------------------------
+  /**
+   * Displayed while verifying admin permissions
+   * Shows spinner and loading message
+   */
   if (checkingAdmin) {
     return (
       <View style={[styles.container, styles.centered]}>
@@ -262,6 +453,13 @@ export default function MembersAdmin() {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // RENDER: Access Denied State (Non-Admin Users)
+  // ---------------------------------------------------------------------------
+  /**
+   * Displayed when user is authenticated but not an admin
+   * Shows lock icon, error message, and back button
+   */
   if (!isAdmin) {
     return (
       <SafeAreaView style={styles.container}>
@@ -288,8 +486,23 @@ export default function MembersAdmin() {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // RENDER: Main Admin Dashboard (Authorized Users)
+  // ---------------------------------------------------------------------------
+  /**
+   * Main dashboard view for admin users
+   *
+   * LAYOUT STRUCTURE:
+   * 1. Header with navigation
+   * 2. Stats Overview - Member counts by plan
+   * 3. Search Bar - Filter by name/email
+   * 4. Filter Section - Filter by plan and role
+   * 5. Members List - Scrollable list of member cards
+   * 6. Member Detail Modal - Full member view (shown on card tap)
+   */
   return (
     <SafeAreaView style={styles.container}>
+      {/* Navigation Header */}
       <Stack.Screen
         options={{
           title: t('admin.members.title'),
@@ -301,93 +514,45 @@ export default function MembersAdmin() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Stats Overview */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{totalMembers}</Text>
-            <Text style={styles.statLabel}>{t('admin.members.totalMembers')}</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statNumber, { color: PLAN_COLORS.voca_unlimited }]}>
-              {planCounts.voca_unlimited}
-            </Text>
-            <Text style={styles.statLabel}>{t('admin.members.unlimited')}</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statNumber, { color: PLAN_COLORS.voca_speaking }]}>
-              {planCounts.voca_speaking}
-            </Text>
-            <Text style={styles.statLabel}>{t('admin.members.speaking')}</Text>
-          </View>
-        </View>
+        {/* =================================================================
+            STATS OVERVIEW SECTION
+            Displays total members and plan distribution
+            ================================================================= */}
+        <StatsOverview
+          totalMembers={totalMembers}
+          unlimitedCount={planCounts.voca_unlimited}
+          speakingCount={planCounts.voca_speaking}
+          isDark={isDark}
+        />
 
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color={isDark ? '#666' : '#999'} />
-          <TextInput
-            style={styles.searchInput}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder={t('admin.members.searchPlaceholder')}
-            placeholderTextColor={isDark ? '#666' : '#999'}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color={isDark ? '#666' : '#999'} />
-            </TouchableOpacity>
-          )}
-        </View>
+        {/* =================================================================
+            SEARCH BAR SECTION
+            Real-time search by name or email
+            ================================================================= */}
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          isDark={isDark}
+        />
 
-        {/* Filters */}
-        <View style={styles.filtersContainer}>
-          <Text style={styles.filterLabel}>{t('admin.members.filter')}:</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <TouchableOpacity
-              style={[styles.filterChip, filterPlan === 'all' && styles.filterChipActive]}
-              onPress={() => setFilterPlan('all')}
-            >
-              <Text style={[styles.filterChipText, filterPlan === 'all' && styles.filterChipTextActive]}>
-                {t('admin.members.allPlans')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.filterChip, filterPlan === 'free' && styles.filterChipActive]}
-              onPress={() => setFilterPlan('free')}
-            >
-              <Text style={[styles.filterChipText, filterPlan === 'free' && styles.filterChipTextActive]}>
-                Free
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.filterChip, filterPlan === 'voca_unlimited' && styles.filterChipActive]}
-              onPress={() => setFilterPlan('voca_unlimited')}
-            >
-              <Text style={[styles.filterChipText, filterPlan === 'voca_unlimited' && styles.filterChipTextActive]}>
-                Unlimited
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.filterChip, filterPlan === 'voca_speaking' && styles.filterChipActive]}
-              onPress={() => setFilterPlan('voca_speaking')}
-            >
-              <Text style={[styles.filterChipText, filterPlan === 'voca_speaking' && styles.filterChipTextActive]}>
-                Speaking
-              </Text>
-            </TouchableOpacity>
-            <View style={styles.filterDivider} />
-            <TouchableOpacity
-              style={[styles.filterChip, filterRole === 'admin' && styles.filterChipActive]}
-              onPress={() => setFilterRole(filterRole === 'admin' ? 'all' : 'admin')}
-            >
-              <Text style={[styles.filterChipText, filterRole === 'admin' && styles.filterChipTextActive]}>
-                {t('admin.members.adminsOnly')}
-              </Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
+        {/* =================================================================
+            FILTER SECTION
+            Filter by subscription plan and user role
+            ================================================================= */}
+        <FilterSection
+          selectedPlan={filterPlan}
+          onPlanChange={setFilterPlan}
+          selectedRole={filterRole}
+          onRoleChange={setFilterRole}
+          isDark={isDark}
+        />
 
-        {/* Members List */}
+        {/* =================================================================
+            MEMBERS LIST SECTION
+            Scrollable list of all members with loading and empty states
+            ================================================================= */}
         <View style={styles.section}>
+          {/* Section Header with Refresh Button */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
               {t('admin.members.members')} ({filteredMembers.length})
@@ -401,296 +566,111 @@ export default function MembersAdmin() {
             </TouchableOpacity>
           </View>
 
+          {/* Loading State */}
           {loadingMembers ? (
             <ActivityIndicator size="large" color={isDark ? '#fff' : '#000'} />
           ) : filteredMembers.length === 0 ? (
+            /* Empty State - No members or no search results */
             <Text style={styles.emptyText}>
               {searchQuery ? t('admin.members.noResults') : t('admin.members.noMembers')}
             </Text>
           ) : (
+            /* Member Cards List */
             filteredMembers.map((member) => (
-              <TouchableOpacity
+              <MemberCard
                 key={member.uid}
-                style={styles.memberCard}
+                member={member}
                 onPress={() => handleViewMember(member.uid)}
-              >
-                <View style={styles.memberHeader}>
-                  <View style={styles.memberAvatar}>
-                    {member.photoURL ? (
-                      <Image source={{ uri: member.photoURL }} style={styles.avatarImage} />
-                    ) : (
-                      <Ionicons name="person" size={24} color={isDark ? '#666' : '#999'} />
-                    )}
-                  </View>
-                  <View style={styles.memberInfo}>
-                    <View style={styles.memberNameRow}>
-                      <Text style={styles.memberName}>{member.displayName}</Text>
-                      {member.role === 'admin' && (
-                        <View style={styles.adminBadge}>
-                          <Text style={styles.adminBadgeText}>Admin</Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text style={styles.memberEmail}>{member.email}</Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.planBadge,
-                      { backgroundColor: PLAN_COLORS[member.planId] },
-                    ]}
-                  >
-                    <Text style={styles.planBadgeText}>
-                      {member.planId === 'free' ? 'Free' : member.planId === 'voca_unlimited' ? 'Unlimited' : 'Speaking'}
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.memberStats}>
-                  <View style={styles.memberStatItem}>
-                    <Ionicons name="flame" size={14} color="#ff9500" />
-                    <Text style={styles.memberStatText}>{member.currentStreak}</Text>
-                  </View>
-                  <View style={styles.memberStatItem}>
-                    <Ionicons name="book" size={14} color="#007AFF" />
-                    <Text style={styles.memberStatText}>{member.totalWordsLearned}</Text>
-                  </View>
-                  <Text style={styles.memberLastActive}>
-                    {member.lastActiveDate
-                      ? new Date(member.lastActiveDate).toLocaleDateString()
-                      : t('admin.members.neverActive')}
-                  </Text>
-                </View>
-              </TouchableOpacity>
+                isDark={isDark}
+              />
             ))
           )}
         </View>
       </ScrollView>
 
-      {/* Member Detail Modal */}
-      <Modal
+      {/* =================================================================
+          MEMBER DETAIL MODAL
+          Full-screen modal for viewing and editing member details
+          ================================================================= */}
+      <MemberDetailModal
         visible={showDetailModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={closeModal}
-      >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={closeModal}>
-              <Ionicons name="close" size={28} color={isDark ? '#fff' : '#000'} />
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>{t('admin.members.memberDetails')}</Text>
-            <View style={{ width: 28 }} />
-          </View>
-
-          {loadingDetails ? (
-            <View style={styles.centered}>
-              <ActivityIndicator size="large" color={isDark ? '#fff' : '#000'} />
-            </View>
-          ) : selectedMember ? (
-            <ScrollView contentContainerStyle={styles.modalContent}>
-              {/* Profile Section */}
-              <View style={styles.profileSection}>
-                <View style={styles.profileAvatar}>
-                  {selectedMember.photoURL ? (
-                    <Image source={{ uri: selectedMember.photoURL }} style={styles.profileAvatarImage} />
-                  ) : (
-                    <Ionicons name="person" size={48} color={isDark ? '#666' : '#999'} />
-                  )}
-                </View>
-                <Text style={styles.profileName}>{selectedMember.displayName}</Text>
-                <Text style={styles.profileEmail}>{selectedMember.email}</Text>
-              </View>
-
-              {/* Role Section */}
-              <View style={styles.detailSection}>
-                <View style={styles.detailHeader}>
-                  <Text style={styles.detailTitle}>{t('admin.members.role')}</Text>
-                  {!editingRole ? (
-                    <TouchableOpacity onPress={() => setEditingRole(true)}>
-                      <Ionicons name="pencil" size={20} color="#007AFF" />
-                    </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity onPress={() => setEditingRole(false)}>
-                      <Ionicons name="close" size={20} color="#666" />
-                    </TouchableOpacity>
-                  )}
-                </View>
-                {editingRole ? (
-                  <View style={styles.editContainer}>
-                    <View style={styles.roleButtons}>
-                      <TouchableOpacity
-                        style={[styles.roleButton, newRole === 'user' && styles.roleButtonActive]}
-                        onPress={() => setNewRole('user')}
-                      >
-                        <Text style={[styles.roleButtonText, newRole === 'user' && styles.roleButtonTextActive]}>
-                          User
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.roleButton, newRole === 'admin' && styles.roleButtonActive]}
-                        onPress={() => setNewRole('admin')}
-                      >
-                        <Text style={[styles.roleButtonText, newRole === 'admin' && styles.roleButtonTextActive]}>
-                          Admin
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                    <TouchableOpacity
-                      style={[styles.saveButton, saving && styles.buttonDisabled]}
-                      onPress={handleSaveRole}
-                      disabled={saving}
-                    >
-                      {saving ? (
-                        <ActivityIndicator color="#fff" size="small" />
-                      ) : (
-                        <Text style={styles.saveButtonText}>{t('common.confirm')}</Text>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <View style={styles.detailValue}>
-                    <View style={[styles.roleBadge, selectedMember.role === 'admin' && styles.adminRoleBadge]}>
-                      <Text style={styles.roleBadgeText}>
-                        {selectedMember.role === 'admin' ? 'Admin' : 'User'}
-                      </Text>
-                    </View>
-                  </View>
-                )}
-              </View>
-
-              {/* Subscription Section */}
-              <View style={styles.detailSection}>
-                <View style={styles.detailHeader}>
-                  <Text style={styles.detailTitle}>{t('admin.members.subscription')}</Text>
-                  {!editingPlan ? (
-                    <TouchableOpacity onPress={() => setEditingPlan(true)}>
-                      <Ionicons name="pencil" size={20} color="#007AFF" />
-                    </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity onPress={() => setEditingPlan(false)}>
-                      <Ionicons name="close" size={20} color="#666" />
-                    </TouchableOpacity>
-                  )}
-                </View>
-                {editingPlan ? (
-                  <View style={styles.editContainer}>
-                    <View style={styles.planButtons}>
-                      {(['free', 'voca_unlimited', 'voca_speaking'] as SubscriptionPlan[]).map((plan) => (
-                        <TouchableOpacity
-                          key={plan}
-                          style={[styles.planOptionButton, newPlan === plan && styles.planOptionButtonActive]}
-                          onPress={() => setNewPlan(plan)}
-                        >
-                          <Text style={[styles.planOptionText, newPlan === plan && styles.planOptionTextActive]}>
-                            {PLAN_LABELS[plan]}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                    <TouchableOpacity
-                      style={[styles.saveButton, saving && styles.buttonDisabled]}
-                      onPress={handleSavePlan}
-                      disabled={saving}
-                    >
-                      {saving ? (
-                        <ActivityIndicator color="#fff" size="small" />
-                      ) : (
-                        <Text style={styles.saveButtonText}>{t('common.confirm')}</Text>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <View style={styles.detailValue}>
-                    <View style={[styles.planBadgeLarge, { backgroundColor: PLAN_COLORS[selectedMember.subscription.planId] }]}>
-                      <Text style={styles.planBadgeLargeText}>
-                        {PLAN_LABELS[selectedMember.subscription.planId]}
-                      </Text>
-                    </View>
-                    {selectedMember.subscription.activatedAt && (
-                      <Text style={styles.subscriptionInfo}>
-                        {t('admin.members.activatedAt')}: {new Date(selectedMember.subscription.activatedAt).toLocaleDateString()}
-                      </Text>
-                    )}
-                    {selectedMember.subscription.activatedBy && (
-                      <Text style={styles.subscriptionInfo}>
-                        {t('admin.members.activatedBy')}: {selectedMember.subscription.activatedBy}
-                      </Text>
-                    )}
-                  </View>
-                )}
-              </View>
-
-              {/* Stats Section */}
-              <View style={styles.detailSection}>
-                <Text style={styles.detailTitle}>{t('admin.members.stats')}</Text>
-                <View style={styles.statsGrid}>
-                  <View style={styles.statGridItem}>
-                    <Text style={styles.statGridNumber}>{selectedMember.stats.currentStreak}</Text>
-                    <Text style={styles.statGridLabel}>{t('admin.members.currentStreak')}</Text>
-                  </View>
-                  <View style={styles.statGridItem}>
-                    <Text style={styles.statGridNumber}>{selectedMember.stats.longestStreak}</Text>
-                    <Text style={styles.statGridLabel}>{t('admin.members.longestStreak')}</Text>
-                  </View>
-                  <View style={styles.statGridItem}>
-                    <Text style={styles.statGridNumber}>{selectedMember.stats.totalWordsLearned}</Text>
-                    <Text style={styles.statGridLabel}>{t('admin.members.wordsLearned')}</Text>
-                  </View>
-                  <View style={styles.statGridItem}>
-                    <Text style={styles.statGridNumber}>
-                      {selectedMember.stats.totalQuizAnswers > 0
-                        ? Math.round((selectedMember.stats.totalCorrectAnswers / selectedMember.stats.totalQuizAnswers) * 100)
-                        : 0}%
-                    </Text>
-                    <Text style={styles.statGridLabel}>{t('admin.members.accuracy')}</Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Activity Section */}
-              <View style={styles.detailSection}>
-                <Text style={styles.detailTitle}>{t('admin.members.activity')}</Text>
-                <View style={styles.activityInfo}>
-                  <Text style={styles.activityLabel}>{t('admin.members.lastActive')}:</Text>
-                  <Text style={styles.activityValue}>
-                    {selectedMember.stats.lastActiveDate
-                      ? new Date(selectedMember.stats.lastActiveDate).toLocaleString()
-                      : t('admin.members.neverActive')}
-                  </Text>
-                </View>
-                <View style={styles.activityInfo}>
-                  <Text style={styles.activityLabel}>{t('admin.members.dailyGoal')}:</Text>
-                  <Text style={styles.activityValue}>{selectedMember.stats.dailyGoal} {t('common.words')}</Text>
-                </View>
-              </View>
-            </ScrollView>
-          ) : null}
-        </SafeAreaView>
-      </Modal>
+        onClose={closeModal}
+        member={selectedMember}
+        loading={loadingDetails}
+        editingRole={editingRole}
+        onToggleRoleEdit={setEditingRole}
+        newRole={newRole}
+        onRoleChange={setNewRole}
+        onSaveRole={handleSaveRole}
+        editingPlan={editingPlan}
+        onTogglePlanEdit={setEditingPlan}
+        newPlan={newPlan}
+        onPlanChange={setNewPlan}
+        onSavePlan={handleSavePlan}
+        saving={saving}
+        isDark={isDark}
+      />
     </SafeAreaView>
   );
 }
 
+// =============================================================================
+// STYLES
+// =============================================================================
+/**
+ * Styles for main container and states
+ * Component-specific styles have been moved to their respective component files
+ *
+ * REMAINING STYLES:
+ * - Container: Main app container and centered layout
+ * - Loading State: Permission check loading screen
+ * - Access Denied State: Non-admin error screen
+ * - Members List Section: Section header and empty state
+ *
+ * REMOVED STYLES (now in components):
+ * - Stats Overview → StatsOverview.tsx
+ * - Search Bar → SearchBar.tsx
+ * - Filters → FilterSection.tsx
+ * - Member Cards → MemberCard.tsx
+ * - Modal & Detail Sections → MemberDetailModal.tsx
+ */
 const getStyles = (isDark: boolean) =>
   StyleSheet.create({
+    // =========================================================================
+    // CONTAINER & LAYOUT
+    // =========================================================================
+    /** Main container - full screen with theme background */
     container: {
       flex: 1,
       backgroundColor: isDark ? '#000' : '#f2f2f7',
     },
+    /** Centered layout - for loading and error states */
     centered: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
       padding: 20,
     },
+    /** Scroll view content container with padding */
     scrollContent: {
       padding: 20,
       paddingBottom: 40,
     },
+
+    // =========================================================================
+    // LOADING STATE (Permission Check)
+    // =========================================================================
+    /** Loading text below spinner during permission check */
     loadingText: {
       marginTop: 16,
       fontSize: 16,
       color: isDark ? '#666' : '#999',
     },
+
+    // =========================================================================
+    // ACCESS DENIED STATE (Non-Admin Users)
+    // =========================================================================
+    /** Error title for access denied screen */
     errorTitle: {
       fontSize: 24,
       fontWeight: '700',
@@ -698,416 +678,52 @@ const getStyles = (isDark: boolean) =>
       marginTop: 16,
       marginBottom: 8,
     },
+    /** Error description text */
     errorText: {
       fontSize: 16,
       color: isDark ? '#666' : '#999',
       textAlign: 'center',
       marginBottom: 24,
     },
+    /** Back button for returning from access denied screen */
     backButton: {
       backgroundColor: '#007AFF',
       borderRadius: 12,
       paddingHorizontal: 32,
       paddingVertical: 14,
     },
+    /** Back button text */
     backButtonText: {
       color: '#fff',
       fontSize: 16,
       fontWeight: '600',
     },
 
-    // Stats
-    statsContainer: {
-      flexDirection: 'row',
-      gap: 12,
-      marginBottom: 20,
-    },
-    statCard: {
-      flex: 1,
-      backgroundColor: isDark ? '#1a1a1a' : '#fff',
-      borderRadius: 12,
-      padding: 16,
-      alignItems: 'center',
-    },
-    statNumber: {
-      fontSize: 28,
-      fontWeight: '700',
-      color: isDark ? '#fff' : '#000',
-    },
-    statLabel: {
-      fontSize: 12,
-      color: isDark ? '#999' : '#666',
-      marginTop: 4,
-    },
-
-    // Search
-    searchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: isDark ? '#1a1a1a' : '#fff',
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      marginBottom: 16,
-      gap: 12,
-    },
-    searchInput: {
-      flex: 1,
-      fontSize: 16,
-      color: isDark ? '#fff' : '#000',
-    },
-
-    // Filters
-    filtersContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 20,
-      gap: 12,
-    },
-    filterLabel: {
-      fontSize: 14,
-      color: isDark ? '#999' : '#666',
-    },
-    filterChip: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 20,
-      backgroundColor: isDark ? '#1a1a1a' : '#e5e5e5',
-      marginRight: 8,
-    },
-    filterChipActive: {
-      backgroundColor: '#007AFF',
-    },
-    filterChipText: {
-      fontSize: 14,
-      color: isDark ? '#ccc' : '#666',
-    },
-    filterChipTextActive: {
-      color: '#fff',
-    },
-    filterDivider: {
-      width: 1,
-      height: 20,
-      backgroundColor: isDark ? '#333' : '#ddd',
-      marginHorizontal: 8,
-    },
-
-    // Section
+    // =========================================================================
+    // MEMBERS LIST SECTION
+    // =========================================================================
+    /** Section container with bottom margin */
     section: {
       marginBottom: 20,
     },
+    /** Section header with title and refresh button */
     sectionHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: 16,
     },
+    /** Section title text (e.g., "Members (10)") */
     sectionTitle: {
       fontSize: 20,
       fontWeight: '700',
       color: isDark ? '#fff' : '#000',
     },
+    /** Empty state text when no members or no search results */
     emptyText: {
       fontSize: 16,
       color: isDark ? '#666' : '#999',
       textAlign: 'center',
       paddingVertical: 40,
-    },
-
-    // Member Card
-    memberCard: {
-      backgroundColor: isDark ? '#1a1a1a' : '#fff',
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 12,
-    },
-    memberHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    memberAvatar: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      backgroundColor: isDark ? '#333' : '#e5e5e5',
-      justifyContent: 'center',
-      alignItems: 'center',
-      overflow: 'hidden',
-    },
-    avatarImage: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-    },
-    memberInfo: {
-      flex: 1,
-      marginLeft: 12,
-    },
-    memberNameRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    memberName: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: isDark ? '#fff' : '#000',
-    },
-    adminBadge: {
-      backgroundColor: '#ff9500',
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 4,
-    },
-    adminBadgeText: {
-      color: '#fff',
-      fontSize: 10,
-      fontWeight: '600',
-    },
-    memberEmail: {
-      fontSize: 14,
-      color: isDark ? '#999' : '#666',
-      marginTop: 2,
-    },
-    planBadge: {
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 12,
-    },
-    planBadgeText: {
-      color: '#fff',
-      fontSize: 12,
-      fontWeight: '600',
-    },
-    memberStats: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: 12,
-      paddingTop: 12,
-      borderTopWidth: 1,
-      borderTopColor: isDark ? '#333' : '#eee',
-      gap: 16,
-    },
-    memberStatItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
-    memberStatText: {
-      fontSize: 14,
-      color: isDark ? '#ccc' : '#666',
-    },
-    memberLastActive: {
-      marginLeft: 'auto',
-      fontSize: 12,
-      color: isDark ? '#666' : '#999',
-    },
-
-    // Modal
-    modalContainer: {
-      flex: 1,
-      backgroundColor: isDark ? '#000' : '#f2f2f7',
-    },
-    modalHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 20,
-      paddingVertical: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: isDark ? '#333' : '#ddd',
-    },
-    modalTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: isDark ? '#fff' : '#000',
-    },
-    modalContent: {
-      padding: 20,
-    },
-
-    // Profile Section
-    profileSection: {
-      alignItems: 'center',
-      marginBottom: 24,
-    },
-    profileAvatar: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: isDark ? '#333' : '#e5e5e5',
-      justifyContent: 'center',
-      alignItems: 'center',
-      overflow: 'hidden',
-      marginBottom: 12,
-    },
-    profileAvatarImage: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-    },
-    profileName: {
-      fontSize: 24,
-      fontWeight: '700',
-      color: isDark ? '#fff' : '#000',
-    },
-    profileEmail: {
-      fontSize: 16,
-      color: isDark ? '#999' : '#666',
-      marginTop: 4,
-    },
-
-    // Detail Section
-    detailSection: {
-      backgroundColor: isDark ? '#1a1a1a' : '#fff',
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 16,
-    },
-    detailHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 12,
-    },
-    detailTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: isDark ? '#fff' : '#000',
-    },
-    detailValue: {},
-    editContainer: {
-      gap: 12,
-    },
-    roleButtons: {
-      flexDirection: 'row',
-      gap: 12,
-    },
-    roleButton: {
-      flex: 1,
-      paddingVertical: 12,
-      borderRadius: 8,
-      backgroundColor: isDark ? '#333' : '#e5e5e5',
-      alignItems: 'center',
-    },
-    roleButtonActive: {
-      backgroundColor: '#007AFF',
-    },
-    roleButtonText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: isDark ? '#ccc' : '#666',
-    },
-    roleButtonTextActive: {
-      color: '#fff',
-    },
-    planButtons: {
-      gap: 8,
-    },
-    planOptionButton: {
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderRadius: 8,
-      backgroundColor: isDark ? '#333' : '#e5e5e5',
-    },
-    planOptionButtonActive: {
-      backgroundColor: '#007AFF',
-    },
-    planOptionText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: isDark ? '#ccc' : '#666',
-    },
-    planOptionTextActive: {
-      color: '#fff',
-    },
-    saveButton: {
-      backgroundColor: '#28a745',
-      paddingVertical: 12,
-      borderRadius: 8,
-      alignItems: 'center',
-    },
-    buttonDisabled: {
-      backgroundColor: isDark ? '#333' : '#ccc',
-    },
-    saveButtonText: {
-      color: '#fff',
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    roleBadge: {
-      backgroundColor: isDark ? '#333' : '#e5e5e5',
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 8,
-      alignSelf: 'flex-start',
-    },
-    adminRoleBadge: {
-      backgroundColor: '#ff9500',
-    },
-    roleBadgeText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: isDark ? '#fff' : '#333',
-    },
-    planBadgeLarge: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 8,
-      alignSelf: 'flex-start',
-      marginBottom: 8,
-    },
-    planBadgeLargeText: {
-      color: '#fff',
-      fontSize: 14,
-      fontWeight: '600',
-    },
-    subscriptionInfo: {
-      fontSize: 13,
-      color: isDark ? '#999' : '#666',
-      marginTop: 4,
-    },
-
-    // Stats Grid
-    statsGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 12,
-      marginTop: 12,
-    },
-    statGridItem: {
-      width: '48%',
-      backgroundColor: isDark ? '#333' : '#f5f5f5',
-      borderRadius: 8,
-      padding: 12,
-      alignItems: 'center',
-    },
-    statGridNumber: {
-      fontSize: 24,
-      fontWeight: '700',
-      color: isDark ? '#fff' : '#000',
-    },
-    statGridLabel: {
-      fontSize: 12,
-      color: isDark ? '#999' : '#666',
-      marginTop: 4,
-    },
-
-    // Activity
-    activityInfo: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingVertical: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: isDark ? '#333' : '#eee',
-    },
-    activityLabel: {
-      fontSize: 14,
-      color: isDark ? '#999' : '#666',
-    },
-    activityValue: {
-      fontSize: 14,
-      color: isDark ? '#fff' : '#000',
-      fontWeight: '500',
     },
   });
