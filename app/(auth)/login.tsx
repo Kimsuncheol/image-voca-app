@@ -7,25 +7,25 @@ import { useTranslation } from "react-i18next";
 import {
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../src/context/ThemeContext";
-import { auth } from "../../src/services/firebase";
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
+import { auth } from "../../src/services/firebase";
 import {
-  ErrorBanner,
   Divider,
-  FormInput,
-  PasswordInput,
-  RememberMeCheckbox,
-  LinkButton,
-  PrimaryButton,
-  GoogleButton,
+  ErrorBanner,
   FooterLink,
+  FormInput,
+  GoogleButton,
+  LinkButton,
+  PasswordInput,
+  PrimaryButton,
+  RememberMeCheckbox,
 } from "./components";
 
 // --- Constants ---
