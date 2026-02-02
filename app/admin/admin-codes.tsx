@@ -46,6 +46,9 @@ export default function AdminCodesScreen() {
   const [expiresInDays, setExpiresInDays] = useState("");
   const [description, setDescription] = useState("");
 
+  // Tab navigation state
+  const [activeTab, setActiveTab] = useState<"generate" | "active">("generate");
+
   const styles = getStyles(isDark);
 
   // Check admin access
@@ -53,7 +56,7 @@ export default function AdminCodesScreen() {
     if (!isAdmin()) {
       Alert.alert(
         t("common.error"),
-        "You must be an administrator to access this page"
+        "You must be an administrator to access this page",
       );
       router.back();
     }
@@ -93,7 +96,7 @@ export default function AdminCodesScreen() {
 
       Alert.alert(
         t("adminCodes.generate.success"),
-        `Code: ${newCode.code}\n\nCopy this code to share with new administrators.`
+        `Code: ${newCode.code}\n\nCopy this code to share with new administrators.`,
       );
 
       // Reset form
@@ -136,7 +139,7 @@ export default function AdminCodesScreen() {
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -147,8 +150,7 @@ export default function AdminCodesScreen() {
   };
 
   const renderCodeItem = ({ item }: { item: AdminCode }) => {
-    const isExpired =
-      item.expiresAt && new Date(item.expiresAt) < new Date();
+    const isExpired = item.expiresAt && new Date(item.expiresAt) < new Date();
 
     return (
       <View style={styles.codeCard}>
@@ -174,9 +176,7 @@ export default function AdminCodesScreen() {
 
         <View style={styles.codeDetails}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>
-              {t("adminCodes.list.uses")}:
-            </Text>
+            <Text style={styles.detailLabel}>{t("adminCodes.list.uses")}:</Text>
             <Text style={styles.detailValue}>
               {item.currentUses} /{" "}
               {item.maxUses === -1
@@ -240,108 +240,149 @@ export default function AdminCodesScreen() {
         }}
       />
 
-      <ScrollView style={styles.container}>
-        {/* Generate Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            {t("adminCodes.generate.title")}
-          </Text>
-
-          <View style={styles.card}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                {t("adminCodes.generate.maxUses")}
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t("adminCodes.generate.maxUsesPlaceholder")}
-                placeholderTextColor={isDark ? "#666" : "#999"}
-                value={maxUses}
-                onChangeText={setMaxUses}
-                keyboardType="numeric"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                {t("adminCodes.generate.expiresInDays")}
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t("adminCodes.generate.expiresInDaysPlaceholder")}
-                placeholderTextColor={isDark ? "#666" : "#999"}
-                value={expiresInDays}
-                onChangeText={setExpiresInDays}
-                keyboardType="numeric"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                {t("adminCodes.generate.description")}
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t("adminCodes.generate.descriptionPlaceholder")}
-                placeholderTextColor={isDark ? "#666" : "#999"}
-                value={description}
-                onChangeText={setDescription}
-                multiline
-                numberOfLines={2}
-              />
-            </View>
-
-            <TouchableOpacity
-              style={[styles.generateButton, generating && styles.buttonDisabled]}
-              onPress={handleGenerateCode}
-              disabled={generating}
+      <View style={styles.container}>
+        {/* Tab Navigation */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "generate" && styles.tabButtonActive,
+            ]}
+            onPress={() => setActiveTab("generate")}
+          >
+            <Text
+              style={[
+                styles.tabButtonText,
+                activeTab === "generate" && styles.tabButtonTextActive,
+              ]}
             >
-              {generating ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.generateButtonText}>
-                  {t("adminCodes.generate.generateButton")}
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
+              {t("adminCodes.generate.title")}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "active" && styles.tabButtonActive,
+            ]}
+            onPress={() => setActiveTab("active")}
+          >
+            <Text
+              style={[
+                styles.tabButtonText,
+                activeTab === "active" && styles.tabButtonTextActive,
+              ]}
+            >
+              {t("adminCodes.list.title")}
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Codes List Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            {t("adminCodes.list.title")}
-          </Text>
+        {/* Tab Content */}
+        <ScrollView style={styles.tabContent}>
+          {activeTab === "generate" ? (
+            /* Generate Section */
+            <View style={styles.section}>
+              <View style={styles.card}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    {t("adminCodes.generate.maxUses")}
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t("adminCodes.generate.maxUsesPlaceholder")}
+                    placeholderTextColor={isDark ? "#666" : "#999"}
+                    value={maxUses}
+                    onChangeText={setMaxUses}
+                    keyboardType="numeric"
+                  />
+                </View>
 
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#007AFF" />
-            </View>
-          ) : codes.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Ionicons
-                name="gift-outline"
-                size={64}
-                color={isDark ? "#444" : "#ccc"}
-              />
-              <Text style={styles.emptyTitle}>
-                {t("adminCodes.list.emptyTitle")}
-              </Text>
-              <Text style={styles.emptyMessage}>
-                {t("adminCodes.list.emptyMessage")}
-              </Text>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    {t("adminCodes.generate.expiresInDays")}
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t(
+                      "adminCodes.generate.expiresInDaysPlaceholder",
+                    )}
+                    placeholderTextColor={isDark ? "#666" : "#999"}
+                    value={expiresInDays}
+                    onChangeText={setExpiresInDays}
+                    keyboardType="numeric"
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    {t("adminCodes.generate.description")}
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t(
+                      "adminCodes.generate.descriptionPlaceholder",
+                    )}
+                    placeholderTextColor={isDark ? "#666" : "#999"}
+                    value={description}
+                    onChangeText={setDescription}
+                    multiline
+                    numberOfLines={2}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.generateButton,
+                    generating && styles.buttonDisabled,
+                  ]}
+                  onPress={handleGenerateCode}
+                  disabled={generating}
+                >
+                  {generating ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.generateButtonText}>
+                      {t("adminCodes.generate.generateButton")}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           ) : (
-            <FlatList
-              data={codes}
-              renderItem={renderCodeItem}
-              keyExtractor={(item) => item.code}
-              scrollEnabled={false}
-              contentContainerStyle={styles.listContainer}
-            />
+            /* Codes List Section */
+            <View style={styles.section}>
+              {loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#007AFF" />
+                </View>
+              ) : codes.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Ionicons
+                    name="gift-outline"
+                    size={64}
+                    color={isDark ? "#444" : "#ccc"}
+                  />
+                  <Text style={styles.emptyTitle}>
+                    {t("adminCodes.list.emptyTitle")}
+                  </Text>
+                  <Text style={styles.emptyMessage}>
+                    {t("adminCodes.list.emptyMessage")}
+                  </Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={codes}
+                  renderItem={renderCodeItem}
+                  keyExtractor={(item) => item.code}
+                  scrollEnabled={false}
+                  contentContainerStyle={styles.listContainer}
+                />
+              )}
+            </View>
           )}
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </>
   );
 }
@@ -351,6 +392,36 @@ const getStyles = (isDark: boolean) =>
     container: {
       flex: 1,
       backgroundColor: isDark ? "#000" : "#f5f5f5",
+    },
+    // Tab Navigation
+    tabContainer: {
+      flexDirection: "row",
+      backgroundColor: isDark ? "#1c1c1e" : "#fff",
+      borderBottomWidth: 1,
+      borderBottomColor: isDark ? "#333" : "#e0e0e0",
+    },
+    tabButton: {
+      flex: 1,
+      paddingVertical: 16,
+      paddingHorizontal: 12,
+      alignItems: "center",
+      justifyContent: "center",
+      borderBottomWidth: 3,
+      borderBottomColor: "transparent",
+    },
+    tabButtonActive: {
+      borderBottomColor: "#007AFF",
+    },
+    tabButtonText: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: isDark ? "#666" : "#999",
+    },
+    tabButtonTextActive: {
+      color: isDark ? "#fff" : "#000",
+    },
+    tabContent: {
+      flex: 1,
     },
     section: {
       padding: 16,

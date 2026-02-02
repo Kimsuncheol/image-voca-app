@@ -102,6 +102,12 @@ export default function PromotionCodesAdmin() {
   const [loadingCodes, setLoadingCodes] = useState(false);
 
   // ---------------------------------------------------------------------------
+  // STATE: Tab Navigation
+  // ---------------------------------------------------------------------------
+  /** Active tab: 'generate' or 'active' */
+  const [activeTab, setActiveTab] = useState<"generate" | "active">("generate");
+
+  // ---------------------------------------------------------------------------
   // EFFECT: Admin Permission Check
   // ---------------------------------------------------------------------------
   /**
@@ -181,8 +187,8 @@ export default function PromotionCodesAdmin() {
       setCodes(
         allCodes.sort(
           (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        ),
       );
     } catch (error) {
       console.error("Load codes error:", error);
@@ -227,12 +233,12 @@ export default function PromotionCodesAdmin() {
             } catch (error: any) {
               Alert.alert(
                 "Error",
-                error.message || "Failed to deactivate code"
+                error.message || "Failed to deactivate code",
               );
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -276,7 +282,7 @@ export default function PromotionCodesAdmin() {
           />
           <Text style={styles.errorTitle}>Access Denied</Text>
           <Text style={styles.errorText}>
-            You don't have permission to access this page.
+            You don&apos;t have permission to access this page.
           </Text>
           <TouchableOpacity
             style={styles.backButton}
@@ -297,12 +303,12 @@ export default function PromotionCodesAdmin() {
    *
    * LAYOUT STRUCTURE:
    * 1. Header with navigation
-   * 2. Generation Form - Create new promotion codes
-   * 3. Active Codes List - View and manage existing codes
+   * 2. Tab navigation (Generate / Active Codes)
+   * 3. Tab content - conditionally renders based on active tab
    *
-   * SCROLL BEHAVIOR:
-   * - Both sections are in a single scrollable container
-   * - Form and list are visually separated by spacing
+   * TAB VIEWS:
+   * - Generate Tab: GenerationForm component
+   * - Active Codes Tab: ActiveCodesList component
    */
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
@@ -314,32 +320,78 @@ export default function PromotionCodesAdmin() {
         }}
       />
 
+      {/* =================================================================
+          TAB NAVIGATION
+          Two tabs: Generate Promotion Codes and Active Codes
+          ================================================================= */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === "generate" && styles.tabButtonActive,
+          ]}
+          onPress={() => setActiveTab("generate")}
+        >
+          <Text
+            style={[
+              styles.tabButtonText,
+              activeTab === "generate" && styles.tabButtonTextActive,
+            ]}
+          >
+            Generate Promotion Codes
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === "active" && styles.tabButtonActive,
+          ]}
+          onPress={() => setActiveTab("active")}
+        >
+          <Text
+            style={[
+              styles.tabButtonText,
+              activeTab === "active" && styles.tabButtonTextActive,
+            ]}
+          >
+            Active Codes
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* =================================================================
+          TAB CONTENT
+          Conditionally renders based on selected tab
+          ================================================================= */}
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* =================================================================
-            GENERATION FORM SECTION
-            Form for creating new promotion codes with all configuration
-            ================================================================= */}
-        <GenerationForm
-          onCodesGenerated={loadCodes}
-          userId={user!.uid}
-          isDark={isDark}
-          generateCodes={generatePromotionCodes}
-        />
-
-        {/* =================================================================
-            ACTIVE CODES LIST SECTION
-            Display and management of existing promotion codes
-            ================================================================= */}
-        <ActiveCodesList
-          codes={codes}
-          loading={loadingCodes}
-          onRefresh={loadCodes}
-          onDeactivateCode={handleDeactivateCode}
-          isDark={isDark}
-        />
+        {activeTab === "generate" ? (
+          /* =================================================================
+              GENERATION FORM TAB
+              Form for creating new promotion codes with all configuration
+              ================================================================= */
+          <GenerationForm
+            onCodesGenerated={loadCodes}
+            userId={user!.uid}
+            isDark={isDark}
+            generateCodes={generatePromotionCodes}
+          />
+        ) : (
+          /* =================================================================
+              ACTIVE CODES LIST TAB
+              Display and management of existing promotion codes
+              ================================================================= */
+          <ActiveCodesList
+            codes={codes}
+            loading={loadingCodes}
+            onRefresh={loadCodes}
+            onDeactivateCode={handleDeactivateCode}
+            isDark={isDark}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -354,6 +406,7 @@ export default function PromotionCodesAdmin() {
  *
  * REMAINING STYLES:
  * - Container: Main app container and centered layout
+ * - Tab Navigation: Tab buttons and active states
  * - Loading State: Permission check loading screen
  * - Access Denied State: Non-admin error screen
  * - Scroll Content: Padding and spacing for scroll view
@@ -383,6 +436,41 @@ const getStyles = (isDark: boolean) =>
     scrollContent: {
       padding: 20,
       paddingBottom: 40,
+    },
+
+    // =========================================================================
+    // TAB NAVIGATION
+    // =========================================================================
+    /** Tab navigation container */
+    tabContainer: {
+      flexDirection: "row",
+      backgroundColor: isDark ? "#1a1a1a" : "#f5f5f5",
+      borderBottomWidth: 1,
+      borderBottomColor: isDark ? "#333" : "#e0e0e0",
+    },
+    /** Individual tab button */
+    tabButton: {
+      flex: 1,
+      paddingVertical: 16,
+      paddingHorizontal: 12,
+      alignItems: "center",
+      justifyContent: "center",
+      borderBottomWidth: 3,
+      borderBottomColor: "transparent",
+    },
+    /** Active tab button with border indicator */
+    tabButtonActive: {
+      borderBottomColor: "#007AFF",
+    },
+    /** Tab button text */
+    tabButtonText: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: isDark ? "#666" : "#999",
+    },
+    /** Active tab button text */
+    tabButtonTextActive: {
+      color: isDark ? "#fff" : "#000",
     },
 
     // =========================================================================

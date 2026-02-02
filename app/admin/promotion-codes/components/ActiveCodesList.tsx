@@ -115,10 +115,9 @@ export const ActiveCodesList: React.FC<ActiveCodesListProps> = ({
     <View style={styles.section}>
       {/* =====================================================================
           SECTION HEADER
-          Title with refresh button
+          Refresh button for reloading codes
           ===================================================================== */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Active Codes</Text>
         <TouchableOpacity onPress={onRefresh} disabled={loading}>
           <Ionicons
             name="refresh"
@@ -249,18 +248,12 @@ const getStyles = (isDark: boolean) =>
     section: {
       marginBottom: 32,
     },
-    /** Section header with title and refresh button */
+    /** Section header with refresh button */
     sectionHeader: {
       flexDirection: "row",
-      justifyContent: "space-between",
+      justifyContent: "flex-end",
       alignItems: "center",
       marginBottom: 16,
-    },
-    /** Section title text */
-    sectionTitle: {
-      fontSize: 20,
-      fontWeight: "700",
-      color: isDark ? "#fff" : "#000",
     },
 
     // =========================================================================

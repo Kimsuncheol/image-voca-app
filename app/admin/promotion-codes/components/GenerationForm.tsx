@@ -257,8 +257,6 @@ export const GenerationForm: React.FC<GenerationFormProps> = ({
   // ---------------------------------------------------------------------------
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Generate Promotion Codes</Text>
-
       {/* =====================================================================
           EVENT PERIOD SECTION
           Start and end dates for code validity window
@@ -549,13 +547,6 @@ const getStyles = (isDark: boolean) =>
     /** Main section container */
     section: {
       marginBottom: 32,
-    },
-    /** Section title (e.g., "Generate Promotion Codes") */
-    sectionTitle: {
-      fontSize: 20,
-      fontWeight: "700",
-      color: isDark ? "#fff" : "#000",
-      marginBottom: 16,
     },
     /** Individual form field group */
     formGroup: {
