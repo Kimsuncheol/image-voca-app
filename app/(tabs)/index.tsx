@@ -46,7 +46,7 @@ export default function DashboardScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <DashboardHeader userName={userName} />
+        <DashboardHeader userName={userName} userPhoto={user?.photoURL} />
         <DashboardQuickActions />
         <DashboardPopQuiz />
         <DashboardStats
