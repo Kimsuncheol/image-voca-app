@@ -12,7 +12,6 @@ interface UploadViaLinkViewProps {
   items: SheetUploadItem[];
   setItems: React.Dispatch<React.SetStateAction<SheetUploadItem[]>>;
   loading: boolean;
-  progress: string;
   isDark: boolean;
   token: string | null;
   waitingForToken: boolean;
@@ -23,7 +22,6 @@ export default function UploadViaLinkView({
   items,
   setItems,
   loading,
-  progress,
   isDark,
   token,
   waitingForToken,
@@ -106,8 +104,6 @@ export default function UploadViaLinkView({
           borderColor={borderColor}
           fontColor={borderColor}
         />
-
-        {loading && <Text style={styles.progressText}>{progress}</Text>}
       </ScrollView>
 
       <UploadFooter
@@ -140,12 +136,6 @@ const getStyles = (isDark: boolean) =>
       height: 1,
       backgroundColor: isDark ? "#38383a" : "#e5e5ea",
       marginVertical: 16,
-    },
-    progressText: {
-      textAlign: "center",
-      fontSize: 14,
-      color: isDark ? "#8e8e93" : "#6e6e73",
-      marginVertical: 20,
     },
     scrollContent: {
       paddingBottom: height * 0.175, // Sufficient space for the bottom component

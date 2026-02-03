@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
 import AddAnotherButton from "./AddAnotherButton";
 import CsvUploadItemView, { CsvUploadItem } from "./CsvUploadItemView";
 import UploadFooter from "./UploadFooter";
@@ -10,7 +10,6 @@ interface UploadCSVFileViewProps {
   items: CsvUploadItem[];
   setItems: React.Dispatch<React.SetStateAction<CsvUploadItem[]>>;
   loading: boolean;
-  progress: string;
   isDark: boolean;
   onPickDocument: (itemId: string) => void;
   onUpload: () => void;
@@ -20,7 +19,6 @@ export default function UploadCSVFileView({
   items,
   setItems,
   loading,
-  progress,
   isDark,
   onPickDocument,
   onUpload,
@@ -85,8 +83,6 @@ export default function UploadCSVFileView({
           text="Add Another Day"
           borderColor={borderColor}
         />
-
-        {loading && <Text style={styles.progressText}>{progress}</Text>}
       </ScrollView>
 
       <UploadFooter
@@ -107,12 +103,6 @@ const getStyles = (isDark: boolean) =>
       height: 1,
       backgroundColor: isDark ? "#38383a" : "#e5e5ea",
       marginVertical: 16,
-    },
-    progressText: {
-      textAlign: "center",
-      fontSize: 14,
-      color: isDark ? "#8e8e93" : "#6e6e73",
-      marginVertical: 20,
     },
     scrollContent: {
       paddingBottom: height * 0.175, // Sufficient space for the bottom component

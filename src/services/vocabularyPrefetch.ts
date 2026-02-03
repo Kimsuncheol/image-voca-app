@@ -222,6 +222,8 @@ export const prefetchVocabularyCards = async (
  * Updates the course metadata document with the total number of days
  * This function is called after successfully uploading a new day
  *
+ * Stores metadata in an inline '_metadata' document within each course collection
+ *
  * @param courseId - The course type ID (e.g., 'TOEIC', 'TOEFL')
  * @param dayNumber - The day number that was just uploaded
  * @returns Promise that resolves when metadata is updated
@@ -241,6 +243,7 @@ export const updateCourseMetadata = async (
   }
 
   try {
+    // Use inline _metadata document within course collection
     const metadataRef = doc(db, config.path, "_metadata");
     const metadataDoc = await getDoc(metadataRef);
 
@@ -259,7 +262,6 @@ export const updateCourseMetadata = async (
       await setDoc(metadataRef, {
         totalDays: dayNumber,
         lastUpdated: new Date().toISOString(),
-        courseId: courseId,
       });
       console.log(`Created ${courseId} metadata: totalDays = ${dayNumber}`);
     }
@@ -271,6 +273,8 @@ export const updateCourseMetadata = async (
 
 /**
  * Fetches the total number of days available for a course
+ *
+ * Reads from the inline '_metadata' document within the course collection
  *
  * @param courseId - The course type ID (e.g., 'TOEIC', 'TOEFL')
  * @returns Promise that resolves to the total number of days (0 if none found)
@@ -290,6 +294,7 @@ export const getTotalDaysForCourse = async (
   }
 
   try {
+    // Use inline _metadata document within course collection
     const metadataRef = doc(db, config.path, "_metadata");
     const metadataDoc = await getDoc(metadataRef);
 
@@ -310,6 +315,8 @@ export const getTotalDaysForCourse = async (
 /**
  * Gets the complete metadata for a course including total days and last update time
  *
+ * Reads from the inline '_metadata' document within the course collection
+ *
  * @param courseId - The course type ID
  * @returns Promise that resolves to metadata object or null if not found
  */
@@ -318,7 +325,6 @@ export const getCourseMetadata = async (
 ): Promise<{
   totalDays: number;
   lastUpdated: string;
-  courseId: string;
 } | null> => {
   const config = getCourseConfig(courseId);
 
@@ -328,6 +334,7 @@ export const getCourseMetadata = async (
   }
 
   try {
+    // Use inline _metadata document within course collection
     const metadataRef = doc(db, config.path, "_metadata");
     const metadataDoc = await getDoc(metadataRef);
 
@@ -335,7 +342,6 @@ export const getCourseMetadata = async (
       return metadataDoc.data() as {
         totalDays: number;
         lastUpdated: string;
-        courseId: string;
       };
     }
 
@@ -345,3 +351,4 @@ export const getCourseMetadata = async (
     return null;
   }
 };
+

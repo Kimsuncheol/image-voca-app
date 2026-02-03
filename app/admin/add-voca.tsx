@@ -6,7 +6,14 @@ import { addDoc, collection, deleteDoc, getDocs } from "firebase/firestore"; // 
 import { getMetadata, ref, uploadBytes } from "firebase/storage"; // Firebase Storage operations
 import Papa from "papaparse"; // CSV parsing library
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Modal, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Custom components
@@ -103,7 +110,9 @@ export default function AddVocaScreen() {
    * Checks if data already exists in Storage and/or Firestore for a given day
    */
   const checkExistingData = useCallback(
-    async (day: string): Promise<{
+    async (
+      day: string,
+    ): Promise<{
       storageExists: boolean;
       firestoreExists: boolean;
     }> => {
@@ -422,11 +431,11 @@ export default function AddVocaScreen() {
         try {
           // Get the course ID from the selected course name
           const courseIdMap: Record<string, string> = {
-            'CSAT': '수능',
-            'IELTS': 'IELTS',
-            'TOEFL': 'TOEFL',
-            'TOEIC': 'TOEIC',
-            'COLLOCATION': 'COLLOCATION',
+            CSAT: "수능",
+            IELTS: "IELTS",
+            TOEFL: "TOEFL",
+            TOEIC: "TOEIC",
+            COLLOCATION: "COLLOCATION",
           };
 
           const courseId = courseIdMap[selectedCourse.name];
@@ -435,7 +444,7 @@ export default function AddVocaScreen() {
             console.log(`[Metadata] Updated ${courseId} with day ${day}`);
           }
         } catch (metadataError) {
-          console.error('[Metadata] Failed to update:', metadataError);
+          console.error("[Metadata] Failed to update:", metadataError);
           // Don't throw - metadata update failure shouldn't fail the upload
         }
       }
@@ -572,7 +581,6 @@ export default function AddVocaScreen() {
               items={csvItems}
               setItems={setCsvItems}
               loading={loading}
-              progress={progress}
               isDark={isDark}
               onPickDocument={handlePickDocument}
               onUpload={handleBatchUpload}
@@ -582,7 +590,6 @@ export default function AddVocaScreen() {
               items={sheetItems}
               setItems={setSheetItems}
               loading={loading}
-              progress={progress}
               isDark={isDark}
               token={token}
               waitingForToken={waitingForToken}
