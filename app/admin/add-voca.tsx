@@ -6,7 +6,7 @@ import { addDoc, collection, deleteDoc, getDocs } from "firebase/firestore"; // 
 import { getMetadata, ref, uploadBytes } from "firebase/storage"; // Firebase Storage operations
 import Papa from "papaparse"; // CSV parsing library
 import React, { useCallback, useEffect, useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, Modal, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Custom components
@@ -591,6 +591,24 @@ export default function AddVocaScreen() {
           )}
         </View>
       </View>
+
+      {/* Upload Progress Modal */}
+      <Modal
+        visible={loading}
+        transparent={true}
+        animationType="fade"
+        statusBarTranslucent
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <ActivityIndicator size="large" color="#007AFF" />
+            <Text style={styles.modalTitle}>Uploading...</Text>
+            {progress ? (
+              <Text style={styles.modalMessage}>{progress}</Text>
+            ) : null}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -616,5 +634,40 @@ const getStyles = (isDark: boolean) =>
     },
     content: {
       padding: 20,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalContent: {
+      backgroundColor: isDark ? "#1c1c1e" : "#fff",
+      borderRadius: 12,
+      padding: 24,
+      minWidth: 280,
+      maxWidth: "80%",
+      alignItems: "center",
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: isDark ? "#fff" : "#000",
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    modalMessage: {
+      fontSize: 14,
+      color: isDark ? "#a0a0a0" : "#666",
+      textAlign: "center",
+      lineHeight: 20,
     },
   });
