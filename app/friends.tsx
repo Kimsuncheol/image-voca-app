@@ -396,6 +396,7 @@ export default function FriendsScreen() {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      edges={["bottom"]}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -418,10 +419,6 @@ export default function FriendsScreen() {
               color={isDark ? "#fff" : "#000"}
             />
           </TouchableOpacity>
-          <ThemedText type="title" style={styles.title}>
-            {t("friends.title")}
-          </ThemedText>
-          {/* Empty spacer to center title */}
           <View style={{ width: 44 }} />
         </View>
 
@@ -578,7 +575,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 12,
   },
   backButton: {
     width: 44,

@@ -3,37 +3,30 @@
 // ============================================================================
 
 // React and React Native core imports
-import React, { useEffect, useState } from 'react';
-import {
-  StyleSheet,
-  View,
-  TouchableOpacity,
-  SafeAreaView,
-  ScrollView,
-  RefreshControl,
-} from 'react-native';
+import React, { useEffect, useState } from "react";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
 // Third-party libraries
-import { useTranslation } from 'react-i18next'; // i18n internationalization support
-import { router } from 'expo-router'; // Navigation routing
+import { router } from "expo-router"; // Navigation routing
+import { useTranslation } from "react-i18next"; // i18n internationalization support
 
 // Context and state management
-import { useAuth } from '../src/context/AuthContext'; // User authentication state
-import { useTheme } from '../src/context/ThemeContext'; // Dark/Light theme management
-import { useLeaderboardStore } from '../src/stores/leaderboardStore'; // Zustand store for leaderboard
+import { useAuth } from "../src/context/AuthContext"; // User authentication state
+import { useTheme } from "../src/context/ThemeContext"; // Dark/Light theme management
+import { useLeaderboardStore } from "../src/stores/leaderboardStore"; // Zustand store for leaderboard
 
 // Custom components
-import { ThemedText } from '../components/themed-text'; // Theme-aware text component
-import { IconSymbol } from '../components/ui/icon-symbol'; // SF Symbols icons
-import { LeaderboardList } from '../components/leaderboard/LeaderboardList'; // Leaderboard display
+import { LeaderboardList } from "../components/leaderboard/LeaderboardList"; // Leaderboard display
+import { ThemedText } from "../components/themed-text"; // Theme-aware text component
+import { IconSymbol } from "../components/ui/icon-symbol"; // SF Symbols icons
 
 // Constants and types
-import { Colors } from '../constants/theme';
+import { SafeAreaView } from "react-native-safe-area-context";
 import type {
   LeaderboardMetric,
   LeaderboardPeriod,
   LeaderboardScope,
-} from '../src/types/leaderboard';
+} from "../src/types/leaderboard";
 
 // ============================================================================
 // CONSTANTS - Filter options for leaderboard
@@ -44,10 +37,10 @@ import type {
  * Each metric has an associated icon and label for UI display
  */
 const METRICS: { key: LeaderboardMetric; icon: string; label: string }[] = [
-  { key: 'wordsLearned', icon: 'book.fill', label: 'Words' },
-  { key: 'currentStreak', icon: 'flame.fill', label: 'Streak' },
-  { key: 'accuracy', icon: 'checkmark.circle.fill', label: 'Accuracy' },
-  { key: 'timeSpent', icon: 'clock.fill', label: 'Time' },
+  { key: "wordsLearned", icon: "book.fill", label: "Words" },
+  { key: "currentStreak", icon: "flame.fill", label: "Streak" },
+  { key: "accuracy", icon: "checkmark.circle.fill", label: "Accuracy" },
+  { key: "timeSpent", icon: "clock.fill", label: "Time" },
 ];
 
 /**
@@ -55,10 +48,10 @@ const METRICS: { key: LeaderboardMetric; icon: string; label: string }[] = [
  * Determines the timeframe for ranking calculations
  */
 const PERIODS: { key: LeaderboardPeriod; label: string }[] = [
-  { key: 'daily', label: 'Today' },
-  { key: 'weekly', label: 'Week' },
-  { key: 'monthly', label: 'Month' },
-  { key: 'allTime', label: 'All Time' },
+  { key: "daily", label: "Today" },
+  { key: "weekly", label: "Week" },
+  { key: "monthly", label: "Month" },
+  { key: "allTime", label: "All Time" },
 ];
 
 /**
@@ -66,8 +59,8 @@ const PERIODS: { key: LeaderboardPeriod; label: string }[] = [
  * Controls whether to show global rankings or friends-only rankings
  */
 const SCOPES: { key: LeaderboardScope; label: string }[] = [
-  { key: 'global', label: 'Global' },
-  { key: 'friends', label: 'Friends' },
+  { key: "global", label: "Global" },
+  { key: "friends", label: "Friends" },
 ];
 
 // ============================================================================
@@ -105,15 +98,15 @@ export default function LeaderboardScreen() {
 
   // Zustand leaderboard store - centralized state management for leaderboard data
   const {
-    currentLeaderboard,     // Current leaderboard entries based on filters
-    userPosition,           // Current user's rank and stats
-    loading,                // Loading state for async operations
-    currentMetric,          // Active metric filter
-    currentPeriod,          // Active period filter
-    currentScope,           // Active scope filter (global/friends)
-    fetchLeaderboard,       // Action: Fetch leaderboard data
-    fetchUserPosition,      // Action: Fetch user's position in leaderboard
-    setFilter,              // Action: Update filter settings
+    currentLeaderboard, // Current leaderboard entries based on filters
+    userPosition, // Current user's rank and stats
+    loading, // Loading state for async operations
+    currentMetric, // Active metric filter
+    currentPeriod, // Active period filter
+    currentScope, // Active scope filter (global/friends)
+    fetchLeaderboard, // Action: Fetch leaderboard data
+    fetchUserPosition, // Action: Fetch user's position in leaderboard
+    setFilter, // Action: Update filter settings
   } = useLeaderboardStore();
 
   // --------------------------------------------------------------------------
@@ -141,7 +134,7 @@ export default function LeaderboardScreen() {
           scope: currentScope,
           limit: 50,
         },
-        user.uid
+        user.uid,
       );
 
       fetchUserPosition(user.uid, {
@@ -172,7 +165,7 @@ export default function LeaderboardScreen() {
           scope: currentScope,
           limit: 50,
         },
-        user.uid
+        user.uid,
       ),
       fetchUserPosition(user.uid, {
         metric: currentMetric,
@@ -212,7 +205,7 @@ export default function LeaderboardScreen() {
    * Helper function for displaying metric names in the UI
    */
   const getMetricLabel = (metric: LeaderboardMetric) => {
-    return METRICS.find((m) => m.key === metric)?.label || 'Words';
+    return METRICS.find((m) => m.key === metric)?.label || "Words";
   };
 
   // --------------------------------------------------------------------------
@@ -220,7 +213,10 @@ export default function LeaderboardScreen() {
   // --------------------------------------------------------------------------
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#000' : '#fff' }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      edges={["bottom"]}
+    >
       {/* ============================================
           HEADER SECTION
           - Back button for navigation
@@ -228,17 +224,21 @@ export default function LeaderboardScreen() {
           - Refresh button (manual refresh)
           ============================================ */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <IconSymbol name="chevron.left" size={24} color={isDark ? '#fff' : '#000'} />
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <IconSymbol
+            name="chevron.left"
+            size={24}
+            color={isDark ? "#fff" : "#000"}
+          />
         </TouchableOpacity>
-        <ThemedText type="title" style={styles.title}>
-          {t('leaderboard.title')}
-        </ThemedText>
         <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
           <IconSymbol
             name="arrow.clockwise"
             size={20}
-            color={isDark ? '#fff' : '#000'}
+            color={isDark ? "#fff" : "#000"}
           />
         </TouchableOpacity>
       </View>
@@ -255,7 +255,7 @@ export default function LeaderboardScreen() {
         <View
           style={[
             styles.positionCard,
-            { backgroundColor: isDark ? '#1c1c1e' : '#f5f5f5' },
+            { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
           ]}
         >
           <View style={styles.positionHeader}>
@@ -308,10 +308,10 @@ export default function LeaderboardScreen() {
                 {
                   backgroundColor:
                     currentMetric === metric.key
-                      ? '#007AFF'
+                      ? "#007AFF"
                       : isDark
-                      ? '#1c1c1e'
-                      : '#f5f5f5',
+                        ? "#1c1c1e"
+                        : "#f5f5f5",
                 },
               ]}
               onPress={() => handleMetricChange(metric.key)}
@@ -319,7 +319,13 @@ export default function LeaderboardScreen() {
               <IconSymbol
                 name={metric.icon as any}
                 size={20}
-                color={currentMetric === metric.key ? '#fff' : isDark ? '#fff' : '#000'}
+                color={
+                  currentMetric === metric.key
+                    ? "#fff"
+                    : isDark
+                      ? "#fff"
+                      : "#000"
+                }
               />
               <ThemedText
                 style={[
@@ -351,9 +357,7 @@ export default function LeaderboardScreen() {
                 styles.filterButton,
                 {
                   backgroundColor:
-                    currentPeriod === period.key
-                      ? '#007AFF20'
-                      : 'transparent',
+                    currentPeriod === period.key ? "#007AFF20" : "transparent",
                 },
               ]}
               onPress={() => handlePeriodChange(period.key)}
@@ -380,10 +384,10 @@ export default function LeaderboardScreen() {
                 {
                   backgroundColor:
                     currentScope === scope.key
-                      ? '#007AFF'
+                      ? "#007AFF"
                       : isDark
-                      ? '#1c1c1e'
-                      : '#f5f5f5',
+                        ? "#1c1c1e"
+                        : "#f5f5f5",
                 },
               ]}
               onPress={() => handleScopeChange(scope.key)}
@@ -430,26 +434,25 @@ const styles = StyleSheet.create({
 
   // Header section styles
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 12,
   },
   backButton: {
     width: 44,
     height: 44,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   refreshButton: {
     width: 44,
     height: 44,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
+    justifyContent: "center",
+    alignItems: "flex-end",
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 
   // User position card styles
@@ -460,9 +463,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   positionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   positionLabel: {
@@ -471,15 +474,15 @@ const styles = StyleSheet.create({
   },
   positionRank: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#007AFF',
+    fontWeight: "700",
+    color: "#007AFF",
   },
   positionStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
   },
   positionStat: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   positionStatLabel: {
     fontSize: 12,
@@ -488,7 +491,7 @@ const styles = StyleSheet.create({
   },
   positionStatValue: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 
   // Filter section styles
@@ -500,8 +503,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   metricButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
@@ -509,45 +512,45 @@ const styles = StyleSheet.create({
   },
   metricButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   activeMetricText: {
-    color: '#fff', // White text on blue background for active metric
+    color: "#fff", // White text on blue background for active metric
   },
 
   // Period and scope filter row styles
   filterRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 8,
     gap: 8,
   },
   filterGroup: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 4,
   },
   filterButton: {
     flex: 1,
     paddingVertical: 8,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   filterButtonText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
     opacity: 0.6,
   },
   activeFilterText: {
     opacity: 1,
-    color: '#007AFF',
-    fontWeight: '700',
+    color: "#007AFF",
+    fontWeight: "700",
   },
 
   // Scope filter styles
   scopeGroup: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 4,
   },
   scopeButton: {
@@ -557,11 +560,11 @@ const styles = StyleSheet.create({
   },
   scopeButtonText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   activeScopeText: {
-    color: '#fff', // White text on blue background for active scope
-    fontWeight: '700',
+    color: "#fff", // White text on blue background for active scope
+    fontWeight: "700",
   },
 
   // Content area

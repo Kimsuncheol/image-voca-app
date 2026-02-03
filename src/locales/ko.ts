@@ -73,6 +73,11 @@ const ko = {
       evening: "좋은 저녁이에요",
     },
     fallbackUser: "학습자",
+    menu: {
+      profile: "프로필",
+      friends: "친구",
+      leaderboard: "리더보드",
+    },
     progressComplete: "{{percent}}% 완료",
     popQuiz: {
       title: "팝 퀴즈",

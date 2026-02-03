@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Image, Modal, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
 
@@ -16,6 +16,7 @@ export function DashboardHeader({ userName, userPhoto }: DashboardHeaderProps) {
   const router = useRouter();
   const { isDark } = useTheme();
   const styles = getStyles(isDark);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -23,6 +24,32 @@ export function DashboardHeader({ userName, userPhoto }: DashboardHeaderProps) {
     if (hour < 18) return t("dashboard.greeting.afternoon");
     return t("dashboard.greeting.evening");
   };
+
+  const handleMenuItemPress = (route: string) => {
+    setMenuVisible(false);
+    router.push(route as any);
+  };
+
+  const menuItems = [
+    {
+      icon: "person" as const,
+      label: t("dashboard.menu.profile"),
+      route: "/profile",
+      color: "#007AFF",
+    },
+    {
+      icon: "people" as const,
+      label: t("dashboard.menu.friends"),
+      route: "/friends",
+      color: "#FF9500",
+    },
+    {
+      icon: "trophy" as const,
+      label: t("dashboard.menu.leaderboard"),
+      route: "/leaderboard",
+      color: "#FFD700",
+    },
+  ];
 
   return (
     <View style={styles.header}>
@@ -33,7 +60,7 @@ export function DashboardHeader({ userName, userPhoto }: DashboardHeaderProps) {
         </ThemedText>
       </View>
       <TouchableOpacity
-        onPress={() => router.push("/profile")}
+        onPress={() => setMenuVisible(true)}
         style={styles.avatarContainer}
       >
         {userPhoto ? (
@@ -48,6 +75,37 @@ export function DashboardHeader({ userName, userPhoto }: DashboardHeaderProps) {
           </View>
         )}
       </TouchableOpacity>
+
+      {/* Avatar Menu Modal */}
+      <Modal
+        visible={menuVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <Pressable
+          style={styles.menuOverlay}
+          onPress={() => setMenuVisible(false)}
+        >
+          <View style={styles.menuContainer}>
+            {menuItems.map((item, index) => (
+              <TouchableOpacity
+                key={item.route}
+                style={[
+                  styles.menuItem,
+                  index < menuItems.length - 1 && styles.menuItemBorder,
+                ]}
+                onPress={() => handleMenuItemPress(item.route)}
+              >
+                <View style={[styles.menuIconContainer, { backgroundColor: item.color + "15" }]}>
+                  <Ionicons name={item.icon} size={20} color={item.color} />
+                </View>
+                <ThemedText style={styles.menuItemText}>{item.label}</ThemedText>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -89,5 +147,46 @@ const getStyles = (isDark: boolean) =>
       borderColor: isDark ? "#333" : "#fff",
       justifyContent: "center",
       alignItems: "center",
+    },
+    menuOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "flex-start",
+      alignItems: "flex-end",
+      paddingTop: 100,
+      paddingRight: 20,
+    },
+    menuContainer: {
+      backgroundColor: isDark ? "#1c1c1e" : "#fff",
+      borderRadius: 12,
+      minWidth: 220,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+      overflow: "hidden",
+    },
+    menuItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+    },
+    menuItemBorder: {
+      borderBottomWidth: 1,
+      borderBottomColor: isDark ? "#333" : "#f0f0f0",
+    },
+    menuIconContainer: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+    },
+    menuItemText: {
+      fontSize: 16,
+      fontWeight: "500",
     },
   });

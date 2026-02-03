@@ -73,6 +73,11 @@ const en = {
       evening: "Good evening",
     },
     fallbackUser: "Learner",
+    menu: {
+      profile: "Profile",
+      friends: "Friends",
+      leaderboard: "Leaderboard",
+    },
     progressComplete: "{{percent}}% complete",
     popQuiz: {
       title: "Pop Quiz",
@@ -131,12 +136,14 @@ const en = {
     acceptFailed: "Failed to accept friend request",
     rejectFailed: "Failed to reject friend request",
     removeFriend: "Remove Friend",
-    removeFriendConfirm: "Are you sure you want to remove {{name}} from your friends?",
+    removeFriendConfirm:
+      "Are you sure you want to remove {{name}} from your friends?",
     remove: "Remove",
     friendRemoved: "Friend removed successfully",
     removeFailed: "Failed to remove friend",
     cancelRequest: "Cancel Request",
-    cancelRequestConfirm: "Are you sure you want to cancel this friend request?",
+    cancelRequestConfirm:
+      "Are you sure you want to cancel this friend request?",
     cancelButton: "Cancel Request",
     cancelFailed: "Failed to cancel request",
     profile: "Profile",
