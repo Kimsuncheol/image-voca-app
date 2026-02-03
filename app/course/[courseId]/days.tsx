@@ -9,7 +9,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { DayGrid, DayPickerHeader } from "../../../components/course";
+import { DayGrid } from "../../../components/course";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { getTotalDaysForCourse } from "../../../src/services/vocabularyPrefetch";
@@ -270,9 +270,6 @@ export default function DayPickerScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header Section: Course Title & Info */}
-        <DayPickerHeader course={course} />
-
         {/* Subscription Status Banner - Show only for free users */}
         {!hasUnlimitedAccess && <SubscriptionBadge />}
 

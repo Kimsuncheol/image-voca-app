@@ -4,7 +4,7 @@ export { CollocationMatchingGame } from "./CollocationMatchingGame";
 export { CourseCard } from "./CourseCard";
 export { DayCard } from "./DayCard";
 export { DayGrid } from "./DayGrid";
-export { DayPickerHeader } from "./DayPickerHeader";
+
 export { ErrorCorrectionGame } from "./ErrorCorrectionGame";
 export { FillInTheBlankGame } from "./FillInTheBlankGame";
 export { FillInTheBlankGameClozeSentenceCard } from "./FillInTheBlankGameClozeSentenceCard";
