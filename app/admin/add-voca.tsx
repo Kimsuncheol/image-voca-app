@@ -21,6 +21,7 @@ import UploadViaLinkView from "../../src/components/admin/UploadViaLinkView"; //
 import { useTheme } from "../../src/context/ThemeContext";
 import useGoogleSheetsAuth from "../../src/hooks/useGoogleSheetsAuth"; // Google OAuth authentication
 import { db, storage } from "../../src/services/firebase";
+import { updateCourseMetadata } from "../../src/services/vocabularyPrefetch"; // Course metadata management
 import { parseSheetValues } from "../../src/utils/googleSheetsUtils";
 
 // Type definition for tab switching
@@ -414,6 +415,30 @@ export default function AddVocaScreen() {
       console.log(
         `[Upload] Day ${day}: Success ${successCount}, Failed ${failCount}`,
       );
+
+      // Update course metadata with the total number of days
+      // This allows the app to know how many days are available for each course
+      if (successCount > 0) {
+        try {
+          // Get the course ID from the selected course name
+          const courseIdMap: Record<string, string> = {
+            'CSAT': '수능',
+            'IELTS': 'IELTS',
+            'TOEFL': 'TOEFL',
+            'TOEIC': 'TOEIC',
+            'COLLOCATION': 'COLLOCATION',
+          };
+
+          const courseId = courseIdMap[selectedCourse.name];
+          if (courseId) {
+            await updateCourseMetadata(courseId as any, parseInt(day, 10));
+            console.log(`[Metadata] Updated ${courseId} with day ${day}`);
+          }
+        } catch (metadataError) {
+          console.error('[Metadata] Failed to update:', metadataError);
+          // Don't throw - metadata update failure shouldn't fail the upload
+        }
+      }
     },
     [selectedCourse],
   );

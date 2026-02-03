@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { collection, getDocs, query } from "firebase/firestore";
+import { collection, getDocs, query, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import { CourseType, VocabularyCard } from "../types/vocabulary";
 
@@ -14,7 +14,12 @@ const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const vocabularyCache = new Map<string, VocabularyCard[]>();
 const vocabularyCacheUpdatedAt = new Map<string, number>();
 
-const getCourseConfig = (courseId: CourseType): CourseConfig => {
+/**
+ * Get course configuration including Firestore path and prefix
+ * @param courseId - The course type ID
+ * @returns Course configuration object with path and prefix
+ */
+export const getCourseConfig = (courseId: CourseType): CourseConfig => {
   switch (courseId) {
     case "수능":
       return {
@@ -207,4 +212,136 @@ export const prefetchVocabularyCards = async (
     return hydrated;
   }
   return fetchVocabularyCards(courseId, dayNumber);
+};
+
+// ============================================================================
+// COURSE METADATA MANAGEMENT
+// ============================================================================
+
+/**
+ * Updates the course metadata document with the total number of days
+ * This function is called after successfully uploading a new day
+ *
+ * @param courseId - The course type ID (e.g., 'TOEIC', 'TOEFL')
+ * @param dayNumber - The day number that was just uploaded
+ * @returns Promise that resolves when metadata is updated
+ *
+ * @example
+ * await updateCourseMetadata('TOEIC', 5); // Updates TOEIC metadata with day 5
+ */
+export const updateCourseMetadata = async (
+  courseId: CourseType,
+  dayNumber: number,
+): Promise<void> => {
+  const config = getCourseConfig(courseId);
+
+  if (!config.path) {
+    console.error("No path configuration for course:", courseId);
+    return;
+  }
+
+  try {
+    const metadataRef = doc(db, config.path, "_metadata");
+    const metadataDoc = await getDoc(metadataRef);
+
+    if (metadataDoc.exists()) {
+      // Update if the new day number is greater than the current max
+      const currentMaxDay = metadataDoc.data().totalDays || 0;
+      if (dayNumber > currentMaxDay) {
+        await updateDoc(metadataRef, {
+          totalDays: dayNumber,
+          lastUpdated: new Date().toISOString(),
+        });
+        console.log(`Updated ${courseId} metadata: totalDays = ${dayNumber}`);
+      }
+    } else {
+      // Create metadata document if it doesn't exist
+      await setDoc(metadataRef, {
+        totalDays: dayNumber,
+        lastUpdated: new Date().toISOString(),
+        courseId: courseId,
+      });
+      console.log(`Created ${courseId} metadata: totalDays = ${dayNumber}`);
+    }
+  } catch (error) {
+    console.error(`Error updating metadata for ${courseId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches the total number of days available for a course
+ *
+ * @param courseId - The course type ID (e.g., 'TOEIC', 'TOEFL')
+ * @returns Promise that resolves to the total number of days (0 if none found)
+ *
+ * @example
+ * const totalDays = await getTotalDaysForCourse('TOEIC');
+ * console.log(`TOEIC has ${totalDays} days`);
+ */
+export const getTotalDaysForCourse = async (
+  courseId: CourseType,
+): Promise<number> => {
+  const config = getCourseConfig(courseId);
+
+  if (!config.path) {
+    console.error("No path configuration for course:", courseId);
+    return 0;
+  }
+
+  try {
+    const metadataRef = doc(db, config.path, "_metadata");
+    const metadataDoc = await getDoc(metadataRef);
+
+    if (metadataDoc.exists()) {
+      const totalDays = metadataDoc.data().totalDays || 0;
+      console.log(`${courseId} has ${totalDays} days`);
+      return totalDays;
+    }
+
+    console.log(`No metadata found for ${courseId}, returning 0`);
+    return 0;
+  } catch (error) {
+    console.error(`Error fetching metadata for ${courseId}:`, error);
+    return 0;
+  }
+};
+
+/**
+ * Gets the complete metadata for a course including total days and last update time
+ *
+ * @param courseId - The course type ID
+ * @returns Promise that resolves to metadata object or null if not found
+ */
+export const getCourseMetadata = async (
+  courseId: CourseType,
+): Promise<{
+  totalDays: number;
+  lastUpdated: string;
+  courseId: string;
+} | null> => {
+  const config = getCourseConfig(courseId);
+
+  if (!config.path) {
+    console.error("No path configuration for course:", courseId);
+    return null;
+  }
+
+  try {
+    const metadataRef = doc(db, config.path, "_metadata");
+    const metadataDoc = await getDoc(metadataRef);
+
+    if (metadataDoc.exists()) {
+      return metadataDoc.data() as {
+        totalDays: number;
+        lastUpdated: string;
+        courseId: string;
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error(`Error fetching metadata for ${courseId}:`, error);
+    return null;
+  }
 };
