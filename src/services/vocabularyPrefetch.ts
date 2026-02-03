@@ -219,10 +219,10 @@ export const prefetchVocabularyCards = async (
 // ============================================================================
 
 /**
- * Updates the course metadata document with the total number of days
+ * Updates the course metadata with the total number of days
  * This function is called after successfully uploading a new day
  *
- * Stores metadata in an inline '_metadata' document within each course collection
+ * Stores metadata as fields (totalDays, lastUpdated) directly in the course document
  *
  * @param courseId - The course type ID (e.g., 'TOEIC', 'TOEFL')
  * @param dayNumber - The day number that was just uploaded
@@ -243,23 +243,23 @@ export const updateCourseMetadata = async (
   }
 
   try {
-    // Use inline _metadata document within course collection
-    const metadataRef = doc(db, config.path, "_metadata");
-    const metadataDoc = await getDoc(metadataRef);
+    // Store metadata fields directly in the course document
+    const courseDocRef = doc(db, config.path);
+    const courseDoc = await getDoc(courseDocRef);
 
-    if (metadataDoc.exists()) {
+    if (courseDoc.exists()) {
       // Update if the new day number is greater than the current max
-      const currentMaxDay = metadataDoc.data().totalDays || 0;
+      const currentMaxDay = courseDoc.data().totalDays || 0;
       if (dayNumber > currentMaxDay) {
-        await updateDoc(metadataRef, {
+        await updateDoc(courseDocRef, {
           totalDays: dayNumber,
           lastUpdated: new Date().toISOString(),
         });
         console.log(`Updated ${courseId} metadata: totalDays = ${dayNumber}`);
       }
     } else {
-      // Create metadata document if it doesn't exist
-      await setDoc(metadataRef, {
+      // Create document with metadata if it doesn't exist
+      await setDoc(courseDocRef, {
         totalDays: dayNumber,
         lastUpdated: new Date().toISOString(),
       });
@@ -274,7 +274,7 @@ export const updateCourseMetadata = async (
 /**
  * Fetches the total number of days available for a course
  *
- * Reads from the inline '_metadata' document within the course collection
+ * Reads the totalDays field from the course document
  *
  * @param courseId - The course type ID (e.g., 'TOEIC', 'TOEFL')
  * @returns Promise that resolves to the total number of days (0 if none found)
@@ -294,12 +294,12 @@ export const getTotalDaysForCourse = async (
   }
 
   try {
-    // Use inline _metadata document within course collection
-    const metadataRef = doc(db, config.path, "_metadata");
-    const metadataDoc = await getDoc(metadataRef);
+    // Read metadata fields from the course document
+    const courseDocRef = doc(db, config.path);
+    const courseDoc = await getDoc(courseDocRef);
 
-    if (metadataDoc.exists()) {
-      const totalDays = metadataDoc.data().totalDays || 0;
+    if (courseDoc.exists()) {
+      const totalDays = courseDoc.data().totalDays || 0;
       console.log(`${courseId} has ${totalDays} days`);
       return totalDays;
     }
@@ -315,7 +315,7 @@ export const getTotalDaysForCourse = async (
 /**
  * Gets the complete metadata for a course including total days and last update time
  *
- * Reads from the inline '_metadata' document within the course collection
+ * Reads the totalDays and lastUpdated fields from the course document
  *
  * @param courseId - The course type ID
  * @returns Promise that resolves to metadata object or null if not found
@@ -334,14 +334,15 @@ export const getCourseMetadata = async (
   }
 
   try {
-    // Use inline _metadata document within course collection
-    const metadataRef = doc(db, config.path, "_metadata");
-    const metadataDoc = await getDoc(metadataRef);
+    // Read metadata fields from the course document
+    const courseDocRef = doc(db, config.path);
+    const courseDoc = await getDoc(courseDocRef);
 
-    if (metadataDoc.exists()) {
-      return metadataDoc.data() as {
-        totalDays: number;
-        lastUpdated: string;
+    if (courseDoc.exists()) {
+      const data = courseDoc.data();
+      return {
+        totalDays: data.totalDays || 0,
+        lastUpdated: data.lastUpdated || "",
       };
     }
 
