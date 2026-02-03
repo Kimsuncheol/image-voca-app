@@ -1,4 +1,6 @@
+import { Ionicons } from "@expo/vector-icons";
 import { collection, getDocs, limit, query } from "firebase/firestore";
+import * as Speech from "expo-speech";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
@@ -349,6 +351,27 @@ export function DashboardPopQuiz() {
   }, [user, flushQuizStats]);
 
   // ---------------------------------------------------------------------------
+  // TTS Handler
+  // ---------------------------------------------------------------------------
+  /**
+   * Speaks the current quiz word using TTS
+   */
+  const handleSpeak = useCallback(() => {
+    if (quizItem) {
+      Speech.speak(quizItem.word);
+    }
+  }, [quizItem]);
+
+  /**
+   * effect: Stop TTS when quiz item changes or component unmounts
+   */
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, [quizItem]);
+
+  // ---------------------------------------------------------------------------
   // Interaction Handlers
   // ---------------------------------------------------------------------------
   const handleOptionPress = useCallback(
@@ -426,9 +449,24 @@ export function DashboardPopQuiz() {
             <ThemedText style={styles.popQuizQuestionLabel}>
               {t("dashboard.popQuiz.question")}
             </ThemedText>
-            <ThemedText style={styles.popQuizQuestionText}>
-              {quizItem.word}
-            </ThemedText>
+            <View style={styles.popQuizQuestionRow}>
+              <ThemedText style={styles.popQuizQuestionText}>
+                {quizItem.word}
+              </ThemedText>
+              <TouchableOpacity
+                onPress={handleSpeak}
+                style={[
+                  styles.speakerButton,
+                  { backgroundColor: isDark ? "#2c2c2e" : "#fff" },
+                ]}
+              >
+                <Ionicons
+                  name="volume-medium"
+                  size={20}
+                  color={isDark ? "#aaa" : "#666"}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.popQuizOptions}>
@@ -547,9 +585,20 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     textTransform: "uppercase",
   },
+  popQuizQuestionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
   popQuizQuestionText: {
     fontSize: 24,
     fontWeight: "700",
+  },
+  speakerButton: {
+    padding: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "transparent",
   },
   popQuizOptions: {
     gap: 8,
