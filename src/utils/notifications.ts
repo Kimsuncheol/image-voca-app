@@ -318,7 +318,7 @@ export const scheduleStudyReminderNotifications = async (
     const id = await Notifications.scheduleNotificationAsync({
       content: {
         title: "Study Reminder",
-        body: "You haven't studied your words today! Open the app to review.",
+        body: "You haven't studied your words today! Open the app to practice.",
         data: { type: "study_reminder" },
       },
       trigger: buildDateTrigger(date),

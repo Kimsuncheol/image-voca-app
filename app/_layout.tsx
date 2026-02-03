@@ -80,7 +80,6 @@ function RootLayoutNav() {
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="wordbank" options={{ headerShown: false }} />
           <Stack.Screen name="course" options={{ headerShown: false }} />
-          <Stack.Screen name="review" options={{ headerShown: false }} />
           <Stack.Screen name="billing" options={{ headerShown: false }} />
           <Stack.Screen
             name="advertisement-modal"

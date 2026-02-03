@@ -32,7 +32,7 @@ export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
           style={[styles.button, styles.restartButton]}
           onPress={onRestart}
         >
-          <Text style={styles.buttonText}>{t("common.review")}</Text>
+          <Text style={styles.buttonText}>{t("common.restart")}</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -43,11 +43,19 @@ export function DashboardQuickActions() {
           color="#87CEEB"
           onPress={() => handleTabAction("speaking", "/speaking")}
         />
+      </View>
+      <View style={[styles.quickActions, { marginTop: 12 }]}>
         <QuickAction
-          title={t("dashboard.quickActions.review")}
-          icon="checkmark.circle.fill"
-          color="#95E1D3"
-          onPress={() => router.push("/review")}
+          title={t("dashboard.quickActions.friends")}
+          icon="person.2.fill"
+          color="#FF9500"
+          onPress={() => router.push("/friends")}
+        />
+        <QuickAction
+          title={t("dashboard.quickActions.leaderboard")}
+          icon="trophy.fill"
+          color="#FFD700"
+          onPress={() => router.push("/leaderboard")}
         />
       </View>
     </View>
