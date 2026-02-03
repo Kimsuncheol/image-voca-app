@@ -1,3 +1,4 @@
+import { SubscriptionBadge } from "@/components/subscription";
 import {
   Stack,
   useFocusEffect,
@@ -9,7 +10,6 @@ import { useTranslation } from "react-i18next";
 import { Alert, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DayGrid, DayPickerHeader } from "../../../components/course";
-import { SubscriptionBadge } from "../../../components/subscription";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { getTotalDaysForCourse } from "../../../src/services/vocabularyPrefetch";
@@ -141,11 +141,32 @@ export default function DayPickerScreen() {
   // ---------------------------------------------------------------------------
   /**
    * Handle tapping on a specific day card.
-   * Checks for subscription status or free trial limits.
+   * Checks for sequential progression and subscription status.
    */
   const handleDayPress = useCallback(
     (day: number) => {
       if (!courseId) return;
+
+      // Check 1: Sequential Progression - Must complete previous day first
+      if (day > 1) {
+        const previousDay = day - 1;
+        const previousDayProgress = dayProgress[previousDay];
+
+        if (!previousDayProgress?.completed) {
+          Alert.alert(
+            t("course.lockedDay.title", { defaultValue: "Day Locked" }),
+            t("course.lockedDay.message", {
+              defaultValue: `Please complete Day ${previousDay} first to unlock Day ${day}.`,
+              previousDay,
+              currentDay: day,
+            }),
+            [{ text: t("common.ok", { defaultValue: "OK" }), style: "cancel" }],
+          );
+          return;
+        }
+      }
+
+      // Check 2: Subscription Access
       const hasUnlimitedAccess = canAccessUnlimitedVoca();
       const featureId = `${courseId}_day_${day}`;
       const isDayUnlocked = canAccessFeature(featureId);
@@ -205,6 +226,7 @@ export default function DayPickerScreen() {
       canAccessUnlimitedVoca,
       canUnlockViaAd,
       courseId,
+      dayProgress,
       freeDayLimit,
       router,
       t,
@@ -251,8 +273,8 @@ export default function DayPickerScreen() {
         {/* Header Section: Course Title & Info */}
         <DayPickerHeader course={course} />
 
-        {/* Subscription Status Banner */}
-        <SubscriptionBadge />
+        {/* Subscription Status Banner - Show only for free users */}
+        {!hasUnlimitedAccess && <SubscriptionBadge />}
 
         {/* Main Grid: Days 1-N */}
         <DayGrid

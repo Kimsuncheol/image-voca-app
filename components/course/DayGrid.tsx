@@ -34,8 +34,18 @@ export function DayGrid({
         const progress = dayProgress[day];
         const featureId = `${courseId}_day_${day}`;
         const isDayUnlocked = canAccessFeature(featureId);
-        const isLocked =
+
+        // Check if previous day is completed (for sequential progression)
+        const previousDayCompleted =
+          day === 1 || dayProgress[day - 1]?.completed === true;
+        const isLockedByProgress = !previousDayCompleted;
+
+        // Check subscription-based lock
+        const isLockedBySubscription =
           !canAccessUnlimitedVoca && !isDayUnlocked && day > freeDayLimit;
+
+        // Day is locked if either condition applies
+        const isLocked = isLockedByProgress || isLockedBySubscription;
 
         return (
           <DayCard
