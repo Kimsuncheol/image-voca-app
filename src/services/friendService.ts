@@ -152,10 +152,12 @@ export async function getFriends(userId: string): Promise<FriendRequestWithProfi
     // Query for all accepted friendships where user is either sender or receiver
     const q = query(
       collection(db, FRIENDSHIPS_COLLECTION),
-      where('status', '==', 'accepted'),
-      or(
-        where('fromUserId', '==', userId),
-        where('toUserId', '==', userId)
+      and(
+        where('status', '==', 'accepted'),
+        or(
+          where('fromUserId', '==', userId),
+          where('toUserId', '==', userId)
+        )
       )
     );
 
