@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, FlatList, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, FlatList, ActivityIndicator, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ThemedText } from '../themed-text';
 import { FriendCard } from './FriendCard';
@@ -11,6 +11,7 @@ interface FriendsListProps {
   friends: FriendRequestWithProfile[];
   loading?: boolean;
   onFriendPress?: (friend: FriendRequestWithProfile) => void;
+  onRemoveFriend?: (friendshipId: string, friendName: string) => void;
   emptyMessage?: string;
 }
 
@@ -18,6 +19,7 @@ export function FriendsList({
   friends,
   loading = false,
   onFriendPress,
+  onRemoveFriend,
   emptyMessage,
 }: FriendsListProps) {
   const { t } = useTranslation();
@@ -41,6 +43,12 @@ export function FriendsList({
     );
   }
 
+  const handleLongPress = (item: FriendRequestWithProfile) => {
+    if (onRemoveFriend) {
+      onRemoveFriend(item.id, item.userProfile.displayName);
+    }
+  };
+
   return (
     <FlatList
       data={friends}
@@ -49,6 +57,7 @@ export function FriendsList({
         <FriendCard
           friend={item.userProfile}
           onPress={onFriendPress ? () => onFriendPress(item) : undefined}
+          onLongPress={() => handleLongPress(item)}
           showStats={true}
         />
       )}

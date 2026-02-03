@@ -40,6 +40,7 @@ export default function FriendsScreen() {
     sendFriendRequest,
     acceptFriendRequest,
     rejectFriendRequest,
+    removeFriend,
     searchUsers,
     clearSearchResults,
   } = useFriendStore();
@@ -118,6 +119,61 @@ export default function FriendsScreen() {
     }
   };
 
+  const handleRemoveFriend = (friendshipId: string, friendName: string) => {
+    Alert.alert(
+      t('friends.removeFriend'),
+      t('friends.removeFriendConfirm', { name: friendName }),
+      [
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('friends.remove'),
+          style: 'destructive',
+          onPress: async () => {
+            if (!user?.uid) return;
+            try {
+              await removeFriend(friendshipId, user.uid);
+              Alert.alert(t('friends.success'), t('friends.friendRemoved'));
+            } catch (error) {
+              Alert.alert(t('friends.error'), t('friends.removeFailed'));
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleCancelRequest = (requestId: string) => {
+    Alert.alert(
+      t('friends.cancelRequest'),
+      t('friends.cancelRequestConfirm'),
+      [
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('friends.cancelButton'),
+          style: 'destructive',
+          onPress: async () => {
+            if (!user?.uid) return;
+            try {
+              await removeFriend(requestId, user.uid);
+            } catch (error) {
+              Alert.alert(t('friends.error'), t('friends.cancelFailed'));
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleViewFriendProfile = (friendUserId: string) => {
+    router.push(`/friend-profile?userId=${friendUserId}`);
+  };
+
   const renderSearchResults = () => (
     <ScrollView style={styles.searchResults}>
       {searchResults.map((result) => (
@@ -163,6 +219,8 @@ export default function FriendsScreen() {
           <FriendsList
             friends={friends}
             loading={loading}
+            onFriendPress={(friend) => handleViewFriendProfile(friend.userProfile.uid)}
+            onRemoveFriend={handleRemoveFriend}
           />
         );
       case 'received':
@@ -181,6 +239,7 @@ export default function FriendsScreen() {
             requests={pendingRequestsSent}
             loading={loading}
             type="sent"
+            onCancel={handleCancelRequest}
           />
         );
       default:

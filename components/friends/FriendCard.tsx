@@ -9,10 +9,11 @@ import type { FriendProfile } from '../../src/types/friend';
 interface FriendCardProps {
   friend: FriendProfile;
   onPress?: () => void;
+  onLongPress?: () => void;
   showStats?: boolean;
 }
 
-export function FriendCard({ friend, onPress, showStats = true }: FriendCardProps) {
+export function FriendCard({ friend, onPress, onLongPress, showStats = true }: FriendCardProps) {
   const { isDark } = useTheme();
 
   return (
@@ -22,7 +23,8 @@ export function FriendCard({ friend, onPress, showStats = true }: FriendCardProp
         { backgroundColor: isDark ? '#1c1c1e' : '#f5f5f5' },
       ]}
       onPress={onPress}
-      activeOpacity={onPress ? 0.7 : 1}
+      onLongPress={onLongPress}
+      activeOpacity={onPress || onLongPress ? 0.7 : 1}
     >
       <View style={styles.leftSection}>
         {friend.photoURL ? (

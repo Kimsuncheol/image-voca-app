@@ -12,6 +12,7 @@ interface FriendRequestsListProps {
   loading?: boolean;
   onAccept?: (requestId: string) => void;
   onReject?: (requestId: string) => void;
+  onCancel?: (requestId: string) => void;
   type: 'received' | 'sent';
 }
 
@@ -20,6 +21,7 @@ export function FriendRequestsList({
   loading = false,
   onAccept,
   onReject,
+  onCancel,
   type,
 }: FriendRequestsListProps) {
   const { t } = useTranslation();
@@ -106,11 +108,20 @@ export function FriendRequestsList({
       )}
 
       {type === 'sent' && (
-        <View style={styles.pendingBadge}>
-          <ThemedText style={styles.pendingText}>
-            {t('friends.pending')}
-          </ThemedText>
-        </View>
+        <TouchableOpacity
+          style={[
+            styles.actionButton,
+            styles.cancelButton,
+            { backgroundColor: isDark ? '#3a3a3c' : '#d1d1d6' },
+          ]}
+          onPress={() => onCancel?.(item.id)}
+        >
+          <IconSymbol
+            name="xmark"
+            size={20}
+            color={isDark ? '#fff' : '#000'}
+          />
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -192,6 +203,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#34C759',
   },
   rejectButton: {
+    // backgroundColor set dynamically based on theme
+  },
+  cancelButton: {
     // backgroundColor set dynamically based on theme
   },
   pendingBadge: {
