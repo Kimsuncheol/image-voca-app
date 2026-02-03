@@ -222,7 +222,7 @@ export const prefetchVocabularyCards = async (
  * Updates the course metadata with the total number of days
  * This function is called after successfully uploading a new day
  *
- * Stores metadata as fields (totalDays, lastUpdated) directly in the course document
+ * Stores metadata as fields (totalDays, lastUpdated, lastUploadedDayId) directly in the course document
  *
  * @param courseId - The course type ID (e.g., 'TOEIC', 'TOEFL')
  * @param dayNumber - The day number that was just uploaded
@@ -248,22 +248,31 @@ export const updateCourseMetadata = async (
     const courseDoc = await getDoc(courseDocRef);
 
     if (courseDoc.exists()) {
-      // Update if the new day number is greater than the current max
       const currentMaxDay = courseDoc.data().totalDays || 0;
+      const updateData: {
+        lastUpdated: string;
+        lastUploadedDayId: number;
+        totalDays?: number;
+      } = {
+        lastUpdated: new Date().toISOString(),
+        lastUploadedDayId: dayNumber,
+      };
+
+      // Update totalDays only if the new day number is greater than the current max
       if (dayNumber > currentMaxDay) {
-        await updateDoc(courseDocRef, {
-          totalDays: dayNumber,
-          lastUpdated: new Date().toISOString(),
-        });
-        console.log(`Updated ${courseId} metadata: totalDays = ${dayNumber}`);
+        updateData.totalDays = dayNumber;
       }
+
+      await updateDoc(courseDocRef, updateData);
+      console.log(`Updated ${courseId} metadata: lastUploadedDayId = ${dayNumber}${dayNumber > currentMaxDay ? `, totalDays = ${dayNumber}` : ''}`);
     } else {
       // Create document with metadata if it doesn't exist
       await setDoc(courseDocRef, {
         totalDays: dayNumber,
         lastUpdated: new Date().toISOString(),
+        lastUploadedDayId: dayNumber,
       });
-      console.log(`Created ${courseId} metadata: totalDays = ${dayNumber}`);
+      console.log(`Created ${courseId} metadata: totalDays = ${dayNumber}, lastUploadedDayId = ${dayNumber}`);
     }
   } catch (error) {
     console.error(`Error updating metadata for ${courseId}:`, error);
@@ -315,7 +324,7 @@ export const getTotalDaysForCourse = async (
 /**
  * Gets the complete metadata for a course including total days and last update time
  *
- * Reads the totalDays and lastUpdated fields from the course document
+ * Reads the totalDays, lastUpdated, and lastUploadedDayId fields from the course document
  *
  * @param courseId - The course type ID
  * @returns Promise that resolves to metadata object or null if not found
@@ -325,6 +334,7 @@ export const getCourseMetadata = async (
 ): Promise<{
   totalDays: number;
   lastUpdated: string;
+  lastUploadedDayId: number;
 } | null> => {
   const config = getCourseConfig(courseId);
 
@@ -343,6 +353,7 @@ export const getCourseMetadata = async (
       return {
         totalDays: data.totalDays || 0,
         lastUpdated: data.lastUpdated || "",
+        lastUploadedDayId: data.lastUploadedDayId || 0,
       };
     }
 
