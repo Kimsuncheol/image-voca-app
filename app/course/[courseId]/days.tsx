@@ -8,19 +8,11 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  collection,
-  getCountFromServer,
-  getDocs,
-  limit,
-  query,
-} from "firebase/firestore";
-
 import { DayGrid, DayPickerHeader } from "../../../components/course";
 import { SubscriptionBadge } from "../../../components/subscription";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
-import { db } from "../../../src/services/firebase";
+import { getTotalDaysForCourse } from "../../../src/services/vocabularyPrefetch";
 import {
   DayProgress,
   useSubscriptionStore,
@@ -44,29 +36,7 @@ import { COURSES, CourseType } from "../../../src/types/vocabulary";
  * - Handle navigation to learning (Vocabulary) or testing (Quiz).
  * - Support Ad-based unlocking for specific days.
  */
-const getCoursePath = (id: CourseType) => {
-  switch (id) {
-    case "수능":
-      return process.env.EXPO_PUBLIC_COURSE_PATH_CSAT || "";
-    case "TOEIC":
-      return process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC || "";
-    case "TOEFL":
-      return process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL || "";
-    case "TOEIC_SPEAKING":
-      return process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC_SPEAKING || "";
-    case "IELTS":
-      return process.env.EXPO_PUBLIC_COURSE_PATH_IELTS || "";
-    case "OPIC":
-      return process.env.EXPO_PUBLIC_COURSE_PATH_OPIC || "";
-    case "COLLOCATION":
-      return process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION || "";
-    default:
-      return "";
-  }
-};
-
 const MIN_TOTAL_DAYS = 30;
-const MAX_DAY_SCAN = 120;
 
 export default function DayPickerScreen() {
   // ---------------------------------------------------------------------------
@@ -134,63 +104,10 @@ export default function DayPickerScreen() {
 
     let isActive = true;
     const loadTotalDays = async () => {
-      const path = getCoursePath(courseId);
-      if (!path) {
-        console.warn("[Days] Missing course path for:", courseId);
-        if (isActive) {
-          setTotalDays(MIN_TOTAL_DAYS);
-        }
-        return;
-      }
-
       try {
-        const daysCollection = collection(db, path, "days");
-        let daysCount = 0;
-        try {
-          const countSnapshot = await getCountFromServer(daysCollection);
-          daysCount = countSnapshot.data().count;
-        } catch (countError) {
-          const snapshot = await getDocs(daysCollection);
-          daysCount = snapshot.size;
-          console.warn(
-            "[Days] Count query failed, falling back to getDocs.",
-            countError,
-          );
-        }
-
-        let maxDayFromVocabulary = 0;
-
-        if (daysCount === 0) {
-          for (let day = 1; day <= MAX_DAY_SCAN; day += 1) {
-            const dayCollection = collection(db, path, `Day${day}`);
-            const daySnapshot = await getDocs(query(dayCollection, limit(1)));
-            if (daySnapshot.empty) {
-              if (maxDayFromVocabulary > 0) {
-                break;
-              }
-              continue;
-            }
-            maxDayFromVocabulary = day;
-          }
-        } else if (daysCount <= MIN_TOTAL_DAYS) {
-          for (let day = MIN_TOTAL_DAYS + 1; day <= MAX_DAY_SCAN; day += 1) {
-            const dayCollection = collection(db, path, `Day${day}`);
-            const daySnapshot = await getDocs(query(dayCollection, limit(1)));
-            if (daySnapshot.empty) {
-              break;
-            }
-            maxDayFromVocabulary = day;
-          }
-        }
-
-        const resolvedCourseDays =
-          daysCount > 0
-            ? Math.max(daysCount, maxDayFromVocabulary)
-            : maxDayFromVocabulary;
-        const resolvedTotalDays = Math.max(
-          MIN_TOTAL_DAYS,
-          resolvedCourseDays,
-        );
+        // Fetch totalDays from course metadata
+        const days = await getTotalDaysForCourse(courseId);
+        const resolvedTotalDays = Math.max(MIN_TOTAL_DAYS, days);
 
         if (isActive) {
           setTotalDays(resolvedTotalDays);
@@ -199,13 +116,9 @@ export default function DayPickerScreen() {
         console.log(
           "[Days] courseId:",
           courseId,
-          "daysCount:",
-          daysCount,
-          "maxDayFromVocabulary:",
-          maxDayFromVocabulary,
-          "resolvedCourseDays:",
-          resolvedCourseDays,
-          "totalDays:",
+          "totalDays from metadata:",
+          days,
+          "resolved totalDays:",
           resolvedTotalDays,
         );
       } catch (error) {
