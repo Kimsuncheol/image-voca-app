@@ -99,6 +99,45 @@ export default function AddVocaScreen() {
   };
 
   /**
+   * Checks if data already exists in Storage and/or Firestore for a given day
+   */
+  const checkExistingData = useCallback(
+    async (day: string): Promise<{
+      storageExists: boolean;
+      firestoreExists: boolean;
+    }> => {
+      const storageRef = ref(
+        storage,
+        `csv/${selectedCourse.name}/Day${day}.csv`,
+      );
+      const fullPath = `${selectedCourse.path}/Day${day}`;
+
+      let storageExists = false;
+      let firestoreExists = false;
+
+      // Check Storage
+      try {
+        await getMetadata(storageRef);
+        storageExists = true;
+      } catch (error: any) {
+        // File doesn't exist
+        storageExists = false;
+      }
+
+      // Check Firestore
+      try {
+        const querySnapshot = await getDocs(collection(db, fullPath));
+        firestoreExists = !querySnapshot.empty;
+      } catch (error) {
+        firestoreExists = false;
+      }
+
+      return { storageExists, firestoreExists };
+    },
+    [selectedCourse],
+  );
+
+  /**
    * Validates and processes batch upload of CSV files
    * Each CSV file is uploaded to Storage and parsed into Firestore
    */
@@ -121,8 +160,41 @@ export default function AddVocaScreen() {
       for (let i = 0; i < csvItems.length; i++) {
         const item = csvItems[i];
         const progressPrefix = `[${i + 1}/${csvItems.length}] Day ${item.day}: `;
-        setProgress(`${progressPrefix}Starting...`);
+        setProgress(`${progressPrefix}Checking existing data...`);
 
+        // Check if data already exists
+        const { storageExists, firestoreExists } = await checkExistingData(
+          item.day,
+        );
+
+        if (storageExists || firestoreExists) {
+          // Show confirmation dialog and wait for user response
+          const shouldContinue = await new Promise<boolean>((resolve) => {
+            Alert.alert(
+              "Data Already Exists",
+              `Day ${item.day} already has data in ${storageExists && firestoreExists ? "both Storage and Firestore" : storageExists ? "Storage" : "Firestore"}. Do you want to overwrite it?`,
+              [
+                {
+                  text: "Cancel",
+                  style: "cancel",
+                  onPress: () => resolve(false),
+                },
+                {
+                  text: "Upload",
+                  style: "destructive",
+                  onPress: () => resolve(true),
+                },
+              ],
+            );
+          });
+
+          if (!shouldContinue) {
+            setProgress(`${progressPrefix}Skipped by user`);
+            continue; // Skip this item
+          }
+        }
+
+        setProgress(`${progressPrefix}Starting...`);
         await processCsvItem(item, progressPrefix);
       }
 
@@ -359,6 +431,40 @@ export default function AddVocaScreen() {
       for (let i = 0; i < sheetItems.length; i++) {
         const item = sheetItems[i];
         const progressPrefix = `[${i + 1}/${sheetItems.length}] Day ${item.day}: `;
+        setProgress(`${progressPrefix}Checking existing data...`);
+
+        // Check if data already exists
+        const { storageExists, firestoreExists } = await checkExistingData(
+          item.day,
+        );
+
+        if (storageExists || firestoreExists) {
+          // Show confirmation dialog and wait for user response
+          const shouldContinue = await new Promise<boolean>((resolve) => {
+            Alert.alert(
+              "Data Already Exists",
+              `Day ${item.day} already has data in ${storageExists && firestoreExists ? "both Storage and Firestore" : storageExists ? "Storage" : "Firestore"}. Do you want to overwrite it?`,
+              [
+                {
+                  text: "Cancel",
+                  style: "cancel",
+                  onPress: () => resolve(false),
+                },
+                {
+                  text: "Upload",
+                  style: "destructive",
+                  onPress: () => resolve(true),
+                },
+              ],
+            );
+          });
+
+          if (!shouldContinue) {
+            setProgress(`${progressPrefix}Skipped by user`);
+            continue; // Skip this item
+          }
+        }
+
         setProgress(`${progressPrefix}Fetching from Sheets...`);
 
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${item.sheetId}/values/${item.range}?majorDimension=ROWS`;
@@ -396,7 +502,7 @@ export default function AddVocaScreen() {
       Alert.alert("Import Error", err.message);
       setLoading(false);
     }
-  }, [token, sheetItems, uploadData]);
+  }, [token, sheetItems, uploadData, checkExistingData]);
 
   // Trigger import automatically after OAuth authentication completes
   useEffect(() => {
