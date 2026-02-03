@@ -1,3 +1,7 @@
+// ============================================================================
+// IMPORTS
+// ============================================================================
+
 import React from 'react';
 import { StyleSheet, View, FlatList, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +11,20 @@ import type { FriendRequestWithProfile } from '../../src/types/friend';
 import { Colors } from '../../constants/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 
+// ============================================================================
+// TYPE DEFINITIONS
+// ============================================================================
+
+/**
+ * Props for the FriendRequestsList component
+ *
+ * @property requests - Array of friend requests with user profiles
+ * @property loading - Loading state indicator
+ * @property onAccept - Callback to accept a received request
+ * @property onReject - Callback to reject a received request
+ * @property onCancel - Callback to cancel a sent request
+ * @property type - Type of requests being displayed ('received' or 'sent')
+ */
 interface FriendRequestsListProps {
   requests: FriendRequestWithProfile[];
   loading?: boolean;
@@ -16,6 +34,25 @@ interface FriendRequestsListProps {
   type: 'received' | 'sent';
 }
 
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+/**
+ * FriendRequestsList - Displays a list of friend requests (received or sent)
+ *
+ * Features:
+ * - Shows loading spinner during data fetch
+ * - Displays empty state with appropriate message
+ * - Two display modes:
+ *   1. Received: Shows accept (green) and reject (gray) buttons
+ *   2. Sent: Shows cancel (gray) button
+ * - Each request card shows profile photo and display name
+ * - Shows request creation date
+ * - FlatList for efficient rendering
+ *
+ * This component is used in both "Received" and "Sent" tabs of the FriendsScreen.
+ */
 export function FriendRequestsList({
   requests,
   loading = false,
@@ -27,6 +64,13 @@ export function FriendRequestsList({
   const { t } = useTranslation();
   const { isDark } = useTheme();
 
+  // --------------------------------------------------------------------------
+  // LOADING STATE
+  // --------------------------------------------------------------------------
+
+  /**
+   * Show centered loading spinner while requests data is being fetched
+   */
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -35,6 +79,14 @@ export function FriendRequestsList({
     );
   }
 
+  // --------------------------------------------------------------------------
+  // EMPTY STATE
+  // --------------------------------------------------------------------------
+
+  /**
+   * Show empty state message when there are no requests
+   * Message varies based on type (received vs sent)
+   */
   if (requests.length === 0) {
     return (
       <View style={styles.centerContainer}>
@@ -47,6 +99,16 @@ export function FriendRequestsList({
     );
   }
 
+  // --------------------------------------------------------------------------
+  // RENDER FUNCTIONS
+  // --------------------------------------------------------------------------
+
+  /**
+   * Render individual friend request card
+   * Shows different action buttons based on request type (received vs sent)
+   *
+   * @param item - Friend request object with user profile
+   */
   const renderRequest = ({ item }: { item: FriendRequestWithProfile }) => (
     <View
       style={[
@@ -54,7 +116,9 @@ export function FriendRequestsList({
         { backgroundColor: isDark ? '#1c1c1e' : '#f5f5f5' },
       ]}
     >
+      {/* Request content: Avatar and user info */}
       <View style={styles.requestContent}>
+        {/* Avatar: Photo or placeholder icon */}
         {item.userProfile.photoURL ? (
           <Image source={{ uri: item.userProfile.photoURL }} style={styles.avatar} />
         ) : (
@@ -72,6 +136,8 @@ export function FriendRequestsList({
             />
           </View>
         )}
+
+        {/* User info: Name and request date */}
         <View style={styles.userInfo}>
           <ThemedText style={styles.displayName}>
             {item.userProfile.displayName}
@@ -82,6 +148,7 @@ export function FriendRequestsList({
         </View>
       </View>
 
+      {/* Action buttons for received requests: Accept (green) and Reject (gray) */}
       {type === 'received' && (
         <View style={styles.actions}>
           <TouchableOpacity
@@ -107,6 +174,7 @@ export function FriendRequestsList({
         </View>
       )}
 
+      {/* Action button for sent requests: Cancel (gray) */}
       {type === 'sent' && (
         <TouchableOpacity
           style={[
@@ -126,6 +194,14 @@ export function FriendRequestsList({
     </View>
   );
 
+  // --------------------------------------------------------------------------
+  // MAIN RENDER
+  // --------------------------------------------------------------------------
+
+  /**
+   * Render FlatList of friend request cards
+   * Each card shows user info and action buttons based on request type
+   */
   return (
     <FlatList
       data={requests}
@@ -137,22 +213,33 @@ export function FriendRequestsList({
   );
 }
 
+// ============================================================================
+// STYLES
+// ============================================================================
+
 const styles = StyleSheet.create({
+  // List container padding
   listContainer: {
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
+
+  // Centered container for loading and empty states
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
   },
+
+  // Empty state message
   emptyText: {
     fontSize: 16,
     opacity: 0.6,
     textAlign: 'center',
   },
+
+  // Request card styles
   requestCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -166,16 +253,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+
+  // Avatar styles
   avatar: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 24, // Circular avatar
     marginRight: 12,
   },
   avatarPlaceholder: {
     justifyContent: 'center',
     alignItems: 'center',
   },
+
+  // User info styles
   userInfo: {
     flex: 1,
   },
@@ -188,6 +279,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     opacity: 0.5,
   },
+
+  // Action button styles
   actions: {
     flexDirection: 'row',
     gap: 8,
@@ -195,12 +288,12 @@ const styles = StyleSheet.create({
   actionButton: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 18, // Circular button
     justifyContent: 'center',
     alignItems: 'center',
   },
   acceptButton: {
-    backgroundColor: '#34C759',
+    backgroundColor: '#34C759', // Green accept button
   },
   rejectButton: {
     // backgroundColor set dynamically based on theme
@@ -208,6 +301,8 @@ const styles = StyleSheet.create({
   cancelButton: {
     // backgroundColor set dynamically based on theme
   },
+
+  // Unused pending badge styles (kept for potential future use)
   pendingBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
