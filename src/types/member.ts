@@ -4,7 +4,18 @@
  * TypeScript interfaces for member management in the admin dashboard.
  */
 
-export type UserRole = 'user' | 'admin';
+/**
+ * User Role Type Definition
+ *
+ * Defines the different user roles in the application:
+ * - 'student': Regular learner who uses the app to study vocabulary and take quizzes
+ * - 'teacher': Educator who can manage classes, create assignments, and monitor student progress
+ * - 'admin': System administrator with full access to content management and user administration
+ *
+ * Role Hierarchy:
+ * student (lowest privileges) < teacher (class management) < admin (full system access)
+ */
+export type UserRole = 'student' | 'teacher' | 'admin';
 
 export type SubscriptionPlan = 'free' | 'voca_unlimited' | 'voca_speaking';
 

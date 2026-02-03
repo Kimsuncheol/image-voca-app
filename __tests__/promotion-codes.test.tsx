@@ -264,7 +264,7 @@ describe("PromotionCodesAdmin", () => {
       mockAuthContext.user = mockNonAdminUser;
       (getDoc as jest.Mock).mockResolvedValue({
         exists: () => true,
-        data: () => ({ role: "user" }),
+        data: () => ({ role: "student" }), // Updated to use new 'student' role instead of deprecated 'user' role
       });
 
       render(<PromotionCodesAdmin />);

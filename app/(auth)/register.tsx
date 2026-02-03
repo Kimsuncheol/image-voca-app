@@ -10,9 +10,10 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  // TouchableOpacity,
+  TouchableOpacity,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
@@ -51,6 +52,18 @@ export default function RegisterScreen() {
   // const [adminCodeError, setAdminCodeError] = useState("");
   // const [requestAdmin, setRequestAdmin] = useState(false);
   const { promptAsync, loading: googleLoading } = useGoogleAuth();
+
+  // ---------------------------------------------------------------------------
+  // ROLE SELECTION STATE
+  // ---------------------------------------------------------------------------
+  /**
+   * Stores the selected user role for registration
+   * - 'student': Default role for learners
+   * - 'teacher': Role for educators who manage classes
+   *
+   * By default, new users register as 'student'
+   */
+  const [selectedRole, setSelectedRole] = useState<'student' | 'teacher'>('student');
 
   // ---------------------------------------------------------------------------
   // ERROR STATE - Inline validation error messages
@@ -253,13 +266,22 @@ export default function RegisterScreen() {
         photoURL: avatarUri || null,
       });
 
-      // Determine user role based on admin code, email, or manual admin request
-      const role: UserRole =
-        // isValidAdminCode ||
-        ADMIN_EMAILS.includes(email.toLowerCase()) // ||
-        // requestAdmin
-          ? "admin"
-          : "user";
+      // ---------------------------------------------------------------------------
+      // DETERMINE USER ROLE
+      // ---------------------------------------------------------------------------
+      /**
+       * Role assignment logic:
+       * 1. Check if email is in pre-approved admin list → assign 'admin' role
+       * 2. Otherwise, use the role selected by user during registration
+       *    - Users can choose between 'student' (learner) or 'teacher' (educator)
+       *
+       * Admin role can only be assigned via:
+       * - Pre-approved email addresses (ADMIN_EMAILS constant)
+       * - Admin invitation codes (currently commented out)
+       */
+      const role: UserRole = ADMIN_EMAILS.includes(email.toLowerCase())
+        ? "admin"
+        : selectedRole; // Use the role selected by the user ('student' or 'teacher')
 
       // Create user document in Firestore with initial data structure
       await setDoc(doc(db, "users", userCredential.user.uid), {
@@ -412,6 +434,117 @@ export default function RegisterScreen() {
                 match: t("auth.register.passwordHint.match"),
               }}
             />
+
+            {/* -----------------------------------------------------------------
+                ROLE SELECTION SECTION
+
+                Allows users to choose their role during registration:
+                - Student: For learners who want to study vocabulary
+                - Teacher: For educators who want to manage classes and students
+
+                This is a toggle-style selector with visual feedback showing
+                which role is currently selected.
+            ----------------------------------------------------------------- */}
+            <View style={styles.roleSelectionContainer}>
+              {/* Role selection label - Explains what this section is for */}
+              <Text style={styles.roleSelectionLabel}>
+                {t("auth.register.roleLabel") || "I am a..."}
+              </Text>
+
+              {/* Role selection buttons container - Horizontal layout */}
+              <View style={styles.roleButtonsContainer}>
+                {/* ---------------------------------------------------------------
+                    STUDENT ROLE BUTTON
+
+                    When pressed:
+                    - Sets selectedRole to 'student'
+                    - Visually highlights this button
+                    - Dims the teacher button
+                --------------------------------------------------------------- */}
+                <TouchableOpacity
+                  style={[
+                    styles.roleButton,
+                    // Apply active styling if student is selected
+                    selectedRole === 'student' && styles.roleButtonActive,
+                  ]}
+                  onPress={() => setSelectedRole('student')}
+                  activeOpacity={0.7}
+                >
+                  {/* Student icon - Book/academic symbol */}
+                  <Ionicons
+                    name="book-outline"
+                    size={24}
+                    color={
+                      selectedRole === 'student'
+                        ? '#007AFF' // Blue when selected
+                        : isDark
+                        ? '#888' // Gray when not selected (dark mode)
+                        : '#666' // Gray when not selected (light mode)
+                    }
+                    style={styles.roleIcon}
+                  />
+                  {/* Student role label */}
+                  <Text
+                    style={[
+                      styles.roleButtonText,
+                      selectedRole === 'student' && styles.roleButtonTextActive,
+                    ]}
+                  >
+                    {t("auth.register.roleStudent") || "Student"}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* ---------------------------------------------------------------
+                    TEACHER ROLE BUTTON
+
+                    When pressed:
+                    - Sets selectedRole to 'teacher'
+                    - Visually highlights this button
+                    - Dims the student button
+                --------------------------------------------------------------- */}
+                <TouchableOpacity
+                  style={[
+                    styles.roleButton,
+                    // Apply active styling if teacher is selected
+                    selectedRole === 'teacher' && styles.roleButtonActive,
+                  ]}
+                  onPress={() => setSelectedRole('teacher')}
+                  activeOpacity={0.7}
+                >
+                  {/* Teacher icon - School/education symbol */}
+                  <Ionicons
+                    name="school-outline"
+                    size={24}
+                    color={
+                      selectedRole === 'teacher'
+                        ? '#007AFF' // Blue when selected
+                        : isDark
+                        ? '#888' // Gray when not selected (dark mode)
+                        : '#666' // Gray when not selected (light mode)
+                    }
+                    style={styles.roleIcon}
+                  />
+                  {/* Teacher role label */}
+                  <Text
+                    style={[
+                      styles.roleButtonText,
+                      selectedRole === 'teacher' && styles.roleButtonTextActive,
+                    ]}
+                  >
+                    {t("auth.register.roleTeacher") || "Teacher"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Role description - Explains what the selected role means */}
+              <Text style={styles.roleDescription}>
+                {selectedRole === 'student'
+                  ? t("auth.register.roleStudentDescription") ||
+                    "Learn vocabulary and track your progress"
+                  : t("auth.register.roleTeacherDescription") ||
+                    "Manage classes and monitor student performance"}
+              </Text>
+            </View>
 
             {/* -----------------------------------------------------------------
                 ADMIN CODE INPUT (OPTIONAL)
@@ -892,5 +1025,108 @@ const getStyles = (isDark: boolean) =>
     /** Admin toggle text active - When admin is selected */
     adminToggleTextActive: {
       color: "#007AFF",
+    },
+
+    // -------------------------------------------------------------------------
+    // ROLE SELECTION STYLES - Student/Teacher role picker section
+    // -------------------------------------------------------------------------
+
+    /**
+     * Role selection container - Wrapper for the entire role selection section
+     * Includes label, buttons, and description
+     */
+    roleSelectionContainer: {
+      marginBottom: 24,
+      padding: 16,
+      backgroundColor: isDark ? "#1c1c1e" : "#F9F9F9",
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: isDark ? "#333" : "#E0E0E0",
+    },
+
+    /**
+     * Role selection label - "I am a..." header text
+     * Positioned above the role buttons
+     */
+    roleSelectionLabel: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: isDark ? "#ccc" : "#666",
+      marginBottom: 12,
+      textAlign: "center",
+    },
+
+    /**
+     * Role buttons container - Horizontal flex container for student/teacher buttons
+     * Equal spacing between the two role options
+     */
+    roleButtonsContainer: {
+      flexDirection: "row",
+      gap: 12, // Space between student and teacher buttons
+      marginBottom: 12,
+    },
+
+    /**
+     * Role button - Individual button for each role (Student or Teacher)
+     * Default state: Light border, neutral colors
+     * Includes icon and text vertically aligned
+     */
+    roleButton: {
+      flex: 1, // Equal width for both buttons
+      paddingVertical: 16,
+      paddingHorizontal: 12,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: isDark ? "#333" : "#E0E0E0",
+      backgroundColor: isDark ? "#2c2c2e" : "#fff",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    /**
+     * Role button active state - Visually highlights the selected role
+     * Blue border and subtle background tint when selected
+     */
+    roleButtonActive: {
+      borderColor: "#007AFF", // Blue border indicates selection
+      backgroundColor: isDark ? "#0A1F3D" : "#E6F2FF", // Subtle blue background
+    },
+
+    /**
+     * Role icon - Spacing for the icon within each role button
+     * Icon appears above the role label text
+     */
+    roleIcon: {
+      marginBottom: 8,
+    },
+
+    /**
+     * Role button text - Label text for each role
+     * Default state: Gray color for unselected roles
+     */
+    roleButtonText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: isDark ? "#888" : "#666",
+    },
+
+    /**
+     * Role button text active - Text color when role is selected
+     * Changes to blue to match the active button style
+     */
+    roleButtonTextActive: {
+      color: "#007AFF",
+    },
+
+    /**
+     * Role description - Explanatory text below the role buttons
+     * Dynamically shows different text based on selected role
+     * Helps users understand what each role does
+     */
+    roleDescription: {
+      fontSize: 12,
+      color: isDark ? "#888" : "#999",
+      textAlign: "center",
+      lineHeight: 16,
     },
   });

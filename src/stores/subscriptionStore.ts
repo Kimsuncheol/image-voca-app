@@ -2,13 +2,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { arrayUnion, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { create } from "zustand";
 import { db } from "../services/firebase";
+import { UserRole } from "../types/member";
 
 // Ad unlock is allowed for Days 4-10 only (Days 1-3 are free)
 export const AD_UNLOCK_LIMIT = 10;
 const UNLOCKED_IDS_KEY = "@unlocked_ids";
 
 export type PlanType = "free" | "voca_unlimited" | "voca_speaking";
-export type UserRole = "user" | "admin";
+// UserRole is now imported from member.ts to maintain consistency across the app
+// export type UserRole = "user" | "admin"; // OLD - replaced by import from member.ts
 
 export interface Plan {
   id: PlanType;
@@ -93,7 +95,7 @@ const buildSubscription = (
 export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   currentPlan: "free",
   orderId: null,
-  role: "user",
+  role: "student", // Default role for new users is 'student'
   loading: false,
   error: null,
   unlockedIds: [],
@@ -111,7 +113,18 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
           | undefined;
         const normalizedPlan = normalizePlanId(subscription?.planId);
         const orderId = subscription?.orderId ?? null;
-        const role: UserRole = data.role === "admin" ? "admin" : "user";
+
+        /**
+         * Role assignment from Firestore data
+         * - Retrieves user role from database
+         * - Falls back to 'student' if role is invalid or missing
+         * - Supports: 'student', 'teacher', 'admin'
+         */
+        const role: UserRole =
+          data.role === "admin" || data.role === "teacher" || data.role === "student"
+            ? data.role
+            : "student"; // Default to 'student' for backward compatibility
+
         console.log(
           "📋 Current User Role:",
           role,
@@ -135,12 +148,13 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
 
         set({ currentPlan: normalizedPlan, orderId, role, loading: false });
       } else {
+        // User document doesn't exist - create with default 'student' role
         const subscription = buildSubscription("free");
         await setDoc(userRef, { subscription }, { merge: true });
         set({
           currentPlan: "free",
           orderId: null,
-          role: "user",
+          role: "student", // Default role for new users
           loading: false,
         });
       }
@@ -303,11 +317,15 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     return role === "admin";
   },
 
+  /**
+   * Reset subscription state to defaults
+   * Sets role back to 'student' (default role)
+   */
   resetSubscription: () =>
     set({
       currentPlan: "free",
       orderId: null,
-      role: "user",
+      role: "student", // Reset to default 'student' role
       loading: false,
       error: null,
       unlockedIds: [],
