@@ -246,16 +246,17 @@ export const updateCourseMetadata = async (
     // Store metadata fields directly in the course document
     const courseDocRef = doc(db, config.path);
     const courseDoc = await getDoc(courseDocRef);
+    const dayId = `Day${dayNumber}`;
 
     if (courseDoc.exists()) {
       const currentMaxDay = courseDoc.data().totalDays || 0;
       const updateData: {
         lastUpdated: string;
-        lastUploadedDayId: number;
+        lastUploadedDayId: string;
         totalDays?: number;
       } = {
         lastUpdated: new Date().toISOString(),
-        lastUploadedDayId: dayNumber,
+        lastUploadedDayId: dayId,
       };
 
       // Update totalDays only if the new day number is greater than the current max
@@ -264,15 +265,15 @@ export const updateCourseMetadata = async (
       }
 
       await updateDoc(courseDocRef, updateData);
-      console.log(`Updated ${courseId} metadata: lastUploadedDayId = ${dayNumber}${dayNumber > currentMaxDay ? `, totalDays = ${dayNumber}` : ''}`);
+      console.log(`Updated ${courseId} metadata: lastUploadedDayId = ${dayId}${dayNumber > currentMaxDay ? `, totalDays = ${dayNumber}` : ''}`);
     } else {
       // Create document with metadata if it doesn't exist
       await setDoc(courseDocRef, {
         totalDays: dayNumber,
         lastUpdated: new Date().toISOString(),
-        lastUploadedDayId: dayNumber,
+        lastUploadedDayId: dayId,
       });
-      console.log(`Created ${courseId} metadata: totalDays = ${dayNumber}, lastUploadedDayId = ${dayNumber}`);
+      console.log(`Created ${courseId} metadata: totalDays = ${dayNumber}, lastUploadedDayId = ${dayId}`);
     }
   } catch (error) {
     console.error(`Error updating metadata for ${courseId}:`, error);
@@ -334,7 +335,7 @@ export const getCourseMetadata = async (
 ): Promise<{
   totalDays: number;
   lastUpdated: string;
-  lastUploadedDayId: number;
+  lastUploadedDayId: string;
 } | null> => {
   const config = getCourseConfig(courseId);
 
@@ -353,7 +354,7 @@ export const getCourseMetadata = async (
       return {
         totalDays: data.totalDays || 0,
         lastUpdated: data.lastUpdated || "",
-        lastUploadedDayId: data.lastUploadedDayId || 0,
+        lastUploadedDayId: data.lastUploadedDayId || "",
       };
     }
 
