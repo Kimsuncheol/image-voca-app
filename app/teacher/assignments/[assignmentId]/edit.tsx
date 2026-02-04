@@ -1,7 +1,7 @@
 /**
- * Create Assignment Screen
+ * Edit Assignment Screen
  *
- * Modal form for creating a new assignment
+ * Modal form for editing an existing assignment
  */
 
 import { Ionicons } from "@expo/vector-icons";
@@ -23,22 +23,26 @@ import {
   useColorScheme,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { createAssignment } from "../../../src/services/assignmentService";
-import { useSubscriptionStore } from "../../../src/stores/subscriptionStore";
-import { useTeacherStore } from "../../../src/stores/teacherStore";
-import { CourseType } from "../../../src/types/vocabulary";
+import {
+  getAssignmentById,
+  updateAssignment,
+} from "../../../../src/services/assignmentService";
+import { useSubscriptionStore } from "../../../../src/stores/subscriptionStore";
+import { CourseType } from "../../../../src/types/vocabulary";
+import type { Assignment } from "../../../../src/types/teacher";
 
-export default function CreateAssignmentScreen() {
+export default function EditAssignmentScreen() {
   const router = useRouter();
-  const { classId } = useLocalSearchParams<{ classId: string }>();
+  const { assignmentId } = useLocalSearchParams<{ assignmentId: string }>();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
   const isTeacher = useSubscriptionStore((state) => state.isTeacher);
-  const { currentClass, fetchClassDetails } = useTeacherStore();
 
   const [checkingRole, setCheckingRole] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [assignment, setAssignment] = useState<Assignment | null>(null);
 
   // Form state
   const [selectedCourse, setSelectedCourse] = useState<CourseType | "">("");
@@ -62,19 +66,43 @@ export default function CreateAssignmentScreen() {
     checkRole();
   }, []);
 
-  // Load class details
+  // Load assignment data
   useEffect(() => {
-    if (classId && isTeacher() && !checkingRole) {
-      loadClass();
+    if (assignmentId && isTeacher() && !checkingRole) {
+      loadAssignment();
     }
-  }, [classId, checkingRole]);
+  }, [assignmentId, checkingRole]);
 
-  const loadClass = async () => {
-    if (!classId) return;
+  const loadAssignment = async () => {
+    if (!assignmentId) return;
+
     try {
-      await fetchClassDetails(classId);
+      setLoading(true);
+      const data = await getAssignmentById(assignmentId);
+      if (data) {
+        setAssignment(data);
+        setSelectedCourse(data.courseId as CourseType);
+        setDayNumber(data.dayNumber.toString());
+        setTitle(data.title);
+        setDescription(data.description || "");
+        setDueDate(new Date(data.dueDate));
+        setRequireVocabulary(data.requiredActions.completeVocabulary);
+        setRequireQuiz(data.requiredActions.completeQuiz);
+        setMinQuizScore(
+          data.requiredActions.minQuizScore?.toString() || ""
+        );
+      } else {
+        Alert.alert("Error", "Assignment not found", [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      }
     } catch (error) {
-      console.error("Error loading class:", error);
+      console.error("Error loading assignment:", error);
+      Alert.alert("Error", "Failed to load assignment", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -85,7 +113,7 @@ export default function CreateAssignmentScreen() {
     }
   };
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     // Validation
     if (!selectedCourse) {
       Alert.alert("Error", "Please select a course");
@@ -122,10 +150,9 @@ export default function CreateAssignmentScreen() {
     }
 
     try {
-      setLoading(true);
+      setSaving(true);
 
-      await createAssignment({
-        classId: classId!,
+      await updateAssignment(assignmentId!, {
         courseId: selectedCourse,
         dayNumber: day,
         title: title.trim(),
@@ -136,27 +163,28 @@ export default function CreateAssignmentScreen() {
           completeQuiz: requireQuiz,
           minQuizScore: minQuizScore ? Number(minQuizScore) : undefined,
         },
+        updatedAt: new Date().toISOString(),
       });
 
-      Alert.alert("Success", "Assignment created successfully", [
+      Alert.alert("Success", "Assignment updated successfully", [
         {
           text: "OK",
           onPress: () => router.back(),
         },
       ]);
     } catch (error) {
-      console.error("Error creating assignment:", error);
+      console.error("Error updating assignment:", error);
       Alert.alert(
         "Error",
-        error instanceof Error ? error.message : "Failed to create assignment",
+        error instanceof Error ? error.message : "Failed to update assignment",
       );
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   // Loading state
-  if (checkingRole) {
+  if (checkingRole || loading) {
     return (
       <View style={[styles.container, styles.centerContainer]}>
         <ActivityIndicator size="large" color="#007AFF" />
@@ -167,10 +195,7 @@ export default function CreateAssignmentScreen() {
   // Access denied
   if (!isTeacher()) {
     return (
-      <SafeAreaView
-        style={[styles.container, styles.centerContainer]}
-        edges={["bottom"]}
-      >
+      <SafeAreaView style={[styles.container, styles.centerContainer]}>
         <Ionicons name="lock-closed" size={64} color="#999" />
         <Text style={styles.deniedTitle}>Teacher Access Only</Text>
         <TouchableOpacity
@@ -185,7 +210,7 @@ export default function CreateAssignmentScreen() {
 
   // Main content
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -194,33 +219,25 @@ export default function CreateAssignmentScreen() {
           <TouchableOpacity onPress={() => router.back()}>
             <Text style={styles.cancelButton}>Cancel</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Create Assignment</Text>
-          <TouchableOpacity onPress={handleCreate} disabled={loading}>
+          <Text style={styles.headerTitle}>Edit Assignment</Text>
+          <TouchableOpacity onPress={handleSave} disabled={saving}>
             <Text
               style={[
                 styles.createButton,
-                loading && styles.createButtonDisabled,
+                saving && styles.createButtonDisabled,
               ]}
             >
-              {loading ? "Creating..." : "Create"}
+              {saving ? "Saving..." : "Save"}
             </Text>
           </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Class Name */}
-          {currentClass && (
-            <View style={styles.section}>
-              <Text style={styles.classNameLabel}>Class</Text>
-              <Text style={styles.className}>{currentClass.name}</Text>
-            </View>
-          )}
-
           {/* Course Selection */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Course *</Text>
             <View style={styles.courseButtons}>
-              {currentClass?.courseIds.map((course) => (
+              {["TOEIC", "TOEFL", "IELTS", "OPIC", "CSAT"].map((course) => (
                 <TouchableOpacity
                   key={course}
                   style={[
@@ -423,18 +440,6 @@ const getStyles = (isDark: boolean) =>
     content: {
       flex: 1,
       padding: 16,
-    },
-
-    // Class Name
-    classNameLabel: {
-      fontSize: 13,
-      color: "#8e8e93",
-      marginBottom: 4,
-    },
-    className: {
-      fontSize: 17,
-      fontWeight: "600",
-      color: isDark ? "#fff" : "#000",
     },
 
     // Section

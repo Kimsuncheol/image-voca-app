@@ -97,7 +97,10 @@ export default function TeacherClassesScreen() {
   // Access denied screen
   if (!isTeacher()) {
     return (
-      <SafeAreaView style={[styles.container, styles.centerContainer]}>
+      <SafeAreaView
+        style={[styles.container, styles.centerContainer]}
+        edges={["bottom"]}
+      >
         <Ionicons name="lock-closed" size={64} color="#999" />
         <Text style={styles.deniedTitle}>Teacher Access Only</Text>
         <Text style={styles.deniedMessage}>
@@ -115,7 +118,7 @@ export default function TeacherClassesScreen() {
 
   // Main content
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
       {/* Overview Stats */}
       {teacherOverview && (
         <View style={styles.overviewContainer}>

@@ -65,6 +65,13 @@ const en = {
       promotionCodes: "Promotion Codes",
       adminCodes: "Admin Codes",
     },
+    teacher: {
+      title: "Teacher",
+      classes: "Manage Classes",
+      students: "View All Students",
+      assignments: "Manage Assignments",
+      analytics: "View Analytics",
+    },
   },
   dashboard: {
     greeting: {
@@ -714,6 +721,57 @@ const en = {
     },
   },
   teacher: {
+    classes: {
+      title: "My Classes",
+    },
+    classDetail: {
+      title: "Class Details",
+    },
+    studentProfile: {
+      title: "Student Profile",
+    },
+    createAssignment: {
+      title: "Create Assignment",
+    },
+    editAssignment: {
+      title: "Edit Assignment",
+    },
+    assignmentDetail: {
+      title: "Assignment Details",
+    },
+    classSettings: {
+      title: "Class Settings",
+      basicInfo: "Basic Information",
+      allowSelfEnrollment: "Allow Self Enrollment",
+      allowSelfEnrollmentDesc: "Students can join using the invite code",
+      dailyGoal: "Daily Goal (Words)",
+      dailyGoalPlaceholder: "Enter daily goal",
+      dailyGoalHint: "Optional: Set a daily word learning goal for students",
+      loadError: "Failed to load class settings",
+      saveSuccess: "Class settings updated successfully",
+      saveError: "Failed to save class settings",
+      archiveConfirm: {
+        title: "Archive Class",
+        message: "Are you sure you want to archive this class? Students will no longer have access.",
+        confirm: "Archive",
+      },
+      archiveSuccess: "Class archived successfully",
+      archiveError: "Failed to archive class",
+      validation: {
+        nameRequired: "Class name is required",
+      },
+    },
+    students: {
+      title: "Students",
+      sortBy: "Sort by",
+      sortByName: "Name",
+      sortByProgress: "Progress",
+      sortByStreak: "Streak",
+      noStudents: "No students in this class yet",
+    },
+    permission: {
+      denied: "Teacher Access Only",
+    },
     dashboard: {
       title: "Teacher Dashboard",
       welcome: "Welcome back",

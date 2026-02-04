@@ -65,6 +65,13 @@ const ko = {
       promotionCodes: "프로모션 코드",
       adminCodes: "관리자 코드",
     },
+    teacher: {
+      title: "교사",
+      classes: "클래스 관리",
+      students: "전체 학생 보기",
+      assignments: "과제 관리",
+      analytics: "분석 보기",
+    },
   },
   dashboard: {
     greeting: {
@@ -696,6 +703,57 @@ const ko = {
     },
   },
   teacher: {
+    classes: {
+      title: "내 클래스",
+    },
+    classDetail: {
+      title: "클래스 상세",
+    },
+    studentProfile: {
+      title: "학생 프로필",
+    },
+    createAssignment: {
+      title: "과제 생성",
+    },
+    editAssignment: {
+      title: "과제 수정",
+    },
+    assignmentDetail: {
+      title: "과제 상세",
+    },
+    classSettings: {
+      title: "클래스 설정",
+      basicInfo: "기본 정보",
+      allowSelfEnrollment: "자체 등록 허용",
+      allowSelfEnrollmentDesc: "학생들이 초대 코드로 참여할 수 있습니다",
+      dailyGoal: "일일 목표 (단어)",
+      dailyGoalPlaceholder: "일일 목표 입력",
+      dailyGoalHint: "선택사항: 학생들을 위한 일일 단어 학습 목표 설정",
+      loadError: "클래스 설정을 불러오지 못했습니다",
+      saveSuccess: "클래스 설정이 업데이트되었습니다",
+      saveError: "클래스 설정 저장 실패",
+      archiveConfirm: {
+        title: "클래스 보관",
+        message: "이 클래스를 보관하시겠습니까? 학생들은 더 이상 접근할 수 없습니다.",
+        confirm: "보관",
+      },
+      archiveSuccess: "클래스가 보관되었습니다",
+      archiveError: "클래스 보관 실패",
+      validation: {
+        nameRequired: "클래스 이름이 필요합니다",
+      },
+    },
+    students: {
+      title: "학생",
+      sortBy: "정렬 기준",
+      sortByName: "이름",
+      sortByProgress: "진행률",
+      sortByStreak: "연속 학습",
+      noStudents: "아직 이 클래스에 학생이 없습니다",
+    },
+    permission: {
+      denied: "교사 전용",
+    },
     dashboard: {
       title: "교사 대시보드",
       welcome: "환영합니다",
