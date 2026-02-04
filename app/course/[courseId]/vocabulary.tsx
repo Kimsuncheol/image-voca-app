@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
+import { autoCheckSubmission } from "../../../src/services/assignmentService";
 import { db } from "../../../src/services/firebase";
 import {
   fetchVocabularyCards,
@@ -261,6 +262,9 @@ export default function VocabularyScreen() {
           totalWords: cards.length,
           wordsLearned: cards.length,
         });
+
+        // Auto-check assignment submissions for this course/day
+        await autoCheckSubmission(user.uid, courseId as CourseType, dayNumber);
       } catch (error) {
         console.error("Error marking day as completed:", error);
       }

@@ -73,6 +73,8 @@ interface SubscriptionState {
   canAccessSpeaking: () => boolean;
   canUnlockViaAd: (day: number) => boolean;
   isAdmin: () => boolean;
+  isTeacher: () => boolean;
+  hasClassManagementAccess: () => boolean;
   resetSubscription: () => void;
 }
 
@@ -315,6 +317,25 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   isAdmin: () => {
     const { role } = get();
     return role === "admin";
+  },
+
+  /**
+   * Check if current user is a teacher or admin
+   * Admins have access to all teacher features
+   * @returns true if user has teacher or admin role
+   */
+  isTeacher: () => {
+    const { role } = get();
+    return role === "teacher" || role === "admin";
+  },
+
+  /**
+   * Check if current user can manage classes
+   * Currently same as isTeacher, but kept separate for future granular permissions
+   * @returns true if user can manage classes
+   */
+  hasClassManagementAccess: () => {
+    return get().isTeacher();
   },
 
   /**

@@ -26,6 +26,7 @@ import {
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
+import { autoCheckSubmission } from "../../../src/services/assignmentService";
 import { db } from "../../../src/services/firebase";
 import { useUserStatsStore } from "../../../src/stores";
 import { COURSES, CourseType } from "../../../src/types/vocabulary";
@@ -876,6 +877,9 @@ export default function QuizPlayScreen() {
 
       // Flush any buffered quiz stats
       await flushQuizStats(user.uid);
+
+      // Auto-check assignment submissions for this course/day
+      await autoCheckSubmission(user.uid, courseId as CourseType, dayNumber);
     } catch (error) {
       console.error("Error saving quiz result:", error);
     }
