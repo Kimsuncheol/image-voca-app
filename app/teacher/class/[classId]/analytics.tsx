@@ -14,7 +14,6 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -22,6 +21,7 @@ import {
   View,
   useColorScheme,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { getClassAnalytics } from "../../../../src/services/teacherAnalyticsService";
 import { useSubscriptionStore } from "../../../../src/stores/subscriptionStore";
 import { useTeacherStore } from "../../../../src/stores/teacherStore";
@@ -76,7 +76,7 @@ export default function ClassAnalyticsScreen() {
     } catch (error) {
       console.error("Error loading analytics:", error);
       setError(
-        error instanceof Error ? error.message : "Failed to load analytics"
+        error instanceof Error ? error.message : "Failed to load analytics",
       );
     } finally {
       setLoading(false);
@@ -128,7 +128,9 @@ export default function ClassAnalyticsScreen() {
     return (
       <SafeAreaView style={[styles.container, styles.centerContainer]}>
         <Ionicons name="alert-circle-outline" size={64} color="#FF3B30" />
-        <Text style={styles.errorText}>{error || "Failed to load analytics"}</Text>
+        <Text style={styles.errorText}>
+          {error || "Failed to load analytics"}
+        </Text>
         <TouchableOpacity style={styles.retryButton} onPress={loadData}>
           <Text style={styles.retryButtonText}>Try Again</Text>
         </TouchableOpacity>
@@ -231,21 +233,26 @@ export default function ClassAnalyticsScreen() {
                   key={student.uid}
                   style={[
                     styles.studentRow,
-                    index < analytics.topPerformers.length - 1 && styles.studentRowBorder,
+                    index < analytics.topPerformers.length - 1 &&
+                      styles.studentRowBorder,
                   ]}
                 >
                   <View style={styles.rankBadge}>
                     <Text style={styles.rankText}>#{index + 1}</Text>
                   </View>
                   <View style={styles.studentInfo}>
-                    <Text style={styles.studentName}>{student.displayName}</Text>
+                    <Text style={styles.studentName}>
+                      {student.displayName}
+                    </Text>
                     <Text style={styles.studentStat}>
                       {student.wordsLearned} words learned
                     </Text>
                   </View>
                   <View style={styles.studentStreak}>
                     <Ionicons name="flame" size={16} color="#FF9500" />
-                    <Text style={styles.streakText}>{student.currentStreak}</Text>
+                    <Text style={styles.streakText}>
+                      {student.currentStreak}
+                    </Text>
                   </View>
                 </View>
               ))}
@@ -266,17 +273,23 @@ export default function ClassAnalyticsScreen() {
                   key={alert.uid}
                   style={[
                     styles.alertRow,
-                    index < analytics.needsAttention.length - 1 && styles.alertRowBorder,
+                    index < analytics.needsAttention.length - 1 &&
+                      styles.alertRowBorder,
                   ]}
                 >
                   <View style={styles.alertLeft}>
                     <Text style={styles.alertName}>{alert.displayName}</Text>
-                    <Text style={styles.alertMessage}>{alert.alertMessage}</Text>
+                    <Text style={styles.alertMessage}>
+                      {alert.alertMessage}
+                    </Text>
                   </View>
                   <View
                     style={[
                       styles.severityBadge,
-                      { backgroundColor: getSeverityColor(alert.severity) + "20" },
+                      {
+                        backgroundColor:
+                          getSeverityColor(alert.severity) + "20",
+                      },
                     ]}
                   >
                     <Text

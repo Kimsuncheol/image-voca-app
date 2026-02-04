@@ -10,9 +10,7 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,9 +18,10 @@ import {
   View,
   useColorScheme,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  getAssignmentDetails,
   deleteAssignment,
+  getAssignmentDetails,
 } from "../../../../src/services/assignmentService";
 import { useSubscriptionStore } from "../../../../src/stores/subscriptionStore";
 import {
@@ -75,7 +74,7 @@ export default function AssignmentDetailScreen() {
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to load assignment details"
+          : "Failed to load assignment details",
       );
     } finally {
       setLoading(false);
@@ -112,12 +111,12 @@ export default function AssignmentDetailScreen() {
                 "Error",
                 error instanceof Error
                   ? error.message
-                  : "Failed to delete assignment"
+                  : "Failed to delete assignment",
               );
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -191,9 +190,7 @@ export default function AssignmentDetailScreen() {
     return (
       <SafeAreaView style={[styles.container, styles.centerContainer]}>
         <Ionicons name="alert-circle-outline" size={64} color="#FF3B30" />
-        <Text style={styles.errorText}>
-          {error || "Assignment not found"}
-        </Text>
+        <Text style={styles.errorText}>{error || "Assignment not found"}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={loadData}>
           <Text style={styles.retryButtonText}>Try Again</Text>
         </TouchableOpacity>
@@ -212,7 +209,10 @@ export default function AssignmentDetailScreen() {
           <View style={styles.studentInfo}>
             <Text style={styles.studentName}>{item.studentId}</Text>
             <View
-              style={[styles.statusBadge, { backgroundColor: `${statusColor}20` }]}
+              style={[
+                styles.statusBadge,
+                { backgroundColor: `${statusColor}20` },
+              ]}
             >
               <View
                 style={[styles.statusDot, { backgroundColor: statusColor }]}
@@ -228,7 +228,9 @@ export default function AssignmentDetailScreen() {
           <View style={styles.detailRow}>
             <Ionicons
               name={
-                item.vocabularyCompleted ? "checkmark-circle" : "ellipse-outline"
+                item.vocabularyCompleted
+                  ? "checkmark-circle"
+                  : "ellipse-outline"
               }
               size={16}
               color={item.vocabularyCompleted ? "#34C759" : "#8e8e93"}

@@ -12,13 +12,13 @@ import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   useColorScheme,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { ClassCard } from "../../components/teacher/classes/ClassCard";
 import { ClassCreateModal } from "../../components/teacher/classes/ClassCreateModal";
 import { useAuth } from "../../src/context/AuthContext";

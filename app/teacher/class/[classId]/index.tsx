@@ -10,18 +10,17 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
+  Clipboard,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   useColorScheme,
-  Share,
-  Clipboard,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { StudentListItem } from "../../../../components/teacher/students/StudentListItem";
 import { useSubscriptionStore } from "../../../../src/stores/subscriptionStore";
 import { useTeacherStore } from "../../../../src/stores/teacherStore";
@@ -228,9 +227,7 @@ export default function ClassDetailScreen() {
         <View style={styles.actionsSection}>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() =>
-              router.push(`/teacher/class/${classId}/assignments`)
-            }
+            onPress={() => router.push(`/teacher/class/${classId}/assignments`)}
           >
             <Ionicons name="clipboard-outline" size={20} color="#007AFF" />
             <Text style={styles.actionButtonText}>Assignments</Text>

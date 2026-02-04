@@ -5,6 +5,7 @@
  */
 
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -12,7 +13,6 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Switch,
@@ -22,7 +22,7 @@ import {
   View,
   useColorScheme,
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { createAssignment } from "../../../src/services/assignmentService";
 import { useSubscriptionStore } from "../../../src/stores/subscriptionStore";
 import { useTeacherStore } from "../../../src/stores/teacherStore";
@@ -148,7 +148,7 @@ export default function CreateAssignmentScreen() {
       console.error("Error creating assignment:", error);
       Alert.alert(
         "Error",
-        error instanceof Error ? error.message : "Failed to create assignment"
+        error instanceof Error ? error.message : "Failed to create assignment",
       );
     } finally {
       setLoading(false);
@@ -192,10 +192,7 @@ export default function CreateAssignmentScreen() {
             <Text style={styles.cancelButton}>Cancel</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Create Assignment</Text>
-          <TouchableOpacity
-            onPress={handleCreate}
-            disabled={loading}
-          >
+          <TouchableOpacity onPress={handleCreate} disabled={loading}>
             <Text
               style={[
                 styles.createButton,
@@ -207,10 +204,7 @@ export default function CreateAssignmentScreen() {
           </TouchableOpacity>
         </View>
 
-        <ScrollView
-          style={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Class Name */}
           {currentClass && (
             <View style={styles.section}>
@@ -318,9 +312,7 @@ export default function CreateAssignmentScreen() {
             <Text style={styles.sectionTitle}>Requirements *</Text>
 
             <View style={styles.requirementRow}>
-              <Text style={styles.requirementLabel}>
-                Complete Vocabulary
-              </Text>
+              <Text style={styles.requirementLabel}>Complete Vocabulary</Text>
               <Switch
                 value={requireVocabulary}
                 onValueChange={setRequireVocabulary}

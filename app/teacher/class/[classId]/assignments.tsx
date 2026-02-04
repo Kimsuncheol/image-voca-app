@@ -9,16 +9,15 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   RefreshControl,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   useColorScheme,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { getClassAssignments } from "../../../../src/services/assignmentService";
 import { useSubscriptionStore } from "../../../../src/stores/subscriptionStore";
 import { useTeacherStore } from "../../../../src/stores/teacherStore";
@@ -72,9 +71,7 @@ export default function ClassAssignmentsScreen() {
     } catch (error) {
       console.error("Error loading assignments:", error);
       setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to load assignments"
+        error instanceof Error ? error.message : "Failed to load assignments",
       );
     } finally {
       setLoading(false);
@@ -272,10 +269,7 @@ export default function ClassAssignmentsScreen() {
             }
           />
 
-          <TouchableOpacity
-            style={styles.fab}
-            onPress={handleCreateAssignment}
-          >
+          <TouchableOpacity style={styles.fab} onPress={handleCreateAssignment}>
             <Ionicons name="add" size={28} color="#fff" />
           </TouchableOpacity>
         </>
