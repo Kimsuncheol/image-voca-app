@@ -5,6 +5,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
+  Dimensions,
   Platform,
   Pressable,
   StyleSheet,
@@ -26,12 +27,42 @@ interface FaceSideProps {
 }
 
 /**
+ * Calculates dynamic font size based on text length to ensure single-row display
+ * @param text - The collocation text to display
+ * @returns Appropriate font size (between 24-42)
+ */
+const getDynamicFontSize = (text: string): number => {
+  const { width } = Dimensions.get("window");
+  const availableWidth = width * 0.8; // 80% of screen width (accounting for padding)
+  const textLength = text.length;
+
+  // Base font size
+  const baseFontSize = 42;
+  const minFontSize = 24;
+
+  // Approximate character width ratio (adjusted for bold text)
+  const charWidthRatio = 0.6;
+  const estimatedWidth = textLength * baseFontSize * charWidthRatio;
+
+  // If text fits at base size, use base size
+  if (estimatedWidth <= availableWidth) {
+    return baseFontSize;
+  }
+
+  // Calculate scaled font size
+  const scaledFontSize = (availableWidth / (textLength * charWidthRatio));
+
+  // Return font size clamped between min and base
+  return Math.max(minFontSize, Math.min(baseFontSize, scaledFontSize));
+};
+
+/**
  * FaceSide Component for CollocationFlipCard
  *
  * Displays the "Front" of the flashcard.
  *
  * Main Content:
- * - Collocation text (e.g., "make a decision")
+ * - Collocation text (e.g., "make a decision") with dynamic font sizing
  * - Meaning/Translation
  * - Audio pronunciation button
  *
@@ -66,6 +97,11 @@ export default React.memo(function FaceSide({
   React.useEffect(() => {
     setIsAdded(wordBankConfig?.initialIsSaved ?? false);
   }, [wordBankConfig?.initialIsSaved]);
+
+  // Calculate dynamic font size based on collocation text length
+  const dynamicFontSize = React.useMemo(() => {
+    return getDynamicFontSize(data.collocation);
+  }, [data.collocation]);
 
   // ============================================================================
   // Event Handlers
@@ -224,15 +260,36 @@ export default React.memo(function FaceSide({
         )}
 
         {/* Section: Main Content (Word) */}
-        <Text style={[styles.collocationText, isDark && styles.textDark]}>
+        <Text
+          style={[
+            styles.collocationText,
+            isDark && styles.textDark,
+            { fontSize: dynamicFontSize },
+          ]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.5}
+        >
           {data.collocation}
         </Text>
 
         {/* Section: Meaning & Audio */}
         <View style={styles.meaningContainer}>
-          <Text style={[styles.meaningText, isDark && styles.textDark]}>
-            {data.meaning}
-          </Text>
+          <View style={styles.meaningTextContainer}>
+            {data.meaning.length >= 10
+              ? data.meaning.split(',').map((part, index) => (
+                  <Text
+                    key={index}
+                    style={[styles.meaningText, isDark && styles.textDark]}
+                  >
+                    {part.trim()}
+                  </Text>
+                ))
+              : <Text style={[styles.meaningText, isDark && styles.textDark]}>
+                  {data.meaning}
+                </Text>
+            }
+          </View>
           <TouchableOpacity onPress={speak} style={styles.speakerButton}>
             <Ionicons
               name="volume-medium"
@@ -357,9 +414,17 @@ const styles = StyleSheet.create({
     marginTop: 24,
     width: "100%",
   },
+  meaningTextContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
   speakerButton: {
     marginLeft: 8,
     padding: 4,
+    alignSelf: "flex-start",
+    marginTop: 2,
   },
   collocationText: {
     fontSize: 42,
