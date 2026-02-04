@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as Speech from "expo-speech";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { useSpeech } from "../../src/hooks/useSpeech";
 
 interface WordCardActionsProps {
   word: string;
@@ -20,17 +20,19 @@ export function WordCardActions({
   courseColor,
   onDelete,
 }: WordCardActionsProps) {
-  const speak = (text: string) => {
-    Speech.speak(text);
+  const { speak } = useSpeech();
+
+  const handleSpeak = () => {
+    speak(word, {
+      language: "en-US",
+      rate: 0.9,
+    });
   };
 
   return (
     <View style={styles.actionButtons}>
       {/* Text-to-speech button */}
-      <TouchableOpacity
-        onPress={() => speak(word)}
-        style={styles.speakerButton}
-      >
+      <TouchableOpacity onPress={handleSpeak} style={styles.speakerButton}>
         <Ionicons
           name="volume-medium"
           size={22}

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as Speech from "expo-speech";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSpeech } from "../../src/hooks/useSpeech";
 
 interface SwipeCardItemWordMeaningSectionProps {
   word: string;
@@ -16,8 +16,13 @@ export function SwipeCardItemWordMeaningSection({
   meaning,
   isDark,
 }: SwipeCardItemWordMeaningSectionProps) {
+  const { speak: speakText } = useSpeech();
+
   const speak = () => {
-    Speech.speak(word);
+    speakText(word, {
+      language: "en-US",
+      rate: 0.9,
+    });
   };
 
   return (

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as Speech from "expo-speech";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Platform, StyleSheet, TouchableOpacity } from "react-native";
+import { useSpeech } from "../../src/hooks/useSpeech";
 
 interface SpeakerButtonProps {
   text: string;
@@ -12,51 +12,34 @@ export const SpeakerButton: React.FC<SpeakerButtonProps> = ({
   text,
   isDark,
 }) => {
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
+  const { speak, stop, pause, resume, isSpeaking, isPaused } = useSpeech();
 
   const handleSpeech = useCallback(async () => {
     if (isPaused) {
-      await Speech.resume();
-      setIsPaused(false);
-      setIsSpeaking(true);
+      // Resume paused speech
+      await resume();
     } else if (isSpeaking) {
+      // Pause on iOS, stop on Android
       if (Platform.OS === "android") {
-        await Speech.stop();
-        setIsSpeaking(false);
-        setIsPaused(false);
+        await stop();
       } else {
-        await Speech.pause();
-        setIsPaused(true);
-        setIsSpeaking(false);
+        await pause();
       }
     } else {
-      Speech.speak(text, {
-        onStart: () => {
-          setIsSpeaking(true);
-          setIsPaused(false);
-        },
-        onDone: () => {
-          setIsSpeaking(false);
-          setIsPaused(false);
-        },
-        onStopped: () => {
-          setIsSpeaking(false);
-          setIsPaused(false);
-        },
-        onError: () => {
-          setIsSpeaking(false);
-          setIsPaused(false);
-        },
+      // Start speaking
+      await speak(text, {
+        language: "en-US",
+        rate: 0.9,
       });
     }
-  }, [text, isPaused, isSpeaking]);
+  }, [text, isPaused, isSpeaking, speak, stop, pause, resume]);
 
+  // Cleanup: stop speech when component unmounts
   useEffect(() => {
     return () => {
-      Speech.stop();
+      stop();
     };
-  }, []);
+  }, [stop]);
 
   return (
     <TouchableOpacity onPress={handleSpeech} style={styles.speakerButton}>

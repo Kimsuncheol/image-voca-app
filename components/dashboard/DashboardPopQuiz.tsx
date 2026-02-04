@@ -1,11 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { collection, getDocs, limit, query } from "firebase/firestore";
-import * as Speech from "expo-speech";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
+import { useSpeech } from "../../src/hooks/useSpeech";
 import { db } from "../../src/services/firebase";
 import { useUserStatsStore } from "../../src/stores";
 import { COURSES } from "../../src/types/vocabulary";
@@ -31,6 +31,7 @@ export function DashboardPopQuiz() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { bufferQuizAnswer, flushQuizStats } = useUserStatsStore();
+  const { speak: speakText, stop: stopSpeech } = useSpeech();
 
   // ---------------------------------------------------------------------------
   // State Management
@@ -358,18 +359,21 @@ export function DashboardPopQuiz() {
    */
   const handleSpeak = useCallback(() => {
     if (quizItem) {
-      Speech.speak(quizItem.word);
+      speakText(quizItem.word, {
+        language: "en-US",
+        rate: 0.9,
+      });
     }
-  }, [quizItem]);
+  }, [quizItem, speakText]);
 
   /**
    * effect: Stop TTS when quiz item changes or component unmounts
    */
   useEffect(() => {
     return () => {
-      Speech.stop();
+      stopSpeech();
     };
-  }, [quizItem]);
+  }, [quizItem, stopSpeech]);
 
   // ---------------------------------------------------------------------------
   // Interaction Handlers

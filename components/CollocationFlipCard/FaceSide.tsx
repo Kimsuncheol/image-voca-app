@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as Speech from "expo-speech";
 import { doc, runTransaction } from "firebase/firestore";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -14,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { useAuth } from "../../src/context/AuthContext";
+import { useSpeech } from "../../src/hooks/useSpeech";
 import { db } from "../../src/services/firebase";
 import { useUserStatsStore } from "../../src/stores";
 import { SavedWord } from "../wordbank/WordCard";
@@ -86,6 +86,7 @@ export default React.memo(function FaceSide({
   const { user } = useAuth();
   const { recordWordLearned } = useUserStatsStore();
   const { t } = useTranslation();
+  const { speak: speakText } = useSpeech();
 
   // Local state for 'Add to Word Bank' operation
   const [isAdding, setIsAdding] = React.useState(false);
@@ -108,11 +109,14 @@ export default React.memo(function FaceSide({
   // ============================================================================
 
   /**
-   * Plays the audio pronunciation of the collocation using Expo Speech.
+   * Plays the audio pronunciation of the collocation using TTS.
    */
   const speak = React.useCallback(() => {
-    Speech.speak(data.collocation);
-  }, [data.collocation]);
+    speakText(data.collocation, {
+      language: "en-US", // You can make this dynamic based on course/language
+      rate: 0.9,
+    });
+  }, [data.collocation, speakText]);
 
   // Determine permissions based on config
   const canAddToWordBank =
