@@ -17,6 +17,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../src/context/AuthContext";
 import { useSubscriptionStore } from "../src/stores/subscriptionStore";
 
+// Advertisement services
+import {
+  getActiveAdvertisements,
+  selectRandomAd,
+} from "../src/services/advertisementService";
+import type { Advertisement } from "../src/types/advertisement";
+
 // Duration in seconds before user can claim reward
 const AD_DURATION = 5; // seconds
 
@@ -63,14 +70,59 @@ export default function AdvertisementModal() {
   // Randomly selected video source (selected on component mount)
   const [videoSource, setVideoSource] = useState("");
 
+  // Selected advertisement from Firestore
+  const [selectedAd, setSelectedAd] = useState<Advertisement | null>(null);
+
   // === Effects ===
 
   /**
-   * Select a random advertisement video on component mount
+   * Load advertisement from Firestore (or fallback to TEST_ADS)
+   * Fetches active ads, selects one randomly, and configures display
    */
   useEffect(() => {
-    const randomAd = TEST_ADS[Math.floor(Math.random() * TEST_ADS.length)];
-    setVideoSource(randomAd);
+    const loadAd = async () => {
+      try {
+        const activeAds = await getActiveAdvertisements();
+
+        if (activeAds.length === 0) {
+          // Fallback to TEST_ADS if no active ads in Firestore
+          console.log("[Ad Modal] No active ads found, using TEST_ADS fallback");
+          const randomAd =
+            TEST_ADS[Math.floor(Math.random() * TEST_ADS.length)];
+          setVideoSource(randomAd);
+          setUseVideoFallback(false);
+          return;
+        }
+
+        // Select random ad from Firestore
+        const selected = selectRandomAd(activeAds);
+        if (!selected) {
+          console.warn("[Ad Modal] selectRandomAd returned null");
+          setUseVideoFallback(true);
+          return;
+        }
+
+        console.log(`[Ad Modal] Selected ad: ${selected.title} (${selected.type})`);
+        setSelectedAd(selected);
+
+        // Configure display based on ad type
+        if (selected.type === "video" && selected.videoUrl) {
+          setVideoSource(selected.videoUrl);
+          setUseVideoFallback(false);
+        } else if (selected.type === "image" && selected.imageUrl) {
+          setVideoSource(selected.imageUrl);
+          setUseVideoFallback(true); // Use image fallback display
+        }
+      } catch (error) {
+        console.error("[Ad Modal] Failed to load ads:", error);
+        // Fallback to TEST_ADS on error
+        const randomAd = TEST_ADS[Math.floor(Math.random() * TEST_ADS.length)];
+        setVideoSource(randomAd);
+        setUseVideoFallback(false);
+      }
+    };
+
+    loadAd();
   }, []);
 
   /**
@@ -169,7 +221,11 @@ export default function AdvertisementModal() {
           <View style={styles.videoContainer}>
             {useVideoFallback ? (
               <Image
-                source={require("../assets/images/test_ad.png")}
+                source={
+                  selectedAd?.type === "image" && selectedAd.imageUrl
+                    ? { uri: selectedAd.imageUrl }
+                    : require("../assets/images/test_ad.png")
+                }
                 style={styles.fallbackImage}
                 contentFit="contain"
               />
