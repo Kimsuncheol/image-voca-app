@@ -28,6 +28,10 @@ import UploadViaLinkView from "../../src/components/admin/UploadViaLinkView"; //
 import { useTheme } from "../../src/context/ThemeContext";
 import useGoogleSheetsAuth from "../../src/hooks/useGoogleSheetsAuth"; // Google OAuth authentication
 import { db, storage } from "../../src/services/firebase";
+import {
+  generateExampleSentence,
+  isExampleValid,
+} from "../../src/services/exampleGenerationService"; // AI example generation
 import { updateCourseMetadata } from "../../src/services/vocabularyPrefetch"; // Course metadata management
 import { parseSheetValues } from "../../src/utils/googleSheetsUtils";
 
@@ -211,7 +215,10 @@ export default function AddVocaScreen() {
       setLoading(false);
       setProgress("");
       setCsvItems([{ id: "1", day: "", file: null }]);
-      Alert.alert("Success", "All files uploaded successfully!");
+      Alert.alert(
+        "Success",
+        "All files uploaded successfully! Missing example sentences were automatically generated using AI.",
+      );
     } catch (err: any) {
       setLoading(false);
       Alert.alert("Error", err.message);
@@ -315,6 +322,7 @@ export default function AddVocaScreen() {
    * Uploads vocabulary data to Firestore
    * Used by both CSV and Google Sheets import methods
    * Clears existing data for the day before uploading new data
+   * Automatically generates missing example sentences using OpenAI
    */
   const uploadData = useCallback(
     async (data: any[], day: string, progressPrefix: string) => {
@@ -333,10 +341,11 @@ export default function AddVocaScreen() {
       }
 
       // Upload new vocabulary data to Firestore
-      setProgress(`${progressPrefix}Uploading ${data.length} records...`);
+      setProgress(`${progressPrefix}Processing ${data.length} records...`);
 
       let successCount = 0;
       let failCount = 0;
+      let aiGeneratedCount = 0;
 
       for (let i = 0; i < data.length; i++) {
         const item = data[i];
@@ -365,52 +374,122 @@ export default function AddVocaScreen() {
 
           // Different data structure for COLLOCATION vs other courses
           if (selectedCourse.name === "COLLOCATION") {
+            const meaning = String(
+              item["Meaning"] || item["meaning"] || item["_2"] || "",
+            ).trim();
+            const explanation = String(
+              item["Explanation"] || item["explanation"] || item["_3"] || "",
+            ).trim();
+            let example = String(
+              item["Example"] || item["example"] || item["_4"] || "",
+            ).trim();
+            let translation = String(
+              item["Translation"] || item["translation"] || item["_5"] || "",
+            ).trim();
+
+            // Generate example if missing or invalid
+            if (!example || !isExampleValid(example, word)) {
+              setProgress(
+                `${progressPrefix}Generating example for "${word}" (${i + 1}/${data.length})...`,
+              );
+              const generated = await generateExampleSentence({
+                word,
+                meaning: meaning || explanation,
+                courseLevel: "COLLOCATION",
+                translation: !translation, // Request translation if missing
+              });
+
+              if (generated.success) {
+                example = generated.example;
+                if (generated.translation && !translation) {
+                  translation = generated.translation;
+                }
+                aiGeneratedCount++;
+                console.log(
+                  `[AI] Generated example for "${word}":`,
+                  example,
+                );
+              } else {
+                console.warn(
+                  `[AI] Failed to generate example for "${word}":`,
+                  generated.error,
+                );
+              }
+            }
+
             docData = {
               collocation: word,
-              meaning: String(
-                item["Meaning"] || item["meaning"] || item["_2"] || "",
-              ).trim(),
-              explanation: String(
-                item["Explanation"] || item["explanation"] || item["_3"] || "",
-              ).trim(),
-              example: String(
-                item["Example"] || item["example"] || item["_4"] || "",
-              ).trim(),
-              translation: String(
-                item["Translation"] || item["translation"] || item["_5"] || "",
-              ).trim(),
+              meaning,
+              explanation,
+              example,
+              translation,
               createdAt: new Date(),
             };
           } else {
+            const meaning = String(
+              item["Meaning"] || item["meaning"] || item["_2"] || "",
+            ).trim();
+            let translation = String(
+              item["Translation"] || item["translation"] || item["_5"] || "",
+            ).trim();
+            const pronunciation = String(
+              item["Pronounciation"] ||
+                item["Pronunciation"] ||
+                item["pronunciation"] ||
+                item["_3"] ||
+                "",
+            ).trim();
+            let example = String(
+              item["Example sentence"] ||
+                item["Example"] ||
+                item["example"] ||
+                item["_4"] ||
+                "",
+            ).trim();
+
+            // Generate example if missing or invalid
+            if (!example || !isExampleValid(example, word)) {
+              setProgress(
+                `${progressPrefix}Generating example for "${word}" (${i + 1}/${data.length})...`,
+              );
+              const generated = await generateExampleSentence({
+                word,
+                meaning,
+                courseLevel: selectedCourse.name as any,
+                translation: !translation, // Request translation if missing
+              });
+
+              if (generated.success) {
+                example = generated.example;
+                if (generated.translation && !translation) {
+                  translation = generated.translation;
+                }
+                aiGeneratedCount++;
+                console.log(
+                  `[AI] Generated example for "${word}":`,
+                  example,
+                );
+              } else {
+                console.warn(
+                  `[AI] Failed to generate example for "${word}":`,
+                  generated.error,
+                );
+              }
+            }
+
             docData = {
               word: word,
-              meaning: String(
-                item["Meaning"] || item["meaning"] || item["_2"] || "",
-              ).trim(),
-              translation: String(
-                item["Translation"] || item["translation"] || item["_5"] || "",
-              ).trim(),
-              pronunciation: String(
-                item["Pronounciation"] ||
-                  item["Pronunciation"] ||
-                  item["pronunciation"] ||
-                  item["_3"] ||
-                  "",
-              ).trim(),
-              example: String(
-                item["Example sentence"] ||
-                  item["Example"] ||
-                  item["example"] ||
-                  item["_4"] ||
-                  "",
-              ).trim(),
+              meaning,
+              translation,
+              pronunciation,
+              example,
               createdAt: new Date(),
             };
           }
 
           await addDoc(collection(db, fullPath), docData);
           successCount++;
-          if (i % 10 === 0) {
+          if (i % 5 === 0) {
             setProgress(
               `${progressPrefix}Uploading ${successCount}/${data.length}...`,
             );
@@ -422,8 +501,17 @@ export default function AddVocaScreen() {
       }
 
       console.log(
-        `[Upload] Day ${day}: Success ${successCount}, Failed ${failCount}`,
+        `[Upload] Day ${day}: Success ${successCount}, Failed ${failCount}, AI Generated ${aiGeneratedCount}`,
       );
+
+      // Show summary if AI generated examples
+      if (aiGeneratedCount > 0) {
+        setProgress(
+          `${progressPrefix}Completed! (${aiGeneratedCount} examples generated by AI)`,
+        );
+        // Wait a bit so user can see the message
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
 
       // Update course metadata with the total number of days
       // This allows the app to know how many days are available for each course
@@ -530,7 +618,10 @@ export default function AddVocaScreen() {
       setLoading(false);
       setProgress("");
       setSheetItems([{ id: "1", day: "", sheetId: "", range: "Sheet1!A:E" }]);
-      Alert.alert("Success", "All sheets imported successfully!");
+      Alert.alert(
+        "Success",
+        "All sheets imported successfully! Missing example sentences were automatically generated using AI.",
+      );
     } catch (err: any) {
       console.error("[Sheets] Error:", err);
       Alert.alert("Import Error", err.message);
