@@ -1,8 +1,18 @@
 /**
- * AdForm Component
+ * AddAdsView (AdForm) Component
  *
- * Form for creating advertisements with image upload or video URL input.
- * Pattern based on GenerationForm.tsx and image upload from profile.tsx.
+ * Primary admin form for creating new advertisements.
+ *
+ * SECTION OVERVIEW:
+ * - Form state: Tracks ad type, media input, and metadata fields.
+ * - Media selection: Image picker for image ads, URL input for video ads.
+ * - Validation: Required fields and basic URL sanity checks.
+ * - Submission: Builds payload, calls service, handles success/error.
+ * - UI composition: Distinct sections for type, media, title, description, submit.
+ *
+ * Implementation notes:
+ * - Image picker uses expo-image-picker.
+ * - Create flow delegates persistence to createAdvertisement().
  */
 
 import { Ionicons } from "@expo/vector-icons";
@@ -34,15 +44,25 @@ interface AdFormProps {
 export function AdForm({ onAdCreated, userId, isDark }: AdFormProps) {
   const styles = getStyles(isDark);
 
-  // Form State
+  // ---------------------------------------------------------------------------
+  // SECTION: Form State
+  // ---------------------------------------------------------------------------
+  // FEATURE: Ad type selection (image or video)
   const [type, setType] = useState<AdType>("image");
+  // FEATURE: Image ad media (local URI from picker)
   const [imageUri, setImageUri] = useState<string | null>(null);
+  // FEATURE: Video ad media (remote URL)
   const [videoUrl, setVideoUrl] = useState("");
+  // FEATURE: Admin-facing metadata
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  // FEATURE: Submission/async state
   const [uploading, setUploading] = useState(false);
 
-  // Handle image selection
+  // ---------------------------------------------------------------------------
+  // SECTION: Media Selection
+  // ---------------------------------------------------------------------------
+  // FEATURE: Image picker flow for image ads
   const handlePickImage = async () => {
     try {
       const result = await launchImageLibraryAsync({
@@ -60,7 +80,10 @@ export function AdForm({ onAdCreated, userId, isDark }: AdFormProps) {
     }
   };
 
-  // Validate form
+  // ---------------------------------------------------------------------------
+  // SECTION: Validation
+  // ---------------------------------------------------------------------------
+  // FEATURE: Enforce required fields and basic URL validity
   const validateForm = (): boolean => {
     if (!title.trim()) {
       Alert.alert("Validation Error", "Please enter an ad title");
@@ -85,7 +108,10 @@ export function AdForm({ onAdCreated, userId, isDark }: AdFormProps) {
     return true;
   };
 
-  // Reset form
+  // ---------------------------------------------------------------------------
+  // SECTION: Form Reset
+  // ---------------------------------------------------------------------------
+  // FEATURE: Restore defaults after successful submission
   const resetForm = () => {
     setType("image");
     setImageUri(null);
@@ -94,7 +120,10 @@ export function AdForm({ onAdCreated, userId, isDark }: AdFormProps) {
     setDescription("");
   };
 
-  // Handle form submission
+  // ---------------------------------------------------------------------------
+  // SECTION: Submission
+  // ---------------------------------------------------------------------------
+  // FEATURE: Build payload and call createAdvertisement service
   const handleSubmit = async () => {
     if (!validateForm()) {
       return;
@@ -102,6 +131,7 @@ export function AdForm({ onAdCreated, userId, isDark }: AdFormProps) {
 
     setUploading(true);
     try {
+      // Map UI state into API payload; include only relevant media fields.
       const formData: AdFormData = {
         type,
         title: title.trim(),
@@ -112,6 +142,7 @@ export function AdForm({ onAdCreated, userId, isDark }: AdFormProps) {
 
       await createAdvertisement(formData, userId);
 
+      // Notify success and reset UI to initial state.
       Alert.alert("Success", "Advertisement created successfully");
       resetForm();
       onAdCreated();
@@ -125,7 +156,8 @@ export function AdForm({ onAdCreated, userId, isDark }: AdFormProps) {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Type Selector */}
+      {/* SECTION: Type Selector */}
+      {/* FEATURE: Toggle between image and video ad types */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Advertisement Type</Text>
         <View style={styles.typeSelector}>
@@ -175,7 +207,8 @@ export function AdForm({ onAdCreated, userId, isDark }: AdFormProps) {
         </View>
       </View>
 
-      {/* Media Input */}
+      {/* SECTION: Media Input */}
+      {/* FEATURE: Conditional media input based on ad type */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>
           {type === "image" ? "Image" : "Video URL"}
@@ -217,7 +250,8 @@ export function AdForm({ onAdCreated, userId, isDark }: AdFormProps) {
         )}
       </View>
 
-      {/* Title Input */}
+      {/* SECTION: Title Input */}
+      {/* FEATURE: Required title for admin reference/searchability */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>
           Title <Text style={styles.required}>*</Text>
@@ -232,7 +266,8 @@ export function AdForm({ onAdCreated, userId, isDark }: AdFormProps) {
         />
       </View>
 
-      {/* Description Input */}
+      {/* SECTION: Description Input */}
+      {/* FEATURE: Optional notes field for internal admin use */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Description (optional)</Text>
         <TextInput
@@ -247,7 +282,8 @@ export function AdForm({ onAdCreated, userId, isDark }: AdFormProps) {
         />
       </View>
 
-      {/* Submit Button */}
+      {/* SECTION: Submission CTA */}
+      {/* FEATURE: Disabled state and inline loader during upload */}
       <TouchableOpacity
         style={[
           styles.submitButton,
