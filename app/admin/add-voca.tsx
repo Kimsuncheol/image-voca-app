@@ -32,6 +32,7 @@ import {
   generateExampleSentence,
   isExampleValid,
 } from "../../src/services/exampleGenerationService"; // AI example generation
+import { getIpaUSUK } from "../../src/services/ipa/wiktionaryIpaService"; // IPA pronunciation fetching
 import { updateCourseMetadata } from "../../src/services/vocabularyPrefetch"; // Course metadata management
 import { parseSheetValues } from "../../src/utils/googleSheetsUtils";
 
@@ -432,7 +433,7 @@ export default function AddVocaScreen() {
             let translation = String(
               item["Translation"] || item["translation"] || item["_5"] || "",
             ).trim();
-            const pronunciation = String(
+            let pronunciation = String(
               item["Pronounciation"] ||
                 item["Pronunciation"] ||
                 item["pronunciation"] ||
@@ -446,6 +447,34 @@ export default function AddVocaScreen() {
                 item["_4"] ||
                 "",
             ).trim();
+
+            // Fetch IPA from Wiktionary if pronunciation is missing
+            // Only for single words (not collocations/phrases)
+            if (!pronunciation && word && !word.includes(" ")) {
+              try {
+                setProgress(
+                  `${progressPrefix}Fetching IPA for "${word}" (${i + 1}/${data.length})...`,
+                );
+                const ipaResult = await getIpaUSUK(word);
+                if (ipaResult.source === "wiktionary") {
+                  // Combine US and UK pronunciations if both available
+                  if (ipaResult.us && ipaResult.uk) {
+                    pronunciation = `US: ${ipaResult.us} | UK: ${ipaResult.uk}`;
+                  } else if (ipaResult.us) {
+                    pronunciation = ipaResult.us;
+                  } else if (ipaResult.uk) {
+                    pronunciation = ipaResult.uk;
+                  }
+                  console.log(
+                    `[IPA] Fetched pronunciation for "${word}":`,
+                    pronunciation,
+                  );
+                }
+              } catch (ipaError) {
+                console.warn(`[IPA] Failed to fetch for "${word}":`, ipaError);
+                // Continue without pronunciation - non-blocking
+              }
+            }
 
             // Generate example if missing or invalid
             if (!example || !isExampleValid(example, word)) {
