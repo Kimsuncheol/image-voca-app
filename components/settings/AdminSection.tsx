@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 import { useSubscriptionStore } from "../../src/stores/subscriptionStore";
 import { AddVocabularyRow } from "./admin/features/AddVocabularyRow";
 import { AdminCodesRow } from "./admin/features/AdminCodesRow";
+import { AdvertisementsRow } from "./admin/features/AdvertisementsRow";
 import { MembersRow } from "./admin/features/MembersRow";
 import { PromotionCodesRow } from "./admin/features/PromotionCodesRow";
 
@@ -28,6 +29,7 @@ export const AdminSection: React.FC<AdminSectionProps> = ({
       <Text style={styles.sectionTitle}>{t("settings.admin.title")}</Text>
       <View style={styles.card}>
         <AddVocabularyRow styles={styles} isDark={isDark} t={t} />
+        <AdvertisementsRow styles={styles} isDark={isDark} t={t} />
         <MembersRow styles={styles} isDark={isDark} t={t} />
         <PromotionCodesRow styles={styles} isDark={isDark} t={t} />
         <AdminCodesRow styles={styles} isDark={isDark} t={t} />

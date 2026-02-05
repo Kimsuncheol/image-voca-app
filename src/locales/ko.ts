@@ -61,6 +61,7 @@ const ko = {
     admin: {
       title: "관리자",
       addVocabulary: "단어 추가",
+      advertisements: "광고 관리",
       members: "회원 관리",
       promotionCodes: "프로모션 코드",
       adminCodes: "관리자 코드",

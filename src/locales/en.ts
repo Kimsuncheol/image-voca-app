@@ -61,6 +61,7 @@ const en = {
     admin: {
       title: "Admin",
       addVocabulary: "Add Vocabulary",
+      advertisements: "Advertisements",
       members: "Member Administration",
       promotionCodes: "Promotion Codes",
       adminCodes: "Admin Codes",
