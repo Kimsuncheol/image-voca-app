@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { Alert, Linking, ScrollView, StyleSheet, View } from "react-native";
 import { AccountSection } from "../../components/settings/AccountSection";
 import { AdminSection } from "../../components/settings/AdminSection";
-import { TeacherSection } from "../../components/settings/TeacherSection";
 import { AppearanceSection } from "../../components/settings/AppearanceSection";
 import { LanguageSection } from "../../components/settings/LanguageSection";
 import { NotificationsSection } from "../../components/settings/NotificationsSection";
@@ -227,8 +226,6 @@ export default function SettingsScreen() {
         />
 
         <AdminSection styles={styles} t={t} isDark={isDark} />
-
-        <TeacherSection styles={styles} t={t} isDark={isDark} />
 
         <SignOutSection styles={styles} onSignOut={handleSignOut} t={t} />
       </ScrollView>
