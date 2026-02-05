@@ -28,10 +28,7 @@ import UploadViaLinkView from "../../src/components/admin/UploadViaLinkView"; //
 import { useTheme } from "../../src/context/ThemeContext";
 import useGoogleSheetsAuth from "../../src/hooks/useGoogleSheetsAuth"; // Google OAuth authentication
 import { db, storage } from "../../src/services/firebase";
-import {
-  generateExampleSentence,
-  isExampleValid,
-} from "../../src/services/exampleGenerationService"; // AI example generation
+import { generateLinguisticData } from "../../src/services/linguisticDataService"; // AI linguistic data generation
 import { getIpaUSUK } from "../../src/services/ipa/wiktionaryIpaService"; // IPA pronunciation fetching
 import { updateCourseMetadata } from "../../src/services/vocabularyPrefetch"; // Course metadata management
 import { parseSheetValues } from "../../src/utils/googleSheetsUtils";
@@ -218,7 +215,7 @@ export default function AddVocaScreen() {
       setCsvItems([{ id: "1", day: "", file: null }]);
       Alert.alert(
         "Success",
-        "All files uploaded successfully! Missing example sentences were automatically generated using AI.",
+        "All files uploaded successfully! Linguistic data (synonyms, antonyms, related words, word forms) was generated using AI.",
       );
     } catch (err: any) {
       setLoading(false);
@@ -388,36 +385,7 @@ export default function AddVocaScreen() {
               item["Translation"] || item["translation"] || item["_5"] || "",
             ).trim();
 
-            // Generate example if missing or invalid
-            if (!example || !isExampleValid(example, word)) {
-              setProgress(
-                `${progressPrefix}Generating example for "${word}" (${i + 1}/${data.length})...`,
-              );
-              const generated = await generateExampleSentence({
-                word,
-                meaning: meaning || explanation,
-                courseLevel: "COLLOCATION",
-                translation: !translation, // Request translation if missing
-              });
-
-              if (generated.success) {
-                example = generated.example;
-                if (generated.translation && !translation) {
-                  translation = generated.translation;
-                }
-                aiGeneratedCount++;
-                console.log(
-                  `[AI] Generated example for "${word}":`,
-                  example,
-                );
-              } else {
-                console.warn(
-                  `[AI] Failed to generate example for "${word}":`,
-                  generated.error,
-                );
-              }
-            }
-
+            // COLLOCATION course: Skip linguistic data generation (uses phrases, not single words)
             docData = {
               collocation: word,
               meaning,
@@ -476,34 +444,27 @@ export default function AddVocaScreen() {
               }
             }
 
-            // Generate example if missing or invalid
-            if (!example || !isExampleValid(example, word)) {
-              setProgress(
-                `${progressPrefix}Generating example for "${word}" (${i + 1}/${data.length})...`,
-              );
-              const generated = await generateExampleSentence({
-                word,
-                meaning,
-                courseLevel: selectedCourse.name as any,
-                translation: !translation, // Request translation if missing
-              });
+            // Generate linguistic data (synonyms, antonyms, related words, word forms)
+            setProgress(
+              `${progressPrefix}Generating linguistic data for "${word}" (${i + 1}/${data.length})...`,
+            );
+            const linguisticData = await generateLinguisticData({
+              word,
+              meaning,
+              courseLevel: selectedCourse.name as any,
+            });
 
-              if (generated.success) {
-                example = generated.example;
-                if (generated.translation && !translation) {
-                  translation = generated.translation;
-                }
-                aiGeneratedCount++;
-                console.log(
-                  `[AI] Generated example for "${word}":`,
-                  example,
-                );
-              } else {
-                console.warn(
-                  `[AI] Failed to generate example for "${word}":`,
-                  generated.error,
-                );
-              }
+            if (linguisticData.success) {
+              aiGeneratedCount++;
+              console.log(
+                `[AI] Generated linguistic data for "${word}":`,
+                linguisticData,
+              );
+            } else {
+              console.warn(
+                `[AI] Failed to generate linguistic data for "${word}":`,
+                linguisticData.error,
+              );
             }
 
             docData = {
@@ -511,8 +472,20 @@ export default function AddVocaScreen() {
               meaning,
               translation,
               pronunciation,
-              example,
+              example: example || "", // Keep for backward compatibility
               createdAt: new Date(),
+              // Linguistic data fields
+              partOfSpeech: linguisticData.success
+                ? linguisticData.partOfSpeech
+                : null,
+              synonyms: linguisticData.success ? linguisticData.synonyms : [],
+              antonyms: linguisticData.success ? linguisticData.antonyms : [],
+              relatedWords: linguisticData.success
+                ? linguisticData.relatedWords
+                : [],
+              wordForms: linguisticData.success
+                ? linguisticData.wordForms
+                : null,
             };
           }
 
@@ -533,10 +506,10 @@ export default function AddVocaScreen() {
         `[Upload] Day ${day}: Success ${successCount}, Failed ${failCount}, AI Generated ${aiGeneratedCount}`,
       );
 
-      // Show summary if AI generated examples
+      // Show summary if AI generated linguistic data
       if (aiGeneratedCount > 0) {
         setProgress(
-          `${progressPrefix}Completed! (${aiGeneratedCount} examples generated by AI)`,
+          `${progressPrefix}Completed! (${aiGeneratedCount} words processed by AI)`,
         );
         // Wait a bit so user can see the message
         await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -649,7 +622,7 @@ export default function AddVocaScreen() {
       setSheetItems([{ id: "1", day: "", sheetId: "", range: "Sheet1!A:E" }]);
       Alert.alert(
         "Success",
-        "All sheets imported successfully! Missing example sentences were automatically generated using AI.",
+        "All sheets imported successfully! Linguistic data (synonyms, antonyms, related words, word forms) was generated using AI.",
       );
     } catch (err: any) {
       console.error("[Sheets] Error:", err);

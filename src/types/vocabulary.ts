@@ -1,3 +1,5 @@
+import type { PartOfSpeech, WordForms } from "../services/linguisticDataService";
+
 export interface VocabularyCard {
   id: string;
   word: string;
@@ -7,7 +9,15 @@ export interface VocabularyCard {
   example: string;
   image?: string;
   course: CourseType;
+  // Linguistic data fields
+  partOfSpeech?: PartOfSpeech;
+  synonyms?: string[];
+  antonyms?: string[];
+  relatedWords?: string[];
+  wordForms?: WordForms;
 }
+
+export type { PartOfSpeech, WordForms };
 
 export type CourseType =
   | "수능"

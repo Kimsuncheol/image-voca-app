@@ -183,9 +183,15 @@ export const fetchVocabularyCards = async (
       meaning: data.meaning,
       translation: data.translation,
       pronunciation: data.pronunciation,
-      example: data.example,
+      example: data.example || "",
       image: data.image,
       course: courseId,
+      // Linguistic data fields
+      partOfSpeech: data.partOfSpeech,
+      synonyms: data.synonyms || [],
+      antonyms: data.antonyms || [],
+      relatedWords: data.relatedWords || [],
+      wordForms: data.wordForms,
     };
   });
 
