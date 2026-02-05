@@ -8,6 +8,7 @@ import { AdminSection } from "../../components/settings/AdminSection";
 import { AppearanceSection } from "../../components/settings/AppearanceSection";
 import { LanguageSection } from "../../components/settings/LanguageSection";
 import { NotificationsSection } from "../../components/settings/NotificationsSection";
+import { SettingsHeader } from "../../components/settings/SettingsHeader";
 import { SignOutSection } from "../../components/settings/SignOutSection";
 import { StudySection } from "../../components/settings/StudySection";
 import { useAuth } from "../../src/context/AuthContext";
@@ -190,6 +191,8 @@ export default function SettingsScreen() {
             headerTitleStyle: styles.headerTitle,
           }}
         />
+
+        <SettingsHeader isDark={isDark} t={t} />
 
         <AppearanceSection
           styles={styles}

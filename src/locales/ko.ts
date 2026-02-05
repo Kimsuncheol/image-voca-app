@@ -27,6 +27,7 @@ const ko = {
   },
   settings: {
     title: "설정",
+    subtitle: "환경 설정 관리",
     appearance: {
       title: "화면",
       light: "라이트",

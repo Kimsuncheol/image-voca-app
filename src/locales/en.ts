@@ -27,6 +27,7 @@ const en = {
   },
   settings: {
     title: "Settings",
+    subtitle: "Manage your preferences",
     appearance: {
       title: "Appearance",
       light: "Light",
