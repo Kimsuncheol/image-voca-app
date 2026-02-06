@@ -25,11 +25,13 @@ const getDynamicFontSize = (text: string): number => {
   return 14;
 };
 
-// Target courses for pop quiz: CSAT, Collocation, TOEIC
+// Target courses for pop quiz: CSAT, Collocation, TOEIC, TOEFL, IELTS
 const QUIZ_COURSES = [
-  { id: "수능", wordsPerCourse: 5 },
-  { id: "COLLOCATION", wordsPerCourse: 5 },
-  { id: "TOEIC", wordsPerCourse: 5 },
+  { id: "수능", wordsPerCourse: 3 },
+  { id: "COLLOCATION", wordsPerCourse: 3 },
+  { id: "TOEIC", wordsPerCourse: 3 },
+  { id: "TOEFL", wordsPerCourse: 3 },
+  { id: "IELTS", wordsPerCourse: 3 },
 ] as const;
 
 /**
