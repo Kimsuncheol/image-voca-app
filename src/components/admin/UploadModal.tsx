@@ -22,6 +22,9 @@ interface UploadModalProps {
   sheetItem: SheetUploadItem;
   setSheetItem: React.Dispatch<React.SetStateAction<SheetUploadItem>>;
   loading: boolean;
+  primaryActionLabel: string;
+  onPrimaryAction: () => void;
+  primaryActionDisabled: boolean;
 }
 
 export default function UploadModal({
@@ -35,10 +38,14 @@ export default function UploadModal({
   sheetItem,
   setSheetItem,
   loading,
+  primaryActionLabel,
+  onPrimaryAction,
+  primaryActionDisabled,
 }: UploadModalProps) {
   const styles = getStyles(isDark);
 
   const title = modalType === "csv" ? "Upload CSV File" : "Import via Link";
+  const actionColor = modalType === "csv" ? "#007AFF" : "#0F9D58";
 
   return (
     <Modal
@@ -80,6 +87,20 @@ export default function UploadModal({
             />
           )}
         </View>
+
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[
+              styles.primaryButton,
+              { backgroundColor: actionColor },
+              (loading || primaryActionDisabled) && styles.primaryButtonDisabled,
+            ]}
+            onPress={onPrimaryAction}
+            disabled={loading || primaryActionDisabled}
+          >
+            <Text style={styles.primaryButtonText}>{primaryActionLabel}</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     </Modal>
   );
@@ -115,5 +136,25 @@ const getStyles = (isDark: boolean) =>
     },
     content: {
       flex: 1,
+    },
+    footer: {
+      padding: 20,
+      borderTopWidth: 1,
+      borderTopColor: isDark ? "#38383a" : "#e5e5ea",
+      backgroundColor: isDark ? "#1c1c1e" : "#fff",
+    },
+    primaryButton: {
+      paddingVertical: 14,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    primaryButtonDisabled: {
+      opacity: 0.6,
+    },
+    primaryButtonText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "600",
     },
   });
