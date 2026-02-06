@@ -1,10 +1,11 @@
-import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Modal, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CsvUploadItem } from "./CsvUploadItemView";
 import { SheetUploadItem } from "./GoogleSheetUploadItemView";
 import UploadCSVFileView from "./UploadCSVFileView";
+import UploadModalHeader from "./UploadModalHeader";
+import UploadModalPrimaryAction from "./UploadModalPrimaryAction";
 import UploadViaLinkView from "./UploadViaLinkView";
 
 type ModalType = "csv" | "link";
@@ -55,18 +56,12 @@ export default function UploadModal({
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={onClose}
-            disabled={loading}
-          >
-            <Ionicons name="close" size={24} color={isDark ? "#fff" : "#000"} />
-          </TouchableOpacity>
-          <Text style={styles.title}>{title}</Text>
-          <View style={styles.placeholder} />
-        </View>
+        <UploadModalHeader
+          isDark={isDark}
+          title={title}
+          onClose={onClose}
+          loading={loading}
+        />
 
         {/* Content */}
         <View style={styles.content}>
@@ -88,19 +83,14 @@ export default function UploadModal({
           )}
         </View>
 
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[
-              styles.primaryButton,
-              { backgroundColor: actionColor },
-              (loading || primaryActionDisabled) && styles.primaryButtonDisabled,
-            ]}
-            onPress={onPrimaryAction}
-            disabled={loading || primaryActionDisabled}
-          >
-            <Text style={styles.primaryButtonText}>{primaryActionLabel}</Text>
-          </TouchableOpacity>
-        </View>
+        <UploadModalPrimaryAction
+          isDark={isDark}
+          label={primaryActionLabel}
+          actionColor={actionColor}
+          onPress={onPrimaryAction}
+          loading={loading}
+          disabled={primaryActionDisabled}
+        />
       </SafeAreaView>
     </Modal>
   );
@@ -112,49 +102,7 @@ const getStyles = (isDark: boolean) =>
       flex: 1,
       backgroundColor: isDark ? "#000" : "#f2f2f7",
     },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: 16,
-      marginBottom: 16,
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: isDark ? "#38383a" : "#e5e5ea",
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
-    },
-    closeButton: {
-      padding: 4,
-    },
-    title: {
-      fontSize: 17,
-      fontWeight: "600",
-      color: isDark ? "#fff" : "#000",
-    },
-    placeholder: {
-      width: 32,
-    },
     content: {
       flex: 1,
-    },
-    footer: {
-      padding: 20,
-      borderTopWidth: 1,
-      borderTopColor: isDark ? "#38383a" : "#e5e5ea",
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
-    },
-    primaryButton: {
-      paddingVertical: 14,
-      borderRadius: 12,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    primaryButtonDisabled: {
-      opacity: 0.6,
-    },
-    primaryButtonText: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "600",
     },
   });
