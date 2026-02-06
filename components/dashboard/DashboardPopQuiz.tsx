@@ -5,12 +5,25 @@ import { useTranslation } from "react-i18next";
 import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
-import { useSpeech } from "../../src/hooks/useSpeech";
 import { db } from "../../src/services/firebase";
 import { useUserStatsStore } from "../../src/stores";
 import { QuizTimer } from "../course/QuizTimer";
 import { ThemedText } from "../themed-text";
 import { PopQuizSkeleton } from "./PopQuizSkeleton";
+
+/**
+ * Get dynamic font size based on text length.
+ * Longer collocations/words get smaller fonts to fit properly.
+ */
+const getDynamicFontSize = (text: string): number => {
+  const length = text.length;
+  if (length <= 10) return 24;
+  if (length <= 15) return 22;
+  if (length <= 20) return 20;
+  if (length <= 25) return 18;
+  if (length <= 30) return 16;
+  return 14;
+};
 
 // Target courses for pop quiz: CSAT, Collocation, TOEIC
 const QUIZ_COURSES = [
@@ -37,7 +50,6 @@ export function DashboardPopQuiz() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { bufferQuizAnswer, flushQuizStats } = useUserStatsStore();
-  const { speak: speakText, stop: stopSpeech } = useSpeech();
 
   // ---------------------------------------------------------------------------
   // State Management
@@ -59,6 +71,10 @@ export function DashboardPopQuiz() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const quizKey = `${turnNumber}-${currentIndex}`;
+
+  // Wrong answer tracking: stops quiz after 3 wrong answers
+  const [wrongCount, setWrongCount] = useState(0);
+  const [isStopped, setIsStopped] = useState(false);
 
   // ---------------------------------------------------------------------------
   // Animations & Cache
@@ -343,6 +359,7 @@ export function DashboardPopQuiz() {
         setNextBatch([]);
         setCurrentIndex(0);
         setTurnNumber((prev) => prev + 1);
+        setWrongCount(0); // Reset wrong count for new batch
         generateQuiz(nextBatch[0], nextBatch);
       } else {
         // No next batch, fetch new one
@@ -427,35 +444,11 @@ export function DashboardPopQuiz() {
   }, [user, flushQuizStats]);
 
   // ---------------------------------------------------------------------------
-  // TTS Handler
-  // ---------------------------------------------------------------------------
-  /**
-   * Speaks the current quiz word using TTS
-   */
-  const handleSpeak = useCallback(() => {
-    if (quizItem) {
-      speakText(quizItem.word, {
-        language: "en-US",
-        rate: 0.9,
-      });
-    }
-  }, [quizItem, speakText]);
-
-  /**
-   * effect: Stop TTS when quiz item changes or component unmounts
-   */
-  useEffect(() => {
-    return () => {
-      stopSpeech();
-    };
-  }, [quizItem, stopSpeech]);
-
-  // ---------------------------------------------------------------------------
   // Interaction Handlers
   // ---------------------------------------------------------------------------
   const handleOptionPress = useCallback(
     (option: string) => {
-      if (isCorrect === true || !quizItem) return; // Only lock after correct answer
+      if (isCorrect === true || !quizItem || isStopped) return; // Lock if stopped
 
       const isAnswerCorrect = option === quizItem.meaning;
       setSelectedOption(option);
@@ -473,22 +466,65 @@ export function DashboardPopQuiz() {
           setIsCorrect(null);
           loadNextQuiz();
         }, 500);
+      } else {
+        // Wrong answer - increment count and check if should stop
+        const newWrongCount = wrongCount + 1;
+        setWrongCount(newWrongCount);
+        if (newWrongCount >= 3) {
+          setIsStopped(true);
+        }
       }
     },
-    [isCorrect, quizItem, user, bufferQuizAnswer, loadNextQuiz],
+    [
+      isCorrect,
+      quizItem,
+      user,
+      bufferQuizAnswer,
+      loadNextQuiz,
+      wrongCount,
+      isStopped,
+    ],
   );
 
   const handleTimeUp = useCallback(() => {
-    if (isCorrect === true || !quizItem) return;
+    if (isCorrect === true || !quizItem || isStopped) return;
 
     if (user) {
       bufferQuizAnswer(user.uid, false);
     }
 
+    // Time up counts as wrong answer
+    const newWrongCount = wrongCount + 1;
+    setWrongCount(newWrongCount);
+    if (newWrongCount >= 3) {
+      setIsStopped(true);
+      return;
+    }
+
     setSelectedOption(null);
     setIsCorrect(null);
     loadNextQuiz();
-  }, [isCorrect, quizItem, user, bufferQuizAnswer, loadNextQuiz]);
+  }, [
+    isCorrect,
+    quizItem,
+    user,
+    bufferQuizAnswer,
+    loadNextQuiz,
+    wrongCount,
+    isStopped,
+  ]);
+
+  /**
+   * Restart the quiz after being stopped due to 3 wrong answers.
+   * Resets wrong count and continues with the next question.
+   */
+  const handleRestart = useCallback(() => {
+    setWrongCount(0);
+    setIsStopped(false);
+    setSelectedOption(null);
+    setIsCorrect(null);
+    loadNextQuiz();
+  }, [loadNextQuiz]);
 
   // ---------------------------------------------------------------------------
   // Render
@@ -519,49 +555,70 @@ export function DashboardPopQuiz() {
         <QuizTimer
           duration={15}
           onTimeUp={handleTimeUp}
-          isRunning={isCorrect === null && !loading}
+          isRunning={isCorrect === null && !loading && !isStopped}
           quizKey={quizKey}
         />
 
-        <Animated.View style={{ opacity: fadeAnim }}>
-          <View style={styles.popQuizQuestion}>
-            <ThemedText style={styles.popQuizQuestionLabel}>
-              {t("dashboard.popQuiz.question")}
+        {isStopped ? (
+          // Stopped state - show restart button
+          <View style={styles.stoppedContainer}>
+            <Ionicons
+              name="alert-circle"
+              size={48}
+              color={isDark ? "#ff6b6b" : "#dc3545"}
+            />
+            <ThemedText style={styles.stoppedTitle}>
+              {t("dashboard.popQuiz.stoppedTitle", {
+                defaultValue: "Quiz Paused",
+              })}
             </ThemedText>
-            <View style={styles.popQuizQuestionRow}>
-              <ThemedText style={styles.popQuizQuestionText}>
-                {quizItem.word}
+            <ThemedText style={styles.stoppedSubtitle}>
+              {t("dashboard.popQuiz.stoppedSubtitle", {
+                defaultValue: "You got 3 wrong answers",
+              })}
+            </ThemedText>
+            <TouchableOpacity
+              style={styles.startButton}
+              onPress={handleRestart}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="play" size={20} color="#fff" />
+              <ThemedText style={styles.startButtonText}>
+                {t("dashboard.popQuiz.startButton", { defaultValue: "Start" })}
               </ThemedText>
-              <TouchableOpacity
-                onPress={handleSpeak}
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <Animated.View style={{ opacity: fadeAnim }}>
+            <View style={styles.popQuizQuestion}>
+              <ThemedText style={styles.popQuizQuestionLabel}>
+                {t("dashboard.popQuiz.question")}
+              </ThemedText>
+              <ThemedText
                 style={[
-                  styles.speakerButton,
-                  { backgroundColor: isDark ? "#2c2c2e" : "#fff" },
+                  styles.popQuizQuestionText,
+                  { fontSize: getDynamicFontSize(quizItem.word) },
                 ]}
               >
-                <Ionicons
-                  name="volume-medium"
-                  size={20}
-                  color={isDark ? "#aaa" : "#666"}
-                />
-              </TouchableOpacity>
+                {quizItem.word}
+              </ThemedText>
             </View>
-          </View>
 
-          <View style={styles.popQuizOptions}>
-            {options.map((option, index) => (
-              <PopQuizOption
-                key={`${option}-${index}`}
-                option={option}
-                isSelected={selectedOption === option}
-                isCorrect={option === quizItem.meaning}
-                isAnswered={isCorrect === true}
-                isDark={isDark}
-                onPress={handleOptionPress}
-              />
-            ))}
-          </View>
-        </Animated.View>
+            <View style={styles.popQuizOptions}>
+              {options.map((option, index) => (
+                <PopQuizOption
+                  key={`${option}-${index}`}
+                  option={option}
+                  isSelected={selectedOption === option}
+                  isCorrect={option === quizItem.meaning}
+                  isAnswered={isCorrect === true}
+                  isDark={isDark}
+                  onPress={handleOptionPress}
+                />
+              ))}
+            </View>
+          </Animated.View>
+        )}
       </View>
     </View>
   );
@@ -719,5 +776,36 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 14,
+  },
+  stoppedContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 32,
+    gap: 12,
+  },
+  stoppedTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginTop: 8,
+  },
+  stoppedSubtitle: {
+    fontSize: 14,
+    opacity: 0.6,
+    textAlign: "center",
+  },
+  startButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#007AFF",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 24,
+    gap: 8,
+    marginTop: 8,
+  },
+  startButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
   },
 });
