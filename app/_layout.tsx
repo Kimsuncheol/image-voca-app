@@ -1,9 +1,9 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider as NavigationThemeProvider,
 } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -14,6 +14,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useColorScheme } from "../hooks/use-color-scheme";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import { ThemeProvider as AppThemeProvider } from "../src/context/ThemeContext";
+import { UploadProvider } from "../src/context/UploadContext";
 import { usePushNotifications } from "../src/hooks/usePushNotifications";
 import "../src/i18n";
 import { hydrateLanguage } from "../src/i18n";
@@ -185,9 +186,11 @@ export default function RootLayout() {
   return (
     <AppThemeProvider>
       <AuthProvider>
-        <AppBootstrap>
-          <RootLayoutNav />
-        </AppBootstrap>
+        <UploadProvider>
+          <AppBootstrap>
+            <RootLayoutNav />
+          </AppBootstrap>
+        </UploadProvider>
       </AuthProvider>
     </AppThemeProvider>
   );
