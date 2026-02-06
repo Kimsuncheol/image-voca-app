@@ -6,7 +6,9 @@ import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
+import { getTotalDaysForCourse } from "../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../src/stores";
+import { CourseType } from "../../src/types/vocabulary";
 import { QuizTimer } from "../course/QuizTimer";
 import { ThemedText } from "../themed-text";
 import { PopQuizSkeleton } from "./PopQuizSkeleton";
@@ -33,6 +35,16 @@ const QUIZ_COURSES = [
   { id: "TOEFL", wordsPerCourse: 3 },
   { id: "IELTS", wordsPerCourse: 3 },
 ] as const;
+
+const DEBUG_TOTAL_DAYS_COURSES: CourseType[] = [
+  "수능",
+  "COLLOCATION",
+  "TOEIC",
+  "TOEFL",
+  "IELTS",
+  "OPIC",
+  "TOEIC_SPEAKING",
+];
 
 /**
  * DashboardPopQuiz Component
@@ -82,9 +94,12 @@ export function DashboardPopQuiz() {
   // Animations & Cache
   // ---------------------------------------------------------------------------
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const hasLoggedTotalDays = useRef(false);
 
   // Cache for fetched batches (key: "courseId-dayNum", value: word array)
   const batchCache = useRef<Map<string, any[]>>(new Map());
+  // Cache for per-course metadata totalDays to avoid repeated Firestore reads
+  const totalDaysCache = useRef<Map<string, number>>(new Map());
 
   // ---------------------------------------------------------------------------
   // Helper Functions
@@ -144,8 +159,26 @@ export function DashboardPopQuiz() {
 
       const collectedWords: any[] = [];
 
-      // Generate random days to try (1-30)
-      const daysToTry = Array.from({ length: 30 }, (_, index) => index + 1)
+      let totalDays: number;
+      const cachedTotalDays = totalDaysCache.current.get(courseId);
+      if (typeof cachedTotalDays === "number") {
+        totalDays = cachedTotalDays;
+        console.log(`[PopQuiz] Using cached totalDays for ${courseId}: ${totalDays}`);
+      } else {
+        totalDays = await getTotalDaysForCourse(courseId as CourseType);
+        totalDaysCache.current.set(courseId, totalDays);
+        console.log(`[PopQuiz] Fetched totalDays from Firestore for ${courseId}: ${totalDays}`);
+      }
+
+      if (totalDays <= 0) {
+        console.log(
+          `[PopQuiz] Skipping ${courseId}: totalDays is ${totalDays} (no available days)`,
+        );
+        return [];
+      }
+
+      // Generate random days to try (1-totalDays from Firestore)
+      const daysToTry = Array.from({ length: totalDays }, (_, index) => index + 1)
         .sort(() => Math.random() - 0.5)
         .slice(0, 10); // Try more days to find enough words
 
@@ -260,6 +293,29 @@ export function DashboardPopQuiz() {
       return [];
     }
   }, [fetchWordsFromCourse]);
+
+  useEffect(() => {
+    if (hasLoggedTotalDays.current) return;
+    hasLoggedTotalDays.current = true;
+
+    const logTotalDays = async () => {
+      try {
+        const entries = await Promise.all(
+          DEBUG_TOTAL_DAYS_COURSES.map(async (courseId) => {
+            const totalDays = await getTotalDaysForCourse(courseId);
+            return [courseId, totalDays] as const;
+          }),
+        );
+
+        const totals = Object.fromEntries(entries) as Record<CourseType, number>;
+        console.log("[PopQuiz][Debug] Course totalDays:", totals);
+      } catch (error) {
+        console.log("[PopQuiz][Debug] Failed to fetch totalDays:", error);
+      }
+    };
+
+    void logTotalDays();
+  }, []);
 
   /**
    * Prefetch the next batch in the background with retry logic.
