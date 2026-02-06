@@ -8,10 +8,16 @@ import { useTheme } from "../../src/context/ThemeContext";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { db } from "../../src/services/firebase";
 import { useUserStatsStore } from "../../src/stores";
-import { COURSES } from "../../src/types/vocabulary";
 import { QuizTimer } from "../course/QuizTimer";
 import { ThemedText } from "../themed-text";
 import { PopQuizSkeleton } from "./PopQuizSkeleton";
+
+// Target courses for pop quiz: CSAT, Collocation, TOEIC
+const QUIZ_COURSES = [
+  { id: "수능", wordsPerCourse: 5 },
+  { id: "COLLOCATION", wordsPerCourse: 5 },
+  { id: "TOEIC", wordsPerCourse: 5 },
+] as const;
 
 /**
  * DashboardPopQuiz Component
@@ -82,85 +88,160 @@ export function DashboardPopQuiz() {
         return process.env.EXPO_PUBLIC_COURSE_PATH_IELTS || "";
       case "OPIC":
         return process.env.EXPO_PUBLIC_COURSE_PATH_OPIC || "";
+      case "COLLOCATION":
+        return process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION || "";
       default:
         return "";
     }
   };
 
   // ---------------------------------------------------------------------------
-  // Data Fetching Logic
-  // ---------------------------------------------------------------------------
   /**
-   * Fetch a batch of 10 random words from random courses and days.
-   * Optimized with caching and Firestore limit() to reduce data transfer.
-   * Tries multiple random combinations until a valid batch is found.
+   * Normalize word data to ensure consistent structure across different courses.
+   * Collocation course uses 'collocation' field instead of 'word'.
    */
-  const fetchBatch = useCallback(async () => {
-    try {
-      const shuffledCourses = [...COURSES].sort(() => Math.random() - 0.5);
+  const normalizeWordData = (data: any, courseId: string) => {
+    if (courseId === "COLLOCATION") {
+      return {
+        word: data.collocation,
+        meaning: data.meaning,
+        ...data,
+      };
+    }
+    return data;
+  };
+
+  /**
+   * Fetch words from a specific course for pop quiz.
+   * Returns an array of words or empty array if no words found.
+   * Collects words from multiple days if needed to reach target count.
+   */
+  const fetchWordsFromCourse = useCallback(
+    async (courseId: string, count: number): Promise<any[]> => {
+      const path = getCoursePath(courseId);
+      if (!path) {
+        console.log(`No path configured for course: ${courseId}`);
+        return [];
+      }
+
+      const collectedWords: any[] = [];
+
+      // Generate random days to try (1-30)
       const daysToTry = Array.from({ length: 30 }, (_, index) => index + 1)
         .sort(() => Math.random() - 0.5)
-        .slice(0, 5);
+        .slice(0, 10); // Try more days to find enough words
 
-      for (const course of shuffledCourses) {
-        const path = getCoursePath(course.id);
-        if (!path) continue;
+      for (const dayNum of daysToTry) {
+        if (collectedWords.length >= count) break; // Got enough words
 
-        const shuffledDays = [...daysToTry].sort(() => Math.random() - 0.5);
+        const subCollectionName = `Day${dayNum}`;
+        const cacheKey = `${courseId}-${dayNum}`;
 
-        for (const dayNum of shuffledDays) {
-          const subCollectionName = `Day${dayNum}`;
-          const cacheKey = `${course.id}-${dayNum}`;
-
-          // Check cache first
-          if (batchCache.current.has(cacheKey)) {
-            const cachedData = batchCache.current.get(cacheKey)!;
+        // Check cache first
+        if (batchCache.current.has(cacheKey)) {
+          const cachedData = batchCache.current.get(cacheKey)!;
+          if (cachedData.length > 0) {
             const shuffled = [...cachedData].sort(() => Math.random() - 0.5);
-            const batch = shuffled.slice(0, 10);
+            const wordsToTake = Math.min(
+              shuffled.length,
+              count - collectedWords.length,
+            );
+            collectedWords.push(...shuffled.slice(0, wordsToTake));
             console.log(
-              `Using cached batch from ${course.id} - ${subCollectionName} (${batch.length} words)`,
+              `Using ${wordsToTake} cached words from ${courseId} - ${subCollectionName}`,
             );
-            return batch;
+            continue;
           }
+        }
 
-          try {
-            // Fetch only 15 words instead of all (optimized with limit)
-            const q = query(
-              collection(db, path, subCollectionName),
-              limit(15),
+        try {
+          // Fetch words from this day
+          const q = query(collection(db, path, subCollectionName), limit(15));
+          const snapshot = await getDocs(q);
+
+          if (!snapshot.empty) {
+            // Store in cache for future use (normalized)
+            const allDocs = snapshot.docs.map((d) =>
+              normalizeWordData(d.data(), courseId),
             );
-            const snapshot = await getDocs(q);
+            batchCache.current.set(cacheKey, allDocs);
 
-            if (!snapshot.empty && snapshot.docs.length >= 10) {
-              // Store in cache for future use
-              const allDocs = snapshot.docs.map((d) => d.data());
-              batchCache.current.set(cacheKey, allDocs);
-
-              // Shuffle and take 10 words
-              const shuffled = allDocs.sort(() => Math.random() - 0.5);
-              const batch = shuffled.slice(0, 10);
-
-              console.log(
-                `Fetched batch from ${course.id} - ${subCollectionName} (${batch.length} words)`,
-              );
-              return batch;
-            }
-          } catch (error) {
+            // Take as many words as needed
+            const shuffled = allDocs.sort(() => Math.random() - 0.5);
+            const wordsToTake = Math.min(
+              shuffled.length,
+              count - collectedWords.length,
+            );
+            collectedWords.push(...shuffled.slice(0, wordsToTake));
             console.log(
-              `Error checking ${course.id}/${subCollectionName}:`,
-              error,
+              `Fetched ${wordsToTake} words from ${courseId} - ${subCollectionName}`,
             );
           }
+        } catch (error) {
+          console.log(
+            `Error fetching from ${courseId}/${subCollectionName}:`,
+            error,
+          );
         }
       }
 
-      console.warn("No vocabulary data found in any course");
-      return [];
+      if (collectedWords.length === 0) {
+        console.log(`No words found for course: ${courseId}`);
+      } else {
+        console.log(
+          `Total collected from ${courseId}: ${collectedWords.length} words`,
+        );
+      }
+
+      return collectedWords;
+    },
+    [],
+  );
+
+  /**
+   * Fetch a batch of 15 words from multiple courses (CSAT, Collocation, TOEIC).
+   * Fetches 5 words from each course (if available), then shuffles them together.
+   * Only includes words from courses that have available data.
+   */
+  const fetchBatch = useCallback(async () => {
+    try {
+      const allWords: any[] = [];
+
+      // Fetch words from each target course in parallel
+      const fetchPromises = QUIZ_COURSES.map(async ({ id, wordsPerCourse }) => {
+        const words = await fetchWordsFromCourse(id, wordsPerCourse);
+        return { courseId: id, words };
+      });
+
+      const results = await Promise.all(fetchPromises);
+
+      // Collect all successfully fetched words
+      for (const { courseId, words } of results) {
+        if (words.length > 0) {
+          console.log(`Added ${words.length} words from ${courseId}`);
+          allWords.push(...words);
+        } else {
+          console.log(`Skipped ${courseId} - no words available`);
+        }
+      }
+
+      if (allWords.length === 0) {
+        console.warn("No vocabulary data found in any course");
+        return [];
+      }
+
+      // Shuffle all collected words together
+      const shuffled = allWords.sort(() => Math.random() - 0.5);
+      console.log(
+        `Total batch size: ${shuffled.length} words (shuffled from multiple courses)`,
+      );
+
+      return shuffled;
     } catch (e) {
       console.error("Batch fetch error", e);
       return [];
     }
-  }, []);
+  }, [fetchWordsFromCourse]);
 
   /**
    * Prefetch the next batch in the background with retry logic.
@@ -254,8 +335,8 @@ export function DashboardPopQuiz() {
 
     const newIndex = currentIndex + 1;
 
-    // Check if we need to switch batches
-    if (newIndex >= 10) {
+    // Check if we need to switch batches (15 words per batch: 5 from each course)
+    if (newIndex >= currentBatch.length) {
       if (nextBatch.length > 0) {
         console.log(`Switching to next batch (turn ${turnNumber + 1})`);
         setCurrentBatch(nextBatch);
@@ -272,14 +353,7 @@ export function DashboardPopQuiz() {
 
     setCurrentIndex(newIndex);
     generateQuiz(currentBatch[newIndex], currentBatch);
-  }, [
-    currentBatch,
-    currentIndex,
-    nextBatch,
-    turnNumber,
-    generateQuiz,
-    prefetchNextBatch,
-  ]);
+  }, [currentBatch, currentIndex, nextBatch, turnNumber, generateQuiz]);
 
   // ---------------------------------------------------------------------------
   // Side Effects
@@ -304,15 +378,16 @@ export function DashboardPopQuiz() {
 
   /**
    * effect: Keep the next batch prefetched whenever possible
-   * Optimized: Starts prefetching at 70% progress (question 7/10) for smoother transitions
+   * Optimized: Starts prefetching at 70% progress for smoother transitions
    */
   useEffect(() => {
     if (loading || isPrefetching) return;
     if (currentBatch.length === 0) return;
     if (nextBatch.length > 0) return;
 
-    // Start prefetching when user reaches 70% of current batch (question 7)
-    const shouldPrefetch = currentIndex >= 6;
+    // Start prefetching when user reaches 70% of current batch
+    const prefetchThreshold = Math.floor(currentBatch.length * 0.7);
+    const shouldPrefetch = currentIndex >= prefetchThreshold;
 
     if (shouldPrefetch) {
       prefetchNextBatch();
