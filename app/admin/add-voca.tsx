@@ -23,8 +23,8 @@ import { CsvUploadItem } from "../../src/components/admin/CsvUploadItemView";
 import { SheetUploadItem } from "../../src/components/admin/GoogleSheetUploadItemView";
 import TabSwitcher from "../../src/components/admin/TabSwitcher"; // Toggle between CSV and Google Sheets
 import UploadFooter from "../../src/components/admin/UploadFooter";
-import UploadListItem from "../../src/components/admin/UploadListItem";
 import UploadModal from "../../src/components/admin/UploadModal";
+import UploadListSection from "../../src/components/admin/UploadListSection";
 
 // Hooks and utilities
 import { useTheme } from "../../src/context/ThemeContext";
@@ -800,24 +800,13 @@ export default function AddVocaScreen() {
         </View>
 
         {/* Item Summary */}
-        <View style={styles.listContent}>
-          {activeItems.length === 0 ? (
-            <Text style={styles.emptyListText}>No items added yet.</Text>
-          ) : (
-            activeItems.map((item, index) => (
-              <UploadListItem
-                key={`${item.id}-${index}`}
-                type={activeTab}
-                item={item}
-                index={index}
-                onPress={() => openEditItemModal(index)}
-                onDelete={() => handleDeleteItem(index)}
-                showDelete={true}
-                isDark={isDark}
-              />
-            ))
-          )}
-        </View>
+        <UploadListSection
+          type={activeTab}
+          items={activeItems}
+          onPressItem={openEditItemModal}
+          onDeleteItem={handleDeleteItem}
+          isDark={isDark}
+        />
 
         {/* Upload Modal */}
         <UploadModal
@@ -948,15 +937,5 @@ const getStyles = (isDark: boolean) =>
     addButtonContainer: {
       paddingHorizontal: 20,
       paddingVertical: 12,
-    },
-    listContent: {
-      paddingHorizontal: 20,
-      paddingBottom: 20,
-    },
-    emptyListText: {
-      textAlign: "center",
-      color: isDark ? "#8e8e93" : "#6e6e73",
-      fontSize: 14,
-      paddingVertical: 24,
     },
   });
