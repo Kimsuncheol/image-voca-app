@@ -1,7 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useRef } from "react";
+import React, { useCallback } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Swipeable } from "react-native-gesture-handler";
+import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  type SharedValue,
+  useAnimatedStyle,
+} from "react-native-reanimated";
 import { CsvUploadItem } from "./CsvUploadItemView";
 import { SheetUploadItem } from "./GoogleSheetUploadItemView";
 
@@ -9,26 +16,87 @@ type ListItemType = "csv" | "link";
 const DELETE_ACTION_WIDTH = 96;
 
 interface UploadListItemProps {
+  itemKey: string;
   type: ListItemType;
   item: CsvUploadItem | SheetUploadItem;
   index: number;
   onPress: () => void;
   onDelete: () => void;
+  onSwipeableOpen: (itemKey: string) => void;
+  registerSwipeableRef: (itemKey: string, ref: SwipeableMethods | null) => void;
   showDelete: boolean;
   isDark: boolean;
 }
 
+interface RightDeleteActionProps {
+  day: string;
+  index: number;
+  progress: SharedValue<number>;
+  onDelete: () => void;
+}
+
+function RightDeleteAction({
+  day,
+  index,
+  progress,
+  onDelete,
+}: RightDeleteActionProps) {
+  const animatedContentStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      progress.value,
+      [0, 1],
+      [0.45, 1],
+      Extrapolation.CLAMP,
+    );
+    const scale = interpolate(
+      progress.value,
+      [0, 1],
+      [0.92, 1],
+      Extrapolation.CLAMP,
+    );
+
+    return {
+      opacity,
+      transform: [{ scale }],
+    };
+  });
+
+  return (
+    <TouchableOpacity
+      style={actionStyles.deleteAction}
+      onPress={onDelete}
+      testID={`swipe-delete-${index}`}
+      accessibilityRole="button"
+      accessibilityLabel={`Delete Day ${day || "item"}`}
+    >
+      <Animated.View style={[actionStyles.deleteActionContent, animatedContentStyle]}>
+        <Ionicons name="trash-outline" size={18} color="#fff" />
+        <Text style={actionStyles.deleteActionText}>Delete</Text>
+      </Animated.View>
+    </TouchableOpacity>
+  );
+}
+
 export default function UploadListItem({
+  itemKey,
   type,
   item,
   index,
   onPress,
   onDelete,
+  onSwipeableOpen,
+  registerSwipeableRef,
   showDelete,
   isDark,
 }: UploadListItemProps) {
   const styles = getStyles(isDark);
-  const isDeletingRef = useRef(false);
+
+  const handleSwipeableRef = useCallback(
+    (ref: SwipeableMethods | null) => {
+      registerSwipeableRef(itemKey, ref);
+    },
+    [itemKey, registerSwipeableRef],
+  );
 
   const getTitle = () => {
     const day = item.day || "No day";
@@ -77,28 +145,29 @@ export default function UploadListItem({
 
   return (
     <View style={styles.swipeWrapper}>
-      <Swipeable
-        renderRightActions={() => (
-          <View
-            style={styles.deleteAction}
-            testID={`swipe-delete-${index}`}
-            accessibilityLabel={`Delete Day ${item.day || "item"}`}
-          >
-            <Ionicons name="trash-outline" size={18} color="#fff" />
-            <Text style={styles.deleteActionText}>Delete</Text>
-          </View>
+      <ReanimatedSwipeable
+        ref={handleSwipeableRef}
+        renderRightActions={(progress, _translation, swipeableMethods) => (
+          <RightDeleteAction
+            day={item.day}
+            index={index}
+            progress={progress}
+            onDelete={() => {
+              swipeableMethods.close();
+              onDelete();
+            }}
+          />
         )}
         onSwipeableOpen={(direction) => {
-          if (direction === "right" && !isDeletingRef.current) {
-            isDeletingRef.current = true;
-            onDelete();
+          if (direction === "right") {
+            onSwipeableOpen(itemKey);
           }
         }}
         overshootRight={false}
-        rightThreshold={DELETE_ACTION_WIDTH}
+        rightThreshold={Math.floor(DELETE_ACTION_WIDTH * 0.8)}
       >
         {rowContent}
-      </Swipeable>
+      </ReanimatedSwipeable>
     </View>
   );
 }
@@ -138,17 +207,24 @@ const getStyles = (isDark: boolean) =>
       fontSize: 13,
       color: isDark ? "#8e8e93" : "#6e6e73",
     },
-    deleteAction: {
-      width: DELETE_ACTION_WIDTH,
-      backgroundColor: "#ff3b30",
-      justifyContent: "center",
-      alignItems: "center",
-      gap: 4,
-      borderRadius: 12,
-    },
-    deleteActionText: {
-      color: "#fff",
-      fontSize: 12,
-      fontWeight: "700",
-    },
   });
+
+const actionStyles = StyleSheet.create({
+  deleteAction: {
+    width: DELETE_ACTION_WIDTH,
+    backgroundColor: "#ff3b30",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 12,
+  },
+  deleteActionContent: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
+  deleteActionText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+});

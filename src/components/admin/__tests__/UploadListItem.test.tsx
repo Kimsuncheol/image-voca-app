@@ -6,34 +6,60 @@ jest.mock("@expo/vector-icons", () => ({
   Ionicons: "Ionicons",
 }));
 
-jest.mock("react-native-gesture-handler", () => {
+jest.mock("react-native-reanimated", () => {
+  const { View } = require("react-native");
+  const Reanimated = require("react-native-reanimated/mock");
+  Reanimated.View = View;
+  Reanimated.default = Reanimated;
+  Reanimated.useAnimatedStyle = (updater: () => object) => updater();
+  return Reanimated;
+});
+
+jest.mock("react-native-gesture-handler/ReanimatedSwipeable", () => {
   const React = require("react");
   const { Pressable, View } = require("react-native");
 
+  const MockReanimatedSwipeable = React.forwardRef(
+    ({ children, renderRightActions, onSwipeableOpen }: any, ref: any) => {
+      const methods = {
+        close: jest.fn(),
+        openLeft: jest.fn(),
+        openRight: jest.fn(),
+        reset: jest.fn(),
+      };
+
+      React.useImperativeHandle(ref, () => methods, []);
+
+      return (
+        <View>
+          <Pressable
+            testID="swipe-open-left"
+            onPress={() => onSwipeableOpen?.("left")}
+          />
+          <Pressable
+            testID="swipe-open-right"
+            onPress={() => onSwipeableOpen?.("right")}
+          />
+          {children}
+          {renderRightActions
+            ? renderRightActions({ value: 1 }, { value: -90 }, methods)
+            : null}
+        </View>
+      );
+    },
+  );
+
+  MockReanimatedSwipeable.displayName = "MockReanimatedSwipeable";
+
   return {
-    Swipeable: ({
-      children,
-      renderRightActions,
-      onSwipeableOpen,
-    }: any) => (
-      <View>
-        <Pressable
-          testID="swipe-open-left"
-          onPress={() => onSwipeableOpen?.("left")}
-        />
-        <Pressable
-          testID="swipe-open-right"
-          onPress={() => onSwipeableOpen?.("right")}
-        />
-        {children}
-        {renderRightActions ? renderRightActions(null, null) : null}
-      </View>
-    ),
+    __esModule: true,
+    default: MockReanimatedSwipeable,
   };
 });
 
 describe("UploadListItem", () => {
   const defaultProps = {
+    itemKey: "1-0",
     type: "csv" as const,
     item: {
       id: "1",
@@ -43,6 +69,8 @@ describe("UploadListItem", () => {
     index: 0,
     onPress: jest.fn(),
     onDelete: jest.fn(),
+    onSwipeableOpen: jest.fn(),
+    registerSwipeableRef: jest.fn(),
     showDelete: true,
     isDark: false,
   };
@@ -64,35 +92,34 @@ describe("UploadListItem", () => {
     expect(getByText("Delete")).toBeTruthy();
   });
 
-  it("calls onDelete when swiped fully to the left", () => {
+  it("calls onDelete when delete action is pressed", () => {
     const onDelete = jest.fn();
-    const { getByTestId } = render(
+    const { getByText } = render(
       <UploadListItem {...defaultProps} onDelete={onDelete} />,
     );
 
-    fireEvent.press(getByTestId("swipe-open-right"));
+    fireEvent.press(getByText("Delete"));
     expect(onDelete).toHaveBeenCalledTimes(1);
   });
 
-  it("does not call onDelete for left open event", () => {
-    const onDelete = jest.fn();
+  it("notifies list when swiped open to the right", () => {
+    const onSwipeableOpen = jest.fn();
     const { getByTestId } = render(
-      <UploadListItem {...defaultProps} onDelete={onDelete} />,
+      <UploadListItem {...defaultProps} onSwipeableOpen={onSwipeableOpen} />,
+    );
+
+    fireEvent.press(getByTestId("swipe-open-right"));
+    expect(onSwipeableOpen).toHaveBeenCalledWith("1-0");
+  });
+
+  it("does not notify list for left open event", () => {
+    const onSwipeableOpen = jest.fn();
+    const { getByTestId } = render(
+      <UploadListItem {...defaultProps} onSwipeableOpen={onSwipeableOpen} />,
     );
 
     fireEvent.press(getByTestId("swipe-open-left"));
-    expect(onDelete).not.toHaveBeenCalled();
-  });
-
-  it("guards against duplicate delete calls after first full swipe", () => {
-    const onDelete = jest.fn();
-    const { getByTestId } = render(
-      <UploadListItem {...defaultProps} onDelete={onDelete} />,
-    );
-
-    fireEvent.press(getByTestId("swipe-open-right"));
-    fireEvent.press(getByTestId("swipe-open-right"));
-    expect(onDelete).toHaveBeenCalledTimes(1);
+    expect(onSwipeableOpen).not.toHaveBeenCalled();
   });
 
   it("does not render swipe wrapper controls when delete is disabled", () => {
