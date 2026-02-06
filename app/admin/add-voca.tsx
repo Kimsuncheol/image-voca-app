@@ -9,6 +9,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  FlatList,
   Modal,
   StyleSheet,
   Text,
@@ -17,19 +18,21 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Custom components
+import AddAnotherButton from "../../src/components/admin/AddAnotherButton";
 import AddVocaHeader from "../../src/components/admin/AddVocaHeader"; // Course selector header
 import { CsvUploadItem } from "../../src/components/admin/CsvUploadItemView";
 import { SheetUploadItem } from "../../src/components/admin/GoogleSheetUploadItemView";
 import TabSwitcher from "../../src/components/admin/TabSwitcher"; // Toggle between CSV and Google Sheets
-import UploadCSVFileView from "../../src/components/admin/UploadCSVFileView"; // CSV upload interface
-import UploadViaLinkView from "../../src/components/admin/UploadViaLinkView"; // Google Sheets import interface
+import UploadFooter from "../../src/components/admin/UploadFooter";
+import UploadListItem from "../../src/components/admin/UploadListItem";
+import UploadModal from "../../src/components/admin/UploadModal";
 
 // Hooks and utilities
 import { useTheme } from "../../src/context/ThemeContext";
 import useGoogleSheetsAuth from "../../src/hooks/useGoogleSheetsAuth"; // Google OAuth authentication
 import { db, storage } from "../../src/services/firebase";
-import { generateLinguisticData } from "../../src/services/linguisticDataService"; // AI linguistic data generation
 import { getIpaUSUK } from "../../src/services/ipa/wiktionaryIpaService"; // IPA pronunciation fetching
+import { generateLinguisticData } from "../../src/services/linguisticDataService"; // AI linguistic data generation
 import { updateCourseMetadata } from "../../src/services/vocabularyPrefetch"; // Course metadata management
 import { parseSheetValues } from "../../src/utils/googleSheetsUtils";
 
@@ -77,6 +80,9 @@ export default function AddVocaScreen() {
   // Google Sheets OAuth authentication
   const { token, promptAsync } = useGoogleSheetsAuth();
   const [waitingForToken, setWaitingForToken] = useState(false); // Flag for auth flow
+
+  // Modal state for editing items
+  const [modalVisible, setModalVisible] = useState(false);
 
   // === CSV Upload Handlers ===
 
@@ -667,29 +673,121 @@ export default function AddVocaScreen() {
           />
         </View>
 
-        {/* Tab Content */}
-        <View style={{ flex: 1 }}>
-          {activeTab === "csv" ? (
-            <UploadCSVFileView
-              items={csvItems}
-              setItems={setCsvItems}
-              loading={loading}
-              isDark={isDark}
-              onPickDocument={handlePickDocument}
-              onUpload={handleBatchUpload}
-            />
-          ) : (
-            <UploadViaLinkView
-              items={sheetItems}
-              setItems={setSheetItems}
-              loading={loading}
-              isDark={isDark}
-              token={token}
-              waitingForToken={waitingForToken}
-              onImport={handleSheetImportButton}
-            />
-          )}
+        {/* Add Button (Fixed) */}
+        <View style={styles.addButtonContainer}>
+          <AddAnotherButton
+            onPress={() => {
+              if (activeTab === "csv") {
+                setCsvItems((prev) => [
+                  ...prev,
+                  { id: Date.now().toString(), day: "", file: null },
+                ]);
+              } else {
+                setSheetItems((prev) => [
+                  ...prev,
+                  {
+                    id: Date.now().toString(),
+                    day: "",
+                    sheetId: "",
+                    range: "Sheet1!A:E",
+                  },
+                ]);
+              }
+              setModalVisible(true);
+            }}
+            disabled={loading}
+            text={activeTab === "csv" ? "Add CSV" : "Add Link"}
+            borderColor={activeTab === "csv" ? "#007AFF" : "#0F9D58"}
+            fontColor={activeTab === "csv" ? "#007AFF" : "#0F9D58"}
+          />
         </View>
+
+        {/* Item List */}
+        <FlatList
+          data={(activeTab === "csv" ? csvItems : sheetItems) as any[]}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item, index }) => {
+            const handleDelete = () => {
+              if (activeTab === "csv") {
+                if (csvItems.length === 1) {
+                  setCsvItems([
+                    { id: Date.now().toString(), day: "", file: null },
+                  ]);
+                } else {
+                  setCsvItems((prev) => prev.filter((i) => i.id !== item.id));
+                }
+              } else {
+                if (sheetItems.length === 1) {
+                  setSheetItems([
+                    {
+                      id: Date.now().toString(),
+                      day: "",
+                      sheetId: "",
+                      range: "Sheet1!A:E",
+                    },
+                  ]);
+                } else {
+                  setSheetItems((prev) => prev.filter((i) => i.id !== item.id));
+                }
+              }
+            };
+
+            return (
+              <UploadListItem
+                type={activeTab}
+                item={item}
+                index={index}
+                onPress={() => setModalVisible(true)}
+                onDelete={handleDelete}
+                showDelete={
+                  activeTab === "csv"
+                    ? csvItems.length > 1
+                    : sheetItems.length > 1
+                }
+                isDark={isDark}
+              />
+            );
+          }}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>
+              No items. Tap &quot;Add&quot; to create one.
+            </Text>
+          }
+        />
+
+        {/* Upload Modal */}
+        <UploadModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          modalType={activeTab}
+          isDark={isDark}
+          csvItems={csvItems}
+          setCsvItems={setCsvItems}
+          onPickDocument={handlePickDocument}
+          sheetItems={sheetItems}
+          setSheetItems={setSheetItems}
+          loading={loading}
+        />
+
+        {/* Upload Footer - below the list */}
+        <UploadFooter
+          onPress={
+            activeTab === "csv" ? handleBatchUpload : handleSheetImportButton
+          }
+          loading={loading}
+          disabled={loading}
+          text={
+            activeTab === "csv"
+              ? `Upload ${csvItems.filter((i) => i.file && i.day).length} Item(s)`
+              : token
+                ? `Import ${sheetItems.filter((i) => i.sheetId && i.day).length} Item(s)`
+                : "Connect & Import"
+          }
+          iconName={activeTab === "csv" ? "cloud-upload" : "grid"}
+          backgroundColor={activeTab === "link" ? "#0F9D58" : undefined}
+          isDark={isDark}
+        />
       </View>
 
       {/* Upload Progress Modal */}
@@ -769,5 +867,19 @@ const getStyles = (isDark: boolean) =>
       color: isDark ? "#a0a0a0" : "#666",
       textAlign: "center",
       lineHeight: 20,
+    },
+    addButtonContainer: {
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+    },
+    listContent: {
+      paddingHorizontal: 20,
+      paddingBottom: 20,
+    },
+    emptyText: {
+      fontSize: 14,
+      color: isDark ? "#8e8e93" : "#6e6e73",
+      textAlign: "center",
+      marginTop: 40,
     },
   });

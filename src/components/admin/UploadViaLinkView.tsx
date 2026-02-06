@@ -4,7 +4,6 @@ import AddAnotherButton from "./AddAnotherButton";
 import GoogleSheetUploadItemView, {
   SheetUploadItem,
 } from "./GoogleSheetUploadItemView";
-import UploadFooter from "./UploadFooter";
 
 const { height } = Dimensions.get("window");
 
@@ -13,9 +12,6 @@ interface UploadViaLinkViewProps {
   setItems: React.Dispatch<React.SetStateAction<SheetUploadItem[]>>;
   loading: boolean;
   isDark: boolean;
-  token: string | null;
-  waitingForToken: boolean;
-  onImport: () => void;
 }
 
 export default function UploadViaLinkView({
@@ -23,9 +19,6 @@ export default function UploadViaLinkView({
   setItems,
   loading,
   isDark,
-  token,
-  waitingForToken,
-  onImport,
 }: UploadViaLinkViewProps) {
   const styles = getStyles(isDark);
   const borderColor = "#0F9D58";
@@ -105,20 +98,6 @@ export default function UploadViaLinkView({
           fontColor={borderColor}
         />
       </ScrollView>
-
-      <UploadFooter
-        onPress={onImport}
-        loading={loading}
-        disabled={loading}
-        text={
-          token
-            ? `Import ${items.filter((i) => i.sheetId && i.day).length} Item(s)`
-            : "Connect & Import"
-        }
-        iconName="grid"
-        backgroundColor="#0F9D58"
-        isDark={isDark}
-      />
     </View>
   );
 }
@@ -138,7 +117,7 @@ const getStyles = (isDark: boolean) =>
       marginVertical: 16,
     },
     scrollContent: {
-      paddingBottom: height * 0.175, // Sufficient space for the bottom component
+      paddingBottom: height * 0.1,
       paddingHorizontal: 20,
       paddingTop: 20,
     },

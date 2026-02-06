@@ -1,8 +1,7 @@
 import React, { useRef, useState } from "react";
-import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
+import { Dimensions, ScrollView, StyleSheet } from "react-native";
 import AddAnotherButton from "./AddAnotherButton";
 import CsvUploadItemView, { CsvUploadItem } from "./CsvUploadItemView";
-import UploadFooter from "./UploadFooter";
 
 const { height } = Dimensions.get("window");
 
@@ -12,7 +11,6 @@ interface UploadCSVFileViewProps {
   loading: boolean;
   isDark: boolean;
   onPickDocument: (itemId: string) => void;
-  onUpload: () => void;
 }
 
 export default function UploadCSVFileView({
@@ -21,7 +19,6 @@ export default function UploadCSVFileView({
   loading,
   isDark,
   onPickDocument,
-  onUpload,
 }: UploadCSVFileViewProps) {
   const styles = getStyles(isDark);
   const borderColor = "#007AFF";
@@ -51,49 +48,38 @@ export default function UploadCSVFileView({
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      <ScrollView
-        ref={scrollViewRef}
-        contentContainerStyle={styles.scrollContent}
-        onContentSizeChange={() => {
-          if (!shouldScrollToEnd) {
-            return;
-          }
-          scrollViewRef.current?.scrollToEnd({ animated: true });
-          setShouldScrollToEnd(false);
-        }}
-      >
-        {items.map((item, index) => (
-          <CsvUploadItemView
-            key={item.id}
-            index={index}
-            item={item}
-            showDelete={items.length > 1}
-            onDelete={() => handleRemoveItem(item.id)}
-            onUpdateDay={(text) => handleUpdateDay(item.id, text)}
-            onPickFile={() => onPickDocument(item.id)}
-            loading={loading}
-            isDark={isDark}
-          />
-        ))}
-
-        <AddAnotherButton
-          onPress={handleAddItem}
-          disabled={loading}
-          text="Add Another Day"
-          borderColor={borderColor}
+    <ScrollView
+      ref={scrollViewRef}
+      contentContainerStyle={styles.scrollContent}
+      onContentSizeChange={() => {
+        if (!shouldScrollToEnd) {
+          return;
+        }
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+        setShouldScrollToEnd(false);
+      }}
+    >
+      {items.map((item, index) => (
+        <CsvUploadItemView
+          key={item.id}
+          index={index}
+          item={item}
+          showDelete={items.length > 1}
+          onDelete={() => handleRemoveItem(item.id)}
+          onUpdateDay={(text) => handleUpdateDay(item.id, text)}
+          onPickFile={() => onPickDocument(item.id)}
+          loading={loading}
+          isDark={isDark}
         />
-      </ScrollView>
+      ))}
 
-      <UploadFooter
-        onPress={onUpload}
-        loading={loading}
+      <AddAnotherButton
+        onPress={handleAddItem}
         disabled={loading}
-        text={`Upload ${items.filter((i) => i.file && i.day).length} Item(s)`}
-        iconName="cloud-upload"
-        isDark={isDark}
+        text="Add Another Day"
+        borderColor={borderColor}
       />
-    </View>
+    </ScrollView>
   );
 }
 
@@ -105,7 +91,7 @@ const getStyles = (isDark: boolean) =>
       marginVertical: 16,
     },
     scrollContent: {
-      paddingBottom: height * 0.175, // Sufficient space for the bottom component
+      paddingBottom: height * 0.1,
       paddingHorizontal: 20,
     },
   });

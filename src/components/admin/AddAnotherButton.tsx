@@ -14,7 +14,7 @@ export default function AddAnotherButton({
   onPress,
   disabled,
   text,
-  borderColor,
+  borderColor = "#007AFF",
   fontColor = "#007AFF",
 }: AddAnotherButtonProps) {
   return (
@@ -23,7 +23,7 @@ export default function AddAnotherButton({
       onPress={onPress}
       disabled={disabled}
     >
-      <Ionicons name="add-circle-outline" size={20} color={fontColor} />
+      <Ionicons name="add-circle-outline" size={16} color={fontColor} />
       <Text style={[styles.addButtonText, { color: fontColor }]}>{text}</Text>
     </TouchableOpacity>
   );
@@ -34,13 +34,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 12,
+    borderRadius: 8,
     borderWidth: 1,
-    padding: 16,
-    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    gap: 6,
   },
   addButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
   },
 });
