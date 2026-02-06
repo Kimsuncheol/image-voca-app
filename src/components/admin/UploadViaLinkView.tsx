@@ -7,44 +7,26 @@ import GoogleSheetUploadItemView, {
 const { height } = Dimensions.get("window");
 
 interface UploadViaLinkViewProps {
-  items: SheetUploadItem[];
-  setItems: React.Dispatch<React.SetStateAction<SheetUploadItem[]>>;
+  item: SheetUploadItem;
+  setItem: React.Dispatch<React.SetStateAction<SheetUploadItem>>;
   loading: boolean;
   isDark: boolean;
 }
 
 export default function UploadViaLinkView({
-  items,
-  setItems,
+  item,
+  setItem,
   loading,
   isDark,
 }: UploadViaLinkViewProps) {
   const styles = getStyles(isDark);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const handleRemoveItem = (id: string) => {
-    if (items.length === 1) {
-      setItems([
-        {
-          id: Date.now().toString(),
-          day: "",
-          sheetId: "",
-          range: "Sheet1!A:E",
-        },
-      ]);
-      return;
-    }
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
   const handleUpdateItem = (
-    id: string,
     field: keyof SheetUploadItem,
     value: string,
   ) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
-    );
+    setItem((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -54,18 +36,16 @@ export default function UploadViaLinkView({
         ref={scrollViewRef}
         contentContainerStyle={styles.scrollContent}
       >
-        {items.map((item, index) => (
-          <GoogleSheetUploadItemView
-            key={item.id}
-            index={index}
-            item={item}
-            showDelete={items.length > 1}
-            onDelete={() => handleRemoveItem(item.id)}
-            onUpdate={(field, value) => handleUpdateItem(item.id, field, value)}
-            loading={loading}
-            isDark={isDark}
-          />
-        ))}
+        <GoogleSheetUploadItemView
+          index={0}
+          item={item}
+          showDelete={false}
+          showIndex={false}
+          onDelete={() => {}}
+          onUpdate={(field, value) => handleUpdateItem(field, value)}
+          loading={loading}
+          isDark={isDark}
+        />
       </ScrollView>
     </View>
   );

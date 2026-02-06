@@ -9,7 +9,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   Modal,
   StyleSheet,
   Text,
@@ -59,6 +58,19 @@ export default function AddVocaScreen() {
     },
   ];
 
+  const createEmptyCsvItem = (): CsvUploadItem => ({
+    id: Date.now().toString(),
+    day: "",
+    file: null,
+  });
+
+  const createEmptySheetItem = (): SheetUploadItem => ({
+    id: Date.now().toString(),
+    day: "",
+    sheetId: "",
+    range: "Sheet1!A:E",
+  });
+
   // === State Management ===
 
   // UI state
@@ -67,15 +79,15 @@ export default function AddVocaScreen() {
   const [progress, setProgress] = useState(""); // Progress message for user feedback
   const [selectedCourse, setSelectedCourse] = useState(COURSES[0]); // Currently selected course
 
-  // CSV upload state - array of items to upload (supports batch upload)
-  const [csvItems, setCsvItems] = useState<CsvUploadItem[]>([
-    { id: "1", day: "", file: null },
-  ]);
+  // CSV upload state - single item
+  const [csvItem, setCsvItem] = useState<CsvUploadItem>(() =>
+    createEmptyCsvItem(),
+  );
 
-  // Google Sheets import state - array of sheet items to import
-  const [sheetItems, setSheetItems] = useState<SheetUploadItem[]>([
-    { id: "1", day: "", sheetId: "", range: "Sheet1!A:E" },
-  ]);
+  // Google Sheets import state - single item
+  const [sheetItem, setSheetItem] = useState<SheetUploadItem>(() =>
+    createEmptySheetItem(),
+  );
 
   // Google Sheets OAuth authentication
   const { token, promptAsync } = useGoogleSheetsAuth();
@@ -88,9 +100,9 @@ export default function AddVocaScreen() {
 
   /**
    * Opens document picker for selecting CSV files
-   * Updates the corresponding item in csvItems array with selected file
+   * Updates the CSV item with selected file
    */
-  const handlePickDocument = async (itemId: string) => {
+  const handlePickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: [
@@ -105,10 +117,8 @@ export default function AddVocaScreen() {
       if (result.canceled) return;
 
       const file = result.assets[0];
-      setCsvItems((prev) =>
-        prev.map((item) => (item.id === itemId ? { ...item, file } : item)),
-      );
-      console.log("[Picker] File selected for item", itemId, ":", file.name);
+      setCsvItem((prev) => ({ ...prev, file }));
+      console.log("[Picker] File selected:", file.name);
     } catch (err: any) {
       Alert.alert("Error", err.message);
     }
@@ -156,18 +166,14 @@ export default function AddVocaScreen() {
   );
 
   /**
-   * Validates and processes batch upload of CSV files
-   * Each CSV file is uploaded to Storage and parsed into Firestore
+   * Validates and processes a single CSV upload
+   * The CSV file is uploaded to Storage and parsed into Firestore
    */
   const handleBatchUpload = async () => {
-    // Validate that all items have required fields
-    const invalidItems = csvItems.filter(
-      (item) => !item.day.trim() || !item.file,
-    );
-    if (invalidItems.length > 0) {
+    if (!csvItem.day.trim() || !csvItem.file) {
       Alert.alert(
         "Validation Error",
-        "Please ensure all items have a Day and a File selected.",
+        "Please ensure the item has a Day and a File selected.",
       );
       return;
     }
@@ -175,53 +181,51 @@ export default function AddVocaScreen() {
     try {
       setLoading(true);
 
-      for (let i = 0; i < csvItems.length; i++) {
-        const item = csvItems[i];
-        const progressPrefix = `[${i + 1}/${csvItems.length}] Day ${item.day}: `;
-        setProgress(`${progressPrefix}Checking existing data...`);
+      const progressPrefix = `Day ${csvItem.day}: `;
+      setProgress(`${progressPrefix}Checking existing data...`);
 
-        // Check if data already exists
-        const { storageExists, firestoreExists } = await checkExistingData(
-          item.day,
-        );
+      // Check if data already exists
+      const { storageExists, firestoreExists } = await checkExistingData(
+        csvItem.day,
+      );
 
-        if (storageExists || firestoreExists) {
-          // Show confirmation dialog and wait for user response
-          const shouldContinue = await new Promise<boolean>((resolve) => {
-            Alert.alert(
-              "Data Already Exists",
-              `Day ${item.day} already has data in ${storageExists && firestoreExists ? "both Storage and Firestore" : storageExists ? "Storage" : "Firestore"}. Do you want to overwrite it?`,
-              [
-                {
-                  text: "Cancel",
-                  style: "cancel",
-                  onPress: () => resolve(false),
-                },
-                {
-                  text: "Upload",
-                  style: "destructive",
-                  onPress: () => resolve(true),
-                },
-              ],
-            );
-          });
+      if (storageExists || firestoreExists) {
+        // Show confirmation dialog and wait for user response
+        const shouldContinue = await new Promise<boolean>((resolve) => {
+          Alert.alert(
+            "Data Already Exists",
+            `Day ${csvItem.day} already has data in ${storageExists && firestoreExists ? "both Storage and Firestore" : storageExists ? "Storage" : "Firestore"}. Do you want to overwrite it?`,
+            [
+              {
+                text: "Cancel",
+                style: "cancel",
+                onPress: () => resolve(false),
+              },
+              {
+                text: "Upload",
+                style: "destructive",
+                onPress: () => resolve(true),
+              },
+            ],
+          );
+        });
 
-          if (!shouldContinue) {
-            setProgress(`${progressPrefix}Skipped by user`);
-            continue; // Skip this item
-          }
+        if (!shouldContinue) {
+          setProgress(`${progressPrefix}Skipped by user`);
+          setLoading(false);
+          return;
         }
-
-        setProgress(`${progressPrefix}Starting...`);
-        await processCsvItem(item, progressPrefix);
       }
+
+      setProgress(`${progressPrefix}Starting...`);
+      await processCsvItem(csvItem, progressPrefix);
 
       setLoading(false);
       setProgress("");
-      setCsvItems([{ id: "1", day: "", file: null }]);
+      setCsvItem(createEmptyCsvItem());
       Alert.alert(
         "Success",
-        "All files uploaded successfully! Linguistic data (synonyms, antonyms, related words, word forms) was generated using AI.",
+        "File uploaded successfully! Linguistic data (synonyms, antonyms, related words, word forms) was generated using AI.",
       );
     } catch (err: any) {
       setLoading(false);
@@ -295,14 +299,10 @@ export default function AddVocaScreen() {
    * Validates input and triggers OAuth flow if needed
    */
   const handleSheetImportButton = async () => {
-    // Validate that all items have required fields
-    const invalidItems = sheetItems.filter(
-      (item) => !item.day.trim() || !item.sheetId.trim(),
-    );
-    if (invalidItems.length > 0) {
+    if (!sheetItem.day.trim() || !sheetItem.sheetId.trim()) {
       Alert.alert(
         "Validation Error",
-        "Please ensure all items have a Day and a Sheet ID.",
+        "Please ensure the item has a Day and a Sheet ID.",
       );
       return;
     }
@@ -558,74 +558,72 @@ export default function AddVocaScreen() {
     try {
       setLoading(true);
 
-      for (let i = 0; i < sheetItems.length; i++) {
-        const item = sheetItems[i];
-        const progressPrefix = `[${i + 1}/${sheetItems.length}] Day ${item.day}: `;
-        setProgress(`${progressPrefix}Checking existing data...`);
+      const progressPrefix = `Day ${sheetItem.day}: `;
+      setProgress(`${progressPrefix}Checking existing data...`);
 
-        // Check if data already exists
-        const { storageExists, firestoreExists } = await checkExistingData(
-          item.day,
-        );
+      // Check if data already exists
+      const { storageExists, firestoreExists } = await checkExistingData(
+        sheetItem.day,
+      );
 
-        if (storageExists || firestoreExists) {
-          // Show confirmation dialog and wait for user response
-          const shouldContinue = await new Promise<boolean>((resolve) => {
-            Alert.alert(
-              "Data Already Exists",
-              `Day ${item.day} already has data in ${storageExists && firestoreExists ? "both Storage and Firestore" : storageExists ? "Storage" : "Firestore"}. Do you want to overwrite it?`,
-              [
-                {
-                  text: "Cancel",
-                  style: "cancel",
-                  onPress: () => resolve(false),
-                },
-                {
-                  text: "Upload",
-                  style: "destructive",
-                  onPress: () => resolve(true),
-                },
-              ],
-            );
-          });
-
-          if (!shouldContinue) {
-            setProgress(`${progressPrefix}Skipped by user`);
-            continue; // Skip this item
-          }
-        }
-
-        setProgress(`${progressPrefix}Fetching from Sheets...`);
-
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${item.sheetId}/values/${item.range}?majorDimension=ROWS`;
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      if (storageExists || firestoreExists) {
+        // Show confirmation dialog and wait for user response
+        const shouldContinue = await new Promise<boolean>((resolve) => {
+          Alert.alert(
+            "Data Already Exists",
+            `Day ${sheetItem.day} already has data in ${storageExists && firestoreExists ? "both Storage and Firestore" : storageExists ? "Storage" : "Firestore"}. Do you want to overwrite it?`,
+            [
+              {
+                text: "Cancel",
+                style: "cancel",
+                onPress: () => resolve(false),
+              },
+              {
+                text: "Upload",
+                style: "destructive",
+                onPress: () => resolve(true),
+              },
+            ],
+          );
         });
 
-        const json = await response.json();
-
-        if (json.error) {
-          throw new Error(
-            `Sheet Error (Day ${item.day}): ${json.error.message}`,
-          );
+        if (!shouldContinue) {
+          setProgress(`${progressPrefix}Skipped by user`);
+          setLoading(false);
+          return;
         }
-
-        const rows = json.values;
-        if (!rows || rows.length < 2) {
-          throw new Error(
-            `No data found for Day ${item.day} or only header row exists.`,
-          );
-        }
-
-        const dataObjects = parseSheetValues(rows);
-        await uploadData(dataObjects, item.day, progressPrefix);
       }
+
+      setProgress(`${progressPrefix}Fetching from Sheets...`);
+
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetItem.sheetId}/values/${sheetItem.range}?majorDimension=ROWS`;
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const json = await response.json();
+
+      if (json.error) {
+        throw new Error(
+          `Sheet Error (Day ${sheetItem.day}): ${json.error.message}`,
+        );
+      }
+
+      const rows = json.values;
+      if (!rows || rows.length < 2) {
+        throw new Error(
+          `No data found for Day ${sheetItem.day} or only header row exists.`,
+        );
+      }
+
+      const dataObjects = parseSheetValues(rows);
+      await uploadData(dataObjects, sheetItem.day, progressPrefix);
 
       setLoading(false);
       setProgress("");
-      setSheetItems([{ id: "1", day: "", sheetId: "", range: "Sheet1!A:E" }]);
+      setSheetItem(createEmptySheetItem());
       Alert.alert(
         "Success",
         "All sheets imported successfully! Linguistic data (synonyms, antonyms, related words, word forms) was generated using AI.",
@@ -635,7 +633,7 @@ export default function AddVocaScreen() {
       Alert.alert("Import Error", err.message);
       setLoading(false);
     }
-  }, [token, sheetItems, uploadData, checkExistingData]);
+  }, [token, sheetItem, uploadData, checkExistingData]);
 
   // Trigger import automatically after OAuth authentication completes
   useEffect(() => {
@@ -677,84 +675,27 @@ export default function AddVocaScreen() {
         <View style={styles.addButtonContainer}>
           <AddAnotherButton
             onPress={() => {
-              if (activeTab === "csv") {
-                setCsvItems((prev) => [
-                  ...prev,
-                  { id: Date.now().toString(), day: "", file: null },
-                ]);
-              } else {
-                setSheetItems((prev) => [
-                  ...prev,
-                  {
-                    id: Date.now().toString(),
-                    day: "",
-                    sheetId: "",
-                    range: "Sheet1!A:E",
-                  },
-                ]);
-              }
               setModalVisible(true);
             }}
             disabled={loading}
-            text={activeTab === "csv" ? "Add CSV" : "Add Link"}
+            text={activeTab === "csv" ? "Edit CSV" : "Edit Link"}
             borderColor={activeTab === "csv" ? "#007AFF" : "#0F9D58"}
             fontColor={activeTab === "csv" ? "#007AFF" : "#0F9D58"}
           />
         </View>
 
-        {/* Item List */}
-        <FlatList
-          data={(activeTab === "csv" ? csvItems : sheetItems) as any[]}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item, index }) => {
-            const handleDelete = () => {
-              if (activeTab === "csv") {
-                if (csvItems.length === 1) {
-                  setCsvItems([
-                    { id: Date.now().toString(), day: "", file: null },
-                  ]);
-                } else {
-                  setCsvItems((prev) => prev.filter((i) => i.id !== item.id));
-                }
-              } else {
-                if (sheetItems.length === 1) {
-                  setSheetItems([
-                    {
-                      id: Date.now().toString(),
-                      day: "",
-                      sheetId: "",
-                      range: "Sheet1!A:E",
-                    },
-                  ]);
-                } else {
-                  setSheetItems((prev) => prev.filter((i) => i.id !== item.id));
-                }
-              }
-            };
-
-            return (
-              <UploadListItem
-                type={activeTab}
-                item={item}
-                index={index}
-                onPress={() => setModalVisible(true)}
-                onDelete={handleDelete}
-                showDelete={
-                  activeTab === "csv"
-                    ? csvItems.length > 1
-                    : sheetItems.length > 1
-                }
-                isDark={isDark}
-              />
-            );
-          }}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>
-              No items. Tap &quot;Add&quot; to create one.
-            </Text>
-          }
-        />
+        {/* Item Summary */}
+        <View style={styles.listContent}>
+          <UploadListItem
+            type={activeTab}
+            item={activeTab === "csv" ? csvItem : sheetItem}
+            index={0}
+            onPress={() => setModalVisible(true)}
+            onDelete={() => {}}
+            showDelete={false}
+            isDark={isDark}
+          />
+        </View>
 
         {/* Upload Modal */}
         <UploadModal
@@ -762,11 +703,11 @@ export default function AddVocaScreen() {
           onClose={() => setModalVisible(false)}
           modalType={activeTab}
           isDark={isDark}
-          csvItems={csvItems}
-          setCsvItems={setCsvItems}
+          csvItem={csvItem}
+          setCsvItem={setCsvItem}
           onPickDocument={handlePickDocument}
-          sheetItems={sheetItems}
-          setSheetItems={setSheetItems}
+          sheetItem={sheetItem}
+          setSheetItem={setSheetItem}
           loading={loading}
         />
 
@@ -779,9 +720,9 @@ export default function AddVocaScreen() {
           disabled={loading}
           text={
             activeTab === "csv"
-              ? `Upload ${csvItems.filter((i) => i.file && i.day).length} Item(s)`
+              ? `Upload ${csvItem.file && csvItem.day ? 1 : 0} Item(s)`
               : token
-                ? `Import ${sheetItems.filter((i) => i.sheetId && i.day).length} Item(s)`
+                ? `Import ${sheetItem.sheetId && sheetItem.day ? 1 : 0} Item(s)`
                 : "Connect & Import"
           }
           iconName={activeTab === "csv" ? "cloud-upload" : "grid"}
@@ -830,9 +771,6 @@ const getStyles = (isDark: boolean) =>
       paddingHorizontal: 20,
       paddingTop: 20,
     },
-    content: {
-      padding: 20,
-    },
     modalOverlay: {
       flex: 1,
       backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -875,11 +813,5 @@ const getStyles = (isDark: boolean) =>
     listContent: {
       paddingHorizontal: 20,
       paddingBottom: 20,
-    },
-    emptyText: {
-      fontSize: 14,
-      color: isDark ? "#8e8e93" : "#6e6e73",
-      textAlign: "center",
-      marginTop: 40,
     },
   });

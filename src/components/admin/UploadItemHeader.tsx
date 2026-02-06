@@ -8,6 +8,7 @@ interface UploadItemHeaderProps {
   onDelete: () => void;
   titlePrefix: string;
   isDark: boolean;
+  showIndex?: boolean;
 }
 
 export default function UploadItemHeader({
@@ -16,13 +17,14 @@ export default function UploadItemHeader({
   onDelete,
   titlePrefix,
   isDark,
+  showIndex = true,
 }: UploadItemHeaderProps) {
   const styles = getStyles(isDark);
 
   return (
     <View style={styles.headerRow}>
       <Text style={styles.itemTitle}>
-        {titlePrefix} #{index + 1}
+        {showIndex ? `${titlePrefix} #${index + 1}` : titlePrefix}
       </Text>
       {showDelete && (
         <TouchableOpacity

@@ -19,6 +19,7 @@ interface CsvUploadItemViewProps {
   onPickFile: () => void;
   loading: boolean;
   isDark: boolean;
+  showIndex?: boolean;
 }
 
 export default function CsvUploadItemView({
@@ -30,6 +31,7 @@ export default function CsvUploadItemView({
   onPickFile,
   loading,
   isDark,
+  showIndex = true,
 }: CsvUploadItemViewProps) {
   const styles = getStyles(isDark);
 
@@ -41,6 +43,7 @@ export default function CsvUploadItemView({
         onDelete={onDelete}
         titlePrefix="Upload"
         isDark={isDark}
+        showIndex={showIndex}
       />
 
       <DayInput

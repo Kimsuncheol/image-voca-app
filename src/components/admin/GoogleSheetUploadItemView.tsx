@@ -20,6 +20,7 @@ interface GoogleSheetUploadItemViewProps {
   onUpdate: (field: keyof SheetUploadItem, value: string) => void;
   loading: boolean;
   isDark: boolean;
+  showIndex?: boolean;
 }
 
 export default function GoogleSheetUploadItemView({
@@ -30,6 +31,7 @@ export default function GoogleSheetUploadItemView({
   onUpdate,
   loading,
   isDark,
+  showIndex = true,
 }: GoogleSheetUploadItemViewProps) {
   const styles = getStyles(isDark);
 
@@ -41,6 +43,7 @@ export default function GoogleSheetUploadItemView({
         onDelete={onDelete}
         titlePrefix="Import"
         isDark={isDark}
+        showIndex={showIndex}
       />
 
       <DayInput

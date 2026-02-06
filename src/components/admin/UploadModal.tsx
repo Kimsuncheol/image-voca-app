@@ -15,12 +15,12 @@ interface UploadModalProps {
   modalType: ModalType;
   isDark: boolean;
   // CSV props
-  csvItems: CsvUploadItem[];
-  setCsvItems: React.Dispatch<React.SetStateAction<CsvUploadItem[]>>;
-  onPickDocument: (itemId: string) => void;
+  csvItem: CsvUploadItem;
+  setCsvItem: React.Dispatch<React.SetStateAction<CsvUploadItem>>;
+  onPickDocument: () => void;
   // Link props
-  sheetItems: SheetUploadItem[];
-  setSheetItems: React.Dispatch<React.SetStateAction<SheetUploadItem[]>>;
+  sheetItem: SheetUploadItem;
+  setSheetItem: React.Dispatch<React.SetStateAction<SheetUploadItem>>;
   loading: boolean;
 }
 
@@ -29,11 +29,11 @@ export default function UploadModal({
   onClose,
   modalType,
   isDark,
-  csvItems,
-  setCsvItems,
+  csvItem,
+  setCsvItem,
   onPickDocument,
-  sheetItems,
-  setSheetItems,
+  sheetItem,
+  setSheetItem,
   loading,
 }: UploadModalProps) {
   const styles = getStyles(isDark);
@@ -65,16 +65,16 @@ export default function UploadModal({
         <View style={styles.content}>
           {modalType === "csv" ? (
             <UploadCSVFileView
-              items={csvItems}
-              setItems={setCsvItems}
+              item={csvItem}
+              setItem={setCsvItem}
               loading={loading}
               isDark={isDark}
               onPickDocument={onPickDocument}
             />
           ) : (
             <UploadViaLinkView
-              items={sheetItems}
-              setItems={setSheetItems}
+              item={sheetItem}
+              setItem={setSheetItem}
               loading={loading}
               isDark={isDark}
             />
@@ -96,6 +96,7 @@ const getStyles = (isDark: boolean) =>
       alignItems: "center",
       justifyContent: "space-between",
       paddingHorizontal: 16,
+      marginBottom: 16,
       paddingVertical: 12,
       borderBottomWidth: 1,
       borderBottomColor: isDark ? "#38383a" : "#e5e5ea",

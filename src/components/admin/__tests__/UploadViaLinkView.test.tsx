@@ -7,22 +7,15 @@ jest.mock("@expo/vector-icons", () => ({
 }));
 
 describe("UploadViaLinkView", () => {
-  const mockSetItems = jest.fn();
-  const mockOnImport = jest.fn();
+  const mockSetItem = jest.fn();
 
-  const initialItems = [
-    { id: "1", day: "1", sheetId: "", range: "Sheet1!A:E" },
-  ];
+  const initialItem = { id: "1", day: "1", sheetId: "", range: "Sheet1!A:E" };
 
   const defaultProps = {
-    items: initialItems,
-    setItems: mockSetItems,
+    item: initialItem,
+    setItem: mockSetItem,
     loading: false,
-    progress: "",
     isDark: false,
-    token: "mock-token",
-    waitingForToken: false,
-    onImport: mockOnImport,
   };
 
   beforeEach(() => {
@@ -35,8 +28,8 @@ describe("UploadViaLinkView", () => {
     );
 
     expect(getByText("Import from Google Sheets")).toBeTruthy();
-    expect(getByText("Import #1")).toBeTruthy();
-    expect(getByText("Import 0 Item(s)")).toBeTruthy(); // 0 items because default sheetId is empty
+    expect(getByText("Import")).toBeTruthy();
+    expect(getByPlaceholderText("e.g. 1BxiMVs...")).toBeTruthy();
   });
 
   it("updates sheet ID input", () => {
@@ -47,10 +40,10 @@ describe("UploadViaLinkView", () => {
     const input = getByPlaceholderText("e.g. 1BxiMVs...");
     fireEvent.changeText(input, "new-sheet-id");
 
-    expect(mockSetItems).toHaveBeenCalled();
-    const updater = mockSetItems.mock.calls[0][0];
-    const newItems = updater(initialItems);
-    expect(newItems[0].sheetId).toBe("new-sheet-id");
+    expect(mockSetItem).toHaveBeenCalled();
+    const updater = mockSetItem.mock.calls[0][0];
+    const newItem = updater(initialItem);
+    expect(newItem.sheetId).toBe("new-sheet-id");
   });
 
   it("updates range input", () => {
@@ -61,16 +54,9 @@ describe("UploadViaLinkView", () => {
     const input = getByPlaceholderText("Sheet1!A:E");
     fireEvent.changeText(input, "Sheet2!A:B");
 
-    expect(mockSetItems).toHaveBeenCalled();
-    const updater = mockSetItems.mock.calls[0][0];
-    const newItems = updater(initialItems);
-    expect(newItems[0].range).toBe("Sheet2!A:B");
-  });
-
-  it("calls onImport when button is pressed", () => {
-    const { getByText } = render(<UploadViaLinkView {...defaultProps} />);
-
-    fireEvent.press(getByText("Import 0 Item(s)"));
-    expect(mockOnImport).toHaveBeenCalled();
+    expect(mockSetItem).toHaveBeenCalled();
+    const updater = mockSetItem.mock.calls[0][0];
+    const newItem = updater(initialItem);
+    expect(newItem.range).toBe("Sheet2!A:B");
   });
 });

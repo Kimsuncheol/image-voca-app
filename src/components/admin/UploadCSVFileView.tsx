@@ -5,16 +5,16 @@ import CsvUploadItemView, { CsvUploadItem } from "./CsvUploadItemView";
 const { height } = Dimensions.get("window");
 
 interface UploadCSVFileViewProps {
-  items: CsvUploadItem[];
-  setItems: React.Dispatch<React.SetStateAction<CsvUploadItem[]>>;
+  item: CsvUploadItem;
+  setItem: React.Dispatch<React.SetStateAction<CsvUploadItem>>;
   loading: boolean;
   isDark: boolean;
-  onPickDocument: (itemId: string) => void;
+  onPickDocument: () => void;
 }
 
 export default function UploadCSVFileView({
-  items,
-  setItems,
+  item,
+  setItem,
   loading,
   isDark,
   onPickDocument,
@@ -22,18 +22,8 @@ export default function UploadCSVFileView({
   const styles = getStyles(isDark);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const handleRemoveItem = (id: string) => {
-    if (items.length === 1) {
-      setItems([{ id: Date.now().toString(), day: "", file: null }]);
-      return;
-    }
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const handleUpdateDay = (id: string, text: string) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, day: text } : item)),
-    );
+  const handleUpdateDay = (text: string) => {
+    setItem((prev) => ({ ...prev, day: text }));
   };
 
   return (
@@ -41,19 +31,17 @@ export default function UploadCSVFileView({
       ref={scrollViewRef}
       contentContainerStyle={styles.scrollContent}
     >
-      {items.map((item, index) => (
-        <CsvUploadItemView
-          key={item.id}
-          index={index}
-          item={item}
-          showDelete={items.length > 1}
-          onDelete={() => handleRemoveItem(item.id)}
-          onUpdateDay={(text) => handleUpdateDay(item.id, text)}
-          onPickFile={() => onPickDocument(item.id)}
-          loading={loading}
-          isDark={isDark}
-        />
-      ))}
+      <CsvUploadItemView
+        index={0}
+        item={item}
+        showDelete={false}
+        showIndex={false}
+        onDelete={() => {}}
+        onUpdateDay={handleUpdateDay}
+        onPickFile={onPickDocument}
+        loading={loading}
+        isDark={isDark}
+      />
     </ScrollView>
   );
 }
@@ -63,7 +51,6 @@ const getStyles = (isDark: boolean) =>
     divider: {
       height: 1,
       backgroundColor: isDark ? "#38383a" : "#e5e5ea",
-      marginVertical: 16,
     },
     scrollContent: {
       paddingBottom: height * 0.1,
