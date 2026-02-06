@@ -58,14 +58,17 @@ export default function AddVocaScreen() {
     },
   ];
 
+  const createDraftId = () =>
+    `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
   const createEmptyCsvItem = (): CsvUploadItem => ({
-    id: Date.now().toString(),
+    id: createDraftId(),
     day: "",
     file: null,
   });
 
   const createEmptySheetItem = (): SheetUploadItem => ({
-    id: Date.now().toString(),
+    id: createDraftId(),
     day: "",
     sheetId: "",
     range: "Sheet1!A:E",
@@ -719,9 +722,50 @@ export default function AddVocaScreen() {
     }
   };
 
-  const handleSaveDraftItem = () => {
+  const closeModal = () => {
+    setModalVisible(false);
+    setEditingIndex(null);
+  };
+
+  const isCsvDraftValid = useMemo(
+    () => Boolean(draftCsvItem.day.trim() && draftCsvItem.file),
+    [draftCsvItem],
+  );
+
+  const isSheetDraftValid = useMemo(
+    () => Boolean(draftSheetItem.day.trim() && draftSheetItem.sheetId.trim()),
+    [draftSheetItem],
+  );
+
+  const isDraftValid = useMemo(
+    () => (modalTab === "csv" ? isCsvDraftValid : isSheetDraftValid),
+    [modalTab, isCsvDraftValid, isSheetDraftValid],
+  );
+
+  const handleAddDraftItemAndContinue = () => {
     if (modalTab === "csv") {
-      if (!draftCsvItem.day.trim() || !draftCsvItem.file) {
+      if (!isCsvDraftValid) return;
+
+      setCsvItems((prev) => [...prev, draftCsvItem]);
+      setDraftCsvItem(createEmptyCsvItem());
+      setEditingIndex(null);
+      return;
+    }
+
+    if (!isSheetDraftValid) return;
+
+    setSheetItems((prev) => [...prev, draftSheetItem]);
+    setDraftSheetItem(createEmptySheetItem());
+    setEditingIndex(null);
+  };
+
+  const handleSaveDraftItem = () => {
+    if (editingIndex === null) {
+      return;
+    }
+
+    if (modalTab === "csv") {
+      if (!isCsvDraftValid) {
         Alert.alert(
           "Validation Error",
           "Please ensure the item has a Day and a File selected.",
@@ -730,15 +774,12 @@ export default function AddVocaScreen() {
       }
 
       setCsvItems((prev) => {
-        if (editingIndex === null) {
-          return [...prev, draftCsvItem];
-        }
         const next = [...prev];
         next[editingIndex] = draftCsvItem;
         return next;
       });
     } else {
-      if (!draftSheetItem.day.trim() || !draftSheetItem.sheetId.trim()) {
+      if (!isSheetDraftValid) {
         Alert.alert(
           "Validation Error",
           "Please ensure the item has a Day and a Sheet ID.",
@@ -747,17 +788,13 @@ export default function AddVocaScreen() {
       }
 
       setSheetItems((prev) => {
-        if (editingIndex === null) {
-          return [...prev, draftSheetItem];
-        }
         const next = [...prev];
         next[editingIndex] = draftSheetItem;
         return next;
       });
     }
 
-    setModalVisible(false);
-    setEditingIndex(null);
+    closeModal();
   };
 
   return (
@@ -811,10 +848,7 @@ export default function AddVocaScreen() {
         {/* Upload Modal */}
         <UploadModal
           visible={modalVisible}
-          onClose={() => {
-            setModalVisible(false);
-            setEditingIndex(null);
-          }}
+          onClose={closeModal}
           modalType={modalTab}
           isDark={isDark}
           csvItem={draftCsvItem}
@@ -826,12 +860,21 @@ export default function AddVocaScreen() {
           primaryActionLabel={
             editingIndex === null
               ? modalTab === "csv"
-                ? "Add CSV"
-                : "Add Link"
+                ? "Add CSV Item"
+                : "Add Link Item"
               : "Save Changes"
           }
-          onPrimaryAction={handleSaveDraftItem}
-          primaryActionDisabled={loading}
+          onPrimaryAction={
+            editingIndex === null
+              ? handleAddDraftItemAndContinue
+              : handleSaveDraftItem
+          }
+          primaryActionDisabled={
+            editingIndex === null ? loading || !isDraftValid : loading
+          }
+          secondaryActionLabel={editingIndex === null ? "Done" : undefined}
+          onSecondaryAction={editingIndex === null ? closeModal : undefined}
+          secondaryActionDisabled={loading}
         />
 
         {/* Upload Footer - below the list */}
