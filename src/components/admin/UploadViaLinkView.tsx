@@ -1,6 +1,5 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
-import AddAnotherButton from "./AddAnotherButton";
 import GoogleSheetUploadItemView, {
   SheetUploadItem,
 } from "./GoogleSheetUploadItemView";
@@ -21,22 +20,7 @@ export default function UploadViaLinkView({
   isDark,
 }: UploadViaLinkViewProps) {
   const styles = getStyles(isDark);
-  const borderColor = "#0F9D58";
   const scrollViewRef = useRef<ScrollView>(null);
-  const [shouldScrollToEnd, setShouldScrollToEnd] = useState(false);
-
-  const handleAddItem = () => {
-    setItems((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        day: "",
-        sheetId: "",
-        range: "Sheet1!A:E",
-      },
-    ]);
-    setShouldScrollToEnd(true);
-  };
 
   const handleRemoveItem = (id: string) => {
     if (items.length === 1) {
@@ -69,13 +53,6 @@ export default function UploadViaLinkView({
       <ScrollView
         ref={scrollViewRef}
         contentContainerStyle={styles.scrollContent}
-        onContentSizeChange={() => {
-          if (!shouldScrollToEnd) {
-            return;
-          }
-          scrollViewRef.current?.scrollToEnd({ animated: true });
-          setShouldScrollToEnd(false);
-        }}
       >
         {items.map((item, index) => (
           <GoogleSheetUploadItemView
@@ -89,14 +66,6 @@ export default function UploadViaLinkView({
             isDark={isDark}
           />
         ))}
-
-        <AddAnotherButton
-          onPress={handleAddItem}
-          disabled={loading}
-          text="Add Another Link"
-          borderColor={borderColor}
-          fontColor={borderColor}
-        />
       </ScrollView>
     </View>
   );

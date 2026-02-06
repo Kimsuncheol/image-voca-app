@@ -1,6 +1,5 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import { Dimensions, ScrollView, StyleSheet } from "react-native";
-import AddAnotherButton from "./AddAnotherButton";
 import CsvUploadItemView, { CsvUploadItem } from "./CsvUploadItemView";
 
 const { height } = Dimensions.get("window");
@@ -21,17 +20,7 @@ export default function UploadCSVFileView({
   onPickDocument,
 }: UploadCSVFileViewProps) {
   const styles = getStyles(isDark);
-  const borderColor = "#007AFF";
   const scrollViewRef = useRef<ScrollView>(null);
-  const [shouldScrollToEnd, setShouldScrollToEnd] = useState(false);
-
-  const handleAddItem = () => {
-    setItems((prev) => [
-      ...prev,
-      { id: Date.now().toString(), day: "", file: null },
-    ]);
-    setShouldScrollToEnd(true);
-  };
 
   const handleRemoveItem = (id: string) => {
     if (items.length === 1) {
@@ -51,13 +40,6 @@ export default function UploadCSVFileView({
     <ScrollView
       ref={scrollViewRef}
       contentContainerStyle={styles.scrollContent}
-      onContentSizeChange={() => {
-        if (!shouldScrollToEnd) {
-          return;
-        }
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-        setShouldScrollToEnd(false);
-      }}
     >
       {items.map((item, index) => (
         <CsvUploadItemView
@@ -72,13 +54,6 @@ export default function UploadCSVFileView({
           isDark={isDark}
         />
       ))}
-
-      <AddAnotherButton
-        onPress={handleAddItem}
-        disabled={loading}
-        text="Add Another Day"
-        borderColor={borderColor}
-      />
     </ScrollView>
   );
 }
