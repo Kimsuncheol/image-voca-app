@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useRef } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
 import { CsvUploadItem } from "./CsvUploadItemView";
 import { SheetUploadItem } from "./GoogleSheetUploadItemView";
 
 type ListItemType = "csv" | "link";
+const DELETE_ACTION_WIDTH = 96;
 
 interface UploadListItemProps {
   type: ListItemType;
@@ -26,6 +28,7 @@ export default function UploadListItem({
   isDark,
 }: UploadListItemProps) {
   const styles = getStyles(isDark);
+  const isDeletingRef = useRef(false);
 
   const getTitle = () => {
     const day = item.day || "No day";
@@ -47,7 +50,7 @@ export default function UploadListItem({
   const iconName = type === "csv" ? "document-text-outline" : "link-outline";
   const iconColor = type === "csv" ? "#007AFF" : "#0F9D58";
 
-  return (
+  const rowContent = (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View
         style={[styles.iconContainer, { backgroundColor: `${iconColor}15` }]}
@@ -60,15 +63,6 @@ export default function UploadListItem({
           {getSubtitle()}
         </Text>
       </View>
-      {showDelete && (
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={onDelete}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="trash-outline" size={18} color="#ff3b30" />
-        </TouchableOpacity>
-      )}
       <Ionicons
         name="chevron-forward"
         size={20}
@@ -76,17 +70,52 @@ export default function UploadListItem({
       />
     </TouchableOpacity>
   );
+
+  if (!showDelete) {
+    return <View style={styles.swipeWrapper}>{rowContent}</View>;
+  }
+
+  return (
+    <View style={styles.swipeWrapper}>
+      <Swipeable
+        renderRightActions={() => (
+          <View
+            style={styles.deleteAction}
+            testID={`swipe-delete-${index}`}
+            accessibilityLabel={`Delete Day ${item.day || "item"}`}
+          >
+            <Ionicons name="trash-outline" size={18} color="#fff" />
+            <Text style={styles.deleteActionText}>Delete</Text>
+          </View>
+        )}
+        onSwipeableOpen={(direction) => {
+          if (direction === "right" && !isDeletingRef.current) {
+            isDeletingRef.current = true;
+            onDelete();
+          }
+        }}
+        overshootRight={false}
+        rightThreshold={DELETE_ACTION_WIDTH}
+      >
+        {rowContent}
+      </Swipeable>
+    </View>
+  );
 }
 
 const getStyles = (isDark: boolean) =>
   StyleSheet.create({
+    swipeWrapper: {
+      marginBottom: 8,
+      borderRadius: 12,
+      overflow: "hidden",
+    },
     container: {
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: isDark ? "#1c1c1e" : "#fff",
       borderRadius: 12,
       padding: 12,
-      marginBottom: 8,
       gap: 12,
     },
     iconContainer: {
@@ -109,7 +138,17 @@ const getStyles = (isDark: boolean) =>
       fontSize: 13,
       color: isDark ? "#8e8e93" : "#6e6e73",
     },
-    deleteButton: {
-      padding: 4,
+    deleteAction: {
+      width: DELETE_ACTION_WIDTH,
+      backgroundColor: "#ff3b30",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: 4,
+      borderRadius: 12,
+    },
+    deleteActionText: {
+      color: "#fff",
+      fontSize: 12,
+      fontWeight: "700",
     },
   });

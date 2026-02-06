@@ -742,21 +742,19 @@ export default function AddVocaScreen() {
     [modalTab, isCsvDraftValid, isSheetDraftValid],
   );
 
-  const handleAddDraftItemAndContinue = () => {
+  const handleAddDraftItemAndClose = () => {
     if (modalTab === "csv") {
       if (!isCsvDraftValid) return;
 
       setCsvItems((prev) => [...prev, draftCsvItem]);
-      setDraftCsvItem(createEmptyCsvItem());
-      setEditingIndex(null);
+      closeModal();
       return;
     }
 
     if (!isSheetDraftValid) return;
 
     setSheetItems((prev) => [...prev, draftSheetItem]);
-    setDraftSheetItem(createEmptySheetItem());
-    setEditingIndex(null);
+    closeModal();
   };
 
   const handleSaveDraftItem = () => {
@@ -866,15 +864,12 @@ export default function AddVocaScreen() {
           }
           onPrimaryAction={
             editingIndex === null
-              ? handleAddDraftItemAndContinue
+              ? handleAddDraftItemAndClose
               : handleSaveDraftItem
           }
           primaryActionDisabled={
             editingIndex === null ? loading || !isDraftValid : loading
           }
-          secondaryActionLabel={editingIndex === null ? "Done" : undefined}
-          onSecondaryAction={editingIndex === null ? closeModal : undefined}
-          secondaryActionDisabled={loading}
         />
 
         {/* Upload Footer - below the list */}

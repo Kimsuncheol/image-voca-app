@@ -31,27 +31,10 @@ describe("UploadModal", () => {
   });
 
   it("renders primary action label", () => {
-    const { getByText } = render(<UploadModal {...defaultProps} />);
+    const { getByText, queryByText } = render(<UploadModal {...defaultProps} />);
 
     expect(getByText("Add CSV Item")).toBeTruthy();
-  });
-
-  it("shows secondary action only when provided", () => {
-    const { queryByText, rerender, getByText } = render(
-      <UploadModal {...defaultProps} />,
-    );
-
     expect(queryByText("Done")).toBeNull();
-
-    rerender(
-      <UploadModal
-        {...defaultProps}
-        secondaryActionLabel="Done"
-        onSecondaryAction={jest.fn()}
-      />,
-    );
-
-    expect(getByText("Done")).toBeTruthy();
   });
 
   it("does not call primary action when primary button is disabled", () => {
@@ -68,22 +51,17 @@ describe("UploadModal", () => {
     expect(onPrimaryAction).not.toHaveBeenCalled();
   });
 
-  it("calls primary and secondary actions when enabled", () => {
+  it("calls primary action when enabled", () => {
     const onPrimaryAction = jest.fn();
-    const onSecondaryAction = jest.fn();
     const { getByText } = render(
       <UploadModal
         {...defaultProps}
         onPrimaryAction={onPrimaryAction}
-        secondaryActionLabel="Done"
-        onSecondaryAction={onSecondaryAction}
       />,
     );
 
     fireEvent.press(getByText("Add CSV Item"));
-    fireEvent.press(getByText("Done"));
 
     expect(onPrimaryAction).toHaveBeenCalledTimes(1);
-    expect(onSecondaryAction).toHaveBeenCalledTimes(1);
   });
 });
