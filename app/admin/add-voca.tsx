@@ -38,6 +38,14 @@ import { parseSheetValues } from "../../src/utils/googleSheetsUtils";
 // Type definition for tab switching
 type TabType = "csv" | "link";
 
+const extractDayFromFileName = (fileName: string): string | null => {
+  const match = fileName
+    .toUpperCase()
+    .match(/(?:^|[^A-Z0-9])DAY[\s_-]*0*([1-9]\d*)(?!\d)/);
+
+  return match ? match[1] : null;
+};
+
 /**
  * Admin screen for importing vocabulary data into Firestore
  * Supports two import methods: CSV file upload and Google Sheets import
@@ -125,8 +133,16 @@ export default function AddVocaScreen() {
       if (result.canceled) return;
 
       const file = result.assets[0];
-      setDraftCsvItem((prev) => ({ ...prev, file }));
+      const extractedDay = extractDayFromFileName(file.name || "");
+      setDraftCsvItem((prev) => ({
+        ...prev,
+        file,
+        day: extractedDay ?? prev.day,
+      }));
       console.log("[Picker] File selected:", file.name);
+      if (extractedDay) {
+        console.log("[Picker] Extracted day from filename:", extractedDay);
+      }
     } catch (err: any) {
       Alert.alert("Error", err.message);
     }
