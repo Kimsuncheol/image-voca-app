@@ -74,6 +74,30 @@ const en = {
       assignments: "Manage Assignments",
       analytics: "View Analytics",
     },
+    popQuizType: {
+      sectionTitle: "Pop Quiz",
+      label: "Quiz Type",
+      title: "Pop Quiz Type",
+      description: "Choose the type of questions for the dashboard pop quiz",
+      types: {
+        "multiple-choice": {
+          title: "Multiple Choice",
+          description: "Choose the correct meaning from 4 options",
+        },
+        "fill-in-blank": {
+          title: "Fill in the Blank",
+          description: "Complete the sentence with the correct word",
+        },
+        "word-arrangement": {
+          title: "Word Arrangement",
+          description: "Arrange words to form the correct sentence",
+        },
+        matching: {
+          title: "Matching",
+          description: "Match 4 words with their meanings",
+        },
+      },
+    },
   },
   dashboard: {
     greeting: {
@@ -94,8 +118,20 @@ const en = {
       subtitle: "Jump into a short quiz to test your memory.",
       wordLabel: "Word to beat",
       question: "What does this word mean?",
+      fillInBlank: "Complete the sentence",
+      matching: "Match words with meanings",
+      matchingHint: "Tap a word, then tap its meaning",
+      words: "Words",
+      meanings: "Meanings",
+      wordArrangement: "Arrange the words",
+      yourAnswer: "Your answer:",
+      tapWordsBelow: "Tap words below to arrange",
+      availableWords: "Available words:",
       correct: "Correct!",
       incorrect: "Try again tomorrow.",
+      stoppedTitle: "Quiz Paused",
+      stoppedSubtitle: "You got 3 wrong answers",
+      startButton: "Start",
     },
     quickActions: {
       title: "Quick Actions",

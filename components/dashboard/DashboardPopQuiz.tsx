@@ -7,8 +7,9 @@ import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
 import { getTotalDaysForCourse } from "../../src/services/vocabularyPrefetch";
-import { useUserStatsStore } from "../../src/stores";
+import { useUserStatsStore, usePopQuizPreferencesStore } from "../../src/stores";
 import { CourseType } from "../../src/types/vocabulary";
+import { PopQuizType } from "../settings/PopQuizTypeModal";
 import { QuizTimer } from "../course/QuizTimer";
 import { ThemedText } from "../themed-text";
 import { PopQuizSkeleton } from "./PopQuizSkeleton";
@@ -75,16 +76,33 @@ export function DashboardPopQuiz() {
   const [turnNumber, setTurnNumber] = useState(1);
   const [isPrefetching, setIsPrefetching] = useState(false);
 
+  // Quiz type from store
+  const { quizType, isLoaded, loadQuizType } = usePopQuizPreferencesStore();
+
   // Quiz state: manages the current question and UI interaction
   const [quizItem, setQuizItem] = useState<{
     word: string;
     meaning: string;
+    clozeSentence?: string;
+    translation?: string;
+    example?: string;
   } | null>(null);
   const [options, setOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const quizKey = `${turnNumber}-${currentIndex}`;
+
+  // Matching quiz state (for matching type)
+  const [matchingWords, setMatchingWords] = useState<string[]>([]);
+  const [matchingMeanings, setMatchingMeanings] = useState<string[]>([]);
+  const [selectedWord, setSelectedWord] = useState<string | null>(null);
+  const [selectedMeaning, setSelectedMeaning] = useState<string | null>(null);
+  const [matchedPairs, setMatchedPairs] = useState<Record<string, string>>({});
+
+  // Word arrangement state (for word-arrangement type)
+  const [shuffledChunks, setShuffledChunks] = useState<string[]>([]);
+  const [selectedChunks, setSelectedChunks] = useState<string[]>([]);
 
   // Wrong answer tracking: stops quiz after 3 wrong answers
   const [wrongCount, setWrongCount] = useState(0);
@@ -294,6 +312,13 @@ export function DashboardPopQuiz() {
     }
   }, [fetchWordsFromCourse]);
 
+  // Load quiz type preference on mount
+  useEffect(() => {
+    if (!isLoaded) {
+      loadQuizType();
+    }
+  }, [isLoaded, loadQuizType]);
+
   useEffect(() => {
     if (hasLoggedTotalDays.current) return;
     hasLoggedTotalDays.current = true;
@@ -370,35 +395,121 @@ export function DashboardPopQuiz() {
   // Quiz Generation & Navigation Logic
   // ---------------------------------------------------------------------------
   /**
+   * Helper to create a cloze sentence by replacing the target word with a blank
+   */
+  const createClozeSentence = useCallback((example: string, word: string): string => {
+    if (!example || !word) return "";
+    // Simple replacement - replace the word with ___
+    const regex = new RegExp(`\\b${word}\\w*\\b`, "gi");
+    return example.replace(regex, "___");
+  }, []);
+
+  /**
+   * Helper to tokenize sentence into chunks for word arrangement
+   */
+  const tokenizeSentence = useCallback((sentence: string): string[] => {
+    return sentence.split(/\s+/).filter((chunk) => chunk.length > 0);
+  }, []);
+
+  /**
    * Generates a single quiz item from the current batch.
    * Creates distractors from other words in the same batch.
+   * Supports multiple quiz types: multiple-choice, fill-in-blank, matching, word-arrangement
    */
   const generateQuiz = useCallback((wordData: any, batch: any[]) => {
     if (batch.length < 4) return;
 
-    // Use wordData as target
     const targetWord = wordData;
-
-    // Pick 3 distractors from batch
-    const distractors: string[] = [];
     const availableWords = batch.filter((w) => w.word !== targetWord.word);
 
-    while (distractors.length < 3 && availableWords.length > 0) {
-      const randIndex = Math.floor(Math.random() * availableWords.length);
-      distractors.push(availableWords[randIndex].meaning);
-      availableWords.splice(randIndex, 1);
-    }
+    if (quizType === "multiple-choice") {
+      // Multiple choice: Show word, pick meaning from 4 options
+      const distractors: string[] = [];
+      const shuffledAvailable = [...availableWords].sort(() => Math.random() - 0.5);
 
-    // Shuffle options
-    const allOptions = [...distractors, targetWord.meaning];
-    for (let i = allOptions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
-    }
+      while (distractors.length < 3 && shuffledAvailable.length > 0) {
+        distractors.push(shuffledAvailable.shift()!.meaning);
+      }
 
-    setQuizItem({ word: targetWord.word, meaning: targetWord.meaning });
-    setOptions(allOptions);
-  }, []);
+      const allOptions = [...distractors, targetWord.meaning];
+      for (let i = allOptions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
+      }
+
+      setQuizItem({ word: targetWord.word, meaning: targetWord.meaning });
+      setOptions(allOptions);
+      setMatchingWords([]);
+      setMatchingMeanings([]);
+      setShuffledChunks([]);
+      setSelectedChunks([]);
+    } else if (quizType === "fill-in-blank") {
+      // Fill in blank: Show cloze sentence, pick word from 4 options
+      const example = targetWord.example || `The word is ${targetWord.word}.`;
+      const clozeSentence = createClozeSentence(example, targetWord.word);
+
+      const distractors: string[] = [];
+      const shuffledAvailable = [...availableWords].sort(() => Math.random() - 0.5);
+
+      while (distractors.length < 3 && shuffledAvailable.length > 0) {
+        distractors.push(shuffledAvailable.shift()!.word);
+      }
+
+      const allOptions = [...distractors, targetWord.word];
+      for (let i = allOptions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
+      }
+
+      setQuizItem({
+        word: targetWord.word,
+        meaning: targetWord.meaning,
+        clozeSentence,
+        translation: targetWord.translation,
+      });
+      setOptions(allOptions);
+      setMatchingWords([]);
+      setMatchingMeanings([]);
+      setShuffledChunks([]);
+      setSelectedChunks([]);
+    } else if (quizType === "matching") {
+      // Matching: Show 4 words and 4 meanings, user matches them
+      // Take 4 words from batch (including target)
+      const wordsToMatch = [targetWord, ...availableWords.slice(0, 3)];
+      const words = wordsToMatch.map((w) => w.word);
+      const meanings = wordsToMatch.map((w) => w.meaning);
+
+      // Shuffle meanings
+      const shuffledMeanings = [...meanings].sort(() => Math.random() - 0.5);
+
+      setQuizItem({ word: targetWord.word, meaning: targetWord.meaning });
+      setMatchingWords(words);
+      setMatchingMeanings(shuffledMeanings);
+      setOptions([]);
+      setMatchedPairs({});
+      setSelectedWord(null);
+      setSelectedMeaning(null);
+      setShuffledChunks([]);
+      setSelectedChunks([]);
+    } else if (quizType === "word-arrangement") {
+      // Word arrangement: Show shuffled chunks, user arranges them
+      const example = targetWord.example || targetWord.word;
+      const chunks = tokenizeSentence(example);
+      const shuffled = [...chunks].sort(() => Math.random() - 0.5);
+
+      setQuizItem({
+        word: targetWord.word,
+        meaning: targetWord.meaning,
+        example,
+        translation: targetWord.translation,
+      });
+      setShuffledChunks(shuffled);
+      setSelectedChunks([]);
+      setOptions([]);
+      setMatchingWords([]);
+      setMatchingMeanings([]);
+    }
+  }, [quizType, createClozeSentence, tokenizeSentence]);
 
   /**
    * Handle transitioning to the next quiz question.
@@ -508,7 +619,14 @@ export function DashboardPopQuiz() {
     (option: string) => {
       if (isCorrect === true || !quizItem || isStopped) return; // Lock if stopped
 
-      const isAnswerCorrect = option === quizItem.meaning;
+      // Determine correctness based on quiz type
+      let isAnswerCorrect = false;
+      if (quizType === "multiple-choice") {
+        isAnswerCorrect = option === quizItem.meaning;
+      } else if (quizType === "fill-in-blank") {
+        isAnswerCorrect = option.toLowerCase() === quizItem.word.toLowerCase();
+      }
+
       setSelectedOption(option);
 
       // Record quiz answer for accuracy stats
@@ -541,7 +659,149 @@ export function DashboardPopQuiz() {
       loadNextQuiz,
       wrongCount,
       isStopped,
+      quizType,
     ],
+  );
+
+  // Matching quiz handlers
+  const handleSelectWord = useCallback(
+    (word: string) => {
+      if (matchedPairs[word] || isStopped) return;
+      if (selectedMeaning) {
+        // Check if match is correct
+        const correctMeaning = quizItem?.meaning;
+        const isCorrectMatch = word === quizItem?.word && selectedMeaning === correctMeaning;
+
+        if (user) {
+          bufferQuizAnswer(user.uid, isCorrectMatch);
+        }
+
+        if (isCorrectMatch) {
+          setMatchedPairs((prev) => ({ ...prev, [word]: selectedMeaning }));
+          setSelectedWord(null);
+          setSelectedMeaning(null);
+
+          // Check if all matched (4 pairs)
+          if (Object.keys(matchedPairs).length + 1 >= 4) {
+            setTimeout(() => {
+              setMatchedPairs({});
+              loadNextQuiz();
+            }, 500);
+          }
+        } else {
+          // Wrong match
+          const newWrongCount = wrongCount + 1;
+          setWrongCount(newWrongCount);
+          if (newWrongCount >= 3) {
+            setIsStopped(true);
+          }
+          setSelectedWord(null);
+          setSelectedMeaning(null);
+        }
+        return;
+      }
+      setSelectedWord(word);
+    },
+    [matchedPairs, selectedMeaning, quizItem, user, bufferQuizAnswer, wrongCount, isStopped, loadNextQuiz],
+  );
+
+  const handleSelectMeaning = useCallback(
+    (meaning: string) => {
+      if (Object.values(matchedPairs).includes(meaning) || isStopped) return;
+      if (selectedWord) {
+        // Check if match is correct
+        const correctMeaning = quizItem?.meaning;
+        const isCorrectMatch = selectedWord === quizItem?.word && meaning === correctMeaning;
+
+        if (user) {
+          bufferQuizAnswer(user.uid, isCorrectMatch);
+        }
+
+        if (isCorrectMatch) {
+          setMatchedPairs((prev) => ({ ...prev, [selectedWord]: meaning }));
+          setSelectedWord(null);
+          setSelectedMeaning(null);
+
+          // Check if all matched (4 pairs)
+          if (Object.keys(matchedPairs).length + 1 >= 4) {
+            setTimeout(() => {
+              setMatchedPairs({});
+              loadNextQuiz();
+            }, 500);
+          }
+        } else {
+          // Wrong match
+          const newWrongCount = wrongCount + 1;
+          setWrongCount(newWrongCount);
+          if (newWrongCount >= 3) {
+            setIsStopped(true);
+          }
+          setSelectedWord(null);
+          setSelectedMeaning(null);
+        }
+        return;
+      }
+      setSelectedMeaning(meaning);
+    },
+    [matchedPairs, selectedWord, quizItem, user, bufferQuizAnswer, wrongCount, isStopped, loadNextQuiz],
+  );
+
+  // Word arrangement handlers
+  const handleChunkSelect = useCallback(
+    (chunk: string, index: number) => {
+      if (isStopped) return;
+      const newShuffled = [...shuffledChunks];
+      newShuffled.splice(index, 1);
+      setShuffledChunks(newShuffled);
+      setSelectedChunks((prev) => [...prev, chunk]);
+
+      // Check if arrangement is complete
+      if (newShuffled.length === 0) {
+        const userSentence = [...selectedChunks, chunk].join(" ");
+        const correctSentence = quizItem?.example || "";
+        const isCorrectArrangement = userSentence.trim() === correctSentence.trim();
+
+        if (user) {
+          bufferQuizAnswer(user.uid, isCorrectArrangement);
+        }
+
+        if (isCorrectArrangement) {
+          setTimeout(() => {
+            setSelectedChunks([]);
+            loadNextQuiz();
+          }, 500);
+        } else {
+          const newWrongCount = wrongCount + 1;
+          setWrongCount(newWrongCount);
+          if (newWrongCount >= 3) {
+            setIsStopped(true);
+          } else {
+            // Reset arrangement for retry
+            setTimeout(() => {
+              const example = quizItem?.example || "";
+              const chunks = example.split(/\s+/).filter((c) => c.length > 0);
+              setShuffledChunks([...chunks].sort(() => Math.random() - 0.5));
+              setSelectedChunks([]);
+            }, 1000);
+          }
+        }
+      }
+    },
+    [shuffledChunks, selectedChunks, quizItem, user, bufferQuizAnswer, wrongCount, isStopped, loadNextQuiz],
+  );
+
+  const handleChunkDeselect = useCallback(
+    (index: number) => {
+      if (isStopped) return;
+      const chunk = selectedChunks[index];
+      if (!chunk) return;
+
+      const newSelected = [...selectedChunks];
+      newSelected.splice(index, 1);
+      setSelectedChunks(newSelected);
+      setShuffledChunks((prev) => [...prev, chunk]);
+    },
+    [selectedChunks, isStopped],
   );
 
   const handleTimeUp = useCallback(() => {
@@ -648,33 +908,222 @@ export function DashboardPopQuiz() {
           </View>
         ) : (
           <Animated.View style={{ opacity: fadeAnim }}>
-            <View style={styles.popQuizQuestion}>
-              <ThemedText style={styles.popQuizQuestionLabel}>
-                {t("dashboard.popQuiz.question")}
-              </ThemedText>
-              <ThemedText
-                style={[
-                  styles.popQuizQuestionText,
-                  { fontSize: getDynamicFontSize(quizItem.word) },
-                ]}
-              >
-                {quizItem.word}
-              </ThemedText>
-            </View>
+            {quizType === "multiple-choice" && (
+              <>
+                <View style={styles.popQuizQuestion}>
+                  <ThemedText style={styles.popQuizQuestionLabel}>
+                    {t("dashboard.popQuiz.question")}
+                  </ThemedText>
+                  <ThemedText
+                    style={[
+                      styles.popQuizQuestionText,
+                      { fontSize: getDynamicFontSize(quizItem.word) },
+                    ]}
+                  >
+                    {quizItem.word}
+                  </ThemedText>
+                </View>
 
-            <View style={styles.popQuizOptions}>
-              {options.map((option, index) => (
-                <PopQuizOption
-                  key={`${option}-${index}`}
-                  option={option}
-                  isSelected={selectedOption === option}
-                  isCorrect={option === quizItem.meaning}
-                  isAnswered={isCorrect === true}
-                  isDark={isDark}
-                  onPress={handleOptionPress}
-                />
-              ))}
-            </View>
+                <View style={styles.popQuizOptions}>
+                  {options.map((option, index) => (
+                    <PopQuizOption
+                      key={`${option}-${index}`}
+                      option={option}
+                      isSelected={selectedOption === option}
+                      isCorrect={option === quizItem.meaning}
+                      isAnswered={isCorrect === true}
+                      isDark={isDark}
+                      onPress={handleOptionPress}
+                    />
+                  ))}
+                </View>
+              </>
+            )}
+
+            {quizType === "fill-in-blank" && (
+              <>
+                <View style={styles.popQuizQuestion}>
+                  <ThemedText style={styles.popQuizQuestionLabel}>
+                    {t("dashboard.popQuiz.fillInBlank", {
+                      defaultValue: "Complete the sentence",
+                    })}
+                  </ThemedText>
+                  <ThemedText style={styles.popQuizClozeSentence}>
+                    {quizItem.clozeSentence}
+                  </ThemedText>
+                  {quizItem.translation && (
+                    <ThemedText style={styles.popQuizTranslation}>
+                      {quizItem.translation}
+                    </ThemedText>
+                  )}
+                </View>
+
+                <View style={styles.popQuizOptions}>
+                  {options.map((option, index) => (
+                    <PopQuizOption
+                      key={`${option}-${index}`}
+                      option={option}
+                      isSelected={selectedOption === option}
+                      isCorrect={option.toLowerCase() === quizItem.word.toLowerCase()}
+                      isAnswered={isCorrect === true}
+                      isDark={isDark}
+                      onPress={handleOptionPress}
+                    />
+                  ))}
+                </View>
+              </>
+            )}
+
+            {quizType === "matching" && (
+              <>
+                <View style={styles.popQuizQuestion}>
+                  <ThemedText style={styles.popQuizQuestionLabel}>
+                    {t("dashboard.popQuiz.matching", {
+                      defaultValue: "Match words with meanings",
+                    })}
+                  </ThemedText>
+                  <ThemedText style={styles.popQuizSubtext}>
+                    {t("dashboard.popQuiz.matchingHint", {
+                      defaultValue: "Tap a word, then tap its meaning",
+                    })}
+                  </ThemedText>
+                </View>
+
+                <View style={styles.matchingContainer}>
+                  <View style={styles.matchingColumn}>
+                    <ThemedText style={styles.matchingColumnLabel}>
+                      {t("dashboard.popQuiz.words", { defaultValue: "Words" })}
+                    </ThemedText>
+                    {matchingWords.map((word) => (
+                      <TouchableOpacity
+                        key={word}
+                        style={[
+                          styles.matchingItem,
+                          { backgroundColor: isDark ? "#2c2c2e" : "#fff" },
+                          selectedWord === word && styles.matchingItemSelected,
+                          matchedPairs[word] && styles.matchingItemMatched,
+                        ]}
+                        onPress={() => handleSelectWord(word)}
+                        disabled={!!matchedPairs[word]}
+                        activeOpacity={0.7}
+                      >
+                        <ThemedText style={styles.matchingItemText}>
+                          {word}
+                        </ThemedText>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  <View style={styles.matchingColumn}>
+                    <ThemedText style={styles.matchingColumnLabel}>
+                      {t("dashboard.popQuiz.meanings", {
+                        defaultValue: "Meanings",
+                      })}
+                    </ThemedText>
+                    {matchingMeanings.map((meaning) => (
+                      <TouchableOpacity
+                        key={meaning}
+                        style={[
+                          styles.matchingItem,
+                          { backgroundColor: isDark ? "#2c2c2e" : "#fff" },
+                          selectedMeaning === meaning &&
+                            styles.matchingItemSelected,
+                          Object.values(matchedPairs).includes(meaning) &&
+                            styles.matchingItemMatched,
+                        ]}
+                        onPress={() => handleSelectMeaning(meaning)}
+                        disabled={Object.values(matchedPairs).includes(meaning)}
+                        activeOpacity={0.7}
+                      >
+                        <ThemedText
+                          style={styles.matchingItemText}
+                          numberOfLines={2}
+                        >
+                          {meaning}
+                        </ThemedText>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              </>
+            )}
+
+            {quizType === "word-arrangement" && (
+              <>
+                <View style={styles.popQuizQuestion}>
+                  <ThemedText style={styles.popQuizQuestionLabel}>
+                    {t("dashboard.popQuiz.wordArrangement", {
+                      defaultValue: "Arrange the words",
+                    })}
+                  </ThemedText>
+                  <ThemedText style={styles.popQuizWordMeaning}>
+                    {quizItem.word}: {quizItem.meaning}
+                  </ThemedText>
+                  {quizItem.translation && (
+                    <ThemedText style={styles.popQuizTranslation}>
+                      {quizItem.translation}
+                    </ThemedText>
+                  )}
+                </View>
+
+                {/* Selected chunks area */}
+                <View style={styles.arrangementArea}>
+                  <ThemedText style={styles.arrangementLabel}>
+                    {t("dashboard.popQuiz.yourAnswer", {
+                      defaultValue: "Your answer:",
+                    })}
+                  </ThemedText>
+                  <View style={styles.selectedChunksContainer}>
+                    {selectedChunks.length === 0 ? (
+                      <ThemedText style={styles.arrangementPlaceholder}>
+                        {t("dashboard.popQuiz.tapWordsBelow", {
+                          defaultValue: "Tap words below to arrange",
+                        })}
+                      </ThemedText>
+                    ) : (
+                      selectedChunks.map((chunk, index) => (
+                        <TouchableOpacity
+                          key={`selected-${index}`}
+                          style={[
+                            styles.chunk,
+                            styles.selectedChunk,
+                            { backgroundColor: isDark ? "#007AFF" : "#007AFF" },
+                          ]}
+                          onPress={() => handleChunkDeselect(index)}
+                        >
+                          <ThemedText style={styles.selectedChunkText}>
+                            {chunk}
+                          </ThemedText>
+                        </TouchableOpacity>
+                      ))
+                    )}
+                  </View>
+                </View>
+
+                {/* Available chunks */}
+                <View style={styles.arrangementArea}>
+                  <ThemedText style={styles.arrangementLabel}>
+                    {t("dashboard.popQuiz.availableWords", {
+                      defaultValue: "Available words:",
+                    })}
+                  </ThemedText>
+                  <View style={styles.shuffledChunksContainer}>
+                    {shuffledChunks.map((chunk, index) => (
+                      <TouchableOpacity
+                        key={`shuffled-${index}`}
+                        style={[
+                          styles.chunk,
+                          { backgroundColor: isDark ? "#2c2c2e" : "#fff" },
+                        ]}
+                        onPress={() => handleChunkSelect(chunk, index)}
+                      >
+                        <ThemedText style={styles.chunkText}>{chunk}</ThemedText>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              </>
+            )}
           </Animated.View>
         )}
       </View>
@@ -865,5 +1314,109 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 16,
+  },
+  popQuizClozeSentence: {
+    fontSize: 18,
+    fontWeight: "600",
+    lineHeight: 26,
+    marginVertical: 8,
+  },
+  popQuizTranslation: {
+    fontSize: 14,
+    opacity: 0.6,
+    fontStyle: "italic",
+    marginTop: 8,
+  },
+  popQuizSubtext: {
+    fontSize: 12,
+    opacity: 0.6,
+    marginTop: 4,
+  },
+  popQuizWordMeaning: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginVertical: 8,
+  },
+  matchingContainer: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  matchingColumn: {
+    flex: 1,
+    gap: 8,
+  },
+  matchingColumnLabel: {
+    fontSize: 12,
+    opacity: 0.6,
+    textTransform: "uppercase",
+    marginBottom: 4,
+  },
+  matchingItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "transparent",
+    minHeight: 48,
+    justifyContent: "center",
+  },
+  matchingItemSelected: {
+    borderColor: "#007AFF",
+    backgroundColor: "#007AFF20",
+  },
+  matchingItemMatched: {
+    borderColor: "#28a745",
+    backgroundColor: "#28a74520",
+    opacity: 0.5,
+  },
+  matchingItemText: {
+    fontSize: 13,
+  },
+  arrangementArea: {
+    marginBottom: 16,
+  },
+  arrangementLabel: {
+    fontSize: 12,
+    opacity: 0.6,
+    textTransform: "uppercase",
+    marginBottom: 8,
+  },
+  selectedChunksContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    minHeight: 60,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#007AFF40",
+    borderStyle: "dashed",
+  },
+  shuffledChunksContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  arrangementPlaceholder: {
+    fontSize: 14,
+    opacity: 0.4,
+    fontStyle: "italic",
+  },
+  chunk: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  selectedChunk: {
+    borderColor: "#007AFF",
+  },
+  chunkText: {
+    fontSize: 14,
+  },
+  selectedChunkText: {
+    fontSize: 14,
+    color: "#fff",
   },
 });

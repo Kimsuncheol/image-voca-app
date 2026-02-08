@@ -4,4 +4,5 @@ export { useUserStatsStore } from "./userStatsStore";
 export type {
     CourseProgress, DailyStats, DayProgress, UserStats
 } from "./userStatsStore";
+export { usePopQuizPreferencesStore } from "./popQuizPreferencesStore";
 

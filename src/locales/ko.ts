@@ -74,6 +74,30 @@ const ko = {
       assignments: "과제 관리",
       analytics: "분석 보기",
     },
+    popQuizType: {
+      sectionTitle: "팝 퀴즈",
+      label: "퀴즈 유형",
+      title: "팝 퀴즈 유형",
+      description: "대시보드 팝 퀴즈의 문제 유형을 선택하세요",
+      types: {
+        "multiple-choice": {
+          title: "객관식",
+          description: "4개의 선택지 중 정답 선택",
+        },
+        "fill-in-blank": {
+          title: "빈칸 채우기",
+          description: "문장의 빈칸을 올바른 단어로 채우기",
+        },
+        "word-arrangement": {
+          title: "단어 배열",
+          description: "단어를 올바른 순서로 배열하기",
+        },
+        matching: {
+          title: "매칭",
+          description: "4개의 단어와 뜻 매칭하기",
+        },
+      },
+    },
   },
   dashboard: {
     greeting: {
@@ -94,8 +118,20 @@ const ko = {
       subtitle: "짧은 퀴즈로 기억을 테스트하세요.",
       wordLabel: "오늘의 단어",
       question: "이 단어의 뜻은?",
+      fillInBlank: "문장 완성하기",
+      matching: "단어와 뜻 매칭하기",
+      matchingHint: "단어를 누르고, 그 뜻을 눌러주세요",
+      words: "단어",
+      meanings: "뜻",
+      wordArrangement: "단어 배열하기",
+      yourAnswer: "내 답변:",
+      tapWordsBelow: "아래 단어들을 눌러 배열하세요",
+      availableWords: "선택 가능한 단어:",
       correct: "정답입니다!",
       incorrect: "내일 다시 도전해보세요.",
+      stoppedTitle: "퀴즈 일시정지",
+      stoppedSubtitle: "3개의 오답이 있습니다",
+      startButton: "시작",
     },
     quickActions: {
       title: "빠른 실행",
