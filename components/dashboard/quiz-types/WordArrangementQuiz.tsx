@@ -21,6 +21,7 @@ interface WordArrangementQuizProps {
   quizItem: QuizItem;
   shuffledChunks: string[];
   selectedChunks: string[];
+  prefilledSpeaker: string | null;
   isDark: boolean;
   onChunkSelect: (chunk: string, index: number) => void;
   onChunkDeselect: (index: number) => void;
@@ -30,6 +31,7 @@ export function WordArrangementQuiz({
   quizItem,
   shuffledChunks,
   selectedChunks,
+  prefilledSpeaker,
   isDark,
   onChunkSelect,
   onChunkDeselect,
@@ -44,9 +46,6 @@ export function WordArrangementQuiz({
           {t("dashboard.popQuiz.wordArrangement", {
             defaultValue: "Arrange the words",
           })}
-        </ThemedText>
-        <ThemedText style={styles.wordMeaning}>
-          {quizItem.word}: {quizItem.meaning}
         </ThemedText>
         {quizItem.translation && (
           <ThemedText style={styles.translation}>
@@ -70,21 +69,35 @@ export function WordArrangementQuiz({
               })}
             </ThemedText>
           ) : (
-            selectedChunks.map((chunk, index) => (
-              <TouchableOpacity
-                key={`selected-${index}`}
-                style={[
-                  styles.chunk,
-                  styles.selectedChunk,
-                  { backgroundColor: isDark ? "#007AFF" : "#007AFF" },
-                ]}
-                onPress={() => onChunkDeselect(index)}
-              >
-                <ThemedText style={styles.selectedChunkText}>
-                  {chunk}
-                </ThemedText>
-              </TouchableOpacity>
-            ))
+            selectedChunks.map((chunk, index) => {
+              const isPrefilled = prefilledSpeaker && chunk === prefilledSpeaker;
+
+              return (
+                <TouchableOpacity
+                  key={`selected-${index}`}
+                  style={[
+                    styles.chunk,
+                    styles.selectedChunk,
+                    {
+                      backgroundColor: isPrefilled
+                        ? "#666"
+                        : isDark
+                          ? "#007AFF"
+                          : "#007AFF",
+                    },
+                  ]}
+                  onPress={() => onChunkDeselect(index)}
+                  disabled={isPrefilled}
+                >
+                  <ThemedText style={styles.selectedChunkText}>
+                    {chunk}
+                  </ThemedText>
+                  {isPrefilled && (
+                    <ThemedText style={styles.lockIcon}> 🔒</ThemedText>
+                  )}
+                </TouchableOpacity>
+              );
+            })
           )}
         </View>
       </View>
@@ -124,11 +137,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     opacity: 0.6,
     textTransform: "uppercase",
-  },
-  wordMeaning: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginVertical: 8,
   },
   translation: {
     fontSize: 14,
@@ -182,5 +190,9 @@ const styles = StyleSheet.create({
   selectedChunkText: {
     fontSize: 14,
     color: "#fff",
+  },
+  lockIcon: {
+    fontSize: 10,
+    marginLeft: 4,
   },
 });

@@ -39,7 +39,11 @@ import { MultipleChoiceQuiz } from "./quiz-types/MultipleChoiceQuiz";
 import { WordArrangementQuiz } from "./quiz-types/WordArrangementQuiz";
 import { QuizHeader } from "./QuizHeader";
 import { QuizStoppedState } from "./QuizStoppedState";
-import { createClozeSentence, tokenizeSentence } from "./utils/quizHelpers";
+import {
+  createClozeSentence,
+  tokenizeSentence,
+  extractRandomExampleLine,
+} from "./utils/quizHelpers";
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -50,6 +54,18 @@ interface QuizItem {
   clozeSentence?: string;
   translation?: string;
   example?: string;
+}
+
+interface MatchingOption {
+  id: string;
+  label: string;
+}
+
+interface MatchingQuizData {
+  words: MatchingOption[];
+  meanings: MatchingOption[];
+  wordMeaningMap: Record<string, string>;
+  wordLabels: string[];
 }
 
 // ============================================================================
@@ -88,8 +104,10 @@ export function DashboardPopQuiz() {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
   // Matching quiz state
-  const [matchingWords, setMatchingWords] = useState<string[]>([]);
-  const [matchingMeanings, setMatchingMeanings] = useState<string[]>([]);
+  const [matchingWords, setMatchingWords] = useState<MatchingOption[]>([]);
+  const [matchingMeanings, setMatchingMeanings] = useState<MatchingOption[]>(
+    [],
+  );
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [selectedMeaning, setSelectedMeaning] = useState<string | null>(null);
   const [matchedPairs, setMatchedPairs] = useState<Record<string, string>>({});
@@ -97,6 +115,12 @@ export function DashboardPopQuiz() {
   // Word arrangement state
   const [shuffledChunks, setShuffledChunks] = useState<string[]>([]);
   const [selectedChunks, setSelectedChunks] = useState<string[]>([]);
+  const [prefilledSpeaker, setPrefilledSpeaker] = useState<string | null>(null);
+
+  // Matching quiz mapping (for validating all 4 pairs)
+  const [wordMeaningMap, setWordMeaningMap] = useState<Record<string, string>>(
+    {},
+  );
 
   // Wrong answer tracking
   const [wrongCount, setWrongCount] = useState(0);
@@ -107,9 +131,45 @@ export function DashboardPopQuiz() {
   // ==========================================================================
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const hasLoggedTotalDays = useRef(false);
+  const prevMatchingWordsRef = useRef<string[]>([]);
+  const prefetchedMatchingRef = useRef<{
+    quizItem: QuizItem;
+    words: MatchingOption[];
+    meanings: MatchingOption[];
+    wordMeaningMap: Record<string, string>;
+    wordLabels: string[];
+  } | null>(null);
 
   // Derived state
   const quizKey = `${turnNumber}-${currentIndex}`;
+
+  const buildMatchingQuizData = useCallback(
+    (wordsToMatch: any[]): MatchingQuizData => {
+      const words = wordsToMatch.map((wordObj, index) => ({
+        id: `word-${index}`,
+        label: wordObj.word,
+      }));
+
+      const meanings = wordsToMatch.map((wordObj, index) => ({
+        id: `meaning-${index}`,
+        label: wordObj.meaning,
+      }));
+      const shuffledMeanings = [...meanings].sort(() => Math.random() - 0.5);
+
+      const mapping: Record<string, string> = {};
+      words.forEach((wordOption, index) => {
+        mapping[wordOption.id] = meanings[index].id;
+      });
+
+      return {
+        words,
+        meanings: shuffledMeanings,
+        wordMeaningMap: mapping,
+        wordLabels: words.map((wordOption) => wordOption.label),
+      };
+    },
+    [],
+  );
 
   // ==========================================================================
   // QUIZ GENERATION
@@ -149,6 +209,8 @@ export function DashboardPopQuiz() {
         setMatchingMeanings([]);
         setShuffledChunks([]);
         setSelectedChunks([]);
+        setPrefilledSpeaker(null);
+        setWordMeaningMap({});
       } else if (quizType === "fill-in-blank") {
         // Fill in blank: Show cloze sentence, pick word from 4 options
         const example = targetWord.example || `The word is ${targetWord.word}.`;
@@ -180,42 +242,84 @@ export function DashboardPopQuiz() {
         setMatchingMeanings([]);
         setShuffledChunks([]);
         setSelectedChunks([]);
+        setPrefilledSpeaker(null);
+        setWordMeaningMap({});
       } else if (quizType === "matching") {
         // Matching: Show 4 words and 4 meanings, user matches them
-        const wordsToMatch = [targetWord, ...availableWords.slice(0, 3)];
-        const words = wordsToMatch.map((w) => w.word);
-        const meanings = wordsToMatch.map((w) => w.meaning);
-        const shuffledMeanings = [...meanings].sort(() => Math.random() - 0.5);
+        // Prefer companions not used in the previous matching set
+        const prevWords = new Set(prevMatchingWordsRef.current);
+        const freshAvailable = availableWords.filter(
+          (w) => !prevWords.has(w.word),
+        );
+        const shuffledFresh = [...freshAvailable].sort(
+          () => Math.random() - 0.5,
+        );
+
+        let companions: any[];
+        if (shuffledFresh.length >= 3) {
+          companions = shuffledFresh.slice(0, 3);
+        } else {
+          const usedAvailable = availableWords.filter((w) =>
+            prevWords.has(w.word),
+          );
+          const shuffledUsed = [...usedAvailable].sort(
+            () => Math.random() - 0.5,
+          );
+          companions = [...shuffledFresh, ...shuffledUsed].slice(0, 3);
+        }
+
+        const wordsToMatch = [targetWord, ...companions];
+        const matchingData = buildMatchingQuizData(wordsToMatch);
+
+        // Track current matching words for next quiz
+        prevMatchingWordsRef.current = matchingData.wordLabels;
 
         setQuizItem({ word: targetWord.word, meaning: targetWord.meaning });
-        setMatchingWords(words);
-        setMatchingMeanings(shuffledMeanings);
+        setMatchingWords(matchingData.words);
+        setMatchingMeanings(matchingData.meanings);
+        setWordMeaningMap(matchingData.wordMeaningMap);
         setOptions([]);
         setMatchedPairs({});
         setSelectedWord(null);
         setSelectedMeaning(null);
         setShuffledChunks([]);
         setSelectedChunks([]);
+        setPrefilledSpeaker(null);
       } else if (quizType === "word-arrangement") {
         // Word arrangement: Show shuffled chunks, user arranges them
         const example = targetWord.example || targetWord.word;
-        const chunks = tokenizeSentence(example);
+
+        // Extract a random line from multi-line example + matching translation
+        const dialogueLine = extractRandomExampleLine(
+          example,
+          targetWord.translation,
+        );
+
+        // Tokenize only the text part (exclude speaker/prefix if present)
+        const textToArrange = dialogueLine.text;
+        const chunks = tokenizeSentence(textToArrange);
         const shuffled = [...chunks].sort(() => Math.random() - 0.5);
 
         setQuizItem({
           word: targetWord.word,
           meaning: targetWord.meaning,
-          example,
-          translation: targetWord.translation,
+          example: dialogueLine.fullLine, // Store full line for validation
+          translation: dialogueLine.matchedTranslation || undefined, // Use matched line, not full text
         });
         setShuffledChunks(shuffled);
-        setSelectedChunks([]);
+
+        // Pre-fill speaker if present
+        const speaker = dialogueLine.speaker;
+        setPrefilledSpeaker(speaker);
+        setSelectedChunks(speaker ? [speaker] : []);
+
         setOptions([]);
         setMatchingWords([]);
         setMatchingMeanings([]);
+        setWordMeaningMap({});
       }
     },
-    [quizType],
+    [quizType, buildMatchingQuizData],
   );
 
   // ==========================================================================
@@ -239,6 +343,8 @@ export function DashboardPopQuiz() {
         setCurrentIndex(0);
         setTurnNumber((prev) => prev + 1);
         setWrongCount(0);
+        prefetchedMatchingRef.current = null;
+        prevMatchingWordsRef.current = [];
         generateQuiz(nextBatch[0], nextBatch);
       } else {
         setLoading(true);
@@ -247,6 +353,27 @@ export function DashboardPopQuiz() {
     }
 
     setCurrentIndex(newIndex);
+
+    // Use prefetched matching data if available
+    if (prefetchedMatchingRef.current) {
+      const data = prefetchedMatchingRef.current;
+      prefetchedMatchingRef.current = null;
+      prevMatchingWordsRef.current = data.wordLabels;
+      setQuizItem(data.quizItem);
+      setMatchingWords(data.words);
+      setMatchingMeanings(data.meanings);
+      setWordMeaningMap(data.wordMeaningMap);
+      setOptions([]);
+      setMatchedPairs({});
+      setSelectedWord(null);
+      setSelectedMeaning(null);
+      setShuffledChunks([]);
+      setSelectedChunks([]);
+      setPrefilledSpeaker(null);
+      setWrongCount(0);
+      return;
+    }
+
     generateQuiz(currentBatch[newIndex], currentBatch);
   }, [currentBatch, currentIndex, nextBatch, turnNumber, generateQuiz]);
 
@@ -298,19 +425,26 @@ export function DashboardPopQuiz() {
   );
 
   const handleSelectWord = useCallback(
-    (word: string) => {
-      if (matchedPairs[word] || isStopped) return;
+    (wordId: string) => {
+      if (matchedPairs[wordId] || isStopped) return;
       if (selectedMeaning) {
-        const correctMeaning = quizItem?.meaning;
-        const isCorrectMatch =
-          word === quizItem?.word && selectedMeaning === correctMeaning;
+        const correctMeaningId = wordMeaningMap[wordId];
+
+        if (!correctMeaningId) {
+          console.warn(`[MatchingQuiz] No mapping found for word ID: ${wordId}`);
+          setSelectedWord(null);
+          setSelectedMeaning(null);
+          return;
+        }
+
+        const isCorrectMatch = correctMeaningId === selectedMeaning;
 
         if (user) {
           bufferQuizAnswer(user.uid, isCorrectMatch);
         }
 
         if (isCorrectMatch) {
-          setMatchedPairs((prev) => ({ ...prev, [word]: selectedMeaning }));
+          setMatchedPairs((prev) => ({ ...prev, [wordId]: selectedMeaning }));
           setSelectedWord(null);
           setSelectedMeaning(null);
 
@@ -331,12 +465,12 @@ export function DashboardPopQuiz() {
         }
         return;
       }
-      setSelectedWord(word);
+      setSelectedWord(wordId);
     },
     [
       matchedPairs,
       selectedMeaning,
-      quizItem,
+      wordMeaningMap,
       user,
       bufferQuizAnswer,
       wrongCount,
@@ -346,19 +480,28 @@ export function DashboardPopQuiz() {
   );
 
   const handleSelectMeaning = useCallback(
-    (meaning: string) => {
-      if (Object.values(matchedPairs).includes(meaning) || isStopped) return;
+    (meaningId: string) => {
+      if (Object.values(matchedPairs).includes(meaningId) || isStopped) return;
       if (selectedWord) {
-        const correctMeaning = quizItem?.meaning;
-        const isCorrectMatch =
-          selectedWord === quizItem?.word && meaning === correctMeaning;
+        const correctMeaningId = wordMeaningMap[selectedWord];
+
+        if (!correctMeaningId) {
+          console.warn(
+            `[MatchingQuiz] No mapping found for word ID: ${selectedWord}`,
+          );
+          setSelectedWord(null);
+          setSelectedMeaning(null);
+          return;
+        }
+
+        const isCorrectMatch = meaningId === correctMeaningId;
 
         if (user) {
           bufferQuizAnswer(user.uid, isCorrectMatch);
         }
 
         if (isCorrectMatch) {
-          setMatchedPairs((prev) => ({ ...prev, [selectedWord]: meaning }));
+          setMatchedPairs((prev) => ({ ...prev, [selectedWord]: meaningId }));
           setSelectedWord(null);
           setSelectedMeaning(null);
 
@@ -379,12 +522,12 @@ export function DashboardPopQuiz() {
         }
         return;
       }
-      setSelectedMeaning(meaning);
+      setSelectedMeaning(meaningId);
     },
     [
       matchedPairs,
       selectedWord,
-      quizItem,
+      wordMeaningMap,
       user,
       bufferQuizAnswer,
       wrongCount,
@@ -404,8 +547,12 @@ export function DashboardPopQuiz() {
       if (newShuffled.length === 0) {
         const userSentence = [...selectedChunks, chunk].join(" ");
         const correctSentence = quizItem?.example || "";
+
+        // Normalize both sentences for comparison (trim, normalize spaces)
+        const normalizeText = (text: string) =>
+          text.trim().replace(/\s+/g, " ");
         const isCorrectArrangement =
-          userSentence.trim() === correctSentence.trim();
+          normalizeText(userSentence) === normalizeText(correctSentence);
 
         if (user) {
           bufferQuizAnswer(user.uid, isCorrectArrangement);
@@ -424,9 +571,12 @@ export function DashboardPopQuiz() {
           } else {
             setTimeout(() => {
               const example = quizItem?.example || "";
-              const chunks = example.split(/\s+/).filter((c) => c.length > 0);
+              const dialogueLine = extractRandomExampleLine(example);
+              const chunks = tokenizeSentence(dialogueLine.text);
               setShuffledChunks([...chunks].sort(() => Math.random() - 0.5));
-              setSelectedChunks([]);
+              setSelectedChunks(
+                dialogueLine.speaker ? [dialogueLine.speaker] : [],
+              );
             }, 1000);
           }
         }
@@ -447,15 +597,21 @@ export function DashboardPopQuiz() {
   const handleChunkDeselect = useCallback(
     (index: number) => {
       if (isStopped) return;
+
       const chunk = selectedChunks[index];
       if (!chunk) return;
+
+      // Prevent deselecting pre-filled speaker
+      if (prefilledSpeaker && chunk === prefilledSpeaker) {
+        return;
+      }
 
       const newSelected = [...selectedChunks];
       newSelected.splice(index, 1);
       setSelectedChunks(newSelected);
       setShuffledChunks((prev) => [...prev, chunk]);
     },
-    [selectedChunks, isStopped],
+    [selectedChunks, isStopped, prefilledSpeaker],
   );
 
   const handleTimeUp = useCallback(() => {
@@ -545,6 +701,54 @@ export function DashboardPopQuiz() {
     };
     init();
   }, [fetchBatch, generateQuiz]);
+
+  // Prefetch next matching quiz data while user works on current set
+  useEffect(() => {
+    if (quizType !== "matching") {
+      prefetchedMatchingRef.current = null;
+      return;
+    }
+
+    const nextIndex = currentIndex + 1;
+    if (nextIndex >= currentBatch.length) {
+      prefetchedMatchingRef.current = null;
+      return;
+    }
+
+    const nextTarget = currentBatch[nextIndex];
+    const available = currentBatch.filter(
+      (w) => w.word !== nextTarget.word,
+    );
+
+    // Prefer companions not used in the current matching set
+    const prevWords = new Set(prevMatchingWordsRef.current);
+    const freshAvailable = available.filter((w) => !prevWords.has(w.word));
+    const shuffledFresh = [...freshAvailable].sort(
+      () => Math.random() - 0.5,
+    );
+
+    let companions: any[];
+    if (shuffledFresh.length >= 3) {
+      companions = shuffledFresh.slice(0, 3);
+    } else {
+      const usedAvailable = available.filter((w) => prevWords.has(w.word));
+      const shuffledUsed = [...usedAvailable].sort(
+        () => Math.random() - 0.5,
+      );
+      companions = [...shuffledFresh, ...shuffledUsed].slice(0, 3);
+    }
+
+    const wordsToMatch = [nextTarget, ...companions];
+    const matchingData = buildMatchingQuizData(wordsToMatch);
+
+    prefetchedMatchingRef.current = {
+      quizItem: { word: nextTarget.word, meaning: nextTarget.meaning },
+      words: matchingData.words,
+      meanings: matchingData.meanings,
+      wordMeaningMap: matchingData.wordMeaningMap,
+      wordLabels: matchingData.wordLabels,
+    };
+  }, [currentIndex, currentBatch, quizType, buildMatchingQuizData]);
 
   // Prefetch next batch when reaching 70% of current batch
   useEffect(() => {
@@ -673,6 +877,7 @@ export function DashboardPopQuiz() {
                 quizItem={quizItem}
                 shuffledChunks={shuffledChunks}
                 selectedChunks={selectedChunks}
+                prefilledSpeaker={prefilledSpeaker}
                 isDark={isDark}
                 onChunkSelect={handleChunkSelect}
                 onChunkDeselect={handleChunkDeselect}

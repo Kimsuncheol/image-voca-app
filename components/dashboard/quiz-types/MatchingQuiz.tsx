@@ -11,15 +11,20 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "../../themed-text";
 
+interface MatchingOption {
+  id: string;
+  label: string;
+}
+
 interface MatchingQuizProps {
-  matchingWords: string[];
-  matchingMeanings: string[];
+  matchingWords: MatchingOption[];
+  matchingMeanings: MatchingOption[];
   selectedWord: string | null;
   selectedMeaning: string | null;
   matchedPairs: Record<string, string>;
   isDark: boolean;
-  onSelectWord: (word: string) => void;
-  onSelectMeaning: (meaning: string) => void;
+  onSelectWord: (wordId: string) => void;
+  onSelectMeaning: (meaningId: string) => void;
 }
 
 export function MatchingQuiz({
@@ -33,6 +38,7 @@ export function MatchingQuiz({
   onSelectMeaning,
 }: MatchingQuizProps) {
   const { t } = useTranslation();
+  const matchedMeaningIds = Object.values(matchedPairs);
 
   return (
     <>
@@ -55,20 +61,20 @@ export function MatchingQuiz({
           <ThemedText style={styles.columnLabel}>
             {t("dashboard.popQuiz.words", { defaultValue: "Words" })}
           </ThemedText>
-          {matchingWords.map((word) => (
+          {matchingWords.map((wordOption) => (
             <TouchableOpacity
-              key={word}
+              key={wordOption.id}
               style={[
                 styles.item,
                 { backgroundColor: isDark ? "#2c2c2e" : "#fff" },
-                selectedWord === word && styles.itemSelected,
-                matchedPairs[word] && styles.itemMatched,
+                selectedWord === wordOption.id && styles.itemSelected,
+                matchedPairs[wordOption.id] && styles.itemMatched,
               ]}
-              onPress={() => onSelectWord(word)}
-              disabled={!!matchedPairs[word]}
+              onPress={() => onSelectWord(wordOption.id)}
+              disabled={!!matchedPairs[wordOption.id]}
               activeOpacity={0.7}
             >
-              <ThemedText style={styles.itemText}>{word}</ThemedText>
+              <ThemedText style={styles.itemText}>{wordOption.label}</ThemedText>
             </TouchableOpacity>
           ))}
         </View>
@@ -80,25 +86,28 @@ export function MatchingQuiz({
               defaultValue: "Meanings",
             })}
           </ThemedText>
-          {matchingMeanings.map((meaning) => (
-            <TouchableOpacity
-              key={meaning}
-              style={[
-                styles.item,
-                { backgroundColor: isDark ? "#2c2c2e" : "#fff" },
-                selectedMeaning === meaning && styles.itemSelected,
-                Object.values(matchedPairs).includes(meaning) &&
-                  styles.itemMatched,
-              ]}
-              onPress={() => onSelectMeaning(meaning)}
-              disabled={Object.values(matchedPairs).includes(meaning)}
-              activeOpacity={0.7}
-            >
-              <ThemedText style={styles.itemText} numberOfLines={2}>
-                {meaning}
-              </ThemedText>
-            </TouchableOpacity>
-          ))}
+          {matchingMeanings.map((meaningOption) => {
+            const isMatched = matchedMeaningIds.includes(meaningOption.id);
+
+            return (
+              <TouchableOpacity
+                key={meaningOption.id}
+                style={[
+                  styles.item,
+                  { backgroundColor: isDark ? "#2c2c2e" : "#fff" },
+                  selectedMeaning === meaningOption.id && styles.itemSelected,
+                  isMatched && styles.itemMatched,
+                ]}
+                onPress={() => onSelectMeaning(meaningOption.id)}
+                disabled={isMatched}
+                activeOpacity={0.7}
+              >
+                <ThemedText style={styles.itemText} numberOfLines={2}>
+                  {meaningOption.label}
+                </ThemedText>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
     </>

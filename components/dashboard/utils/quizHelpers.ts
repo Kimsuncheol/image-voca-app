@@ -92,3 +92,102 @@ export function createClozeSentence(example: string, word: string): string {
 export function tokenizeSentence(sentence: string): string[] {
   return sentence.split(/\s+/).filter((chunk) => chunk.length > 0);
 }
+
+/**
+ * Represents a parsed dialogue line with speaker/prefix and text
+ */
+export interface DialogueLine {
+  speaker: string | null; // Prefix: speaker ("Jane:") or number ("1.") or null
+  text: string; // The text after prefix
+  fullLine: string; // Complete line for validation
+  matchedTranslation: string | null; // Corresponding translation line
+}
+
+/**
+ * Split text into individual lines by newlines and dialogue markers.
+ */
+function splitIntoLines(text: string): string[] {
+  return text
+    .split(/\n|--\s*\(\d+\)|--(?=\s*[A-Z])/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+}
+
+/**
+ * Extract a random line from a multi-line example and match the corresponding
+ * translation line by index. Also detects speaker prefixes ("Jane:") and
+ * numbered prefixes ("1.") for auto-filling in the quiz.
+ *
+ * @param example - The full example text (may be multi-line)
+ * @param translation - Optional full translation text (may be multi-line)
+ * @returns Object with speaker/prefix, text, fullLine, and matchedTranslation
+ */
+export function extractRandomExampleLine(
+  example: string,
+  translation?: string,
+): DialogueLine {
+  if (!example) {
+    return {
+      speaker: null,
+      text: example,
+      fullLine: example,
+      matchedTranslation: translation || null,
+    };
+  }
+
+  const exampleLines = splitIntoLines(example);
+  const translationLines = translation ? splitIntoLines(translation) : [];
+
+  // Pick random index (limited to lines that have matching translations if translation exists)
+  const maxIndex =
+    translationLines.length > 0
+      ? Math.min(exampleLines.length, translationLines.length)
+      : exampleLines.length;
+  const randomIndex = Math.floor(Math.random() * maxIndex);
+
+  const selectedLine = exampleLines[randomIndex]?.trim();
+  if (!selectedLine) {
+    return {
+      speaker: null,
+      text: example,
+      fullLine: example,
+      matchedTranslation: translation || null,
+    };
+  }
+
+  // Get matched translation line
+  const matchedTranslation =
+    randomIndex < translationLines.length
+      ? translationLines[randomIndex]
+      : null;
+
+  // Check speaker format ("Name: text")
+  const speakerMatch = selectedLine.match(/^([^:]+):\s*(.+)$/);
+  if (speakerMatch) {
+    return {
+      speaker: speakerMatch[1].trim() + ":",
+      text: speakerMatch[2].trim(),
+      fullLine: selectedLine,
+      matchedTranslation,
+    };
+  }
+
+  // Check numbered format ("1. text", "2. text")
+  const numberMatch = selectedLine.match(/^(\d+\.)\s+(.+)$/);
+  if (numberMatch) {
+    return {
+      speaker: numberMatch[1],
+      text: numberMatch[2].trim(),
+      fullLine: selectedLine,
+      matchedTranslation,
+    };
+  }
+
+  // No prefix
+  return {
+    speaker: null,
+    text: selectedLine,
+    fullLine: selectedLine,
+    matchedTranslation,
+  };
+}
