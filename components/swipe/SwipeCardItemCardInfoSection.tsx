@@ -1,7 +1,6 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { VocabularyCard } from "../../src/types/vocabulary";
-import { SwipeCardItemAddToWordBankButton } from "./SwipeCardItemAddToWordBankButton";
 import { SwipeCardItemMeaningExampleSentenceSection } from "./SwipeCardItemMeaningExampleSentenceSection";
 
 interface CardInfoSectionProps {
@@ -26,17 +25,12 @@ export function SwipeCardItemCardInfoSection({
     >
       {/* Merged Word, Meaning & Example Section */}
       <SwipeCardItemMeaningExampleSentenceSection
+        item={item}
         word={item.word}
         pronunciation={item.pronunciation}
         meaning={item.meaning}
         example={item.example}
         translation={item.translation}
-        isDark={isDark}
-      />
-
-      {/* Add to Word Bank Button */}
-      <SwipeCardItemAddToWordBankButton
-        item={item}
         isDark={isDark}
         initialIsSaved={initialIsSaved}
         day={day}
@@ -48,9 +42,10 @@ export function SwipeCardItemCardInfoSection({
 const styles = StyleSheet.create({
   cardInfo: {
     height: "70%",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     paddingHorizontal: 24,
-    paddingVertical: 16,
+    paddingTop: 6,
+    paddingBottom: 16,
     backgroundColor: "#fff",
   },
 });

@@ -1,5 +1,6 @@
-import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface SwipeCardItemExampleSentenceSectionProps {
   example: string;
@@ -18,41 +19,73 @@ export function SwipeCardItemExampleSentenceSection({
     ? translation.split("\n").filter((t) => t.trim())
     : [];
 
+  const [isExpanded, setIsExpanded] = useState(false);
+  const shouldCollapse = examples.length >= 4;
+  const displayedExamples = shouldCollapse && !isExpanded
+    ? examples.slice(0, 3)
+    : examples;
+
   return (
-    <ScrollView
-      style={styles.examplesScrollContainer}
-      showsVerticalScrollIndicator={true}
-      nestedScrollEnabled={true}
-    >
-      {examples.map((exampleText, index) => (
-        <View key={index} style={styles.exampleGroup}>
-          <Text
-            style={[
-              styles.cardExample,
-              { color: isDark ? "#b0b0b0" : "#444" },
-              { borderLeftColor: isDark ? "#0a84ff" : "#007AFF" },
-            ]}
-            numberOfLines={2}
-          >
-            {examples.length > 1 ? `${index + 1}. ` : ""}&quot;
-            {exampleText.trim()}&quot;
-          </Text>
-          {translations[index] && (
+    <>
+      <ScrollView
+        style={styles.examplesScrollContainer}
+        showsVerticalScrollIndicator={true}
+        nestedScrollEnabled={true}
+      >
+        {displayedExamples.map((exampleText, index) => (
+          <View key={index} style={styles.exampleGroup}>
             <Text
               style={[
-                styles.cardTranslation,
-                { color: isDark ? "#a8e6a1" : "#2d5f2d" },
-                { borderLeftColor: isDark ? "#34c759" : "#28a745" },
+                styles.cardExample,
+                { color: isDark ? "#b0b0b0" : "#444" },
+                { borderLeftColor: isDark ? "#0a84ff" : "#007AFF" },
               ]}
               numberOfLines={2}
             >
-              {examples.length > 1 ? `${index + 1}. ` : ""}
-              {translations[index].trim()}
+              {examples.length > 1 ? `${index + 1}. ` : ""}&quot;
+              {exampleText.trim()}&quot;
             </Text>
-          )}
-        </View>
-      ))}
-    </ScrollView>
+            {translations[index] && (
+              <Text
+                style={[
+                  styles.cardTranslation,
+                  { color: isDark ? "#a8e6a1" : "#2d5f2d" },
+                  { borderLeftColor: isDark ? "#34c759" : "#28a745" },
+                ]}
+                numberOfLines={2}
+              >
+                {examples.length > 1 ? `${index + 1}. ` : ""}
+                {translations[index].trim()}
+              </Text>
+            )}
+          </View>
+        ))}
+      </ScrollView>
+
+      {shouldCollapse && (
+        <TouchableOpacity
+          style={[
+            styles.expandButton,
+            { backgroundColor: isDark ? "#1a1a1a" : "#f5f5f5" },
+          ]}
+          onPress={() => setIsExpanded(!isExpanded)}
+        >
+          <Text
+            style={[
+              styles.expandButtonText,
+              { color: isDark ? "#0a84ff" : "#007AFF" },
+            ]}
+          >
+            {isExpanded ? "Show less" : `Show ${examples.length - 3} more`}
+          </Text>
+          <Ionicons
+            name={isExpanded ? "chevron-up" : "chevron-down"}
+            size={16}
+            color={isDark ? "#0a84ff" : "#007AFF"}
+          />
+        </TouchableOpacity>
+      )}
+    </>
   );
 }
 
@@ -82,5 +115,19 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
     marginTop: 4,
     lineHeight: 22,
+  },
+  expandButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginTop: 8,
+    borderRadius: 8,
+    gap: 4,
+  },
+  expandButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
   },
 });

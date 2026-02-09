@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { doc, runTransaction } from "firebase/firestore";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { Alert, StyleSheet, TouchableOpacity } from "react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import { db } from "../../src/services/firebase";
 import { useUserStatsStore } from "../../src/stores";
@@ -118,38 +118,22 @@ export function SwipeCardItemAddToWordBankButton({
       disabled={isAdding || isAdded}
     >
       <Ionicons
-        name={isAdded ? "checkmark-circle" : "add-circle-outline"}
-        size={20}
+        name={isAdded ? "bookmark" : "bookmark-outline"}
+        size={24}
         color={isAdded ? "#fff" : isDark ? "#0a84ff" : "#007AFF"}
       />
-      <Text
-        style={[
-          styles.addButtonText,
-          isAdded && styles.addButtonTextAdded,
-          !isAdded && { color: isDark ? "#0a84ff" : "#007AFF" },
-        ]}
-      >
-        {isAdding
-          ? t("swipe.actions.adding")
-          : isAdded
-            ? t("swipe.actions.added")
-            : t("swipe.actions.addToWordBank")}
-      </Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   addButton: {
-    flexDirection: "row",
+    width: 40,
+    height: 40,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#E8F4FD",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 24,
-    marginTop: 16,
-    gap: 8,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#007AFF40",
   },
@@ -159,13 +143,5 @@ const styles = StyleSheet.create({
   },
   addButtonDisabled: {
     opacity: 0.6,
-  },
-  addButtonText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#007AFF",
-  },
-  addButtonTextAdded: {
-    color: "#fff",
   },
 });
