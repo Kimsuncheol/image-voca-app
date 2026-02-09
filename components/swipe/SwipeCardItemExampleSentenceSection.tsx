@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as Speech from "expo-speech";
 
 interface SwipeCardItemExampleSentenceSectionProps {
   example: string;
@@ -14,9 +15,16 @@ export function SwipeCardItemExampleSentenceSection({
   isDark,
 }: SwipeCardItemExampleSentenceSectionProps) {
   // Split examples and translations by newlines
-  const examples = example ? example.split("\n").filter((e) => e.trim()) : [];
+  // Remove number prefixes (e.g., "1. ", "2. ") from the raw text
+  const examples = example
+    ? example.split("\n")
+        .filter((e) => e.trim())
+        .map((e) => e.replace(/^\d+\.\s*/, "").trim())
+    : [];
   const translations = translation
-    ? translation.split("\n").filter((t) => t.trim())
+    ? translation.split("\n")
+        .filter((t) => t.trim())
+        .map((t) => t.replace(/^\d+\.\s*/, "").trim())
     : [];
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -24,6 +32,26 @@ export function SwipeCardItemExampleSentenceSection({
   const displayedExamples = shouldCollapse && !isExpanded
     ? examples.slice(0, 3)
     : examples;
+
+  // TTS handler with recycling (stop previous speech before starting new)
+  const handleSpeak = async (text: string) => {
+    try {
+      // Stop any ongoing speech (TTS recycling)
+      await Speech.stop();
+
+      // Clean the text: remove quotes and trim
+      const cleanText = text.replace(/^"|"$/g, "").trim();
+
+      // Speak the cleaned text
+      Speech.speak(cleanText, {
+        language: "en-US",
+        pitch: 1.0,
+        rate: 0.9,
+      });
+    } catch (error) {
+      console.error("TTS error:", error);
+    }
+  };
 
   return (
     <>
@@ -34,17 +62,21 @@ export function SwipeCardItemExampleSentenceSection({
       >
         {displayedExamples.map((exampleText, index) => (
           <View key={index} style={styles.exampleGroup}>
-            <Text
-              style={[
-                styles.cardExample,
-                { color: isDark ? "#b0b0b0" : "#444" },
-                { borderLeftColor: isDark ? "#0a84ff" : "#007AFF" },
-              ]}
-              numberOfLines={2}
+            <TouchableOpacity
+              onPress={() => handleSpeak(exampleText.trim())}
+              activeOpacity={0.7}
             >
-              {examples.length > 1 ? `${index + 1}. ` : ""}&quot;
-              {exampleText.trim()}&quot;
-            </Text>
+              <Text
+                style={[
+                  styles.cardExample,
+                  { color: isDark ? "#b0b0b0" : "#444" },
+                  { borderLeftColor: isDark ? "#0a84ff" : "#007AFF" },
+                ]}
+                numberOfLines={2}
+              >
+                {exampleText.trim()}
+              </Text>
+            </TouchableOpacity>
             {translations[index] && (
               <Text
                 style={[
@@ -54,7 +86,6 @@ export function SwipeCardItemExampleSentenceSection({
                 ]}
                 numberOfLines={2}
               >
-                {examples.length > 1 ? `${index + 1}. ` : ""}
                 {translations[index].trim()}
               </Text>
             )}
