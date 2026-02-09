@@ -132,6 +132,7 @@ const en = {
       stoppedTitle: "Quiz Paused",
       stoppedSubtitle: "You got 3 wrong answers",
       startButton: "Start",
+      step: "Step {{current}} of {{total}}",
     },
     quickActions: {
       title: "Quick Actions",

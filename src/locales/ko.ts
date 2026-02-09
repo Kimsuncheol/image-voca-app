@@ -132,6 +132,7 @@ const ko = {
       stoppedTitle: "퀴즈 일시정지",
       stoppedSubtitle: "3개의 오답이 있습니다",
       startButton: "시작",
+      step: "{{current}}/{{total}} 단계",
     },
     quickActions: {
       title: "빠른 실행",

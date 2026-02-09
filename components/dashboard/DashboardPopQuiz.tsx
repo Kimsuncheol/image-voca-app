@@ -1,12 +1,12 @@
 /**
  * ====================================
- * DASHBOARD POP QUIZ COMPONENT (REFACTORED)
+ * DASHBOARD POP QUIZ COMPONENT
  * ====================================
  *
  * Orchestrator component for the pop quiz feature on the dashboard.
  * Features:
  * - Fetches random vocabulary words from various courses
- * - Supports multiple quiz types (multiple-choice, fill-in-blank, matching, word-arrangement)
+ * - Supports multiple-choice quiz type only
  * - Manages batching and prefetching for infinite play
  * - Tracks user answers and updates statistics
  *
@@ -14,7 +14,7 @@
  * - hooks/useQuizBatchFetcher.ts: Data fetching and caching logic
  * - utils/quizHelpers.ts: Helper functions
  * - constants/quizConfig.ts: Configuration constants
- * - quiz-types/*.tsx: Individual quiz type renderers
+ * - quiz-types/MultipleChoiceQuiz.tsx: Quiz type renderer
  * - QuizHeader.tsx, QuizStoppedState.tsx: Shared UI components
  */
 
@@ -33,17 +33,9 @@ import { ThemedText } from "../themed-text";
 import { DEBUG_TOTAL_DAYS_COURSES } from "./constants/quizConfig";
 import { useQuizBatchFetcher } from "./hooks/useQuizBatchFetcher";
 import { PopQuizSkeleton } from "./PopQuizSkeleton";
-import { FillInBlankQuiz } from "./quiz-types/FillInBlankQuiz";
-import { MatchingQuiz } from "./quiz-types/MatchingQuiz";
 import { MultipleChoiceQuiz } from "./quiz-types/MultipleChoiceQuiz";
-import { WordArrangementQuiz } from "./quiz-types/WordArrangementQuiz";
 import { QuizHeader } from "./QuizHeader";
 import { QuizStoppedState } from "./QuizStoppedState";
-import {
-  createClozeSentence,
-  tokenizeSentence,
-  extractRandomExampleLine,
-} from "./utils/quizHelpers";
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -51,21 +43,6 @@ import {
 interface QuizItem {
   word: string;
   meaning: string;
-  clozeSentence?: string;
-  translation?: string;
-  example?: string;
-}
-
-interface MatchingOption {
-  id: string;
-  label: string;
-}
-
-interface MatchingQuizData {
-  words: MatchingOption[];
-  meanings: MatchingOption[];
-  wordMeaningMap: Record<string, string>;
-  wordLabels: string[];
 }
 
 // ============================================================================
@@ -79,7 +56,7 @@ export function DashboardPopQuiz() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { bufferQuizAnswer, flushQuizStats } = useUserStatsStore();
-  const { quizType, isLoaded, loadQuizType } = usePopQuizPreferencesStore();
+  const { isLoaded, loadQuizType } = usePopQuizPreferencesStore();
 
   // ==========================================================================
   // CUSTOM HOOKS
@@ -103,25 +80,6 @@ export function DashboardPopQuiz() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  // Matching quiz state
-  const [matchingWords, setMatchingWords] = useState<MatchingOption[]>([]);
-  const [matchingMeanings, setMatchingMeanings] = useState<MatchingOption[]>(
-    [],
-  );
-  const [selectedWord, setSelectedWord] = useState<string | null>(null);
-  const [selectedMeaning, setSelectedMeaning] = useState<string | null>(null);
-  const [matchedPairs, setMatchedPairs] = useState<Record<string, string>>({});
-
-  // Word arrangement state
-  const [shuffledChunks, setShuffledChunks] = useState<string[]>([]);
-  const [selectedChunks, setSelectedChunks] = useState<string[]>([]);
-  const [prefilledSpeaker, setPrefilledSpeaker] = useState<string | null>(null);
-
-  // Matching quiz mapping (for validating all 4 pairs)
-  const [wordMeaningMap, setWordMeaningMap] = useState<Record<string, string>>(
-    {},
-  );
-
   // Wrong answer tracking
   const [wrongCount, setWrongCount] = useState(0);
   const [isStopped, setIsStopped] = useState(false);
@@ -131,196 +89,42 @@ export function DashboardPopQuiz() {
   // ==========================================================================
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const hasLoggedTotalDays = useRef(false);
-  const prevMatchingWordsRef = useRef<string[]>([]);
-  const prefetchedMatchingRef = useRef<{
-    quizItem: QuizItem;
-    words: MatchingOption[];
-    meanings: MatchingOption[];
-    wordMeaningMap: Record<string, string>;
-    wordLabels: string[];
-  } | null>(null);
 
   // Derived state
   const quizKey = `${turnNumber}-${currentIndex}`;
-
-  const buildMatchingQuizData = useCallback(
-    (wordsToMatch: any[]): MatchingQuizData => {
-      const words = wordsToMatch.map((wordObj, index) => ({
-        id: `word-${index}`,
-        label: wordObj.word,
-      }));
-
-      const meanings = wordsToMatch.map((wordObj, index) => ({
-        id: `meaning-${index}`,
-        label: wordObj.meaning,
-      }));
-      const shuffledMeanings = [...meanings].sort(() => Math.random() - 0.5);
-
-      const mapping: Record<string, string> = {};
-      words.forEach((wordOption, index) => {
-        mapping[wordOption.id] = meanings[index].id;
-      });
-
-      return {
-        words,
-        meanings: shuffledMeanings,
-        wordMeaningMap: mapping,
-        wordLabels: words.map((wordOption) => wordOption.label),
-      };
-    },
-    [],
-  );
 
   // ==========================================================================
   // QUIZ GENERATION
   // ==========================================================================
   /**
-   * Generates a single quiz item from the current batch.
+   * Generates a single multiple-choice quiz item from the current batch.
    * Creates distractors from other words in the same batch.
-   * Supports multiple quiz types: multiple-choice, fill-in-blank, matching, word-arrangement
    */
-  const generateQuiz = useCallback(
-    (wordData: any, batch: any[]) => {
-      if (batch.length < 4) return;
+  const generateQuiz = useCallback((wordData: any, batch: any[]) => {
+    if (batch.length < 4) return;
 
-      const targetWord = wordData;
-      const availableWords = batch.filter((w) => w.word !== targetWord.word);
+    const targetWord = wordData;
+    const availableWords = batch.filter((w) => w.word !== targetWord.word);
 
-      if (quizType === "multiple-choice") {
-        // Multiple choice: Show word, pick meaning from 4 options
-        const distractors: string[] = [];
-        const shuffledAvailable = [...availableWords].sort(
-          () => Math.random() - 0.5,
-        );
+    // Multiple choice: Show word, pick meaning from 4 options
+    const distractors: string[] = [];
+    const shuffledAvailable = [...availableWords].sort(
+      () => Math.random() - 0.5,
+    );
 
-        while (distractors.length < 3 && shuffledAvailable.length > 0) {
-          distractors.push(shuffledAvailable.shift()!.meaning);
-        }
+    while (distractors.length < 3 && shuffledAvailable.length > 0) {
+      distractors.push(shuffledAvailable.shift()!.meaning);
+    }
 
-        const allOptions = [...distractors, targetWord.meaning];
-        for (let i = allOptions.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
-        }
+    const allOptions = [...distractors, targetWord.meaning];
+    for (let i = allOptions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
+    }
 
-        setQuizItem({ word: targetWord.word, meaning: targetWord.meaning });
-        setOptions(allOptions);
-        setMatchingWords([]);
-        setMatchingMeanings([]);
-        setShuffledChunks([]);
-        setSelectedChunks([]);
-        setPrefilledSpeaker(null);
-        setWordMeaningMap({});
-      } else if (quizType === "fill-in-blank") {
-        // Fill in blank: Show cloze sentence, pick word from 4 options
-        const example = targetWord.example || `The word is ${targetWord.word}.`;
-        const clozeSentence = createClozeSentence(example, targetWord.word);
-
-        const distractors: string[] = [];
-        const shuffledAvailable = [...availableWords].sort(
-          () => Math.random() - 0.5,
-        );
-
-        while (distractors.length < 3 && shuffledAvailable.length > 0) {
-          distractors.push(shuffledAvailable.shift()!.word);
-        }
-
-        const allOptions = [...distractors, targetWord.word];
-        for (let i = allOptions.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
-        }
-
-        setQuizItem({
-          word: targetWord.word,
-          meaning: targetWord.meaning,
-          clozeSentence,
-          translation: targetWord.translation,
-        });
-        setOptions(allOptions);
-        setMatchingWords([]);
-        setMatchingMeanings([]);
-        setShuffledChunks([]);
-        setSelectedChunks([]);
-        setPrefilledSpeaker(null);
-        setWordMeaningMap({});
-      } else if (quizType === "matching") {
-        // Matching: Show 4 words and 4 meanings, user matches them
-        // Prefer companions not used in the previous matching set
-        const prevWords = new Set(prevMatchingWordsRef.current);
-        const freshAvailable = availableWords.filter(
-          (w) => !prevWords.has(w.word),
-        );
-        const shuffledFresh = [...freshAvailable].sort(
-          () => Math.random() - 0.5,
-        );
-
-        let companions: any[];
-        if (shuffledFresh.length >= 3) {
-          companions = shuffledFresh.slice(0, 3);
-        } else {
-          const usedAvailable = availableWords.filter((w) =>
-            prevWords.has(w.word),
-          );
-          const shuffledUsed = [...usedAvailable].sort(
-            () => Math.random() - 0.5,
-          );
-          companions = [...shuffledFresh, ...shuffledUsed].slice(0, 3);
-        }
-
-        const wordsToMatch = [targetWord, ...companions];
-        const matchingData = buildMatchingQuizData(wordsToMatch);
-
-        // Track current matching words for next quiz
-        prevMatchingWordsRef.current = matchingData.wordLabels;
-
-        setQuizItem({ word: targetWord.word, meaning: targetWord.meaning });
-        setMatchingWords(matchingData.words);
-        setMatchingMeanings(matchingData.meanings);
-        setWordMeaningMap(matchingData.wordMeaningMap);
-        setOptions([]);
-        setMatchedPairs({});
-        setSelectedWord(null);
-        setSelectedMeaning(null);
-        setShuffledChunks([]);
-        setSelectedChunks([]);
-        setPrefilledSpeaker(null);
-      } else if (quizType === "word-arrangement") {
-        // Word arrangement: Show shuffled chunks, user arranges them
-        const example = targetWord.example || targetWord.word;
-
-        // Extract a random line from multi-line example + matching translation
-        const dialogueLine = extractRandomExampleLine(
-          example,
-          targetWord.translation,
-        );
-
-        // Tokenize only the text part (exclude speaker/prefix if present)
-        const textToArrange = dialogueLine.text;
-        const chunks = tokenizeSentence(textToArrange);
-        const shuffled = [...chunks].sort(() => Math.random() - 0.5);
-
-        setQuizItem({
-          word: targetWord.word,
-          meaning: targetWord.meaning,
-          example: dialogueLine.fullLine, // Store full line for validation
-          translation: dialogueLine.matchedTranslation || undefined, // Use matched line, not full text
-        });
-        setShuffledChunks(shuffled);
-
-        // Pre-fill speaker if present
-        const speaker = dialogueLine.speaker;
-        setPrefilledSpeaker(speaker);
-        setSelectedChunks(speaker ? [speaker] : []);
-
-        setOptions([]);
-        setMatchingWords([]);
-        setMatchingMeanings([]);
-        setWordMeaningMap({});
-      }
-    },
-    [quizType, buildMatchingQuizData],
-  );
+    setQuizItem({ word: targetWord.word, meaning: targetWord.meaning });
+    setOptions(allOptions);
+  }, []);
 
   // ==========================================================================
   // NAVIGATION
@@ -343,8 +147,6 @@ export function DashboardPopQuiz() {
         setCurrentIndex(0);
         setTurnNumber((prev) => prev + 1);
         setWrongCount(0);
-        prefetchedMatchingRef.current = null;
-        prevMatchingWordsRef.current = [];
         generateQuiz(nextBatch[0], nextBatch);
       } else {
         setLoading(true);
@@ -353,28 +155,8 @@ export function DashboardPopQuiz() {
     }
 
     setCurrentIndex(newIndex);
-
-    // Use prefetched matching data if available
-    if (prefetchedMatchingRef.current) {
-      const data = prefetchedMatchingRef.current;
-      prefetchedMatchingRef.current = null;
-      prevMatchingWordsRef.current = data.wordLabels;
-      setQuizItem(data.quizItem);
-      setMatchingWords(data.words);
-      setMatchingMeanings(data.meanings);
-      setWordMeaningMap(data.wordMeaningMap);
-      setOptions([]);
-      setMatchedPairs({});
-      setSelectedWord(null);
-      setSelectedMeaning(null);
-      setShuffledChunks([]);
-      setSelectedChunks([]);
-      setPrefilledSpeaker(null);
-      setWrongCount(0);
-      return;
-    }
-
     generateQuiz(currentBatch[newIndex], currentBatch);
+    setWrongCount(0);
   }, [currentBatch, currentIndex, nextBatch, turnNumber, generateQuiz]);
 
   // ==========================================================================
@@ -384,13 +166,7 @@ export function DashboardPopQuiz() {
     (option: string) => {
       if (isCorrect === true || !quizItem || isStopped) return;
 
-      let isAnswerCorrect = false;
-      if (quizType === "multiple-choice") {
-        isAnswerCorrect = option === quizItem.meaning;
-      } else if (quizType === "fill-in-blank") {
-        isAnswerCorrect = option.toLowerCase() === quizItem.word.toLowerCase();
-      }
-
+      const isAnswerCorrect = option === quizItem.meaning;
       setSelectedOption(option);
 
       if (user) {
@@ -420,198 +196,7 @@ export function DashboardPopQuiz() {
       loadNextQuiz,
       wrongCount,
       isStopped,
-      quizType,
     ],
-  );
-
-  const handleSelectWord = useCallback(
-    (wordId: string) => {
-      if (matchedPairs[wordId] || isStopped) return;
-      if (selectedMeaning) {
-        const correctMeaningId = wordMeaningMap[wordId];
-
-        if (!correctMeaningId) {
-          console.warn(`[MatchingQuiz] No mapping found for word ID: ${wordId}`);
-          setSelectedWord(null);
-          setSelectedMeaning(null);
-          return;
-        }
-
-        const isCorrectMatch = correctMeaningId === selectedMeaning;
-
-        if (user) {
-          bufferQuizAnswer(user.uid, isCorrectMatch);
-        }
-
-        if (isCorrectMatch) {
-          setMatchedPairs((prev) => ({ ...prev, [wordId]: selectedMeaning }));
-          setSelectedWord(null);
-          setSelectedMeaning(null);
-
-          if (Object.keys(matchedPairs).length + 1 >= 4) {
-            setTimeout(() => {
-              setMatchedPairs({});
-              loadNextQuiz();
-            }, 500);
-          }
-        } else {
-          const newWrongCount = wrongCount + 1;
-          setWrongCount(newWrongCount);
-          if (newWrongCount >= 3) {
-            setIsStopped(true);
-          }
-          setSelectedWord(null);
-          setSelectedMeaning(null);
-        }
-        return;
-      }
-      setSelectedWord(wordId);
-    },
-    [
-      matchedPairs,
-      selectedMeaning,
-      wordMeaningMap,
-      user,
-      bufferQuizAnswer,
-      wrongCount,
-      isStopped,
-      loadNextQuiz,
-    ],
-  );
-
-  const handleSelectMeaning = useCallback(
-    (meaningId: string) => {
-      if (Object.values(matchedPairs).includes(meaningId) || isStopped) return;
-      if (selectedWord) {
-        const correctMeaningId = wordMeaningMap[selectedWord];
-
-        if (!correctMeaningId) {
-          console.warn(
-            `[MatchingQuiz] No mapping found for word ID: ${selectedWord}`,
-          );
-          setSelectedWord(null);
-          setSelectedMeaning(null);
-          return;
-        }
-
-        const isCorrectMatch = meaningId === correctMeaningId;
-
-        if (user) {
-          bufferQuizAnswer(user.uid, isCorrectMatch);
-        }
-
-        if (isCorrectMatch) {
-          setMatchedPairs((prev) => ({ ...prev, [selectedWord]: meaningId }));
-          setSelectedWord(null);
-          setSelectedMeaning(null);
-
-          if (Object.keys(matchedPairs).length + 1 >= 4) {
-            setTimeout(() => {
-              setMatchedPairs({});
-              loadNextQuiz();
-            }, 500);
-          }
-        } else {
-          const newWrongCount = wrongCount + 1;
-          setWrongCount(newWrongCount);
-          if (newWrongCount >= 3) {
-            setIsStopped(true);
-          }
-          setSelectedWord(null);
-          setSelectedMeaning(null);
-        }
-        return;
-      }
-      setSelectedMeaning(meaningId);
-    },
-    [
-      matchedPairs,
-      selectedWord,
-      wordMeaningMap,
-      user,
-      bufferQuizAnswer,
-      wrongCount,
-      isStopped,
-      loadNextQuiz,
-    ],
-  );
-
-  const handleChunkSelect = useCallback(
-    (chunk: string, index: number) => {
-      if (isStopped) return;
-      const newShuffled = [...shuffledChunks];
-      newShuffled.splice(index, 1);
-      setShuffledChunks(newShuffled);
-      setSelectedChunks((prev) => [...prev, chunk]);
-
-      if (newShuffled.length === 0) {
-        const userSentence = [...selectedChunks, chunk].join(" ");
-        const correctSentence = quizItem?.example || "";
-
-        // Normalize both sentences for comparison (trim, normalize spaces)
-        const normalizeText = (text: string) =>
-          text.trim().replace(/\s+/g, " ");
-        const isCorrectArrangement =
-          normalizeText(userSentence) === normalizeText(correctSentence);
-
-        if (user) {
-          bufferQuizAnswer(user.uid, isCorrectArrangement);
-        }
-
-        if (isCorrectArrangement) {
-          setTimeout(() => {
-            setSelectedChunks([]);
-            loadNextQuiz();
-          }, 500);
-        } else {
-          const newWrongCount = wrongCount + 1;
-          setWrongCount(newWrongCount);
-          if (newWrongCount >= 3) {
-            setIsStopped(true);
-          } else {
-            setTimeout(() => {
-              const example = quizItem?.example || "";
-              const dialogueLine = extractRandomExampleLine(example);
-              const chunks = tokenizeSentence(dialogueLine.text);
-              setShuffledChunks([...chunks].sort(() => Math.random() - 0.5));
-              setSelectedChunks(
-                dialogueLine.speaker ? [dialogueLine.speaker] : [],
-              );
-            }, 1000);
-          }
-        }
-      }
-    },
-    [
-      shuffledChunks,
-      selectedChunks,
-      quizItem,
-      user,
-      bufferQuizAnswer,
-      wrongCount,
-      isStopped,
-      loadNextQuiz,
-    ],
-  );
-
-  const handleChunkDeselect = useCallback(
-    (index: number) => {
-      if (isStopped) return;
-
-      const chunk = selectedChunks[index];
-      if (!chunk) return;
-
-      // Prevent deselecting pre-filled speaker
-      if (prefilledSpeaker && chunk === prefilledSpeaker) {
-        return;
-      }
-
-      const newSelected = [...selectedChunks];
-      newSelected.splice(index, 1);
-      setSelectedChunks(newSelected);
-      setShuffledChunks((prev) => [...prev, chunk]);
-    },
-    [selectedChunks, isStopped, prefilledSpeaker],
   );
 
   const handleTimeUp = useCallback(() => {
@@ -702,54 +287,6 @@ export function DashboardPopQuiz() {
     init();
   }, [fetchBatch, generateQuiz]);
 
-  // Prefetch next matching quiz data while user works on current set
-  useEffect(() => {
-    if (quizType !== "matching") {
-      prefetchedMatchingRef.current = null;
-      return;
-    }
-
-    const nextIndex = currentIndex + 1;
-    if (nextIndex >= currentBatch.length) {
-      prefetchedMatchingRef.current = null;
-      return;
-    }
-
-    const nextTarget = currentBatch[nextIndex];
-    const available = currentBatch.filter(
-      (w) => w.word !== nextTarget.word,
-    );
-
-    // Prefer companions not used in the current matching set
-    const prevWords = new Set(prevMatchingWordsRef.current);
-    const freshAvailable = available.filter((w) => !prevWords.has(w.word));
-    const shuffledFresh = [...freshAvailable].sort(
-      () => Math.random() - 0.5,
-    );
-
-    let companions: any[];
-    if (shuffledFresh.length >= 3) {
-      companions = shuffledFresh.slice(0, 3);
-    } else {
-      const usedAvailable = available.filter((w) => prevWords.has(w.word));
-      const shuffledUsed = [...usedAvailable].sort(
-        () => Math.random() - 0.5,
-      );
-      companions = [...shuffledFresh, ...shuffledUsed].slice(0, 3);
-    }
-
-    const wordsToMatch = [nextTarget, ...companions];
-    const matchingData = buildMatchingQuizData(wordsToMatch);
-
-    prefetchedMatchingRef.current = {
-      quizItem: { word: nextTarget.word, meaning: nextTarget.meaning },
-      words: matchingData.words,
-      meanings: matchingData.meanings,
-      wordMeaningMap: matchingData.wordMeaningMap,
-      wordLabels: matchingData.wordLabels,
-    };
-  }, [currentIndex, currentBatch, quizType, buildMatchingQuizData]);
-
   // Prefetch next batch when reaching 70% of current batch
   useEffect(() => {
     if (loading || isPrefetching) return;
@@ -837,52 +374,14 @@ export function DashboardPopQuiz() {
           />
         ) : (
           <Animated.View style={{ opacity: fadeAnim }}>
-            {quizType === "multiple-choice" && (
-              <MultipleChoiceQuiz
-                quizItem={quizItem}
-                options={options}
-                selectedOption={selectedOption}
-                isCorrect={isCorrect}
-                isDark={isDark}
-                onOptionPress={handleOptionPress}
-              />
-            )}
-
-            {quizType === "fill-in-blank" && (
-              <FillInBlankQuiz
-                quizItem={quizItem}
-                options={options}
-                selectedOption={selectedOption}
-                isCorrect={isCorrect}
-                isDark={isDark}
-                onOptionPress={handleOptionPress}
-              />
-            )}
-
-            {quizType === "matching" && (
-              <MatchingQuiz
-                matchingWords={matchingWords}
-                matchingMeanings={matchingMeanings}
-                selectedWord={selectedWord}
-                selectedMeaning={selectedMeaning}
-                matchedPairs={matchedPairs}
-                isDark={isDark}
-                onSelectWord={handleSelectWord}
-                onSelectMeaning={handleSelectMeaning}
-              />
-            )}
-
-            {quizType === "word-arrangement" && (
-              <WordArrangementQuiz
-                quizItem={quizItem}
-                shuffledChunks={shuffledChunks}
-                selectedChunks={selectedChunks}
-                prefilledSpeaker={prefilledSpeaker}
-                isDark={isDark}
-                onChunkSelect={handleChunkSelect}
-                onChunkDeselect={handleChunkDeselect}
-              />
-            )}
+            <MultipleChoiceQuiz
+              quizItem={quizItem}
+              options={options}
+              selectedOption={selectedOption}
+              isCorrect={isCorrect}
+              isDark={isDark}
+              onOptionPress={handleOptionPress}
+            />
           </Animated.View>
         )}
       </View>
