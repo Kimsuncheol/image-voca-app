@@ -41,11 +41,9 @@ export function SwipeCardItemCardInfoSection({
 
 const styles = StyleSheet.create({
   cardInfo: {
-    height: "70%",
+    height: "65%",
     justifyContent: "flex-start",
-    paddingHorizontal: 24,
-    paddingTop: 6,
-    paddingBottom: 16,
+    padding: 24,
     backgroundColor: "#fff",
   },
 });

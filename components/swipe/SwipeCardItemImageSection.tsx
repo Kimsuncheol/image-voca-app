@@ -30,7 +30,7 @@ export function SwipeCardItemImageSection({
 
 const styles = StyleSheet.create({
   imageContainer: {
-    height: "30%",
+    height: "35%",
     width: "100%",
   },
   cardImage: {
