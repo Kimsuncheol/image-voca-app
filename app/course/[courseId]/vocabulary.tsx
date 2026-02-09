@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   swipeContainer: {
-    height: height * 0.8,
+    height: height * 0.76,
     width: width,
     alignItems: "center",
     justifyContent: "center",
