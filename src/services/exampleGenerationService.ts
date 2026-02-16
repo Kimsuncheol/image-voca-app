@@ -39,7 +39,7 @@ export async function generateExampleSentence(
 
   const difficulty = difficultyMap[courseLevel] || "intermediate English";
 
-  const systemPrompt = `You are an expert English language teacher creating example sentences for vocabulary learning.
+  const systemPrompt = `You are an expert English language instructor creating example sentences for vocabulary learning.
 Your sentences must:
 1. Use the exact target word naturally in context
 2. Be appropriate for ${difficulty}
@@ -149,7 +149,7 @@ Respond in JSON format:
         {
           role: "system",
           content:
-            "You are an English teacher. Create example sentences that include the target word.",
+            "You are an English instructor. Create example sentences that include the target word.",
         },
         { role: "user", content: userPrompt },
       ],

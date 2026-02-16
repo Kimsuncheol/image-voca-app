@@ -3,14 +3,13 @@ import { arrayUnion, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { create } from "zustand";
 import { db } from "../services/firebase";
 import { UserRole } from "../types/member";
+import { normalizeUserRole } from "../utils/role";
 
 // Ad unlock is allowed for Days 4-10 only (Days 1-3 are free)
 export const AD_UNLOCK_LIMIT = 10;
 const UNLOCKED_IDS_KEY = "@unlocked_ids";
 
 export type PlanType = "free" | "voca_unlimited" | "voca_speaking";
-// UserRole is now imported from member.ts to maintain consistency across the app
-// export type UserRole = "user" | "admin"; // OLD - replaced by import from member.ts
 
 export interface Plan {
   id: PlanType;
@@ -73,8 +72,6 @@ interface SubscriptionState {
   canAccessSpeaking: () => boolean;
   canUnlockViaAd: (day: number) => boolean;
   isAdmin: () => boolean;
-  isTeacher: () => boolean;
-  hasClassManagementAccess: () => boolean;
   resetSubscription: () => void;
 }
 
@@ -116,16 +113,8 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
         const normalizedPlan = normalizePlanId(subscription?.planId);
         const orderId = subscription?.orderId ?? null;
 
-        /**
-         * Role assignment from Firestore data
-         * - Retrieves user role from database
-         * - Falls back to 'student' if role is invalid or missing
-         * - Supports: 'student', 'teacher', 'admin'
-         */
-        const role: UserRole =
-          data.role === "admin" || data.role === "teacher" || data.role === "student"
-            ? data.role
-            : "student"; // Default to 'student' for backward compatibility
+        // Legacy "teacher" and unknown roles are normalized to "student".
+        const role: UserRole = normalizeUserRole(data.role);
 
         console.log(
           "📋 Current User Role:",
@@ -317,25 +306,6 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   isAdmin: () => {
     const { role } = get();
     return role === "admin";
-  },
-
-  /**
-   * Check if current user is a teacher or admin
-   * Admins have access to all teacher features
-   * @returns true if user has teacher or admin role
-   */
-  isTeacher: () => {
-    const { role } = get();
-    return role === "teacher" || role === "admin";
-  },
-
-  /**
-   * Check if current user can manage classes
-   * Currently same as isTeacher, but kept separate for future granular permissions
-   * @returns true if user can manage classes
-   */
-  hasClassManagementAccess: () => {
-    return get().isTeacher();
   },
 
   /**

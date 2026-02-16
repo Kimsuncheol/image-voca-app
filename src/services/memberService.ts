@@ -27,6 +27,7 @@ import type {
   SubscriptionPlan,
   UserRole,
 } from '../types/member';
+import { normalizeUserRole } from "../utils/role";
 
 const USERS_COLLECTION = 'users';
 const PAGE_SIZE = 20;
@@ -63,13 +64,14 @@ export async function getMembers(
         (sum: number, day: any) => sum + (day.wordsLearned || 0),
         0
       );
+      const role = normalizeUserRole(data.role);
 
       members.push({
         uid: doc.id,
         email: data.email || '',
         displayName: data.displayName || data.name || 'Unknown',
         photoURL: data.photoURL,
-        role: data.role || 'user',
+        role,
         planId: data.subscription?.planId || 'free',
         lastActiveDate: data.lastActiveDate || '',
         currentStreak: data.currentStreak || 0,
@@ -103,13 +105,14 @@ export async function getAllMembers(): Promise<MemberListItem[]> {
         (sum: number, day: any) => sum + (day.wordsLearned || 0),
         0
       );
+      const role = normalizeUserRole(data.role);
 
       members.push({
         uid: doc.id,
         email: data.email || '',
         displayName: data.displayName || data.name || 'Unknown',
         photoURL: data.photoURL,
-        role: data.role || 'user',
+        role,
         planId: data.subscription?.planId || 'free',
         lastActiveDate: data.lastActiveDate || '',
         currentStreak: data.currentStreak || 0,
@@ -175,13 +178,14 @@ export async function getMemberDetails(uid: string): Promise<Member | null> {
       activatedAt: data.subscription?.activatedAt,
       activatedBy: data.subscription?.activatedBy,
     };
+    const role = normalizeUserRole(data.role);
 
     return {
       uid: docSnap.id,
       email: data.email || '',
       displayName: data.displayName || data.name || 'Unknown',
       photoURL: data.photoURL,
-      role: data.role || 'user',
+      role,
       subscription,
       stats,
       createdAt: data.createdAt || '',

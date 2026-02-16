@@ -91,7 +91,6 @@ function RootLayoutNav() {
             name="profile"
             options={{ title: t("profile.title") }}
           />
-          <Stack.Screen name="teacher" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       </NavigationThemeProvider>

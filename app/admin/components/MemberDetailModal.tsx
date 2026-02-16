@@ -6,7 +6,7 @@
  *
  * FEATURES:
  * - Full member profile with large avatar, name, and email
- * - Role management: View and edit user role (user/admin)
+ * - Role management: View and edit user role (student/admin)
  * - Subscription management: View and edit subscription plan
  * - Detailed statistics: Streaks, words learned, quiz accuracy
  * - Activity tracking: Last active date and daily goal
@@ -16,7 +16,7 @@
  *
  * USER INTERACTIONS:
  * - Close button: Dismisses modal and returns to members list
- * - Edit role button: Enables role editing mode with user/admin toggle
+ * - Edit role button: Enables role editing mode with student/admin toggle
  * - Edit plan button: Enables plan editing mode with plan selection
  * - Save buttons: Confirms changes and updates Firestore
  * - Cancel editing: Exits edit mode without saving changes
@@ -27,7 +27,7 @@
  *    - All fields are read-only
  *
  * 2. Role Edit Mode:
- *    - Shows user/admin toggle buttons
+ *    - Shows student/admin toggle buttons
  *    - Displays save/cancel buttons
  *    - Prevents closing modal during save operation
  *
@@ -260,22 +260,22 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
               {editingRole ? (
                 // EDIT MODE - Role selection buttons
                 <View style={styles.editContainer}>
-                  {/* User/Admin Toggle Buttons */}
+                  {/* Student/Admin Toggle Buttons */}
                   <View style={styles.roleButtons}>
                     <TouchableOpacity
                       style={[
                         styles.roleButton,
-                        newRole === 'user' && styles.roleButtonActive,
+                        newRole === 'student' && styles.roleButtonActive,
                       ]}
-                      onPress={() => onRoleChange('user')}
+                      onPress={() => onRoleChange('student')}
                     >
                       <Text
                         style={[
                           styles.roleButtonText,
-                          newRole === 'user' && styles.roleButtonTextActive,
+                          newRole === 'student' && styles.roleButtonTextActive,
                         ]}
                       >
-                        User
+                        Student
                       </Text>
                     </TouchableOpacity>
 
@@ -322,7 +322,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                     ]}
                   >
                     <Text style={styles.roleBadgeText}>
-                      {member.role === 'admin' ? 'Admin' : 'User'}
+                      {member.role === 'admin' ? 'Admin' : 'Student'}
                     </Text>
                   </View>
                 </View>

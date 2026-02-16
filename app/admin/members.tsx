@@ -10,7 +10,7 @@
  * - Real-time search by name or email
  * - Filter by subscription plan and user role
  * - View detailed member profiles
- * - Edit member roles (user/admin)
+ * - Edit member roles (student/admin)
  * - Manage subscription plans
  * - View membership statistics
  * - Theme-aware UI (dark/light mode)
@@ -151,7 +151,7 @@ export default function MembersAdmin() {
   /** Plan editing mode flag */
   const [editingPlan, setEditingPlan] = useState(false);
   /** New role value during editing */
-  const [newRole, setNewRole] = useState<UserRole>("user");
+  const [newRole, setNewRole] = useState<UserRole>("student");
   /** New plan value during editing */
   const [newPlan, setNewPlan] = useState<SubscriptionPlan>("free");
   /** Saving operation in progress flag */
@@ -222,7 +222,7 @@ export default function MembersAdmin() {
    *
    * DATA INCLUDES:
    * - Basic profile: uid, displayName, email, photoURL
-   * - Role: user or admin
+   * - Role: student or admin
    * - Subscription: current plan
    * - Stats: streak, words learned, last active date
    */

@@ -8,7 +8,7 @@ import { StyleProp, TextStyle, ViewStyle } from "react-native";
 
 /**
  * Settings screen styles
- * Used by AdminSection, TeacherSection, and other settings components
+ * Used by settings section components
  */
 export interface SettingsStyles {
   section: ViewStyle;

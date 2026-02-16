@@ -9,13 +9,12 @@
  *
  * Defines the different user roles in the application:
  * - 'student': Regular learner who uses the app to study vocabulary and take quizzes
- * - 'teacher': Educator who can manage classes, create assignments, and monitor student progress
  * - 'admin': System administrator with full access to content management and user administration
  *
  * Role Hierarchy:
- * student (lowest privileges) < teacher (class management) < admin (full system access)
+ * student (default privileges) < admin (full system access)
  */
-export type UserRole = 'student' | 'teacher' | 'admin';
+export type UserRole = 'student' | 'admin';
 
 export type SubscriptionPlan = 'free' | 'voca_unlimited' | 'voca_speaking';
 

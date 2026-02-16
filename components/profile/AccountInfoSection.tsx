@@ -47,7 +47,7 @@ export function AccountInfoSection({
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>{t("profile.fields.role")}</Text>
               <Text style={styles.infoValue}>
-                {role === "admin" ? "Admin" : "User"}
+                {role === "admin" ? "Admin" : "Student"}
               </Text>
             </View>
           </>
