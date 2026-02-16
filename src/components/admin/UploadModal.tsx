@@ -55,7 +55,7 @@ export default function UploadModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+      <SafeAreaView style={styles.container} edges={["top", "left", "right", "bottom"]}>
         <UploadModalHeader
           isDark={isDark}
           title={title}
