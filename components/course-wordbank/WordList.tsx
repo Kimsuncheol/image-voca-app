@@ -27,11 +27,56 @@ export function WordList({
   isDark,
   onDelete,
 }: WordListProps) {
+  const pagerRef = React.useRef<PagerView>(null);
+  const currentIndexRef = React.useRef(0);
+  const unlockedIndicesRef = React.useRef<Set<number>>(new Set());
+  const revertingTargetRef = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    currentIndexRef.current = 0;
+    unlockedIndicesRef.current = new Set();
+    revertingTargetRef.current = null;
+  }, [courseId, words.length]);
+
+  const unlockIndex = React.useCallback((index: number) => {
+    unlockedIndicesRef.current.add(index);
+  }, []);
+
+  const handlePageSelected = React.useCallback((e: any) => {
+    const nextIndex = e.nativeEvent.position;
+
+    if (
+      revertingTargetRef.current !== null &&
+      nextIndex === revertingTargetRef.current
+    ) {
+      revertingTargetRef.current = null;
+      return;
+    }
+
+    const previousIndex = currentIndexRef.current;
+    const isForwardMove = nextIndex > previousIndex;
+    const isCurrentCardUnlocked =
+      unlockedIndicesRef.current.has(previousIndex);
+
+    if (isForwardMove && !isCurrentCardUnlocked) {
+      revertingTargetRef.current = previousIndex;
+      pagerRef.current?.setPageWithoutAnimation(previousIndex);
+      return;
+    }
+
+    currentIndexRef.current = nextIndex;
+  }, []);
+
   // COLLOCATION course uses special flip card design
   if (courseId === "COLLOCATION") {
     return (
-      <PagerView style={styles.pagerView}>
-        {words.map((word) => (
+      <PagerView
+        ref={pagerRef}
+        style={styles.pagerView}
+        onPageSelected={handlePageSelected}
+        orientation="horizontal"
+      >
+        {words.map((word, index) => (
           <View key={word.id} style={styles.page}>
             <CollocationFlipCard
               data={{
@@ -51,6 +96,7 @@ export function WordList({
                 enableDelete: true, // Can delete from word bank
                 onDelete,
               }}
+              onFirstFlipToBack={() => unlockIndex(index)}
             />
           </View>
         ))}

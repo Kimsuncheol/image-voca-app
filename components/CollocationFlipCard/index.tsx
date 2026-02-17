@@ -17,6 +17,8 @@ interface Props {
   isDark?: boolean;
   // Configuration for 'Add to Word Bank' functionality (optional)
   wordBankConfig?: CollocationWordBankConfig;
+  // Called once when this card is flipped to the back for the first time
+  onFirstFlipToBack?: () => void;
 }
 
 /**
@@ -31,7 +33,7 @@ interface Props {
  * - State Tracking: Knows if it is currently flipped or facing front.
  */
 export const CollocationFlipCard: React.FC<Props> = React.memo(
-  ({ data, isDark = false, wordBankConfig }) => {
+  ({ data, isDark = false, wordBankConfig, onFirstFlipToBack }) => {
     // ============================================================================
     // State Management
     // ============================================================================
@@ -41,6 +43,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
 
     // Controls the flip state of the card (true = back side visible)
     const [isFlipped, setIsFlipped] = useState(false);
+    const hasReportedFirstBackRef = React.useRef(false);
 
     // ============================================================================
     // Event Handlers
@@ -62,6 +65,17 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
       setIsFlipped(false);
     }, []);
 
+    const handleFlipEnd = useCallback(
+      (isFlippedBack: boolean) => {
+        setIsBackVisible(isFlippedBack);
+        if (isFlippedBack && !hasReportedFirstBackRef.current) {
+          hasReportedFirstBackRef.current = true;
+          onFirstFlipToBack?.();
+        }
+      },
+      [onFirstFlipToBack],
+    );
+
     // ============================================================================
     // Main Render
     // ============================================================================
@@ -74,7 +88,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
         flipHorizontal={true}
         flipVertical={false}
         clickable={false} // We handle clicks via custom buttons inside FaceSide/BackSide
-        onFlipEnd={setIsBackVisible}
+        onFlipEnd={handleFlipEnd}
       >
         {/* ============================================================ */}
         {/* Front Face: Shows the Word, Meaning, and Actions             */}
