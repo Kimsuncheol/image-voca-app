@@ -8,14 +8,21 @@ import {
   View,
 } from "react-native";
 import Collapsible from "react-native-collapsible";
-import {
-  DialogueTurn,
-  stripRoleLabels,
-  toDialogueTurns,
-} from "../../src/utils/roleplayUtils";
-import { RoleplayDialogueRow } from "../RoleplayDialogueRow";
-import { RoleplayRenderer } from "./RoleplayRenderer";
+import { toDialogueTurns } from "../../src/utils/roleplayUtils";
 import { SpeakerButton } from "./SpeakerButton";
+
+const CHARACTER_MIN_WIDTH = 88;
+const CHARACTER_MAX_WIDTH = 120;
+const CHARACTER_WIDTH_PER_CHAR = 8;
+const CHARACTER_BASE_WIDTH = 20;
+
+function splitCharacterWords(character: string): string[] {
+  return character.trim().split(/\s+/).filter(Boolean);
+}
+
+function formatCharacterLabel(character: string): string {
+  return splitCharacterWords(character).join("\n");
+}
 
 interface ExampleSectionProps {
   example: string;
@@ -39,42 +46,33 @@ export default React.memo(function ExampleSection({
     () => toDialogueTurns(translation || ""),
     [translation],
   );
-  const fallbackTranslation = useMemo(
-    () => stripRoleLabels(translation || ""),
-    [translation],
+  const items = useMemo(
+    () =>
+      exampleTurns.map((turn, index) => ({
+        character: turn.role || "",
+        characterLabel: formatCharacterLabel(turn.role || ""),
+        exampleText: turn.text,
+        translationText: translationTurns[index]?.text || "",
+      })),
+    [exampleTurns, translationTurns],
   );
-
-  const hasTranslation = Boolean(translation?.trim());
-  const canInterleave =
-    hasTranslation &&
-    exampleTurns.length > 0 &&
-    translationTurns.length > 0 &&
-    exampleTurns.length === translationTurns.length;
-
-  const renderExampleTurn = (turn: DialogueTurn, index: number) => {
-    if (turn.role) {
-      return (
-        <RoleplayDialogueRow
-          key={`example-turn-${index}`}
-          role={turn.role}
-          text={
-            <Text style={[styles.value, styles.exampleText, isDark && styles.textDark]}>
-              &quot;{turn.text}&quot;
-            </Text>
-          }
-        />
+  const characterColumnWidth = useMemo(() => {
+    const longestWordLength = items.reduce((maxLength, item) => {
+      const longestInItem = splitCharacterWords(item.character).reduce(
+        (innerMax, word) => Math.max(innerMax, word.length),
+        0,
       );
-    }
+      return Math.max(maxLength, longestInItem);
+    }, 0);
 
-    return (
-      <Text
-        key={`example-turn-${index}`}
-        style={[styles.value, styles.exampleText, isDark && styles.textDark]}
-      >
-        &quot;{turn.text}&quot;
-      </Text>
+    const estimatedWidth =
+      longestWordLength * CHARACTER_WIDTH_PER_CHAR + CHARACTER_BASE_WIDTH;
+
+    return Math.max(
+      CHARACTER_MIN_WIDTH,
+      Math.min(CHARACTER_MAX_WIDTH, estimatedWidth),
     );
-  };
+  }, [items]);
 
   return (
     <View>
@@ -107,40 +105,60 @@ export default React.memo(function ExampleSection({
                 >
                   <View style={styles.scrollContentRow}>
                     <View style={styles.scrollText}>
-                      {canInterleave ? (
-                        <View style={styles.interleavedContainer}>
-                          {exampleTurns.map((turn, index) => (
-                            <View key={`pair-${index}`} style={styles.interleavedPair}>
-                              {renderExampleTurn(turn, index)}
-                              <Text
+                      <View style={styles.interleavedContainer}>
+                        {items.map((item, index) => (
+                          <View key={`dialogue-item-${index}`} style={styles.itemContainer}>
+                            <View style={styles.itemRow}>
+                              <View
                                 style={[
-                                  styles.value,
-                                  styles.translationValue,
-                                  isDark && styles.translationDark,
+                                  styles.characterCell,
+                                  { width: characterColumnWidth },
                                 ]}
                               >
-                                {translationTurns[index].text}
-                              </Text>
+                                <Text
+                                  style={[
+                                    styles.characterText,
+                                    isDark && styles.characterTextDark,
+                                  ]}
+                                >
+                                  {item.characterLabel}
+                                </Text>
+                              </View>
+                              <View style={styles.contentCell}>
+                                <Text
+                                  style={[
+                                    styles.value,
+                                    styles.exampleText,
+                                    isDark && styles.textDark,
+                                  ]}
+                                >
+                                  {item.exampleText}
+                                </Text>
+                              </View>
                             </View>
-                          ))}
-                        </View>
-                      ) : (
-                        <View style={styles.nonInterleavedContainer}>
-                          <RoleplayRenderer content={example} isDark={isDark} />
-                          {hasTranslation && fallbackTranslation ? (
-                            <Text
-                              style={[
-                                styles.value,
-                                styles.translationValue,
-                                styles.translationFallback,
-                                isDark && styles.translationDark,
-                              ]}
-                            >
-                              {fallbackTranslation}
-                            </Text>
-                          ) : null}
-                        </View>
-                      )}
+
+                            <View style={styles.itemRow}>
+                              <View
+                                style={[
+                                  styles.characterCell,
+                                  { width: characterColumnWidth },
+                                ]}
+                              />
+                              <View style={styles.contentCell}>
+                                <Text
+                                  style={[
+                                    styles.value,
+                                    styles.translationValue,
+                                    isDark && styles.translationDark,
+                                  ]}
+                                >
+                                  {item.translationText}
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                        ))}
+                      </View>
                     </View>
                     <SpeakerButton text={example} isDark={isDark} />
                   </View>
@@ -209,17 +227,32 @@ const styles = StyleSheet.create({
   },
   exampleText: {
     fontStyle: "normal",
-    flex: 1,
-    marginRight: 8,
+  },
+  characterCell: {
+    paddingRight: 10,
+    justifyContent: "flex-start",
+  },
+  characterText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#666",
+    lineHeight: 22,
+  },
+  characterTextDark: {
+    color: "#B3B3B8",
   },
   interleavedContainer: {
     gap: 12,
   },
-  interleavedPair: {
-    gap: 6,
+  itemContainer: {
+    gap: 2,
   },
-  nonInterleavedContainer: {
-    gap: 10,
+  itemRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  contentCell: {
+    flex: 1,
   },
   translationValue: {
     fontSize: 15,
@@ -229,9 +262,5 @@ const styles = StyleSheet.create({
   },
   translationDark: {
     color: "#D1D1D6",
-  },
-  translationFallback: {
-    marginTop: 4,
-    paddingTop: 8,
   },
 });

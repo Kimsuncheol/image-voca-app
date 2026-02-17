@@ -1,5 +1,6 @@
 import { render } from "@testing-library/react-native";
 import React from "react";
+import { Text } from "react-native";
 import BackSide from "../components/CollocationFlipCard/BackSide";
 import ExampleSection from "../components/CollocationFlipCard/ExampleSection";
 
@@ -7,24 +8,8 @@ jest.mock("@expo/vector-icons", () => ({
   Ionicons: () => null,
 }));
 
-jest.mock("../components/RoleplayDialogueRow", () => {
-  const React = require("react");
-  const { Text, View } = require("react-native");
-  return {
-    RoleplayDialogueRow: ({
-      role,
-      text,
-    }: {
-      role: string;
-      text: React.ReactNode;
-    }) => (
-      <View>
-        <Text>{role}</Text>
-        {text}
-      </View>
-    ),
-  };
-});
+const mockReact = React;
+const mockText = Text;
 
 jest.mock("react-native-collapsible", () => {
   return ({
@@ -37,15 +22,14 @@ jest.mock("react-native-collapsible", () => {
 });
 
 jest.mock("../components/CollocationFlipCard/SpeakerButton", () => {
-  const React = require("react");
-  const { Text } = require("react-native");
   return {
-    SpeakerButton: () => <Text>Speaker Button</Text>,
+    SpeakerButton: () =>
+      mockReact.createElement(mockText, null, "Speaker Button"),
   };
 });
 
 describe("ExampleSection", () => {
-  test("renders interleaved translation without translation role labels", () => {
+  test("renders two-line items with role, example, and translation", () => {
     const { getByText, queryByText } = render(
       <ExampleSection
         example="John: I want to go to the beach. Mary: Let's go to the mountains."
@@ -64,7 +48,7 @@ describe("ExampleSection", () => {
     expect(queryByText("Michelle")).toBeNull();
   });
 
-  test("falls back to full translation block when turn counts mismatch", () => {
+  test("uses example turns as source of truth when translation has extra turns", () => {
     const { getByText, queryByText } = render(
       <ExampleSection
         example="A: Hello there."
@@ -75,10 +59,43 @@ describe("ExampleSection", () => {
       />,
     );
 
-    expect(getByText(/첫 번째 문장\./)).toBeTruthy();
-    expect(getByText(/두 번째 문장\./)).toBeTruthy();
+    expect(getByText("A")).toBeTruthy();
+    expect(getByText("Hello there.")).toBeTruthy();
+    expect(getByText("첫 번째 문장.")).toBeTruthy();
+    expect(queryByText("두 번째 문장.")).toBeNull();
     expect(queryByText("Jane")).toBeNull();
     expect(queryByText("Michelle")).toBeNull();
+  });
+
+  test("keeps empty character cell for non-role example turns", () => {
+    const { getByText, queryByText } = render(
+      <ExampleSection
+        example="This is a plain example sentence."
+        translation="이것은 일반 예문 번역입니다."
+        isOpen={true}
+        onToggle={jest.fn()}
+        isDark={false}
+      />,
+    );
+
+    expect(getByText("This is a plain example sentence.")).toBeTruthy();
+    expect(getByText("이것은 일반 예문 번역입니다.")).toBeTruthy();
+    expect(queryByText("NARRATION")).toBeNull();
+  });
+
+  test("renders whitespace-separated character names on multiple lines", () => {
+    const { getByText } = render(
+      <ExampleSection
+        example="Rock climber: Wow, those are some steep cliffs."
+        translation="등반가: 와, 절벽이 정말 가파르네."
+        isOpen={true}
+        onToggle={jest.fn()}
+        isDark={false}
+      />,
+    );
+
+    expect(getByText("Rock\nclimber")).toBeTruthy();
+    expect(getByText("Wow, those are some steep cliffs.")).toBeTruthy();
   });
 });
 
