@@ -191,18 +191,22 @@ const styles = StyleSheet.create({
   sectionContent: {
     paddingVertical: 8,
     marginBottom: 16,
+    flexShrink: 1,
+    minHeight: 0,
   },
   exampleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-end",
+    alignItems: "flex-start",
+    minHeight: 0,
   },
   exampleContent: {
     flex: 1,
     marginRight: 8,
+    minHeight: 0,
   },
   exampleScroll: {
-    maxHeight: 140,
+    flexGrow: 0,
   },
   exampleScrollContent: {
     paddingBottom: 4,
@@ -211,22 +215,27 @@ const styles = StyleSheet.create({
   scrollContentRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-end",
+    alignItems: "flex-start",
   },
   scrollText: {
     flex: 1,
+    minWidth: 0,
+    minHeight: 0,
+    flexShrink: 1,
   },
   value: {
     fontSize: 18,
     color: "#333",
     lineHeight: 26,
     fontWeight: "400",
+    flexShrink: 1,
   },
   textDark: {
     color: "#FFFFFF",
   },
   exampleText: {
     fontStyle: "normal",
+    flexShrink: 1,
   },
   characterCell: {
     paddingRight: 10,
@@ -237,6 +246,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#666",
     lineHeight: 22,
+    flexShrink: 1,
   },
   characterTextDark: {
     color: "#B3B3B8",
@@ -253,12 +263,15 @@ const styles = StyleSheet.create({
   },
   contentCell: {
     flex: 1,
+    minWidth: 0,
+    flexShrink: 1,
   },
   translationValue: {
     fontSize: 15,
     lineHeight: 22,
     color: "#555",
     fontStyle: "normal",
+    flexShrink: 1,
   },
   translationDark: {
     color: "#D1D1D6",

@@ -67,7 +67,7 @@ export default React.memo(function BackSide({
     [contentHeight],
   );
 
-  const exampleMaxHeight = contentHeight ? contentHeight * 0.6 : undefined;
+  const exampleMaxHeight = contentHeight ? contentHeight * 0.8 : undefined;
 
   return (
     <View style={[styles.back, isDark && styles.backDark]}>
@@ -144,6 +144,7 @@ const styles = StyleSheet.create({
   },
   backContentContainer: {
     flex: 1,
+    minHeight: 0,
     paddingTop: 40,
     justifyContent: "flex-start",
   },

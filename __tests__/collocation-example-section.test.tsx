@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react-native";
 import React from "react";
-import { Text } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import BackSide from "../components/CollocationFlipCard/BackSide";
 import ExampleSection from "../components/CollocationFlipCard/ExampleSection";
 
@@ -96,6 +96,57 @@ describe("ExampleSection", () => {
 
     expect(getByText("Rock\nclimber")).toBeTruthy();
     expect(getByText("Wow, those are some steep cliffs.")).toBeTruthy();
+  });
+
+  test("applies maxHeight style cap to scroll view when provided", () => {
+    const { UNSAFE_getByType } = render(
+      <ExampleSection
+        example="John: A sample sentence."
+        translation="Jane: 샘플 문장."
+        isOpen={true}
+        onToggle={jest.fn()}
+        isDark={false}
+        maxHeight={1000}
+      />,
+    );
+
+    const scrollView = UNSAFE_getByType(ScrollView);
+    const flattenedStyle = StyleSheet.flatten(scrollView.props.style) || {};
+
+    expect(flattenedStyle.maxHeight).toBe(1000);
+    expect(flattenedStyle.flexGrow).toBe(0);
+  });
+
+  test("applies overflow-safe styles to prevent horizontal clipping", () => {
+    const { UNSAFE_getAllByType } = render(
+      <ExampleSection
+        example="LongCharacterNameWithNoBreaks: Supercalifragilisticexpialidocious long sentence for overflow checks."
+        translation="매우 긴 번역 문장으로 overflow 방지를 확인합니다."
+        isOpen={true}
+        onToggle={jest.fn()}
+        isDark={false}
+      />,
+    );
+
+    const viewNodes = UNSAFE_getAllByType(View);
+    const flattenedStyles = viewNodes.map((node) =>
+      StyleSheet.flatten(node.props.style),
+    );
+
+    const hasShrinkableTextColumn = flattenedStyles.some(
+      (style) =>
+        style &&
+        style.flex === 1 &&
+        style.minWidth === 0 &&
+        style.flexShrink === 1,
+    );
+
+    const hasMinHeightGuard = flattenedStyles.some(
+      (style) => style && style.minHeight === 0,
+    );
+
+    expect(hasShrinkableTextColumn).toBe(true);
+    expect(hasMinHeightGuard).toBe(true);
   });
 });
 
