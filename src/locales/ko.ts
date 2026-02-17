@@ -67,30 +67,6 @@ const ko = {
       promotionCodes: "프로모션 코드",
       adminCodes: "관리자 코드",
     },
-    popQuizType: {
-      sectionTitle: "팝 퀴즈",
-      label: "퀴즈 유형",
-      title: "팝 퀴즈 유형",
-      description: "대시보드 팝 퀴즈의 문제 유형을 선택하세요",
-      types: {
-        "multiple-choice": {
-          title: "객관식",
-          description: "4개의 선택지 중 정답 선택",
-        },
-        "fill-in-blank": {
-          title: "빈칸 채우기",
-          description: "문장의 빈칸을 올바른 단어로 채우기",
-        },
-        "word-arrangement": {
-          title: "단어 배열",
-          description: "단어를 올바른 순서로 배열하기",
-        },
-        matching: {
-          title: "매칭",
-          description: "4개의 단어와 뜻 매칭하기",
-        },
-      },
-    },
   },
   dashboard: {
     greeting: {
@@ -99,11 +75,6 @@ const ko = {
       evening: "좋은 저녁이에요",
     },
     fallbackUser: "학습자",
-    menu: {
-      profile: "프로필",
-      friends: "친구",
-      leaderboard: "리더보드",
-    },
     progressComplete: "{{percent}}% 완료",
     popQuiz: {
       title: "팝 퀴즈",
@@ -133,8 +104,6 @@ const ko = {
       wordBank: "단어장",
       speaking: "스피킹",
       settings: "설정",
-      friends: "친구",
-      leaderboard: "리더보드",
     },
     todayProgress: "오늘의 진행률",
     dailyGoal: "일일 목표",
@@ -147,12 +116,6 @@ const ko = {
       accuracy: "정확도",
       last7Days: "최근 7일",
       timeSpent: "학습 시간",
-    },
-    friendActivity: {
-      title: "친구",
-      seeAll: "전체보기",
-      newRequests: "새로운 친구 요청",
-      tapToView: "탭하여 확인 및 응답",
     },
   },
   friends: {
@@ -290,6 +253,11 @@ const ko = {
     errors: {
       missingCredentials: "이메일과 비밀번호를 모두 입력하세요.",
       loginTitle: "로그인 오류",
+      invalidCredentials: "이메일 또는 비밀번호가 올바르지 않습니다.",
+      accountDisabled: "비활성화된 계정입니다. 고객센터에 문의하세요.",
+      tooManyRequests: "로그인 시도가 너무 많습니다. 잠시 후 다시 시도하세요.",
+      networkError: "네트워크 오류가 발생했습니다. 연결을 확인하고 다시 시도하세요.",
+      loginFailed: "로그인할 수 없습니다. 다시 시도하세요.",
       permissionTitle: "권한 필요",
       permissionMessage: "사진 라이브러리 접근 권한이 필요합니다.",
       missingFields: "모든 항목을 입력하세요.",

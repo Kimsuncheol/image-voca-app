@@ -33,8 +33,6 @@ import { AdminSection } from "../../components/settings/AdminSection"; // Admin-
 import { AppearanceSection } from "../../components/settings/AppearanceSection"; // Theme and visual preferences
 import { LanguageSection } from "../../components/settings/LanguageSection"; // Language selection
 import { NotificationsSection } from "../../components/settings/NotificationsSection"; // Push notification settings
-import { PopQuizType } from "../../components/settings/PopQuizTypeModal"; // Type definition for quiz types
-import { PopQuizTypeSection } from "../../components/settings/PopQuizTypeSection"; // Pop quiz type selection
 import { SettingsHeader } from "../../components/settings/SettingsHeader"; // Header component
 import { SignOutSection } from "../../components/settings/SignOutSection"; // Sign out button
 import { StudySection } from "../../components/settings/StudySection"; // Study-related preferences
@@ -47,7 +45,6 @@ import { useTheme } from "../../src/context/ThemeContext"; // Theme preferences 
 import { setLanguage, SupportedLanguage } from "../../src/i18n"; // Language configuration
 import { auth } from "../../src/services/firebase"; // Firebase auth instance
 import {
-  usePopQuizPreferencesStore,
   useSubscriptionStore,
   useUserStatsStore,
 } from "../../src/stores"; // Zustand stores
@@ -96,17 +93,6 @@ export default function SettingsScreen() {
   const [popWordEnabled, setPopWordEnabled] = useState(true); // Pop word quiz notifications
 
   // ============================================================================
-  // POP QUIZ PREFERENCES
-  // ============================================================================
-  // Manages the type of pop quiz displayed on the dashboard
-  // Types include: multiple-choice, fill-in-blank, word-arrangement, matching
-  const {
-    quizType: popQuizType,
-    setQuizType: setPopQuizTypeStore,
-    loadQuizType,
-  } = usePopQuizPreferencesStore();
-
-  // ============================================================================
   // NAVIGATION & INTERNATIONALIZATION
   // ============================================================================
   const router = useRouter(); // For navigation (e.g., redirecting after sign out)
@@ -125,35 +111,15 @@ export default function SettingsScreen() {
   /**
    * Runs on component mount and when user changes
    * - Loads notification preferences from AsyncStorage
-   * - Loads pop quiz type preference
    * - Fetches user stats and subscription data from Firestore
    */
   useEffect(() => {
     checkNotificationStatus(); // Load notification preferences
-    loadPopQuizType(); // Load saved quiz type preference
     if (user) {
       fetchStats(user.uid); // Fetch user statistics
       fetchSubscription(user.uid); // Fetch subscription status
     }
   }, [user, fetchStats, fetchSubscription]);
-
-  // ============================================================================
-  // POP QUIZ TYPE LOADING
-  // ============================================================================
-  /**
-   * Loads the user's saved pop quiz type preference from AsyncStorage
-   * Called on component mount in the useEffect hook
-   *
-   * @async
-   * @returns {Promise<void>}
-   */
-  const loadPopQuizType = async () => {
-    try {
-      await loadQuizType(); // Loads from store which reads from AsyncStorage
-    } catch (e) {
-      console.warn("Error loading pop quiz type preference", e);
-    }
-  };
 
   // ============================================================================
   // NOTIFICATION STATUS CHECKER
@@ -465,32 +431,6 @@ export default function SettingsScreen() {
   };
 
   // ============================================================================
-  // POP QUIZ TYPE CHANGE HANDLER
-  // ============================================================================
-  /**
-   * Changes the type of pop quiz displayed on the dashboard
-   *
-   * Available quiz types:
-   * - multiple-choice: Select correct answer from 4 options
-   * - fill-in-blank: Complete the sentence with the correct word
-   * - word-arrangement: Arrange words to form correct sentence
-   * - matching: Match 4 words with their meanings
-   *
-   * The preference is saved to AsyncStorage and applies to dashboard pop quizzes.
-   *
-   * @async
-   * @param {PopQuizType} type - The quiz type to set
-   * @returns {Promise<void>}
-   */
-  const handlePopQuizTypeChange = async (type: PopQuizType) => {
-    try {
-      await setPopQuizTypeStore(type); // Saves to AsyncStorage via Zustand store
-    } catch (error) {
-      console.warn("Failed to change pop quiz type", error);
-    }
-  };
-
-  // ============================================================================
   // STYLES
   // ============================================================================
   // Get theme-aware styles based on dark mode preference
@@ -547,20 +487,6 @@ export default function SettingsScreen() {
           isDark={isDark}
           targetScore={stats?.targetScore || 10} // Default to 10 if not set
           onUpdateTargetScore={handleUpdateTargetScore}
-          t={t}
-        />
-
-        {/* ================================================================
-            POP QUIZ TYPE SECTION
-            ================================================================
-            Quiz type selection (multiple-choice, fill-in-blank, etc.)
-            Determines the format of pop quizzes on the dashboard
-        */}
-        <PopQuizTypeSection
-          styles={styles}
-          isDark={isDark}
-          currentType={popQuizType}
-          onChangeType={handlePopQuizTypeChange}
           t={t}
         />
 

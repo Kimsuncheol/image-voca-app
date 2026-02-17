@@ -8,7 +8,6 @@ import {
   DashboardQuickActions,
   DashboardStats,
 } from "../../components/dashboard";
-import { DashboardFriendActivity } from "../../components/dashboard/DashboardFriendActivity";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useUserStatsStore } from "../../src/stores";
@@ -49,7 +48,6 @@ export default function DashboardScreen() {
       >
         <DashboardHeader userName={userName} userPhoto={user?.photoURL} />
         <DashboardQuickActions />
-        <DashboardFriendActivity />
         <DashboardPopQuiz />
         <DashboardStats
           wordsLearned={wordsThisWeek}

@@ -67,30 +67,6 @@ const en = {
       promotionCodes: "Promotion Codes",
       adminCodes: "Admin Codes",
     },
-    popQuizType: {
-      sectionTitle: "Pop Quiz",
-      label: "Quiz Type",
-      title: "Pop Quiz Type",
-      description: "Choose the type of questions for the dashboard pop quiz",
-      types: {
-        "multiple-choice": {
-          title: "Multiple Choice",
-          description: "Choose the correct meaning from 4 options",
-        },
-        "fill-in-blank": {
-          title: "Fill in the Blank",
-          description: "Complete the sentence with the correct word",
-        },
-        "word-arrangement": {
-          title: "Word Arrangement",
-          description: "Arrange words to form the correct sentence",
-        },
-        matching: {
-          title: "Matching",
-          description: "Match 4 words with their meanings",
-        },
-      },
-    },
   },
   dashboard: {
     greeting: {
@@ -99,11 +75,6 @@ const en = {
       evening: "Good evening",
     },
     fallbackUser: "Learner",
-    menu: {
-      profile: "Profile",
-      friends: "Friends",
-      leaderboard: "Leaderboard",
-    },
     progressComplete: "{{percent}}% complete",
     popQuiz: {
       title: "Pop Quiz",
@@ -133,8 +104,6 @@ const en = {
       wordBank: "Word Bank",
       speaking: "Speaking",
       settings: "Settings",
-      friends: "Friends",
-      leaderboard: "Leaderboard",
     },
     todayProgress: "Today's Progress",
     dailyGoal: "Daily Goal",
@@ -147,12 +116,6 @@ const en = {
       accuracy: "Accuracy",
       last7Days: "Last 7 days",
       timeSpent: "Time Spent",
-    },
-    friendActivity: {
-      title: "Friends",
-      seeAll: "See All",
-      newRequests: "New friend requests",
-      tapToView: "Tap to view and respond",
     },
   },
   friends: {
@@ -293,6 +256,13 @@ const en = {
     errors: {
       missingCredentials: "Please enter both email and password.",
       loginTitle: "Login Error",
+      invalidCredentials: "Invalid email or password.",
+      accountDisabled:
+        "This account has been disabled. Please contact support.",
+      tooManyRequests: "Too many login attempts. Please try again later.",
+      networkError:
+        "Network error. Please check your connection and try again.",
+      loginFailed: "Unable to sign in. Please try again.",
       permissionTitle: "Permission Required",
       permissionMessage: "Permission to access camera roll is required!",
       missingFields: "Please fill in all fields.",

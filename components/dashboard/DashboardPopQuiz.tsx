@@ -24,10 +24,7 @@ import { Animated, StyleSheet, View } from "react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { getTotalDaysForCourse } from "../../src/services/vocabularyPrefetch";
-import {
-  usePopQuizPreferencesStore,
-  useUserStatsStore,
-} from "../../src/stores";
+import { useUserStatsStore } from "../../src/stores";
 import { CourseType } from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
 import { DEBUG_TOTAL_DAYS_COURSES } from "./constants/quizConfig";
@@ -56,7 +53,6 @@ export function DashboardPopQuiz() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { bufferQuizAnswer, flushQuizStats } = useUserStatsStore();
-  const { isLoaded, loadQuizType } = usePopQuizPreferencesStore();
 
   // ==========================================================================
   // CUSTOM HOOKS
@@ -237,13 +233,6 @@ export function DashboardPopQuiz() {
   // ==========================================================================
   // EFFECTS
   // ==========================================================================
-  // Load quiz type preference on mount
-  useEffect(() => {
-    if (!isLoaded) {
-      loadQuizType();
-    }
-  }, [isLoaded, loadQuizType]);
-
   // Debug: Log total days for courses
   useEffect(() => {
     if (hasLoggedTotalDays.current) return;

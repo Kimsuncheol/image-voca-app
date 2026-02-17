@@ -43,12 +43,6 @@ export function DashboardQuickActions() {
           color="#87CEEB"
           onPress={() => handleTabAction("speaking", "/speaking")}
         />
-        <QuickAction
-          title={t("dashboard.quickActions.friends")}
-          icon="person.2.fill"
-          color="#FF9500"
-          onPress={() => router.push("/friends")}
-        />
       </View>
     </View>
   );

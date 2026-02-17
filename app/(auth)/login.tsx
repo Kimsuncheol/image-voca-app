@@ -2,6 +2,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { FirebaseError } from "firebase/app";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -48,6 +49,35 @@ export default function LoginScreen() {
   // Google Auth Hook
   const { promptAsync, loading: googleLoading } = useGoogleAuth();
   const { t } = useTranslation(); // i18n Translation hook
+
+  const getLoginAuthErrorMessage = (error: unknown) => {
+    const code =
+      error instanceof FirebaseError
+        ? error.code
+        : typeof error === "object" &&
+            error !== null &&
+            "code" in error &&
+            typeof (error as { code?: unknown }).code === "string"
+          ? (error as { code: string }).code
+          : undefined;
+
+    switch (code) {
+      case "auth/invalid-email":
+        return t("auth.errors.invalidEmail");
+      case "auth/invalid-credential":
+      case "auth/wrong-password":
+      case "auth/user-not-found":
+        return t("auth.errors.invalidCredentials");
+      case "auth/user-disabled":
+        return t("auth.errors.accountDisabled");
+      case "auth/too-many-requests":
+        return t("auth.errors.tooManyRequests");
+      case "auth/network-request-failed":
+        return t("auth.errors.networkError");
+      default:
+        return t("auth.errors.loginFailed");
+    }
+  };
 
   // --- Effects ---
   // Load saved email on initial render if one exists in storage
@@ -97,8 +127,8 @@ export default function LoginScreen() {
 
       await signInWithEmailAndPassword(auth, email, password);
       router.replace("/(tabs)");
-    } catch (error: any) {
-      setAuthError(error?.message ?? t("auth.errors.loginTitle"));
+    } catch (error) {
+      setAuthError(getLoginAuthErrorMessage(error));
     } finally {
       setLoading(false);
     }
