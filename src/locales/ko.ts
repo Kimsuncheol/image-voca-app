@@ -240,6 +240,9 @@ const ko = {
       added: "추가됨",
       addToWordBank: "단어장에 추가",
     },
+    hints: {
+      flipFirst: "계속하려면 먼저 카드를 뒤집어 주세요.",
+    },
     errors: {
       loginRequired: "단어를 저장하려면 로그인하세요.",
       alreadyAdded: "이미 단어장에 있는 단어입니다.",

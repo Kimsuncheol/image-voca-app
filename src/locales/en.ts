@@ -243,6 +243,9 @@ const en = {
       added: "Added",
       addToWordBank: "Add to Word Bank",
     },
+    hints: {
+      flipFirst: "Flip this card first to continue.",
+    },
     errors: {
       loginRequired: "Please log in to save words.",
       alreadyAdded: "This word is already in your Word Bank.",
