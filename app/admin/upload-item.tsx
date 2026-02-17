@@ -298,7 +298,7 @@ export default function UploadItemScreen() {
   // ===========================================================================
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right", "bottom"]}>
       {/* Configure this screen as a modal presentation */}
       <Stack.Screen
         options={{
