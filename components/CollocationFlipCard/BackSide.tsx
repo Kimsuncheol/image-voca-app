@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import ExampleSection from "./ExampleSection";
 import ExplanationSection from "./ExplanationSection";
-import TranslationSection from "./TranslationSection";
 import { CollocationData } from "./types";
+
+type BackSideSection = "explanation" | "example";
 
 interface BackSideProps {
   data: CollocationData;
@@ -20,9 +21,12 @@ export default React.memo(function BackSide({
   initialSection = "explanation",
   onFlip,
 }: BackSideProps) {
-  const [activeSection, setActiveSection] = useState<
-    "explanation" | "example" | "translation"
-  >(initialSection);
+  const normalizedInitialSection: BackSideSection =
+    initialSection === "translation" ? "example" : initialSection;
+
+  const [activeSection, setActiveSection] = useState<BackSideSection>(
+    normalizedInitialSection,
+  );
   const [contentHeight, setContentHeight] = useState(0);
 
   // Track if this is the first time the back becomes visible
@@ -34,17 +38,16 @@ export default React.memo(function BackSide({
     if (!isVisible) {
       hasOpenedRef.current = false;
       // Reset to explanation when card is flipped back to front
-      setActiveSection(initialSection);
+      setActiveSection(normalizedInitialSection);
     } else if (!hasOpenedRef.current) {
       // First time back is visible - ensure explanation is active
       hasOpenedRef.current = true;
-      setActiveSection(initialSection);
+      setActiveSection(normalizedInitialSection);
     }
-  }, [isVisible, initialSection]);
+  }, [isVisible, normalizedInitialSection]);
 
   const isExplanationOpen = isVisible && activeSection === "explanation";
   const isExampleOpen = isVisible && activeSection === "example";
-  const isTranslationOpen = isVisible && activeSection === "translation";
 
   const handleToggleExplanation = React.useCallback(() => {
     setActiveSection("explanation");
@@ -52,10 +55,6 @@ export default React.memo(function BackSide({
 
   const handleToggleExample = React.useCallback(() => {
     setActiveSection("example");
-  }, []);
-
-  const handleToggleTranslation = React.useCallback(() => {
-    setActiveSection("translation");
   }, []);
 
   const handleContentLayout = React.useCallback(
@@ -69,7 +68,6 @@ export default React.memo(function BackSide({
   );
 
   const exampleMaxHeight = contentHeight ? contentHeight * 0.6 : undefined;
-  const translationMaxHeight = contentHeight ? contentHeight * 0.6 : undefined;
 
   return (
     <View style={[styles.back, isDark && styles.backDark]}>
@@ -92,18 +90,11 @@ export default React.memo(function BackSide({
 
         <ExampleSection
           example={data.example}
+          translation={data.translation}
           isOpen={isExampleOpen}
           onToggle={handleToggleExample}
           isDark={isDark}
           maxHeight={exampleMaxHeight}
-        />
-
-        <TranslationSection
-          translation={data.translation}
-          isOpen={isTranslationOpen}
-          onToggle={handleToggleTranslation}
-          isDark={isDark}
-          maxHeight={translationMaxHeight}
         />
       </View>
 

@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -8,11 +8,18 @@ import {
   View,
 } from "react-native";
 import Collapsible from "react-native-collapsible";
+import {
+  DialogueTurn,
+  stripRoleLabels,
+  toDialogueTurns,
+} from "../../src/utils/roleplayUtils";
+import { RoleplayDialogueRow } from "../RoleplayDialogueRow";
 import { RoleplayRenderer } from "./RoleplayRenderer";
 import { SpeakerButton } from "./SpeakerButton";
 
 interface ExampleSectionProps {
   example: string;
+  translation?: string;
   isOpen: boolean;
   onToggle: () => void;
   isDark: boolean;
@@ -21,11 +28,54 @@ interface ExampleSectionProps {
 
 export default React.memo(function ExampleSection({
   example,
+  translation,
   isOpen,
   onToggle,
   isDark,
   maxHeight,
 }: ExampleSectionProps) {
+  const exampleTurns = useMemo(() => toDialogueTurns(example), [example]);
+  const translationTurns = useMemo(
+    () => toDialogueTurns(translation || ""),
+    [translation],
+  );
+  const fallbackTranslation = useMemo(
+    () => stripRoleLabels(translation || ""),
+    [translation],
+  );
+
+  const hasTranslation = Boolean(translation?.trim());
+  const canInterleave =
+    hasTranslation &&
+    exampleTurns.length > 0 &&
+    translationTurns.length > 0 &&
+    exampleTurns.length === translationTurns.length;
+
+  const renderExampleTurn = (turn: DialogueTurn, index: number) => {
+    if (turn.role) {
+      return (
+        <RoleplayDialogueRow
+          key={`example-turn-${index}`}
+          role={turn.role}
+          text={
+            <Text style={[styles.value, styles.exampleText, isDark && styles.textDark]}>
+              &quot;{turn.text}&quot;
+            </Text>
+          }
+        />
+      );
+    }
+
+    return (
+      <Text
+        key={`example-turn-${index}`}
+        style={[styles.value, styles.exampleText, isDark && styles.textDark]}
+      >
+        &quot;{turn.text}&quot;
+      </Text>
+    );
+  };
+
   return (
     <View>
       <TouchableOpacity
@@ -57,7 +107,40 @@ export default React.memo(function ExampleSection({
                 >
                   <View style={styles.scrollContentRow}>
                     <View style={styles.scrollText}>
-                      <RoleplayRenderer content={example} isDark={isDark} />
+                      {canInterleave ? (
+                        <View style={styles.interleavedContainer}>
+                          {exampleTurns.map((turn, index) => (
+                            <View key={`pair-${index}`} style={styles.interleavedPair}>
+                              {renderExampleTurn(turn, index)}
+                              <Text
+                                style={[
+                                  styles.value,
+                                  styles.translationValue,
+                                  isDark && styles.translationDark,
+                                ]}
+                              >
+                                {translationTurns[index].text}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+                      ) : (
+                        <View style={styles.nonInterleavedContainer}>
+                          <RoleplayRenderer content={example} isDark={isDark} />
+                          {hasTranslation && fallbackTranslation ? (
+                            <Text
+                              style={[
+                                styles.value,
+                                styles.translationValue,
+                                styles.translationFallback,
+                                isDark && styles.translationDark,
+                              ]}
+                            >
+                              {fallbackTranslation}
+                            </Text>
+                          ) : null}
+                        </View>
+                      )}
                     </View>
                     <SpeakerButton text={example} isDark={isDark} />
                   </View>
@@ -114,5 +197,41 @@ const styles = StyleSheet.create({
   },
   scrollText: {
     flex: 1,
+  },
+  value: {
+    fontSize: 18,
+    color: "#333",
+    lineHeight: 26,
+    fontWeight: "400",
+  },
+  textDark: {
+    color: "#FFFFFF",
+  },
+  exampleText: {
+    fontStyle: "normal",
+    flex: 1,
+    marginRight: 8,
+  },
+  interleavedContainer: {
+    gap: 12,
+  },
+  interleavedPair: {
+    gap: 6,
+  },
+  nonInterleavedContainer: {
+    gap: 10,
+  },
+  translationValue: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#555",
+    fontStyle: "normal",
+  },
+  translationDark: {
+    color: "#D1D1D6",
+  },
+  translationFallback: {
+    marginTop: 4,
+    paddingTop: 8,
   },
 });

@@ -3,6 +3,11 @@ export interface RoleplaySegment {
   content: string;
 }
 
+export interface DialogueTurn {
+  role: string | null;
+  text: string;
+}
+
 export function parseRoleplaySegments(text: string): RoleplaySegment[] | null {
   if (!text) return null;
 
@@ -40,4 +45,44 @@ export function parseRoleplaySegments(text: string): RoleplaySegment[] | null {
   }
 
   return segments;
+}
+
+export function toDialogueTurns(text: string): DialogueTurn[] {
+  const segments = parseRoleplaySegments(text) || [];
+  if (!segments.length) return [];
+
+  const turns: DialogueTurn[] = [];
+
+  for (let i = 0; i < segments.length; i += 1) {
+    const segment = segments[i];
+
+    if (segment.type === "role") {
+      const next = segments[i + 1];
+      const textContent =
+        next && next.type === "text" ? next.content.trim() : "";
+
+      if (textContent) {
+        turns.push({ role: segment.content, text: textContent });
+      }
+
+      if (next && next.type === "text") {
+        i += 1;
+      }
+      continue;
+    }
+
+    const textContent = segment.content.trim();
+    if (textContent) {
+      turns.push({ role: null, text: textContent });
+    }
+  }
+
+  return turns;
+}
+
+export function stripRoleLabels(text: string): string {
+  if (!text?.trim()) return "";
+  const turns = toDialogueTurns(text);
+  if (!turns.length) return "";
+  return turns.map((turn) => turn.text).join("\n");
 }
