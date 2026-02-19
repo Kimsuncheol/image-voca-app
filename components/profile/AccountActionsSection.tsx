@@ -5,6 +5,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 interface AccountActionsSectionProps {
   styles: Record<string, any>;
   loading: boolean;
+  isAdmin: boolean;
   onDeleteAccount: () => void;
   t: (key: string) => string;
 }
@@ -12,9 +13,12 @@ interface AccountActionsSectionProps {
 export function AccountActionsSection({
   styles,
   loading,
+  isAdmin,
   onDeleteAccount,
   t,
 }: AccountActionsSectionProps) {
+  if (isAdmin) return null;
+
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>

@@ -30,6 +30,7 @@ import {
   GoogleButton,
   PasswordHints,
   PasswordInput,
+  PasswordStrengthMeter,
   PrimaryButton,
 } from "./components";
 
@@ -393,6 +394,16 @@ export default function RegisterScreen() {
               placeholder={t("auth.register.passwordPlaceholder")}
               value={password}
               onChangeText={setPassword}
+            />
+
+            {/* -----------------------------------------------------------------
+                PASSWORD STRENGTH METER
+            ----------------------------------------------------------------- */}
+            <PasswordStrengthMeter
+              password={password}
+              hasMinLength={hasMinLength}
+              hasNumber={hasNumber}
+              hasSpecial={hasSpecial}
             />
 
             {/* -----------------------------------------------------------------

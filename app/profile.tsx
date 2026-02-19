@@ -2,7 +2,6 @@ import { useSubscriptionStore } from "../src/stores";
 import { Ionicons } from "@expo/vector-icons";
 import {
   launchImageLibraryAsync,
-  MediaTypeOptions,
   requestMediaLibraryPermissionsAsync,
 } from "expo-image-picker";
 import { useNavigation } from "expo-router";
@@ -120,7 +119,7 @@ export default function ProfileScreen() {
     }
 
     const result = await launchImageLibraryAsync({
-      mediaTypes: MediaTypeOptions.Images,
+      mediaTypes: "images",
       allowsEditing: true,
       quality: 1,
     });
@@ -202,49 +201,15 @@ export default function ProfileScreen() {
   const handleDeleteAccount = async () => {
     if (!user) return;
 
-    // Use standard Alert for confirmation
+    // Show confirmation first, then always require password re-authentication
     Alert.alert(t("profile.delete.title"), t("profile.delete.message"), [
       { text: t("common.cancel"), style: "cancel" },
       {
         text: t("profile.delete.confirm"),
         style: "destructive",
-        onPress: () => {
-          // If user signed in recently, this works. If not, might throw "requires-recent-login"
-          performDelete();
-        },
+        onPress: () => setShowPasswordInput(true),
       },
     ]);
-  };
-
-  const performDelete = async () => {
-    console.log("🗑️ Starting account deletion process...");
-    setLoading(true);
-    try {
-      // Clean up Firestore and Storage data first
-      console.log("🔄 Step 1: Cleaning up user data...");
-      await cleanupUserData(user!.uid);
-
-      // Then delete the Firebase Auth user
-      console.log("🔄 Step 2: Deleting Firebase Auth user...");
-      await deleteUser(user!);
-      console.log("✅ Firebase Auth user deleted successfully");
-
-      // Auth state listener in _layout will redirect to login
-      console.log("🚪 Account deletion complete, redirecting to login...");
-    } catch (error: any) {
-      console.error("❌ Account deletion failed:", error);
-      setLoading(false);
-      if (error.code === "auth/requires-recent-login") {
-        console.log("🔐 Requires recent login, showing password prompt");
-        Alert.alert(
-          t("profile.delete.securityTitle"),
-          t("profile.delete.securityMessage"),
-        );
-        setShowPasswordInput(true);
-      } else {
-        Alert.alert(t("common.error"), error.message);
-      }
-    }
   };
 
   const handleReauthAndDelete = async () => {
@@ -331,6 +296,7 @@ export default function ProfileScreen() {
           <AccountActionsSection
             styles={styles}
             loading={loading}
+            isAdmin={role === "admin"}
             onDeleteAccount={handleDeleteAccount}
             t={t}
           />

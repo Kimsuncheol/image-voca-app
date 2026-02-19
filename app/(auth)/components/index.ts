@@ -17,6 +17,7 @@ export { GoogleButton } from "./GoogleButton";
 export { LinkButton } from "./LinkButton";
 export { PasswordHints } from "./PasswordHints";
 export { PasswordInput } from "./PasswordInput";
+export { PasswordStrengthMeter } from "./PasswordStrengthMeter";
 export { PrimaryButton } from "./PrimaryButton";
 export { RememberMeCheckbox } from "./RememberMeCheckbox";
 

@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import type * as NotificationsType from "expo-notifications";
 import { collection, getDocs } from "firebase/firestore";
 import { Platform } from "react-native";
@@ -26,16 +27,18 @@ const ANDROID_CHANNEL_ID = "voca-daily";
 let cachedNotifications: NotificationsModule | null = null;
 let handlerConfigured = false;
 
+// expo-notifications Android push support was removed from Expo Go in SDK 53.
+// Return null in that environment to avoid noisy error logs.
+const isExpoGo =
+  Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
 const getNotificationsModule = (): NotificationsModule | null => {
   if (cachedNotifications !== null) return cachedNotifications;
+  if (isExpoGo && Platform.OS === "android") return null;
   try {
-    // Attempt to require expo-notifications
-    // This may fail in Expo Go SDK 53+ or if the module is not installed
     cachedNotifications = require("expo-notifications");
     return cachedNotifications;
   } catch {
-    // Silently handle the error - notifications are unavailable
-    // This is expected in Expo Go SDK 53+ and development builds without the package
     cachedNotifications = null;
     return null;
   }
