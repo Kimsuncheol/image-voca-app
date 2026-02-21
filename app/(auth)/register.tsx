@@ -15,12 +15,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
-// import {
-//   markAdminCodeAsUsed,
-//   validateAdminCode,
-// } from "../../src/services/adminCodeService";
 import { auth, db } from "../../src/services/firebase";
-import { UserRole } from "../../src/types/member";
+import type { UserRole } from "../../src/types/userRole";
 import {
   AvatarPicker,
   Divider,
@@ -46,9 +42,6 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
-  // const [adminCode, setAdminCode] = useState("");
-  // const [isValidAdminCode, setIsValidAdminCode] = useState(false);
-  // const [adminCodeError, setAdminCodeError] = useState("");
   // const [requestAdmin, setRequestAdmin] = useState(false);
   const { promptAsync, loading: googleLoading } = useGoogleAuth();
 
@@ -113,31 +106,6 @@ export default function RegisterScreen() {
     setHasSpecial(/[!@#$%^&*(),.?":{}|<>]/.test(password));
     setPasswordsMatch(password === confirmPassword && password !== "");
   }, [password, confirmPassword]);
-
-  // ===========================================================================
-  // ADMIN CODE VALIDATION EFFECT
-  // ===========================================================================
-  /**
-   * Real-time admin code validation
-   * Validates the admin code against Firestore when user enters a code
-   */
-  // useEffect(() => {
-  //   const validateCode = async () => {
-  //     if (!adminCode) {
-  //       setIsValidAdminCode(false);
-  //       setAdminCodeError("");
-  //       return;
-  //     }
-
-  //     const result = await validateAdminCode(adminCode);
-  //     setIsValidAdminCode(result.isValid);
-  //     setAdminCodeError(result.errorMessage || "");
-  //   };
-
-  //   // Debounce validation to avoid too many Firestore calls
-  //   const timeoutId = setTimeout(validateCode, 500);
-  //   return () => clearTimeout(timeoutId);
-  // }, [adminCode]);
 
   // ===========================================================================
   // IMAGE PICKER FUNCTION
@@ -260,10 +228,6 @@ export default function RegisterScreen() {
        * Role assignment logic:
        * 1. Check if email is in pre-approved admin list → assign 'admin' role
        * 2. Otherwise, assign the default 'student' role
-       *
-       * Admin role can only be assigned via:
-       * - Pre-approved email addresses (ADMIN_EMAILS constant)
-       * - Admin invitation codes (currently commented out)
        */
       const role: UserRole = ADMIN_EMAILS.includes(email.toLowerCase())
         ? "admin"
@@ -280,11 +244,6 @@ export default function RegisterScreen() {
         wordBank: [], // Empty word bank for vocabulary learning
         recentCourse: null, // No recent course initially
       });
-
-      // Mark admin code as used if one was provided
-      // if (isValidAdminCode && adminCode) {
-      //   await markAdminCodeAsUsed(adminCode);
-      // }
 
       // Navigate to main app (tabs) on successful registration
       router.replace("/(tabs)");
@@ -430,33 +389,6 @@ export default function RegisterScreen() {
                 match: t("auth.register.passwordHint.match"),
               }}
             />
-
-            {/* -----------------------------------------------------------------
-                ADMIN CODE INPUT (OPTIONAL)
-            ----------------------------------------------------------------- */}
-            {/* <View style={styles.adminCodeContainer}>
-              <Text style={styles.adminCodeLabel}>
-                {t("auth.register.adminCodeLabel")}
-              </Text>
-              <FormInput
-                icon="shield-checkmark-outline"
-                placeholder={t("auth.register.adminCodePlaceholder")}
-                value={adminCode}
-                onChangeText={setAdminCode}
-                autoCapitalize="characters"
-                showValidation={adminCode.length > 0}
-                isValid={isValidAdminCode}
-                isTouched={adminCode.length > 0}
-                errorMessage={adminCodeError}
-              />
-              {isValidAdminCode && (
-                <View style={styles.adminCodeSuccessBadge}>
-                  <Text style={styles.adminCodeSuccessText}>
-                    ✓ {t("auth.register.validAdminCode")}
-                  </Text>
-                </View>
-              )}
-            </View> */}
 
             {/* -----------------------------------------------------------------
                 ADMIN TOGGLE BUTTON (Development/Testing)
@@ -836,46 +768,6 @@ const getStyles = (isDark: boolean) =>
       fontSize: 12,
       marginTop: 4,
       paddingHorizontal: 4,
-    },
-
-    // -------------------------------------------------------------------------
-    // ADMIN CODE STYLES - Optional admin code input section
-    // -------------------------------------------------------------------------
-
-    /** Admin code container - Wrapper for admin code section */
-    adminCodeContainer: {
-      marginBottom: 24,
-      padding: 16,
-      backgroundColor: isDark ? "#1c1c1e" : "#F9F9F9",
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: isDark ? "#333" : "#E0E0E0",
-    },
-
-    /** Admin code label - Label text above input */
-    adminCodeLabel: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: isDark ? "#ccc" : "#666",
-      marginBottom: 12,
-    },
-
-    /** Admin code success badge - Shown when valid code is entered */
-    adminCodeSuccessBadge: {
-      marginTop: 8,
-      padding: 8,
-      backgroundColor: isDark ? "#0F2410" : "#F0FFF4",
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: isDark ? "#1E4620" : "#28A745",
-    },
-
-    /** Admin code success text - Text inside success badge */
-    adminCodeSuccessText: {
-      fontSize: 12,
-      fontWeight: "600",
-      color: isDark ? "#4ADE80" : "#28A745",
-      textAlign: "center",
     },
 
     // -------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-import type { UserRole } from "../types/member";
+import type { UserRole } from "../types/userRole";
 
 /**
  * Normalizes persisted user roles.

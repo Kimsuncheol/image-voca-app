@@ -22,6 +22,7 @@ export const PromotionCodesRow: React.FC<PromotionCodesRowProps> = ({
       onPress={() => router.push("/admin/promotion-codes")}
       isDark={isDark}
       styles={styles}
+      showSeparator={false}
     />
   );
 };

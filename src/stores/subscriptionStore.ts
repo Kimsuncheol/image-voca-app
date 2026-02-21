@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { arrayUnion, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { create } from "zustand";
 import { db } from "../services/firebase";
-import { UserRole } from "../types/member";
+import type { UserRole } from "../types/userRole";
 import { normalizeUserRole } from "../utils/role";
 
 // Ad unlock is allowed for Days 4-10 only (Days 1-3 are free)

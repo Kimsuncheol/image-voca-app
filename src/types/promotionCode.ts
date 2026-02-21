@@ -103,7 +103,7 @@ export interface RateLimitData {
 }
 
 /**
- * Admin code generation request
+ * Promotion code generation request
  */
 export interface CodeGenerationRequest {
   eventPeriod: EventPeriod;
