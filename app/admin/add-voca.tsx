@@ -5,14 +5,7 @@ import { addDoc, collection, deleteDoc, getDocs } from "firebase/firestore"; // 
 import { getMetadata, ref, uploadBytes } from "firebase/storage"; // Firebase Storage operations
 import Papa from "papaparse"; // CSV parsing library
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Custom components
@@ -23,6 +16,7 @@ import { SheetUploadItem } from "../../src/components/admin/GoogleSheetUploadIte
 import TabSwitcher from "../../src/components/admin/TabSwitcher"; // Toggle between CSV and Google Sheets
 import UploadFooter from "../../src/components/admin/UploadFooter";
 import UploadListSection from "../../src/components/admin/UploadListSection";
+import UploadProgressModal from "../../src/components/admin/UploadProgressModal";
 
 // Hooks and utilities
 import { useTheme } from "../../src/context/ThemeContext";
@@ -33,6 +27,7 @@ import { getIpaUSUK } from "../../src/services/ipa/wiktionaryIpaService"; // IPA
 import { generateLinguisticData } from "../../src/services/linguisticDataService"; // AI linguistic data generation
 import { updateCourseMetadata } from "../../src/services/vocabularyPrefetch"; // Course metadata management
 import { parseSheetValues } from "../../src/utils/googleSheetsUtils";
+import { extractVocaFields } from "../../src/utils/vocaParser";
 
 // Type definition for tab switching
 type TabType = "csv" | "link";
@@ -349,75 +344,28 @@ export default function AddVocaScreen() {
       let aiGeneratedCount = 0;
 
       for (let i = 0; i < data.length; i++) {
-        const item = data[i];
+        const raw = data[i];
         try {
-          // Extract word/collocation from multiple possible column names
-          const word = String(
-            item["Word"] ||
-              item["word"] ||
-              item["_1"] ||
-              item["Collocation"] ||
-              item["collocation"] ||
-              "",
-          ).trim();
-
-          // Skip header row or empty entries
-          if (
-            word === "Word" ||
-            word === "word" ||
-            !word ||
-            word === "Collocation" ||
-            word === "collocation"
-          )
-            continue;
+          // --- Field extraction delegated to the vocaParser utility ---
+          const parsed = extractVocaFields(raw, selectedCourse.name);
+          if (!parsed) continue; // empty / header row
 
           let docData: any = {};
 
-          // Different data structure for COLLOCATION vs other courses
-          if (selectedCourse.name === "COLLOCATION") {
-            const meaning = String(
-              item["Meaning"] || item["meaning"] || item["_2"] || "",
-            ).trim();
-            const explanation = String(
-              item["Explanation"] || item["explanation"] || item["_3"] || "",
-            ).trim();
-            let example = String(
-              item["Example"] || item["example"] || item["_4"] || "",
-            ).trim();
-            let translation = String(
-              item["Translation"] || item["translation"] || item["_5"] || "",
-            ).trim();
-
-            // COLLOCATION course: Skip linguistic data generation (uses phrases, not single words)
+          if (parsed.type === "collocation") {
+            // COLLOCATION course: Skip linguistic data generation
             docData = {
-              collocation: word,
-              meaning,
-              explanation,
-              example,
-              translation,
+              collocation: parsed.collocation,
+              meaning: parsed.meaning,
+              explanation: parsed.explanation,
+              example: parsed.example,
+              translation: parsed.translation,
               createdAt: new Date(),
             };
           } else {
-            const meaning = String(
-              item["Meaning"] || item["meaning"] || item["_2"] || "",
-            ).trim();
-            let translation = String(
-              item["Translation"] || item["translation"] || item["_5"] || "",
-            ).trim();
-            let pronunciation = String(
-              item["Pronounciation"] ||
-                item["Pronunciation"] ||
-                item["pronunciation"] ||
-                item["_3"] ||
-                "",
-            ).trim();
-            let example = String(
-              item["Example sentence"] ||
-                item["Example"] ||
-                item["example"] ||
-                item["_4"] ||
-                "",
-            ).trim();
+            // Standard vocabulary courses
+            const { word, meaning, translation, example } = parsed;
+            let { pronunciation } = parsed;
 
             // Fetch IPA from Wiktionary if pronunciation is missing
             // Only for single words (not collocations/phrases)
@@ -428,7 +376,6 @@ export default function AddVocaScreen() {
                 );
                 const ipaResult = await getIpaUSUK(word);
                 if (ipaResult.source === "wiktionary") {
-                  // Combine US and UK pronunciations if both available
                   if (ipaResult.us && ipaResult.uk) {
                     pronunciation = `US: ${ipaResult.us} | UK: ${ipaResult.uk}`;
                   } else if (ipaResult.us) {
@@ -443,7 +390,6 @@ export default function AddVocaScreen() {
                 }
               } catch (ipaError) {
                 console.warn(`[IPA] Failed to fetch for "${word}":`, ipaError);
-                // Continue without pronunciation - non-blocking
               }
             }
 
@@ -471,13 +417,12 @@ export default function AddVocaScreen() {
             }
 
             docData = {
-              word: word,
+              word,
               meaning,
               translation,
               pronunciation,
-              example: example || "", // Keep for backward compatibility
+              example: example || "",
               createdAt: new Date(),
-              // Linguistic data fields
               partOfSpeech: linguisticData.success
                 ? linguisticData.partOfSpeech
                 : null,
@@ -775,22 +720,11 @@ export default function AddVocaScreen() {
       </View>
 
       {/* Upload Progress Modal */}
-      <Modal
+      <UploadProgressModal
         visible={loading}
-        transparent={true}
-        animationType="fade"
-        statusBarTranslucent
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <Text style={styles.modalTitle}>Uploading...</Text>
-            {progress ? (
-              <Text style={styles.modalMessage}>{progress}</Text>
-            ) : null}
-          </View>
-        </View>
-      </Modal>
+        progress={progress}
+        isDark={isDark}
+      />
     </SafeAreaView>
   );
 }
@@ -813,41 +747,6 @@ const getStyles = (isDark: boolean) =>
     topSection: {
       paddingHorizontal: 20,
       paddingTop: 20,
-    },
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    modalContent: {
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
-      borderRadius: 12,
-      padding: 24,
-      minWidth: 280,
-      maxWidth: "80%",
-      alignItems: "center",
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
-    },
-    modalTitle: {
-      fontSize: 18,
-      fontWeight: "600",
-      color: isDark ? "#fff" : "#000",
-      marginTop: 16,
-      marginBottom: 8,
-    },
-    modalMessage: {
-      fontSize: 14,
-      color: isDark ? "#a0a0a0" : "#666",
-      textAlign: "center",
-      lineHeight: 20,
     },
     addButtonContainer: {
       paddingHorizontal: 20,
