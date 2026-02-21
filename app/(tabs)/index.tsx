@@ -5,7 +5,6 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import {
   DashboardHeader,
   DashboardPopQuiz,
-  DashboardQuickActions,
   DashboardStats,
 } from "../../components/dashboard";
 import { useAuth } from "../../src/context/AuthContext";
@@ -47,7 +46,6 @@ export default function DashboardScreen() {
         showsVerticalScrollIndicator={false}
       >
         <DashboardHeader userName={userName} userPhoto={user?.photoURL} />
-        <DashboardQuickActions />
         <DashboardPopQuiz />
         <DashboardStats
           wordsLearned={wordsThisWeek}

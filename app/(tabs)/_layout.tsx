@@ -29,7 +29,7 @@ const TABS = [
   {
     key: "speaking",
     titleKey: "tabs.speaking",
-    icon: "waveform" as const,
+    icon: "mic.fill" as const,
   },
   {
     key: "settings",

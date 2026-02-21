@@ -27,6 +27,8 @@ const MAPPING = {
   "checkmark.circle.fill": "check-circle",
   "clock.fill": "access-time",
   "folder.fill": "folder",
+  "mic.fill": "mic",
+  waveform: "graphic-eq",
 } as IconMapping;
 
 export type IconSymbolName = keyof typeof MAPPING;
