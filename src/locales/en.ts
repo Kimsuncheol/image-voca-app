@@ -276,8 +276,6 @@ const en = {
       invalidAdminCode: "Invalid admin code",
     },
     login: {
-      title: "Welcome Back",
-      subtitle: "Sign in to continue",
       emailPlaceholder: "Email",
       passwordPlaceholder: "Password",
       rememberMe: "Remember me",
@@ -730,7 +728,8 @@ const en = {
       title: "My Classes",
       joinClass: "Join Class",
       noClasses: "Not enrolled in any classes yet",
-      noClassesMessage: "Ask your instructor for an invite code to join a class",
+      noClassesMessage:
+        "Ask your instructor for an invite code to join a class",
       joinModal: {
         title: "Join Class",
         inviteCode: "Invite Code",

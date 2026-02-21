@@ -259,7 +259,8 @@ const ko = {
       invalidCredentials: "이메일 또는 비밀번호가 올바르지 않습니다.",
       accountDisabled: "비활성화된 계정입니다. 고객센터에 문의하세요.",
       tooManyRequests: "로그인 시도가 너무 많습니다. 잠시 후 다시 시도하세요.",
-      networkError: "네트워크 오류가 발생했습니다. 연결을 확인하고 다시 시도하세요.",
+      networkError:
+        "네트워크 오류가 발생했습니다. 연결을 확인하고 다시 시도하세요.",
       loginFailed: "로그인할 수 없습니다. 다시 시도하세요.",
       permissionTitle: "권한 필요",
       permissionMessage: "사진 라이브러리 접근 권한이 필요합니다.",
@@ -271,8 +272,6 @@ const ko = {
       invalidAdminCode: "잘못된 관리자 코드",
     },
     login: {
-      title: "다시 오신 것을 환영합니다",
-      subtitle: "계속하려면 로그인하세요",
       emailPlaceholder: "이메일",
       passwordPlaceholder: "비밀번호",
       rememberMe: "로그인 상태 유지",

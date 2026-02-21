@@ -1,8 +1,9 @@
 // --- Imports ---
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { signInWithEmailAndPassword } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -10,7 +11,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -157,88 +157,93 @@ export default function LoginScreen() {
         >
           {/* --- Section: Header --- */}
           <View style={styles.headerContainer}>
-            <Text style={styles.title}>{t("auth.login.title")}</Text>
-            <Text style={styles.subtitle}>{t("auth.login.subtitle")}</Text>
+            <Image
+              source={require("../../assets/images/icon.png")}
+              style={styles.logo}
+              contentFit="contain"
+            />
           </View>
 
           {/* --- Section: Login Form --- */}
-          <View style={styles.formContainer}>
-            {/* Authentication Error Alert */}
-            <ErrorBanner
-              title={t("auth.errors.loginTitle")}
-              message={authError || ""}
-              onClose={() => setAuthError(null)}
-            />
-
-            {/* Feature: Email Input */}
-            <FormInput
-              icon="mail-outline"
-              placeholder={t("auth.login.emailPlaceholder")}
-              value={email}
-              onChangeText={(value) => {
-                if (authError) {
-                  setAuthError(null);
-                }
-                setEmail(value);
-              }}
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-
-            {/* Feature: Password Input with Visibility Toggle */}
-            <PasswordInput
-              placeholder={t("auth.login.passwordPlaceholder")}
-              value={password}
-              onChangeText={(value) => {
-                if (authError) {
-                  setAuthError(null);
-                }
-                setPassword(value);
-              }}
-            />
-
-            {/* Feature: Options Row (Remember Me & Forgot Password) */}
-            <View style={styles.optionsContainer}>
-              <RememberMeCheckbox
-                checked={rememberMe}
-                onToggle={() => setRememberMe(!rememberMe)}
-                label={t("auth.login.rememberMe")}
+          <View style={styles.cardContainer}>
+            <View style={styles.formContainer}>
+              {/* Authentication Error Alert */}
+              <ErrorBanner
+                title={t("auth.errors.loginTitle")}
+                message={authError || ""}
+                onClose={() => setAuthError(null)}
               />
-              <LinkButton
-                text={t("auth.login.forgotPassword")}
-                onPress={() => {
-                  // TODO: Implement forgot password functionality
+
+              {/* Feature: Email Input */}
+              <FormInput
+                icon="mail-outline"
+                placeholder={t("auth.login.emailPlaceholder")}
+                value={email}
+                onChangeText={(value) => {
+                  if (authError) {
+                    setAuthError(null);
+                  }
+                  setEmail(value);
                 }}
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+
+              {/* Feature: Password Input with Visibility Toggle */}
+              <PasswordInput
+                placeholder={t("auth.login.passwordPlaceholder")}
+                value={password}
+                onChangeText={(value) => {
+                  if (authError) {
+                    setAuthError(null);
+                  }
+                  setPassword(value);
+                }}
+              />
+
+              {/* Feature: Options Row (Remember Me & Forgot Password) */}
+              <View style={styles.optionsContainer}>
+                <RememberMeCheckbox
+                  checked={rememberMe}
+                  onToggle={() => setRememberMe(!rememberMe)}
+                  label={t("auth.login.rememberMe")}
+                />
+                <LinkButton
+                  text={t("auth.login.forgotPassword")}
+                  onPress={() => {
+                    // TODO: Implement forgot password functionality
+                  }}
+                />
+              </View>
+
+              {/* Feature: Sign In Button */}
+              <PrimaryButton
+                title={t("auth.login.signIn")}
+                onPress={handleLogin}
+                loading={loading}
+                loadingTitle={t("auth.login.signingIn")}
+              />
+
+              {/* --- Section: Divider --- */}
+              <Divider text={t("common.or")} />
+
+              {/* Feature: Google Sign In Button */}
+              <GoogleButton
+                title={t("auth.login.googleSignIn")}
+                onPress={handleGoogleLogin}
+                loading={googleLoading}
+                loadingTitle={t("auth.login.googleSigningIn")}
               />
             </View>
 
-            {/* Feature: Sign In Button */}
-            <PrimaryButton
-              title={t("auth.login.signIn")}
-              onPress={handleLogin}
-              loading={loading}
-              loadingTitle={t("auth.login.signingIn")}
-            />
-
-            {/* --- Section: Divider --- */}
-            <Divider text={t("common.or")} />
-
-            {/* Feature: Google Sign In Button */}
-            <GoogleButton
-              title={t("auth.login.googleSignIn")}
-              onPress={handleGoogleLogin}
-              loading={googleLoading}
-              loadingTitle={t("auth.login.googleSigningIn")}
+            {/* --- Section: Footer (Register Link) --- */}
+            {/* Redirects user to Registration screen if they don't have an account */}
+            <FooterLink
+              text={t("auth.login.noAccount")}
+              linkText={t("auth.login.signUp")}
+              href="/(auth)/register"
             />
           </View>
-
-          {/* --- Section: Footer (Register Link) --- */}
-          {/* Redirects user to Registration screen if they don't have an account */}
-          <FooterLink
-            text={t("auth.login.noAccount")}
-            linkText={t("auth.login.signUp")}
-            href="/(auth)/register"
-          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -251,7 +256,7 @@ const getStyles = (isDark: boolean) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: isDark ? "#000" : "#fff",
+      backgroundColor: isDark ? "#121212" : "#F5F7FA",
     },
     keyboardView: {
       flex: 1,
@@ -260,20 +265,27 @@ const getStyles = (isDark: boolean) =>
       flexGrow: 1,
       padding: 24,
       justifyContent: "center",
+      paddingTop: 60,
     },
     headerContainer: {
-      marginBottom: 32,
+      marginBottom: 40,
       alignItems: "center",
     },
-    title: {
-      fontSize: 32,
-      fontWeight: "bold",
-      color: isDark ? "#fff" : "#333",
-      marginBottom: 8,
+    logo: {
+      width: 80,
+      height: 80,
+      marginBottom: 24,
+      borderRadius: 20,
     },
-    subtitle: {
-      fontSize: 16,
-      color: isDark ? "#ccc" : "#666",
+    cardContainer: {
+      backgroundColor: isDark ? "#1E1E1E" : "#FFFFFF",
+      borderRadius: 24,
+      padding: 24,
+      shadowColor: isDark ? "#000000" : "#000000",
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: isDark ? 0.3 : 0.08,
+      shadowRadius: 24,
+      elevation: 5,
     },
     formContainer: {
       marginBottom: 24,
@@ -282,6 +294,7 @@ const getStyles = (isDark: boolean) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 24,
+      marginBottom: 28,
+      marginTop: 8,
     },
   });
