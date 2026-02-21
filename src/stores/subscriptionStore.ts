@@ -277,14 +277,14 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   canAccessUnlimitedVoca: () => {
     const { currentPlan, role } = get();
     // Admins have free premium access
-    if (role === "admin") return true;
+    if (role.includes("admin")) return true;
     return currentPlan !== "free";
   },
 
   canAccessFeature: (featureId: string) => {
     const { currentPlan, unlockedIds, role } = get();
     // Admins have free premium access
-    if (role === "admin") return true;
+    if (role.includes("admin")) return true;
     if (currentPlan !== "free") return true;
     return unlockedIds.includes(featureId);
   },
@@ -292,7 +292,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   canAccessSpeaking: () => {
     const { currentPlan, unlockedIds, role } = get();
     // Admins have free premium access
-    if (role === "admin") return true;
+    if (role.includes("admin")) return true;
     return (
       currentPlan === "voca_speaking" ||
       unlockedIds.includes("speaking_feature")
@@ -305,7 +305,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
 
   isAdmin: () => {
     const { role } = get();
-    return role === "admin";
+    return role.includes("admin");
   },
 
   /**

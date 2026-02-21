@@ -184,7 +184,7 @@ export default function MembersAdmin() {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          if (userData.role === "admin") {
+          if (userData.role.includes("admin")) {
             setIsAdmin(true);
           }
         }

@@ -1,4 +1,3 @@
-import { useSubscriptionStore } from "../src/stores";
 import { Ionicons } from "@expo/vector-icons";
 import {
   launchImageLibraryAsync,
@@ -12,7 +11,12 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { deleteDoc, doc } from "firebase/firestore";
-import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytes,
+} from "firebase/storage";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -32,6 +36,7 @@ import { AccountActionsSection } from "../components/profile/AccountActionsSecti
 import { AccountInfoSection } from "../components/profile/AccountInfoSection";
 import { useTheme } from "../src/context/ThemeContext";
 import { auth, db, storage } from "../src/services/firebase";
+import { useSubscriptionStore } from "../src/stores";
 
 export default function ProfileScreen() {
   const { isDark } = useTheme();
@@ -54,7 +59,10 @@ export default function ProfileScreen() {
   // Refresh subscription when profile screen loads to ensure role is up-to-date
   useEffect(() => {
     if (user) {
-      console.log("🔄 Profile screen: Refreshing subscription for user", user.uid);
+      console.log(
+        "🔄 Profile screen: Refreshing subscription for user",
+        user.uid,
+      );
       useSubscriptionStore.getState().fetchSubscription(user.uid);
     }
   }, [user]);
@@ -296,7 +304,7 @@ export default function ProfileScreen() {
           <AccountActionsSection
             styles={styles}
             loading={loading}
-            isAdmin={role === "admin"}
+            isAdmin={role.includes("admin")}
             onDeleteAccount={handleDeleteAccount}
             t={t}
           />

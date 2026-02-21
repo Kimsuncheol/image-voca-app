@@ -60,12 +60,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
-import { db } from "../../src/services/firebase";
 import {
   deleteAdvertisement,
   getAllAdvertisements,
   toggleAdStatus,
 } from "../../src/services/advertisementService";
+import { db } from "../../src/services/firebase";
 import type { Advertisement } from "../../src/types/advertisement";
 
 // Import advertisement components
@@ -111,7 +111,7 @@ export default function AdvertisementsAdmin() {
 
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists() && userDoc.data().role === "admin") {
+        if (userDoc.exists() && userDoc.data().role.includes("admin")) {
           setIsAdmin(true);
         }
       } catch (error) {
@@ -179,12 +179,12 @@ export default function AdvertisementsAdmin() {
               console.error("[Ads Admin] Error deleting ad:", error);
               Alert.alert(
                 "Error",
-                error.message || "Failed to delete advertisement"
+                error.message || "Failed to delete advertisement",
               );
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -199,7 +199,7 @@ export default function AdvertisementsAdmin() {
       console.error("[Ads Admin] Error toggling status:", error);
       Alert.alert(
         "Error",
-        error.message || "Failed to update advertisement status"
+        error.message || "Failed to update advertisement status",
       );
     }
   };
