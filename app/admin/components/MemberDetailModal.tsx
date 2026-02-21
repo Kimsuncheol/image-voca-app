@@ -52,20 +52,20 @@
  * =============================================================================
  */
 
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
+  ActivityIndicator,
+  Image,
   Modal,
-  View,
+  ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  ScrollView,
-  Image,
-  ActivityIndicator,
-  StyleSheet,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
 import type { Member, SubscriptionPlan, UserRole } from '../../../src/types/member';
 
 // =============================================================================
@@ -282,14 +282,14 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                     <TouchableOpacity
                       style={[
                         styles.roleButton,
-                        newRole === 'admin' && styles.roleButtonActive,
+                        newRole.includes('admin') && styles.roleButtonActive,
                       ]}
                       onPress={() => onRoleChange('admin')}
                     >
                       <Text
                         style={[
                           styles.roleButtonText,
-                          newRole === 'admin' && styles.roleButtonTextActive,
+                          newRole.includes('admin') && styles.roleButtonTextActive,
                         ]}
                       >
                         Admin
@@ -318,11 +318,11 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                   <View
                     style={[
                       styles.roleBadge,
-                      member.role === 'admin' && styles.adminRoleBadge,
+                      member.role.includes('admin') && styles.adminRoleBadge,
                     ]}
                   >
                     <Text style={styles.roleBadgeText}>
-                      {member.role === 'admin' ? 'Admin' : 'Student'}
+                      {member.role.includes('admin') ? 'Admin' : 'Student'}
                     </Text>
                   </View>
                 </View>

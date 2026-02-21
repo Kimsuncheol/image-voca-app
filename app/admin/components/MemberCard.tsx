@@ -34,10 +34,10 @@
  * =============================================================================
  */
 
-import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { MemberListItem } from '../../../src/types/member';
 
 // =============================================================================
@@ -133,7 +133,7 @@ export const MemberCard: React.FC<MemberCardProps> = ({
             <Text style={styles.memberName}>{member.displayName}</Text>
 
             {/* Admin Badge - Only shown for admin users */}
-            {member.role === 'admin' && (
+            {member.role.includes('admin') && (
               <View style={styles.adminBadge}>
                 <Text style={styles.adminBadgeText}>Admin</Text>
               </View>

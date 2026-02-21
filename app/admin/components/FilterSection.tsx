@@ -30,8 +30,8 @@
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { SubscriptionPlan, UserRole } from '../../../src/types/member';
 
 // =============================================================================
@@ -84,7 +84,7 @@ export const FilterSection: React.FC<FilterSectionProps> = ({
    * Switches between showing all users and admins only
    */
   const handleAdminToggle = () => {
-    onRoleChange(selectedRole === 'admin' ? 'all' : 'admin');
+    onRoleChange(selectedRole.includes('admin') ? 'all' : 'admin');
   };
 
   return (
@@ -177,14 +177,14 @@ export const FilterSection: React.FC<FilterSectionProps> = ({
         <TouchableOpacity
           style={[
             styles.filterChip,
-            selectedRole === 'admin' && styles.filterChipActive,
+            selectedRole.includes('admin') && styles.filterChipActive,
           ]}
           onPress={handleAdminToggle}
         >
           <Text
             style={[
               styles.filterChipText,
-              selectedRole === 'admin' && styles.filterChipTextActive,
+              selectedRole.includes('admin') && styles.filterChipTextActive,
             ]}
           >
             {t('admin.members.adminsOnly')}
