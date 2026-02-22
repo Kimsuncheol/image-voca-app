@@ -65,7 +65,7 @@ export default function SpeakingIndexScreen() {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
-      edges={["left", "right"]}
+      edges={["left", "right", "top"]}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -187,7 +187,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 40,
   },
   header: {
     alignItems: "center",
