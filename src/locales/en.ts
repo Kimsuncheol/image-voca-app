@@ -392,6 +392,20 @@ const en = {
       securityNote: "Secure payment by Toss Payments",
     },
   },
+  promotion: {
+    section: {
+      title: "Promotion Code",
+    },
+    input: {
+      placeholder: "Enter promotion code",
+    },
+    button: {
+      redeem: "Redeem",
+    },
+    helper: {
+      format: "Codes are case-insensitive",
+    },
+  },
 
   course: {
     days: "Days",

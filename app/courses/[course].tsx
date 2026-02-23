@@ -218,6 +218,7 @@ export default function CourseWordBankScreen() {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      edges={["left", "right", "bottom"]}
     >
       {/* Configure navigation header */}
       <Stack.Screen

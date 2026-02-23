@@ -384,6 +384,20 @@ const ko = {
       securityNote: "토스페이먼츠 보안 결제",
     },
   },
+  promotion: {
+    section: {
+      title: "프로모션 코드",
+    },
+    input: {
+      placeholder: "프로모션 코드 입력",
+    },
+    button: {
+      redeem: "등록하기",
+    },
+    helper: {
+      format: "코드는 대소문자를 구분하지 않습니다",
+    },
+  },
 
   course: {
     days: "일차",
