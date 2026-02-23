@@ -1,14 +1,8 @@
-import React from "react";
-import {
-  Animated,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import PagerView from "react-native-pager-view";
 import * as Haptics from "expo-haptics";
+import React from "react";
 import { useTranslation } from "react-i18next";
+import { Animated, Platform, StyleSheet, Text, View } from "react-native";
+import PagerView from "react-native-pager-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { CollocationFlipCard } from "./index";
@@ -22,6 +16,7 @@ interface Props {
   isDark?: boolean;
   day?: number;
   savedWordIds?: Set<string>;
+  isStudyCompleted?: boolean;
 }
 
 const FEEDBACK_THROTTLE_MS = 900;
@@ -35,6 +30,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
   isDark = false,
   day,
   savedWordIds,
+  isStudyCompleted = false,
 }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -119,7 +115,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
 
   const blockForwardFromIndex = React.useCallback(
     (index: number) => {
-      if (unlockedIndicesRef.current.has(index)) {
+      if (isStudyCompleted || unlockedIndicesRef.current.has(index)) {
         return false;
       }
       revertingTargetRef.current = index;
@@ -127,7 +123,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
       triggerBlockedFeedback();
       return true;
     },
-    [triggerBlockedFeedback],
+    [triggerBlockedFeedback, isStudyCompleted],
   );
 
   const handlePageScroll = React.useCallback(
@@ -184,13 +180,22 @@ export const CollocationSwipeable: React.FC<Props> = ({
         onFinish?.();
       }
     },
-    [blockForwardFromIndex, data.length, onFinish, onIndexChange, renderFinalPage],
+    [
+      blockForwardFromIndex,
+      data.length,
+      onFinish,
+      onIndexChange,
+      renderFinalPage,
+    ],
   );
 
-  const handleCardFirstFlip = React.useCallback((index: number) => {
-    // Keep unlock persistent while this pager session is mounted.
-    unlockIndex(index);
-  }, [unlockIndex]);
+  const handleCardFirstFlip = React.useCallback(
+    (index: number) => {
+      // Keep unlock persistent while this pager session is mounted.
+      unlockIndex(index);
+    },
+    [unlockIndex],
+  );
 
   return (
     <View style={styles.container}>
@@ -239,7 +244,10 @@ export const CollocationSwipeable: React.FC<Props> = ({
             styles.hintContainer,
             isDark ? styles.hintContainerDark : styles.hintContainerLight,
             { top: insets.top + 12 },
-            { opacity: hintOpacity, transform: [{ translateY: hintTranslateY }] },
+            {
+              opacity: hintOpacity,
+              transform: [{ translateY: hintTranslateY }],
+            },
           ]}
         >
           <Text style={isDark ? styles.hintTextDark : styles.hintTextLight}>

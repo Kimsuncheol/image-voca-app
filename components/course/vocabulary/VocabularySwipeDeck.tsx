@@ -18,6 +18,7 @@ interface VocabularySwipeDeckProps {
   onIndexChange: (index: number) => void;
   onFinish: () => void;
   renderFinishView?: () => React.ReactNode;
+  isStudyCompleted?: boolean;
 }
 
 export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
@@ -31,6 +32,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
   onIndexChange,
   onFinish,
   renderFinishView,
+  isStudyCompleted,
 }) => {
   const swipeRef = useRef<TinderSwipeRef>(null);
 
@@ -44,6 +46,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         renderFinalPage={renderFinishView}
         day={dayNumber}
         savedWordIds={savedWordIds}
+        isStudyCompleted={isStudyCompleted}
       />
     );
   }

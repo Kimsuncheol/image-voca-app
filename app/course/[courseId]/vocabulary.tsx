@@ -47,8 +47,13 @@ export default function VocabularyScreen() {
   const { user } = useAuth();
 
   // Zustand store actions for managing user statistics and progress
-  const { bufferWordLearned, flushWordStats, updateCourseDayProgress } =
-    useUserStatsStore();
+  const {
+    bufferWordLearned,
+    flushWordStats,
+    updateCourseDayProgress,
+    courseProgress,
+    fetchCourseProgress,
+  } = useUserStatsStore();
 
   // Custom hook to track time spent learning based on screen focus
   useTimeTracking();
@@ -202,6 +207,17 @@ export default function VocabularyScreen() {
     fetchSavedWords();
   }, [user, courseId]);
 
+  /**
+   * Effect: Fetch User's Course Progress
+   *
+   * Retrieves the course progress to check if the day has been completed.
+   */
+  useEffect(() => {
+    if (user && courseId) {
+      void fetchCourseProgress(user.uid, courseId as string);
+    }
+  }, [user, courseId, fetchCourseProgress]);
+
   // ============================================================================
   // Section 4: Event Handlers (Swipe & Progress)
   // ============================================================================
@@ -261,7 +277,6 @@ export default function VocabularyScreen() {
           totalWords: cards.length,
           wordsLearned: cards.length,
         });
-
       } catch (error) {
         console.error("Error marking day as completed:", error);
       }
@@ -378,6 +393,10 @@ export default function VocabularyScreen() {
               onIndexChange={handlePageChange}
               onFinish={handleRunOutOfCards}
               renderFinishView={renderFinishedView}
+              isStudyCompleted={
+                courseProgress[courseId as string]?.[dayNumber]?.completed ||
+                false
+              }
             />
           </View>
         ) : (
