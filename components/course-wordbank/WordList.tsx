@@ -25,9 +25,11 @@ export function WordList({
   const unlockedIndicesRef = React.useRef<Set<number>>(new Set());
   const revertingTargetRef = React.useRef<number | null>(null);
   const isBlockingForwardDragRef = React.useRef(false);
+  const [activeIndex, setActiveIndex] = React.useState(0);
 
   React.useEffect(() => {
     currentIndexRef.current = 0;
+    setActiveIndex(0);
     unlockedIndicesRef.current = new Set();
     revertingTargetRef.current = null;
     isBlockingForwardDragRef.current = false;
@@ -90,6 +92,7 @@ export function WordList({
       }
 
       currentIndexRef.current = nextIndex;
+      setActiveIndex(nextIndex);
       isBlockingForwardDragRef.current = false;
     },
     [blockForwardFromIndex],
@@ -128,6 +131,7 @@ export function WordList({
                   onDelete,
                 }}
                 onFirstFlipToBack={() => unlockIndex(index)}
+                isActive={activeIndex === index}
               />
             </View>
           ))}

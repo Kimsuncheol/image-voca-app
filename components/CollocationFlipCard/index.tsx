@@ -19,6 +19,8 @@ interface Props {
   wordBankConfig?: CollocationWordBankConfig;
   // Called once when this card is flipped to the back for the first time
   onFirstFlipToBack?: () => void;
+  // Indicates whether the card is the active one in a paginated/swipable view
+  isActive?: boolean;
 }
 
 /**
@@ -33,7 +35,13 @@ interface Props {
  * - State Tracking: Knows if it is currently flipped or facing front.
  */
 export const CollocationFlipCard: React.FC<Props> = React.memo(
-  ({ data, isDark = false, wordBankConfig, onFirstFlipToBack }) => {
+  ({
+    data,
+    isDark = false,
+    wordBankConfig,
+    onFirstFlipToBack,
+    isActive = true,
+  }) => {
     // ============================================================================
     // State Management
     // ============================================================================
@@ -44,6 +52,13 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
     // Controls the flip state of the card (true = back side visible)
     const [isFlipped, setIsFlipped] = useState(false);
     const hasReportedFirstBackRef = React.useRef(false);
+
+    // Reset flip state when the card becomes inactive (user swipes away)
+    React.useEffect(() => {
+      if (isActive === false && isFlipped) {
+        setIsFlipped(false);
+      }
+    }, [isActive, isFlipped]);
 
     // ============================================================================
     // Event Handlers

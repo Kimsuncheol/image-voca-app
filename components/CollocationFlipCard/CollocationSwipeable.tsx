@@ -45,9 +45,11 @@ export const CollocationSwipeable: React.FC<Props> = ({
   const hintOpacity = React.useRef(new Animated.Value(0)).current;
   const hintTranslateY = React.useRef(new Animated.Value(6)).current;
   const [isHintVisible, setIsHintVisible] = React.useState(false);
+  const [activeIndex, setActiveIndex] = React.useState(normalizedInitialIndex);
 
   React.useEffect(() => {
     currentIndexRef.current = normalizedInitialIndex;
+    setActiveIndex(normalizedInitialIndex);
     unlockedIndicesRef.current = new Set();
     revertingTargetRef.current = null;
     isBlockingForwardDragRef.current = false;
@@ -172,6 +174,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
       }
 
       currentIndexRef.current = nextIndex;
+      setActiveIndex(nextIndex);
       isBlockingForwardDragRef.current = false;
       onIndexChange?.(nextIndex);
 
@@ -228,6 +231,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
                 enableDelete: false,
               }}
               onFirstFlipToBack={() => handleCardFirstFlip(index)}
+              isActive={activeIndex === index}
             />
           </View>
         ))}
