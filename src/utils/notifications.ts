@@ -1,10 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants, { ExecutionEnvironment } from "expo-constants";
 import type * as NotificationsType from "expo-notifications";
 import { collection, getDocs } from "firebase/firestore";
 import { Platform } from "react-native";
 import { db } from "../services/firebase";
+import {
+    getTotalDaysForCourse,
+    prefetchVocabularyCards,
+} from "../services/vocabularyPrefetch";
 import { vocaService } from "../services/vocaService";
+import { CourseType } from "../types/vocabulary";
 
 type NotificationsModule = typeof import("expo-notifications");
 type NotificationPermissions = NotificationsType.NotificationPermissionsStatus;
@@ -17,24 +21,19 @@ const NOTIFICATIONS_ENABLED_KEY = "voca_notifications_enabled";
 const POP_WORD_ENABLED_KEY = "voca_pop_word_enabled";
 const STUDY_REMINDER_ENABLED_KEY = "voca_study_reminder_enabled";
 
-const DEFAULT_POP_WORD_HOUR = 10;
-const DEFAULT_POP_WORD_MINUTE = 0;
-const DEFAULT_REMINDER_HOUR = 20;
+const DEFAULT_REMINDER_HOUR = 19;
 const DEFAULT_REMINDER_MINUTE = 0;
 const SCHEDULE_WINDOW_DAYS = 7;
+const HOURLY_NOTIFICATION_COUNT = 55;
 const ANDROID_CHANNEL_ID = "voca-daily";
 
 let cachedNotifications: NotificationsModule | null = null;
 let handlerConfigured = false;
 
-// expo-notifications Android push support was removed from Expo Go in SDK 53.
-// Return null in that environment to avoid noisy error logs.
-const isExpoGo =
-  Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
-
 const getNotificationsModule = (): NotificationsModule | null => {
   if (cachedNotifications !== null) return cachedNotifications;
-  if (isExpoGo && Platform.OS === "android") return null;
+  // Note: While remote push notifications are unsupported in Expo Go on Android (SDK 53+),
+  // local notifications (which we use for Study Reminder and Word of the Day) still work perfectly.
   try {
     cachedNotifications = require("expo-notifications");
     return cachedNotifications;
@@ -71,9 +70,21 @@ const getScheduleDates = (
   return dates;
 };
 
-const buildDateTrigger = (
-  date: Date,
-): NotificationsType.DateTriggerInput => {
+const getHourlyScheduleDates = (hours: number) => {
+  const dates: Date[] = [];
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(start.getHours() + 1, 0, 0, 0);
+
+  for (let i = 0; i < hours; i++) {
+    const next = new Date(start);
+    next.setHours(start.getHours() + i);
+    dates.push(next);
+  }
+  return dates;
+};
+
+const buildDateTrigger = (date: Date): NotificationsType.DateTriggerInput => {
   if (Platform.OS === "android") {
     return {
       type: "date" as NotificationsType.SchedulableTriggerInputTypes.DATE,
@@ -269,26 +280,72 @@ export const schedulePopWordNotifications = async (
   if (!Notifications) return;
 
   await cancelStoredNotifications(POP_WORD_NOTIFICATION_IDS_KEY);
-  const words = await fetchSavedWords(userId);
-  if (words.length === 0) return;
 
-  const dates = getScheduleDates(
-    DEFAULT_POP_WORD_HOUR,
-    DEFAULT_POP_WORD_MINUTE,
-    days,
-    false,
-  );
+  const COURSES: CourseType[] = [
+    "수능",
+    "TOEIC",
+    "TOEFL",
+    "IELTS",
+    "COLLOCATION",
+  ];
+  const allCards: any[] = [];
 
+  for (const course of COURSES) {
+    try {
+      const totalDays = await getTotalDaysForCourse(course);
+      if (totalDays > 0) {
+        const daysToFetch = Math.min(totalDays, 2);
+        const selectedDays = new Set<number>();
+        while (selectedDays.size < daysToFetch) {
+          selectedDays.add(Math.floor(Math.random() * totalDays) + 1);
+        }
+        for (const day of selectedDays) {
+          const cards = await prefetchVocabularyCards(course, day);
+          allCards.push(...cards);
+        }
+      }
+    } catch (err) {
+      console.warn(`Failed to fetch course ${course} for pop words`, err);
+    }
+  }
+
+  if (allCards.length === 0) {
+    const fallbackWords = await fetchSavedWords(userId);
+    allCards.push(...fallbackWords);
+  }
+
+  if (allCards.length === 0) return;
+
+  const dates = getHourlyScheduleDates(HOURLY_NOTIFICATION_COUNT);
   const scheduledIds: string[] = [];
+  const shuffledCards = allCards.sort(() => 0.5 - Math.random());
 
-  for (const date of dates) {
-    const selection = words[Math.floor(Math.random() * words.length)];
-    const meaning = selection.meaning || "Open the app to see the meaning.";
-    const body = `Word of the Day: ${selection.word} - ${meaning}`;
+  for (let i = 0; i < dates.length; i++) {
+    const date = dates[i];
+    const selection = shuffledCards[i % shuffledCards.length];
+
+    let title = "Word of the Day";
+    let bodyText = "";
+
+    if (selection.course === "COLLOCATION") {
+      title = "Collocation of the Day";
+      bodyText = `${selection.word} - ${selection.meaning}`;
+      if (selection.pronunciation) {
+        bodyText += `\n\nExplanation: ${selection.pronunciation}`;
+      }
+    } else if (selection.course) {
+      bodyText = `${selection.word} - ${selection.meaning}`;
+      if (selection.example) {
+        bodyText += `\n\nExample: ${selection.example}`;
+      }
+    } else {
+      bodyText = `${selection.word} - ${selection.meaning || "Open the app to see the meaning."}`;
+    }
+
     const id = await Notifications.scheduleNotificationAsync({
       content: {
-        title: "Word of the Day",
-        body,
+        title,
+        body: bodyText,
         data: { type: "pop_word", word: selection.word },
       },
       trigger: buildDateTrigger(date),
@@ -321,7 +378,7 @@ export const scheduleStudyReminderNotifications = async (
     const id = await Notifications.scheduleNotificationAsync({
       content: {
         title: "Study Reminder",
-        body: "You haven't studied your words today! Open the app to practice.",
+        body: "Time to build your vocabulary habit! Open the app and study your words or collocations today.",
         data: { type: "study_reminder" },
       },
       trigger: buildDateTrigger(date),
