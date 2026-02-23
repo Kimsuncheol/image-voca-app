@@ -15,7 +15,6 @@ import { Colors } from "../../constants/theme";
 import { TabLayoutProvider } from "../../src/context/TabLayoutContext";
 import { useTheme } from "../../src/context/ThemeContext";
 
-import SpeakingScreen from "../speaking";
 import DashboardScreen from "./index";
 import SettingsScreen from "./settings";
 import CourseSelectionScreen from "./swipe";
@@ -26,11 +25,6 @@ const TABS = [
   { key: "dashboard", titleKey: "tabs.dashboard", icon: "house.fill" as const },
   { key: "wordbank", titleKey: "tabs.wordBank", icon: "folder.fill" as const },
   { key: "voca", titleKey: "tabs.voca", icon: "book.fill" as const },
-  {
-    key: "speaking",
-    titleKey: "tabs.speaking",
-    icon: "mic.fill" as const,
-  },
   {
     key: "settings",
     titleKey: "tabs.settings",
@@ -103,8 +97,6 @@ export default function TabLayout() {
       case 2:
         return <CourseSelectionScreen />;
       case 3:
-        return <SpeakingScreen />;
-      case 4:
         return <SettingsScreen />;
       default:
         return null;

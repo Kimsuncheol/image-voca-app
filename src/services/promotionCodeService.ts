@@ -38,6 +38,11 @@ const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const CODE_LENGTH = 8;
 const AMBIGUOUS_CHARS = /[0OIl1]/g;
 
+const normalizePromotionBenefit = (benefit: PromotionBenefit): PromotionBenefit => ({
+  ...benefit,
+  planId: "voca_unlimited",
+});
+
 /**
  * Generates a secure random promotion code
  *
@@ -290,17 +295,18 @@ async function applyBenefit(
   benefit: PromotionBenefit
 ): Promise<void> {
   const userRef = doc(db, 'users', userId);
+  const normalizedBenefit = normalizePromotionBenefit(benefit);
 
-  if (benefit.type === 'subscription_upgrade') {
+  if (normalizedBenefit.type === 'subscription_upgrade') {
     const subscriptionData: any = {
-      planId: benefit.planId,
+      planId: normalizedBenefit.planId,
       updatedAt: new Date().toISOString(),
     };
 
     // For temporary subscriptions, add expiry
-    if (!benefit.isPermanent && benefit.durationDays) {
+    if (!normalizedBenefit.isPermanent && normalizedBenefit.durationDays) {
       const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + benefit.durationDays);
+      expiryDate.setDate(expiryDate.getDate() + normalizedBenefit.durationDays);
       subscriptionData.expiresAt = expiryDate.toISOString();
     }
 
@@ -335,6 +341,7 @@ export async function redeemCode(
     }
 
     const promotionCode = validation.promotionCode!;
+    const normalizedBenefit = normalizePromotionBenefit(promotionCode.benefit);
     const normalizedCode = code.toUpperCase();
 
     // Use transaction to ensure atomicity
@@ -364,17 +371,17 @@ export async function redeemCode(
 
       // Apply benefit
       const subscriptionData: any = {
-        planId: promotionCode.benefit.planId,
+        planId: normalizedBenefit.planId,
         updatedAt: new Date().toISOString(),
         promotionCode: normalizedCode,
       };
 
       if (
-        !promotionCode.benefit.isPermanent &&
-        promotionCode.benefit.durationDays
+        !normalizedBenefit.isPermanent &&
+        normalizedBenefit.durationDays
       ) {
         const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + promotionCode.benefit.durationDays);
+        expiryDate.setDate(expiryDate.getDate() + normalizedBenefit.durationDays);
         subscriptionData.expiresAt = expiryDate.toISOString();
       }
 
@@ -382,9 +389,9 @@ export async function redeemCode(
       const redemptionRecord = {
         code: normalizedCode,
         redeemedAt: new Date().toISOString(),
-        benefitReceived: `${promotionCode.benefit.planId} subscription${
-          !promotionCode.benefit.isPermanent
-            ? ` for ${promotionCode.benefit.durationDays} days`
+        benefitReceived: `${normalizedBenefit.planId} subscription${
+          !normalizedBenefit.isPermanent
+            ? ` for ${normalizedBenefit.durationDays} days`
             : ''
         }`,
       };
@@ -394,7 +401,7 @@ export async function redeemCode(
         redeemedCodes: [...(currentCodeData as any).redeemedCodes || [], redemptionRecord],
       });
 
-      return promotionCode.benefit;
+      return normalizedBenefit;
     });
 
     return {
@@ -436,7 +443,7 @@ export async function generatePromotionCodes(
         code,
         codeHash,
         eventPeriod: request.eventPeriod,
-        benefit: request.benefit,
+        benefit: normalizePromotionBenefit(request.benefit),
         maxUses: request.maxUses,
         maxUsesPerUser: request.maxUsesPerUser,
         currentUses: 0,

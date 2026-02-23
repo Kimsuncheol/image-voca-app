@@ -28,12 +28,22 @@ import { PLANS, PlanType, useSubscriptionStore } from "../../src/stores";
 // Toss Payments Client Key (테스트용)
 const TOSS_CLIENT_KEY = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
 
+const normalizeCheckoutPlanId = (planId?: string): PlanType | null => {
+  if (planId === "voca_speaking") {
+    return "voca_unlimited";
+  }
+  if (planId === "free" || planId === "voca_unlimited") {
+    return planId;
+  }
+  return null;
+};
+
 function CheckoutContent() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
   const { t } = useTranslation();
-  const { planId } = useLocalSearchParams<{ planId: PlanType }>();
+  const { planId } = useLocalSearchParams<{ planId?: string }>();
   const { updateSubscription } = useSubscriptionStore();
 
   const paymentWidgetControl = usePaymentWidget();
@@ -43,7 +53,8 @@ function CheckoutContent() {
     useState<AgreementWidgetControl | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const selectedPlan = PLANS.find((p) => p.id === planId);
+  const normalizedPlanId = normalizeCheckoutPlanId(planId);
+  const selectedPlan = PLANS.find((p) => p.id === normalizedPlanId);
 
   if (!selectedPlan || selectedPlan.price === 0) {
     return (
@@ -56,6 +67,8 @@ function CheckoutContent() {
       </SafeAreaView>
     );
   }
+
+  const effectivePlanId = selectedPlan.id;
 
   const generateOrderId = () => {
     return `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -93,7 +106,7 @@ function CheckoutContent() {
 
       if (result?.success) {
         // 결제 성공 - Firestore에 구독 정보 저장
-        await updateSubscription(user.uid, planId as PlanType, orderId);
+        await updateSubscription(user.uid, effectivePlanId, orderId);
         Alert.alert(
           t("billing.checkout.successTitle"),
           t("billing.checkout.successMessage", {

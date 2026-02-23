@@ -6,7 +6,7 @@
  *
  * FEATURES:
  * - Event period selection with date pickers
- * - Subscription plan selection (Voca Unlimited / Voca Speaking)
+ * - Subscription plan selection (Voca Unlimited)
  * - Duration type toggle (Permanent / Temporary)
  * - Usage limits configuration (total uses, per-user uses)
  * - Description input for code tracking
@@ -334,23 +334,6 @@ export const GenerationForm: React.FC<GenerationFormProps> = ({
             </Text>
           </TouchableOpacity>
 
-          {/* Voca + Speaking Button */}
-          <TouchableOpacity
-            style={[
-              styles.planButton,
-              selectedPlan === "voca_speaking" && styles.planButtonActive,
-            ]}
-            onPress={() => setSelectedPlan("voca_speaking")}
-          >
-            <Text
-              style={[
-                styles.planButtonText,
-                selectedPlan === "voca_speaking" && styles.planButtonTextActive,
-              ]}
-            >
-              Voca + Speaking
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
 

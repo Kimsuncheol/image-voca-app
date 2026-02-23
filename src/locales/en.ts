@@ -22,7 +22,6 @@ const en = {
     dashboard: "Dashboard",
     wordBank: "Word Bank",
     voca: "Voca",
-    speaking: "Speaking",
     settings: "Settings",
   },
   settings: {
@@ -207,10 +206,6 @@ const en = {
       title: "Unlimited Vocabulary",
       description: "Upgrade to Voca Unlimited to study without limits.",
     },
-    speaking: {
-      title: "Speaking Practice",
-      description: "Upgrade to Voca + Speaking to start speaking practice.",
-    },
     upgradeHint: "Upgrade to unlock more features",
     status: {
       active: "Active",
@@ -219,15 +214,11 @@ const en = {
   plans: {
     free: {
       name: "Free",
-      features: ["Limited vocabulary access", "Speaking practice locked"],
+      features: ["Limited vocabulary access"],
     },
     voca_unlimited: {
       name: "Voca Unlimited",
-      features: ["Unlimited vocabulary access", "Speaking practice locked"],
-    },
-    voca_speaking: {
-      name: "Voca + Speaking Unlimited",
-      features: ["Unlimited vocabulary access", "Speaking practice unlocked"],
+      features: ["Unlimited vocabulary access"],
     },
   },
   home: {
@@ -495,130 +486,6 @@ const en = {
       keepPracticing: "Keep practicing! 💪",
     },
     seeResults: "See Results",
-  },
-  speaking: {
-    title: "Speaking Practice",
-    header: {
-      title: "Speaking Practice",
-      subtitle: "Practice your speaking skills with AI-powered feedback",
-    },
-    toeic: {
-      title: "TOEIC Speaking",
-      description: "Practice all 6 parts of the TOEIC Speaking test",
-      practice: "Practice",
-      results: "Results",
-      selectParts: "Select Parts to Practice",
-      prepTime: "Prep: {{time}}s",
-      responseTime: "Response: {{time}}s",
-      startPractice: "Start Practice ({{count}} parts)",
-      selectToStart: "Select parts to start",
-      generating: "Generating questions...",
-      beginQuestion: "Begin Question",
-      skipPrep: "Skip Prep",
-      parts: {
-        1: {
-          title: "Read Aloud",
-          description: "Read a text aloud with clear pronunciation",
-        },
-        2: {
-          title: "Read Aloud",
-          description: "Read a text aloud with clear pronunciation",
-        },
-        3: {
-          title: "Describe Picture",
-          description: "Describe the picture in detail",
-        },
-        4: {
-          title: "Respond to Questions",
-          description: "Answer questions about everyday topics",
-        },
-        5: {
-          title: "Propose Solution",
-          description: "Listen to a problem and propose a solution",
-        },
-        6: {
-          title: "Express Opinion",
-          description: "Express your opinion on a topic",
-        },
-      },
-    },
-    opic: {
-      title: "OPIc",
-      description: "AI-powered interview practice with level prediction",
-      practice: "Practice",
-      results: "Results",
-      targetLevel: "Target Level",
-      selectTopics: "Select Topics",
-      questionsCount: "{{count}} questions",
-      startPractice: "Start Practice ({{count}} topics)",
-      selectToStart: "Select topics to start",
-      preparing: "Preparing interview...",
-      startAnswer: "Start Answer",
-      readyNow: "I'm Ready",
-      predictedLevel: "Predicted Level",
-      topics: {
-        selfIntro: "Self Introduction",
-        hobbies: "Hobbies & Interests",
-        travel: "Travel",
-        technology: "Technology",
-        food: "Food & Cooking",
-      },
-      levels: {
-        IL: "Intermediate Low - Basic conversation ability",
-        IM1: "Intermediate Mid 1 - Handle simple situations",
-        IM2: "Intermediate Mid 2 - Comfortable in familiar topics",
-        IM3: "Intermediate Mid 3 - Extended conversation ability",
-        IH: "Intermediate High - Handle complex situations",
-        AL: "Advanced Low - Professional-level communication",
-      },
-    },
-    recording: "Recording...",
-    stopRecording: "Stop Recording",
-    finishAnswer: "Finish Answer",
-    analyzing: "Analyzing your response...",
-    timer: {
-      prep: "Preparation",
-      response: "Response",
-      thinking: "Think",
-      speaking: "Speaking",
-    },
-    categories: {
-      pronunciation: "Pronunciation",
-      fluency: "Fluency",
-      grammar: "Grammar",
-      vocabulary: "Vocabulary",
-      content: "Content",
-    },
-    results: {
-      excellent: "Excellent work! 🎉",
-      good: "Good job! 👍",
-      needsPractice: "Keep practicing! 💪",
-      question: "Question {{num}}",
-      yourResponse: "Your Response",
-      strengths: "Strengths",
-      suggestions: "Areas to Improve",
-    },
-    features: {
-      title: "Features",
-      aiAnalysis: "AI-powered speech analysis",
-      scoring: "Detailed scoring breakdown",
-      feedback: "Personalized improvement tips",
-      timedPractice: "Timed practice sessions",
-    },
-    locked: {
-      title: "Premium Feature",
-      message: "Speaking practice requires the Voca + Speaking plan.",
-      upgrade: "View Plans",
-    },
-    notice: {
-      premium: "Upgrade to unlock AI-powered speaking practice",
-    },
-    errors: {
-      permissionTitle: "Microphone Permission Required",
-      permissionMessage:
-        "Please allow microphone access to record your responses.",
-      recordingFailed: "Failed to start recording. Please try again.",
-    },
   },
   student: {
     classes: {

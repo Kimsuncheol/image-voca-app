@@ -22,7 +22,6 @@ const ko = {
     dashboard: "대시보드",
     wordBank: "단어장",
     voca: "단어",
-    speaking: "스피킹",
     settings: "설정",
   },
   settings: {
@@ -204,10 +203,6 @@ const ko = {
       title: "무제한 단어 학습",
       description: "Voca Unlimited로 업그레이드해 무제한으로 학습하세요.",
     },
-    speaking: {
-      title: "스피킹 연습",
-      description: "Voca + Speaking으로 업그레이드해 스피킹을 시작하세요.",
-    },
     upgradeHint: "업그레이드하여 더 많은 기능을 이용하세요",
     status: {
       active: "활성",
@@ -216,15 +211,11 @@ const ko = {
   plans: {
     free: {
       name: "무료",
-      features: ["제한된 단어 학습", "스피킹 연습 잠김"],
+      features: ["제한된 단어 학습"],
     },
     voca_unlimited: {
       name: "Voca Unlimited",
-      features: ["무제한 단어 학습", "스피킹 연습 잠김"],
-    },
-    voca_speaking: {
-      name: "Voca + Speaking Unlimited",
-      features: ["무제한 단어 학습", "스피킹 연습 해제"],
+      features: ["무제한 단어 학습"],
     },
   },
   home: {
@@ -487,120 +478,6 @@ const ko = {
       keepPracticing: "계속 연습해요! 💪",
     },
     seeResults: "결과 보기",
-  },
-  speaking: {
-    title: "스피킹 연습",
-    header: {
-      title: "스피킹 연습",
-      subtitle: "AI 피드백과 함께 스피킹 실력을 향상시키세요",
-    },
-    toeic: {
-      title: "TOEIC Speaking",
-      description: "TOEIC Speaking 시험 6개 파트 연습",
-      practice: "연습",
-      results: "결과",
-      selectParts: "연습할 파트 선택",
-      prepTime: "준비: {{time}}초",
-      responseTime: "응답: {{time}}초",
-      startPractice: "연습 시작 ({{count}}개 파트)",
-      selectToStart: "시작하려면 파트를 선택하세요",
-      generating: "문제 생성 중...",
-      beginQuestion: "문제 시작",
-      skipPrep: "준비 건너뛰기",
-      parts: {
-        1: {
-          title: "문장 읽기",
-          description: "텍스트를 명확하게 소리내어 읽기",
-        },
-        2: {
-          title: "문장 읽기",
-          description: "텍스트를 명확하게 소리내어 읽기",
-        },
-        3: { title: "사진 묘사", description: "사진을 상세하게 설명하기" },
-        4: {
-          title: "질문 응답",
-          description: "일상 주제에 대한 질문에 답하기",
-        },
-        5: { title: "해결책 제시", description: "문제를 듣고 해결책 제안하기" },
-        6: { title: "의견 표현", description: "주제에 대한 의견 말하기" },
-      },
-    },
-    opic: {
-      title: "OPIc",
-      description: "AI 레벨 예측과 함께하는 인터뷰 연습",
-      practice: "연습",
-      results: "결과",
-      targetLevel: "목표 레벨",
-      selectTopics: "주제 선택",
-      questionsCount: "{{count}}개 질문",
-      startPractice: "연습 시작 ({{count}}개 주제)",
-      selectToStart: "시작하려면 주제를 선택하세요",
-      preparing: "인터뷰 준비 중...",
-      startAnswer: "답변 시작",
-      readyNow: "준비됨",
-      predictedLevel: "예상 레벨",
-      topics: {
-        selfIntro: "자기소개",
-        hobbies: "취미 및 관심사",
-        travel: "여행",
-        technology: "기술",
-        food: "음식 및 요리",
-      },
-      levels: {
-        IL: "Intermediate Low - 기본적인 대화 능력",
-        IM1: "Intermediate Mid 1 - 간단한 상황 처리 가능",
-        IM2: "Intermediate Mid 2 - 익숙한 주제에서 편안함",
-        IM3: "Intermediate Mid 3 - 확장된 대화 능력",
-        IH: "Intermediate High - 복잡한 상황 처리 가능",
-        AL: "Advanced Low - 전문적 수준의 의사소통",
-      },
-    },
-    recording: "녹음 중...",
-    stopRecording: "녹음 중지",
-    finishAnswer: "답변 완료",
-    analyzing: "응답 분석 중...",
-    timer: {
-      prep: "준비 시간",
-      response: "응답 시간",
-      thinking: "생각",
-      speaking: "말하기",
-    },
-    categories: {
-      pronunciation: "발음",
-      fluency: "유창성",
-      grammar: "문법",
-      vocabulary: "어휘",
-      content: "내용",
-    },
-    results: {
-      excellent: "훌륭합니다! 🎉",
-      good: "잘했어요! 👍",
-      needsPractice: "계속 연습하세요! 💪",
-      question: "질문 {{num}}",
-      yourResponse: "내 응답",
-      strengths: "강점",
-      suggestions: "개선할 점",
-    },
-    features: {
-      title: "기능",
-      aiAnalysis: "AI 음성 분석",
-      scoring: "상세 점수 분석",
-      feedback: "맞춤형 피드백",
-      timedPractice: "시간 제한 연습",
-    },
-    locked: {
-      title: "프리미엄 기능",
-      message: "스피킹 연습은 Voca + Speaking 요금제가 필요합니다.",
-      upgrade: "요금제 보기",
-    },
-    notice: {
-      premium: "AI 스피킹 연습을 잠금 해제하려면 업그레이드하세요",
-    },
-    errors: {
-      permissionTitle: "마이크 권한 필요",
-      permissionMessage: "응답을 녹음하려면 마이크 접근을 허용해주세요.",
-      recordingFailed: "녹음을 시작할 수 없습니다. 다시 시도해주세요.",
-    },
   },
   student: {
     classes: {

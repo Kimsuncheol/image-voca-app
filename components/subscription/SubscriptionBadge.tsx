@@ -5,7 +5,6 @@ import { TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useSubscriptionStore } from "../../src/stores";
 import { FreePlansSection } from "./FreePlansSection";
-import { VocaSpeakingUnlimitedSection } from "./VocaSpeakingUnlimitedSection";
 import { VocaUnlimitedSection } from "./VocaUnlimitedSection";
 import { styles } from "./subscriptionBadgeStyles";
 
@@ -15,8 +14,7 @@ export function SubscriptionBadge() {
   const { currentPlan } = useSubscriptionStore();
 
   const isFree = currentPlan === "free";
-  const isTopTier = currentPlan === "voca_speaking";
-  const canUpgrade = !isTopTier;
+  const canUpgrade = isFree;
 
   const handlePress = () => {
     if (canUpgrade) {
@@ -44,15 +42,11 @@ export function SubscriptionBadge() {
           />
         </View>
         <View style={styles.textContainer}>
-          {/* Free users: Show all 3 plans */}
+          {/* Free users: Show available plans */}
           {isFree && <FreePlansSection />}
-          {/* Voca Unlimited users: Show upgrade option + current status */}
+          {/* Unlimited users: Show current status */}
           {!isFree && currentPlan === "voca_unlimited" && (
             <VocaUnlimitedSection />
-          )}
-          {/* Voca + Speaking Unlimited users: Show only current status */}
-          {!isFree && currentPlan === "voca_speaking" && (
-            <VocaSpeakingUnlimitedSection />
           )}
         </View>
       </View>

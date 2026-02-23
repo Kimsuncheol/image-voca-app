@@ -9,7 +9,8 @@ import { normalizeUserRole } from "../utils/role";
 export const AD_UNLOCK_LIMIT = 10;
 const UNLOCKED_IDS_KEY = "@unlocked_ids";
 
-export type PlanType = "free" | "voca_unlimited" | "voca_speaking";
+export type PlanType = "free" | "voca_unlimited";
+type LegacyStoredPlanId = PlanType | "voca_speaking";
 
 export interface Plan {
   id: PlanType;
@@ -26,27 +27,20 @@ export const PLANS: Plan[] = [
     name: "Free",
     price: 0,
     priceDisplay: "Free",
-    features: ["Limited vocabulary access", "Speaking practice locked"],
+    features: ["Limited vocabulary access"],
   },
   {
     id: "voca_unlimited",
     name: "Voca Unlimited",
     price: 10_000,
     priceDisplay: "KRW 10,000",
-    features: ["Unlimited vocabulary access", "Speaking practice locked"],
-  },
-  {
-    id: "voca_speaking",
-    name: "Voca + Speaking Unlimited",
-    price: 25_000,
-    priceDisplay: "KRW 25,000",
-    features: ["Unlimited vocabulary access", "Speaking practice unlocked"],
+    features: ["Unlimited vocabulary access"],
     recommended: true,
   },
 ];
 
 interface SubscriptionData {
-  planId: PlanType;
+  planId: LegacyStoredPlanId;
   orderId?: string;
   updatedAt: string;
 }
@@ -69,7 +63,6 @@ interface SubscriptionState {
   unlockViaAd: (userId: string, featureId: string) => Promise<void>;
   canAccessUnlimitedVoca: () => boolean;
   canAccessFeature: (featureId: string) => boolean;
-  canAccessSpeaking: () => boolean;
   canUnlockViaAd: (day: number) => boolean;
   isAdmin: () => boolean;
   resetSubscription: () => void;
@@ -77,7 +70,7 @@ interface SubscriptionState {
 
 const normalizePlanId = (planId: unknown): PlanType => {
   if (planId === "voca_unlimited" || planId === "voca_speaking") {
-    return planId;
+    return "voca_unlimited";
   }
   return "free";
 };
@@ -204,7 +197,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
           const day = parseInt(match[1], 10);
           return day <= AD_UNLOCK_LIMIT;
         }
-        return true; // Keep non-day unlocks (e.g., speaking_feature)
+        return true; // Keep non-day unlocks
       });
 
       set({ unlockedIds: validUnlocks });
@@ -287,16 +280,6 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     if (role.includes("admin")) return true;
     if (currentPlan !== "free") return true;
     return unlockedIds.includes(featureId);
-  },
-
-  canAccessSpeaking: () => {
-    const { currentPlan, unlockedIds, role } = get();
-    // Admins have free premium access
-    if (role.includes("admin")) return true;
-    return (
-      currentPlan === "voca_speaking" ||
-      unlockedIds.includes("speaking_feature")
-    );
   },
 
   canUnlockViaAd: (day: number) => {

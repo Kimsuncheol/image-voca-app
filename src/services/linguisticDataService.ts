@@ -20,7 +20,7 @@ export interface WordForms {
 export interface LinguisticDataOptions {
   word: string;
   meaning: string;
-  courseLevel?: "CSAT" | "TOEFL" | "TOEIC" | "IELTS" | "COLLOCATION" | "OPIC";
+  courseLevel?: "CSAT" | "TOEFL" | "TOEIC" | "IELTS" | "COLLOCATION";
 }
 
 export interface GeneratedLinguisticData {
@@ -48,7 +48,6 @@ export async function generateLinguisticData(
     TOEIC: "business and workplace English",
     IELTS: "academic and general English",
     COLLOCATION: "natural word combinations and phrases",
-    OPIC: "everyday conversational English",
   };
 
   const difficulty = difficultyMap[courseLevel] || "intermediate English";

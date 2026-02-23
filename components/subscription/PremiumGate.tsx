@@ -8,18 +8,17 @@ import { useSubscriptionStore } from "../../src/stores";
 import { ThemedText } from "../themed-text";
 
 interface PremiumGateProps {
-  feature: "unlimited_voca" | "speaking";
+  feature: "unlimited_voca";
   children: React.ReactNode;
 }
 
 export function PremiumGate({ feature, children }: PremiumGateProps) {
   const { isDark } = useTheme();
   const router = useRouter();
-  const { canAccessUnlimitedVoca, canAccessSpeaking } = useSubscriptionStore();
+  const { canAccessUnlimitedVoca } = useSubscriptionStore();
   const { t } = useTranslation();
 
-  const hasAccess =
-    feature === "unlimited_voca" ? canAccessUnlimitedVoca() : canAccessSpeaking();
+  const hasAccess = canAccessUnlimitedVoca();
 
   if (hasAccess) {
     return <>{children}</>;
@@ -30,11 +29,6 @@ export function PremiumGate({ feature, children }: PremiumGateProps) {
       title: t("subscription.unlimited.title"),
       description: t("subscription.unlimited.description"),
       icon: "book",
-    },
-    speaking: {
-      title: t("subscription.speaking.title"),
-      description: t("subscription.speaking.description"),
-      icon: "mic",
     },
   };
 

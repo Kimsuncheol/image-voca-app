@@ -23,9 +23,7 @@ export type CourseType =
   | "수능"
   | "TOEIC"
   | "TOEFL"
-  | "TOEIC_SPEAKING"
   | "IELTS"
-  | "OPIC"
   | "COLLOCATION";
 
 export interface Course {

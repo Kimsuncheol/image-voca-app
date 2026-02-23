@@ -35,6 +35,4 @@ export const DEBUG_TOTAL_DAYS_COURSES: CourseType[] = [
   "TOEIC",
   "TOEFL",
   "IELTS",
-  "OPIC",
-  "TOEIC_SPEAKING",
 ];

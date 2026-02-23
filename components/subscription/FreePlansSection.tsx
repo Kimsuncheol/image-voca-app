@@ -12,9 +12,6 @@ export function FreePlansSection() {
       <ThemedText style={styles.planName}>
         {t("plans.voca_unlimited.name")}
       </ThemedText>
-      <ThemedText style={styles.planName}>
-        {t("plans.voca_speaking.name")}
-      </ThemedText>
     </>
   );
 }

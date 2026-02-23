@@ -8,7 +8,8 @@
 /**
  * Subscription plan types that can be granted via promotion codes
  */
-export type PlanType = "voca_unlimited" | "voca_speaking";
+export type PlanType = "voca_unlimited";
+export type LegacyPlanType = PlanType | "voca_speaking";
 
 /**
  * Promotion code status
@@ -20,7 +21,7 @@ export type PromotionCodeStatus = "active" | "inactive" | "expired";
  */
 export interface PromotionBenefit {
   type: "subscription_upgrade";
-  planId: PlanType;
+  planId: LegacyPlanType;
   isPermanent: boolean;
   durationDays?: number; // Required if isPermanent = false
 }
