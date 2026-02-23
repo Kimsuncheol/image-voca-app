@@ -2,8 +2,6 @@ import React from "react";
 import { Text, View } from "react-native";
 import { useSubscriptionStore } from "../../src/stores/subscriptionStore";
 import { AddVocabularyRow } from "./admin/features/AddVocabularyRow";
-import { AdvertisementsRow } from "./admin/features/AdvertisementsRow";
-import { PromotionCodesRow } from "./admin/features/PromotionCodesRow";
 
 interface AdminSectionProps {
   styles: any;
@@ -27,8 +25,6 @@ export const AdminSection: React.FC<AdminSectionProps> = ({
       <Text style={styles.sectionTitle}>{t("settings.admin.title")}</Text>
       <View style={styles.card}>
         <AddVocabularyRow styles={styles} isDark={isDark} t={t} />
-        <AdvertisementsRow styles={styles} isDark={isDark} t={t} />
-        <PromotionCodesRow styles={styles} isDark={isDark} t={t} />
       </View>
     </View>
   );

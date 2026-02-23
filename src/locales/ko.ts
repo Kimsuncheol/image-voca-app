@@ -62,8 +62,6 @@ const ko = {
     admin: {
       title: "관리자",
       addVocabulary: "단어 추가",
-      advertisements: "광고 관리",
-      promotionCodes: "프로모션 코드",
     },
   },
   dashboard: {
@@ -386,38 +384,7 @@ const ko = {
       securityNote: "토스페이먼츠 보안 결제",
     },
   },
-  promotion: {
-    section: {
-      title: "프로모션 코드가 있으신가요?",
-    },
-    input: {
-      placeholder: "코드 입력",
-    },
-    button: {
-      redeem: "코드 사용하기",
-    },
-    helper: {
-      format: "8자리 프로모션 코드를 입력하세요",
-    },
-    success: {
-      title: "성공!",
-      message: "프로모션 코드가 성공적으로 적용되었습니다.",
-    },
-    banner: {
-      title: "특별 프로모션!",
-      subtitle: "아래에서 코드를 입력하세요",
-      expired: "만료됨",
-      daysRemaining: "{{days}}일 남음",
-      daysRemaining_one: "{{count}}일 남음",
-      daysRemaining_other: "{{count}}일 남음",
-      hoursRemaining: "{{hours}}시간 남음",
-      hoursRemaining_one: "{{count}}시간 남음",
-      hoursRemaining_other: "{{count}}시간 남음",
-      minutesRemaining: "{{minutes}}분 남음",
-      minutesRemaining_one: "{{count}}분 남음",
-      minutesRemaining_other: "{{count}}분 남음",
-    },
-  },
+
   course: {
     days: "일차",
     selectDay: "학습할 일차를 선택하세요",

@@ -62,8 +62,6 @@ const en = {
     admin: {
       title: "Admin",
       addVocabulary: "Add Vocabulary",
-      advertisements: "Advertisements",
-      promotionCodes: "Promotion Codes",
     },
   },
   dashboard: {
@@ -394,38 +392,7 @@ const en = {
       securityNote: "Secure payment by Toss Payments",
     },
   },
-  promotion: {
-    section: {
-      title: "Have a Promotion Code?",
-    },
-    input: {
-      placeholder: "ENTER CODE",
-    },
-    button: {
-      redeem: "Redeem Code",
-    },
-    helper: {
-      format: "Enter 8-character promotional code",
-    },
-    success: {
-      title: "Success!",
-      message: "Your promotion code has been redeemed successfully.",
-    },
-    banner: {
-      title: "Special Promotion!",
-      subtitle: "Redeem your code below",
-      expired: "Expired",
-      daysRemaining: "{{days}} days remaining",
-      daysRemaining_one: "{{count}} day remaining",
-      daysRemaining_other: "{{count}} days remaining",
-      hoursRemaining: "{{hours}} hours remaining",
-      hoursRemaining_one: "{{count}} hour remaining",
-      hoursRemaining_other: "{{count}} hours remaining",
-      minutesRemaining: "{{minutes}} minutes remaining",
-      minutesRemaining_one: "{{count}} minute remaining",
-      minutesRemaining_other: "{{count}} minutes remaining",
-    },
-  },
+
   course: {
     days: "Days",
     selectDay: "Select a day to start learning",
