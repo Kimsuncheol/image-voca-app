@@ -44,10 +44,7 @@ import { useAuth } from "../../src/context/AuthContext"; // User authentication 
 import { useTheme } from "../../src/context/ThemeContext"; // Theme preferences context
 import { setLanguage, SupportedLanguage } from "../../src/i18n"; // Language configuration
 import { auth } from "../../src/services/firebase"; // Firebase auth instance
-import {
-  useSubscriptionStore,
-  useUserStatsStore,
-} from "../../src/stores"; // Zustand stores
+import { useSubscriptionStore, useUserStatsStore } from "../../src/stores"; // Zustand stores
 
 // ============================================================================
 // NOTIFICATION UTILITIES
@@ -463,6 +460,13 @@ export default function SettingsScreen() {
         <SettingsHeader isDark={isDark} t={t} />
 
         {/* ================================================================
+            ACCOUNT SECTION
+            ================================================================
+            Account management options (profile, subscription, etc.)
+        */}
+        <AccountSection styles={styles} isDark={isDark} t={t} />
+
+        {/* ================================================================
             APPEARANCE SECTION
             ================================================================
             Theme selection (Light/Dark mode)
@@ -509,13 +513,6 @@ export default function SettingsScreen() {
           onTogglePopWord={togglePopWord}
           t={t}
         />
-
-        {/* ================================================================
-            ACCOUNT SECTION
-            ================================================================
-            Account management options (profile, subscription, etc.)
-        */}
-        <AccountSection styles={styles} isDark={isDark} t={t} />
 
         {/* ================================================================
             LANGUAGE SECTION

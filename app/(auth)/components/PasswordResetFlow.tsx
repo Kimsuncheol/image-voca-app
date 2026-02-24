@@ -1,6 +1,7 @@
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { FirebaseError } from "firebase/app";
 import {
   ActionCodeSettings,
   confirmPasswordReset,
@@ -37,6 +38,27 @@ interface PasswordResetFlowProps {
   emailEditable: boolean;
   redirectAfterSuccess: "/(auth)/login";
 }
+
+const getFirebaseErrorCode = (error: unknown) => {
+  if (error instanceof FirebaseError) {
+    return error.code;
+  }
+
+  if (typeof error === "object" && error !== null) {
+    const maybeCode = (error as { code?: unknown }).code;
+    if (typeof maybeCode === "string") {
+      return maybeCode;
+    }
+  }
+
+  return undefined;
+};
+
+const shouldRetryWithoutActionCodeSettings = (code?: string) =>
+  code === "auth/invalid-continue-uri" ||
+  code === "auth/unauthorized-continue-uri" ||
+  code === "auth/missing-continue-uri" ||
+  code === "auth/argument-error";
 
 const parsePasswordResetParams = (params: Record<string, string | string[] | undefined>) => {
   const readParam = (value?: string | string[]) => {
@@ -188,10 +210,21 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
 
     setIsSendingEmail(true);
     try {
-      await sendPasswordResetEmail(auth, email, actionCodeSettings);
+      try {
+        await sendPasswordResetEmail(auth, email, actionCodeSettings);
+      } catch (error) {
+        const code = getFirebaseErrorCode(error);
+        if (!shouldRetryWithoutActionCodeSettings(code)) {
+          throw error;
+        }
+
+        // Fallback for environments where deep-link ActionCodeSettings are not accepted.
+        await sendPasswordResetEmail(auth, email);
+      }
       setEmailSent(true);
       setSuccessMessage(t("auth.passwordReset.emailSent", { email }));
-    } catch {
+    } catch (error) {
+      console.error("Failed to send password reset email:", error);
       setGeneralError(t("auth.passwordReset.sendFailed"));
     } finally {
       setIsSendingEmail(false);

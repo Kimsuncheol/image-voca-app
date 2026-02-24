@@ -6,13 +6,15 @@ interface SettingsHeaderProps {
   t: (key: string) => string;
 }
 
-export const SettingsHeader: React.FC<SettingsHeaderProps> = ({ isDark, t }) => {
+export const SettingsHeader: React.FC<SettingsHeaderProps> = ({
+  isDark,
+  t,
+}) => {
   const styles = getStyles(isDark);
 
   return (
     <View style={styles.header}>
       <Text style={styles.title}>{t("settings.title")}</Text>
-      <Text style={styles.subtitle}>{t("settings.subtitle")}</Text>
     </View>
   );
 };

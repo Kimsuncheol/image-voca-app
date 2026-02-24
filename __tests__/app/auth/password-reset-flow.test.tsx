@@ -167,6 +167,44 @@ describe("PasswordResetFlow", () => {
     expect(getByText("Verification email sent to test@example.com.")).toBeTruthy();
   });
 
+  it("retries email send without action code settings when continue URI is rejected", async () => {
+    mockSendPasswordResetEmail
+      .mockRejectedValueOnce({ code: "auth/invalid-continue-uri" })
+      .mockResolvedValueOnce(undefined);
+
+    const { getByPlaceholderText, getByText } = render(
+      <PasswordResetFlow
+        variant="forgot"
+        initialEmail=""
+        emailEditable={true}
+        redirectAfterSuccess="/(auth)/login"
+      />,
+    );
+
+    fireEvent.changeText(getByPlaceholderText("Email"), "test@example.com");
+    fireEvent.press(getByText("Send Verification Email"));
+
+    await waitFor(() => {
+      expect(mockSendPasswordResetEmail).toHaveBeenCalledTimes(2);
+    });
+
+    expect(mockSendPasswordResetEmail).toHaveBeenNthCalledWith(
+      1,
+      expect.any(Object),
+      "test@example.com",
+      expect.objectContaining({
+        url: "imagevocaapp://forgot-password",
+        handleCodeInApp: true,
+      }),
+    );
+    expect(mockSendPasswordResetEmail).toHaveBeenNthCalledWith(
+      2,
+      expect.any(Object),
+      "test@example.com",
+    );
+    expect(getByText("Verification email sent to test@example.com.")).toBeTruthy();
+  });
+
   it("verifies oobCode and shows reset password form", async () => {
     mockSearchParams = { mode: "resetPassword", oobCode: "test-code" };
 
