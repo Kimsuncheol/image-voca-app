@@ -61,11 +61,13 @@ function RootLayoutNav() {
     if (loading) return;
 
     const inAuthGroup = segments[0] === "(auth)";
+    const isPasswordResetRoute =
+      inAuthGroup && segments[1] === "reset-password";
 
     if (!user && !inAuthGroup) {
       // Redirect to the login page if they are not logged in.
       router.replace("/(auth)/login");
-    } else if (user && inAuthGroup) {
+    } else if (user && inAuthGroup && !isPasswordResetRoute) {
       // Redirect to the home page if they are logged in.
       router.replace("/(tabs)");
     }

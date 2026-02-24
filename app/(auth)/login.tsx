@@ -210,9 +210,7 @@ export default function LoginScreen() {
                 />
                 <LinkButton
                   text={t("auth.login.forgotPassword")}
-                  onPress={() => {
-                    // TODO: Implement forgot password functionality
-                  }}
+                  onPress={() => router.push("/(auth)/forgot-password")}
                 />
               </View>
 

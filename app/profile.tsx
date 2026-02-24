@@ -3,7 +3,7 @@ import {
   launchImageLibraryAsync,
   requestMediaLibraryPermissionsAsync,
 } from "expo-image-picker";
-import { useNavigation } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import {
   deleteUser,
   EmailAuthProvider,
@@ -50,6 +50,7 @@ export default function ProfileScreen() {
   const [initialDisplayName, setInitialDisplayName] = useState("");
   const user = auth.currentUser;
   const navigation = useNavigation();
+  const router = useRouter();
   const role = useSubscriptionStore((state) => state.role);
 
   // State for re-authentication
@@ -220,6 +221,10 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const handleResetPassword = () => {
+    router.push("/(auth)/reset-password");
+  };
+
   const handleReauthAndDelete = async () => {
     if (!password || !user || !user.email) {
       Alert.alert(t("common.error"), t("profile.delete.passwordRequired"));
@@ -305,6 +310,7 @@ export default function ProfileScreen() {
             styles={styles}
             loading={loading}
             isAdmin={role.includes("admin")}
+            onResetPassword={handleResetPassword}
             onDeleteAccount={handleDeleteAccount}
             t={t}
           />
@@ -466,6 +472,17 @@ const getStyles = (isDark: boolean) =>
       justifyContent: "space-between",
       alignItems: "center",
       paddingVertical: 12,
+    },
+    actionOption: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 12,
+    },
+    actionText: {
+      fontSize: 16,
+      color: isDark ? "#FFF" : "#000",
+      fontWeight: "600",
     },
     dangerText: {
       fontSize: 16,

@@ -6,6 +6,7 @@ import React from "react";
 import LoginScreen from "../../../app/(auth)/login";
 
 const mockReplace = jest.fn();
+const mockPush = jest.fn();
 const mockPromptAsync = jest.fn();
 
 const translations: Record<string, string> = {
@@ -86,10 +87,21 @@ jest.mock("@react-native-async-storage/async-storage", () => ({
 describe("LoginScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useRouter as jest.Mock).mockReturnValue({ replace: mockReplace });
+    (useRouter as jest.Mock).mockReturnValue({
+      replace: mockReplace,
+      push: mockPush,
+    });
     (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
     (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
     (AsyncStorage.removeItem as jest.Mock).mockResolvedValue(undefined);
+  });
+
+  it("navigates to forgot-password when forgot password link is pressed", () => {
+    const { getByText } = render(<LoginScreen />);
+
+    fireEvent.press(getByText("Forgot Password?"));
+
+    expect(mockPush).toHaveBeenCalledWith("/(auth)/forgot-password");
   });
 
   it("shows missing credentials message when email or password is empty", () => {

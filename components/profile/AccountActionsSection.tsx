@@ -6,6 +6,7 @@ interface AccountActionsSectionProps {
   styles: Record<string, any>;
   loading: boolean;
   isAdmin: boolean;
+  onResetPassword: () => void;
   onDeleteAccount: () => void;
   t: (key: string) => string;
 }
@@ -14,11 +15,10 @@ export function AccountActionsSection({
   styles,
   loading,
   isAdmin,
+  onResetPassword,
   onDeleteAccount,
   t,
 }: AccountActionsSectionProps) {
-  if (isAdmin) return null;
-
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>
@@ -26,15 +26,32 @@ export function AccountActionsSection({
       </Text>
       <View style={styles.card}>
         <TouchableOpacity
-          style={styles.dangerOption}
-          onPress={onDeleteAccount}
+          style={styles.actionOption}
+          onPress={onResetPassword}
           disabled={loading}
         >
-          <Text style={styles.dangerText}>
-            {loading ? t("profile.delete.processing") : t("profile.delete.title")}
+          <Text style={styles.actionText}>
+            {t("profile.resetPassword.title")}
           </Text>
-          <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+          <Ionicons name="key-outline" size={20} color="#007AFF" />
         </TouchableOpacity>
+
+        {!isAdmin && <View style={styles.separator} />}
+
+        {!isAdmin && (
+          <TouchableOpacity
+            style={styles.dangerOption}
+            onPress={onDeleteAccount}
+            disabled={loading}
+          >
+            <Text style={styles.dangerText}>
+              {loading
+                ? t("profile.delete.processing")
+                : t("profile.delete.title")}
+            </Text>
+            <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
