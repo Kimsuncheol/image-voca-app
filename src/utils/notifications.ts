@@ -8,6 +8,7 @@ import {
     prefetchVocabularyCards,
 } from "../services/vocabularyPrefetch";
 import { vocaService } from "../services/vocaService";
+import type { NotificationCardPayload } from "../types/notificationCard";
 import { CourseType } from "../types/vocabulary";
 
 type NotificationsModule = typeof import("expo-notifications");
@@ -132,6 +133,34 @@ const cancelStoredNotifications = async (key: string) => {
     );
   }
   await AsyncStorage.removeItem(key);
+};
+
+type NotificationCardSelection = {
+  id?: string;
+  word?: string;
+  meaning?: string;
+  pronunciation?: string;
+  example?: string;
+  translation?: string;
+  course?: CourseType | string;
+};
+
+const buildPopWordNotificationData = (
+  selection: NotificationCardSelection,
+): NotificationCardPayload => {
+  const isCollocation = selection.course === "COLLOCATION";
+
+  return {
+    type: "pop_word",
+    cardKind: isCollocation ? "collocation" : "word",
+    course: selection.course ?? "WORD_BANK",
+    id: selection.id,
+    word: selection.word ?? "",
+    meaning: selection.meaning ?? "",
+    pronunciation: selection.pronunciation ?? "",
+    example: selection.example ?? "",
+    translation: selection.translation ?? "",
+  };
 };
 
 const fetchSavedWords = async (userId: string) => {
@@ -346,7 +375,7 @@ export const schedulePopWordNotifications = async (
       content: {
         title,
         body: bodyText,
-        data: { type: "pop_word", word: selection.word },
+        data: { ...buildPopWordNotificationData(selection) },
       },
       trigger: buildDateTrigger(date),
     });

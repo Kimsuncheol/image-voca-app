@@ -11,10 +11,19 @@ import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import {
+  MD3DarkTheme,
+  MD3LightTheme,
+  Provider as PaperProvider,
+} from "react-native-paper";
 import { useColorScheme } from "../hooks/use-color-scheme";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
-import { ThemeProvider as AppThemeProvider } from "../src/context/ThemeContext";
+import {
+  ThemeProvider as AppThemeProvider,
+  useTheme as useAppTheme,
+} from "../src/context/ThemeContext";
 import { UploadProvider } from "../src/context/UploadContext";
+import { useNotificationTapNavigation } from "../src/hooks/useNotificationTapNavigation";
 import { usePushNotifications } from "../src/hooks/usePushNotifications";
 import "../src/i18n";
 import { hydrateLanguage } from "../src/i18n";
@@ -40,12 +49,30 @@ const sleep = (ms: number) =>
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const { isDark } = useAppTheme();
   const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const { t } = useTranslation();
 
   usePushNotifications();
+  useNotificationTapNavigation();
+
+  const paperTheme = isDark
+    ? {
+        ...MD3DarkTheme,
+        colors: {
+          ...MD3DarkTheme.colors,
+          primary: "#4A90E2",
+        },
+      }
+    : {
+        ...MD3LightTheme,
+        colors: {
+          ...MD3LightTheme.colors,
+          primary: "#4A90E2",
+        },
+      };
 
   // Fetch user subscription (including admin role) when user is loaded
   useEffect(() => {
@@ -75,27 +102,33 @@ function RootLayoutNav() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <NavigationThemeProvider
-        value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-      >
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="wordbank" options={{ headerShown: false }} />
-          <Stack.Screen name="course" options={{ headerShown: false }} />
-          <Stack.Screen name="billing" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="advertisement-modal"
-            options={{ presentation: "fullScreenModal", headerShown: false }}
-          />
-          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-          <Stack.Screen
-            name="profile"
-            options={{ title: t("profile.title") }}
-          />
-        </Stack>
-        <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-      </NavigationThemeProvider>
+      <PaperProvider theme={paperTheme}>
+        <NavigationThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="wordbank" options={{ headerShown: false }} />
+            <Stack.Screen name="course" options={{ headerShown: false }} />
+            <Stack.Screen name="billing" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="notification-card"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="advertisement-modal"
+              options={{ presentation: "fullScreenModal", headerShown: false }}
+            />
+            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+            <Stack.Screen
+              name="profile"
+              options={{ title: t("profile.title") }}
+            />
+          </Stack>
+          <StatusBar style={isDark ? "light" : "dark"} />
+        </NavigationThemeProvider>
+      </PaperProvider>
     </GestureHandlerRootView>
   );
 }
