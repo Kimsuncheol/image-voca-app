@@ -26,6 +26,7 @@ interface WordCardProps {
   courseColor?: string;
   isDark: boolean;
   onDelete: (wordId: string) => void;
+  showDetails?: boolean;
 }
 
 /**
@@ -38,6 +39,7 @@ export function WordCard({
   courseColor,
   isDark,
   onDelete,
+  showDetails = true,
 }: WordCardProps) {
   return (
     <View
@@ -51,7 +53,7 @@ export function WordCard({
         <WordCardHeader
           word={word.word}
           day={word.day}
-          pronunciation={word.pronunciation}
+          pronunciation={showDetails ? word.pronunciation : undefined}
         />
         <WordCardActions
           word={word.word}
@@ -64,8 +66,10 @@ export function WordCard({
       {/* Meaning section */}
       <WordCardMeaning meaning={word.meaning} />
 
-      {/* Example section */}
-      <WordCardExample example={word.example} translation={word.translation} />
+      {/* Example section — hidden in word+meaning-only mode */}
+      {showDetails && (
+        <WordCardExample example={word.example} translation={word.translation} />
+      )}
     </View>
   );
 }

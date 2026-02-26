@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import PagerView from "react-native-pager-view";
+import { useWordBankDisplayStore } from "../../src/stores/wordBankDisplayStore";
 import { CourseType } from "../../src/types/vocabulary";
 import { CollocationFlipCard } from "../CollocationFlipCard";
 import { SavedWord, WordCard } from "../wordbank/WordCard";
@@ -20,6 +21,7 @@ export function WordList({
   isDark,
   onDelete,
 }: WordListProps) {
+  const { collocationDisplay, otherDisplay } = useWordBankDisplayStore();
   const pagerRef = React.useRef<PagerView>(null);
   const currentIndexRef = React.useRef(0);
   const unlockedIndicesRef = React.useRef<Set<number>>(new Set());
@@ -98,45 +100,63 @@ export function WordList({
     [blockForwardFromIndex],
   );
 
-  // COLLOCATION course uses special flip card design
+  // COLLOCATION course: flip card (all) or simple word card (meaning_only)
   if (courseId === "COLLOCATION") {
+    if (collocationDisplay === "all") {
+      return (
+        <View style={styles.container}>
+          <PagerView
+            ref={pagerRef}
+            style={styles.pagerView}
+            onPageScroll={handlePageScroll}
+            onPageScrollStateChanged={handlePageScrollStateChanged}
+            onPageSelected={handlePageSelected}
+            orientation="horizontal"
+          >
+            {words.map((word, index) => (
+              <View key={word.id} style={styles.page}>
+                <CollocationFlipCard
+                  data={{
+                    collocation: word.word,
+                    meaning: word.meaning,
+                    explanation: word.pronunciation || "", // Explanation stored in pronunciation field
+                    example: word.example,
+                    translation: word.translation || "",
+                  }}
+                  isDark={isDark}
+                  wordBankConfig={{
+                    id: word.id,
+                    course: courseId as CourseType,
+                    day: word.day,
+                    initialIsSaved: true, // Already saved in word bank
+                    enableAdd: false, // Can't add again
+                    enableDelete: true, // Can delete from word bank
+                    onDelete,
+                  }}
+                  onFirstFlipToBack={() => unlockIndex(index)}
+                  isActive={activeIndex === index}
+                />
+              </View>
+            ))}
+          </PagerView>
+        </View>
+      );
+    }
+
+    // meaning_only: render as simple WordCards (collocation + meaning only)
     return (
-      <View style={styles.container}>
-        <PagerView
-          ref={pagerRef}
-          style={styles.pagerView}
-          onPageScroll={handlePageScroll}
-          onPageScrollStateChanged={handlePageScrollStateChanged}
-          onPageSelected={handlePageSelected}
-          orientation="horizontal"
-        >
-          {words.map((word, index) => (
-            <View key={word.id} style={styles.page}>
-              <CollocationFlipCard
-                data={{
-                  collocation: word.word,
-                  meaning: word.meaning,
-                  explanation: word.pronunciation || "", // Explanation stored in pronunciation field
-                  example: word.example,
-                  translation: word.translation || "",
-                }}
-                isDark={isDark}
-                wordBankConfig={{
-                  id: word.id,
-                  course: courseId as CourseType,
-                  day: word.day,
-                  initialIsSaved: true, // Already saved in word bank
-                  enableAdd: false, // Can't add again
-                  enableDelete: true, // Can delete from word bank
-                  onDelete,
-                }}
-                onFirstFlipToBack={() => unlockIndex(index)}
-                isActive={activeIndex === index}
-              />
-            </View>
-          ))}
-        </PagerView>
-      </View>
+      <>
+        {words.map((word, index) => (
+          <WordCard
+            key={word.id + index}
+            word={word}
+            courseColor={courseColor}
+            isDark={isDark}
+            onDelete={onDelete}
+            showDetails={false}
+          />
+        ))}
+      </>
     );
   }
 
@@ -150,6 +170,7 @@ export function WordList({
           courseColor={courseColor}
           isDark={isDark}
           onDelete={onDelete}
+          showDetails={otherDisplay === "all"}
         />
       ))}
     </>

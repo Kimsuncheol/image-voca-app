@@ -19,6 +19,7 @@ import { SavedWord } from "../../components/wordbank/WordCard";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
+import { useWordBankDisplayStore } from "../../src/stores/wordBankDisplayStore";
 import { COURSES } from "../../src/types/vocabulary";
 
 /**
@@ -52,6 +53,7 @@ export default function CourseWordBankScreen() {
   const [words, setWords] = useState<SavedWord[]>([]); // Array of saved words for this course
   const [loading, setLoading] = useState(true); // Loading state while fetching data
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const { collocationDisplay, loadSettings } = useWordBankDisplayStore();
 
   // Generate filter options dynamically based on available days
   const filterOptions = useMemo(() => {
@@ -87,6 +89,9 @@ export default function CourseWordBankScreen() {
   // Find course metadata (color, title, etc.) from course configuration
   const courseData = COURSES.find((c) => c.id === course);
   const isCollocationCourse = course === "COLLOCATION";
+
+  // Use PagerView layout only when COLLOCATION is in "all" (flip card) mode
+  const usePagerLayout = isCollocationCourse && collocationDisplay === "all";
 
   // === Data Fetching ===
 
@@ -133,12 +138,13 @@ export default function CourseWordBankScreen() {
 
   /**
    * Refetch words whenever the screen comes into focus
-   * This ensures the word list is always up-to-date when navigating back
+   * Also loads persisted display settings on first focus
    */
   useFocusEffect(
     useCallback(() => {
+      loadSettings();
       fetchWords();
-    }, [fetchWords]),
+    }, [fetchWords, loadSettings]),
   );
 
   // === Event Handlers ===
@@ -242,7 +248,7 @@ export default function CourseWordBankScreen() {
         </View>
       )}
 
-      {isCollocationCourse ? (
+      {usePagerLayout ? (
         <View style={styles.pagerContainer}>
           {/* Conditional rendering based on loading and data state */}
           {loading ? (
@@ -288,6 +294,7 @@ export default function CourseWordBankScreen() {
           )}
         </ScrollView>
       )}
+
     </SafeAreaView>
   );
 }
