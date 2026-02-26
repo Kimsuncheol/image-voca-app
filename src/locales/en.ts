@@ -258,6 +258,8 @@ const en = {
       passwordRequirements: "Please meet all password requirements.",
       passwordMismatch: "Passwords do not match.",
       registerTitle: "Registration Error",
+      emailAlreadyInUse:
+        "An account with this email already exists. Please sign in instead.",
       invalidEmail: "Please enter a valid email address",
     },
     login: {

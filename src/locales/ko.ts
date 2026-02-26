@@ -254,6 +254,7 @@ const ko = {
       passwordRequirements: "비밀번호 요구 사항을 충족하세요.",
       passwordMismatch: "비밀번호가 일치하지 않습니다.",
       registerTitle: "회원가입 오류",
+      emailAlreadyInUse: "이미 사용 중인 이메일입니다. 로그인을 시도해보세요.",
       invalidEmail: "유효한 이메일 주소를 입력하세요",
     },
     login: {

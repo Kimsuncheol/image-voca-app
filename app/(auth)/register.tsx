@@ -248,10 +248,24 @@ export default function RegisterScreen() {
       // Navigate to main app (tabs) on successful registration
       router.replace("/(tabs)");
     } catch (error: any) {
-      // Display Firebase error message inline
+      // Map Firebase error codes to user-friendly messages
+      let message = t("auth.errors.registerTitle");
+      if (error?.code === "auth/email-already-in-use") {
+        message =
+          t("auth.errors.emailAlreadyInUse") ||
+          "An account with this email already exists. Please sign in instead.";
+      } else if (error?.code === "auth/invalid-email") {
+        message =
+          t("auth.errors.invalidEmail") ||
+          "Please enter a valid email address.";
+      } else if (error?.code === "auth/weak-password") {
+        message =
+          t("auth.errors.passwordRequirements") ||
+          "Password does not meet requirements.";
+      }
       setErrors((prev) => ({
         ...prev,
-        general: error.message || t("auth.errors.registerTitle"),
+        general: message,
       }));
     } finally {
       // Reset loading state regardless of success/failure
@@ -803,5 +817,4 @@ const getStyles = (isDark: boolean) =>
     adminToggleTextActive: {
       color: "#007AFF",
     },
-
   });
