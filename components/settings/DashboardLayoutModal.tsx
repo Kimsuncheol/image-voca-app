@@ -1,12 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import DraggableFlatList, {
-  RenderItemParams,
-  ScaleDecorator,
-} from "react-native-draggable-flatlist";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import React from "react";
 import {
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -52,6 +48,63 @@ const ELEMENT_CONFIGS: Record<DashboardElement, ElementConfig> = {
   },
 };
 
+const PRESETS: DashboardElement[][] = [
+  ["quiz", "famousQuote", "stats"],
+  ["famousQuote", "quiz", "stats"],
+];
+
+function presetsEqual(a: DashboardElement[], b: DashboardElement[]) {
+  return a.length === b.length && a.every((v, i) => v === b[i]);
+}
+
+function MiniElementRow({ config }: { config: ElementConfig }) {
+  return (
+    <View style={[miniStyles.bar, { backgroundColor: config.color + "40" }]}>
+      <Ionicons name={config.icon} size={40} color={config.color} />
+    </View>
+  );
+}
+
+function PresetCard({
+  preset,
+  isSelected,
+  onSelect,
+  isDark,
+}: {
+  preset: DashboardElement[];
+  isSelected: boolean;
+  onSelect: () => void;
+  isDark: boolean;
+}) {
+  const cardBg = isDark ? "#1c1c1e" : "#fff";
+  const borderColor = isSelected ? "#007AFF" : isDark ? "#38383a" : "#e5e5ea";
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={onSelect}
+      style={[presetStyles.card, { backgroundColor: cardBg, borderColor }]}
+    >
+      <View style={presetStyles.elements}>
+        {preset.map((id) => (
+          <MiniElementRow
+            key={id}
+            config={ELEMENT_CONFIGS[id]}
+          />
+        ))}
+      </View>
+
+      <View style={presetStyles.radio}>
+        <Ionicons
+          name={isSelected ? "radio-button-on" : "radio-button-off"}
+          size={20}
+          color={isSelected ? "#007AFF" : isDark ? "#636366" : "#c7c7cc"}
+        />
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 export function DashboardLayoutModal({
   visible,
   onClose,
@@ -65,28 +118,6 @@ export function DashboardLayoutModal({
   const textColor = isDark ? "#fff" : "#000";
   const mutedColor = isDark ? "#8e8e93" : "#6d6d72";
 
-  const renderItem = ({ item, drag, isActive }: RenderItemParams<DashboardElement>) => {
-    const config = ELEMENT_CONFIGS[item];
-    return (
-      <ScaleDecorator>
-        <TouchableOpacity
-          onLongPress={drag}
-          activeOpacity={0.9}
-          style={[
-            styles.item,
-            { backgroundColor: cardBg, borderColor: isActive ? "#007AFF" : borderColor },
-          ]}
-        >
-          <View style={[styles.iconCircle, { backgroundColor: config.color + "20" }]}>
-            <Ionicons name={config.icon} size={28} color={config.color} />
-          </View>
-          <Text style={[styles.itemLabel, { color: textColor }]}>{config.label}</Text>
-          <Ionicons name="menu-outline" size={18} color={mutedColor} style={styles.dragHandle} />
-        </TouchableOpacity>
-      </ScaleDecorator>
-    );
-  };
-
   return (
     <Modal
       visible={visible}
@@ -94,39 +125,46 @@ export function DashboardLayoutModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaView
-          style={[styles.container, { backgroundColor: bg }]}
-          edges={["top", "left", "right", "bottom"]}
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: bg }]}
+        edges={["top", "left", "right", "bottom"]}
+      >
+        {/* Header */}
+        <View
+          style={[
+            styles.header,
+            { backgroundColor: cardBg, borderBottomColor: borderColor },
+          ]}
         >
-          {/* Header */}
-          <View style={[styles.header, { backgroundColor: cardBg, borderBottomColor: borderColor }]}>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close" size={24} color={textColor} />
-            </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: textColor }]}>Layout</Text>
-            <View style={styles.headerPlaceholder} />
-          </View>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Ionicons name="close" size={24} color={textColor} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: textColor }]}>Layout</Text>
+          <View style={styles.headerPlaceholder} />
+        </View>
 
-          {/* Hint */}
-          <Text style={[styles.hint, { color: mutedColor }]}>
-            Hold and drag to reorder
-          </Text>
+        {/* Hint */}
+        <Text style={[styles.hint, { color: mutedColor }]}>
+          Choose a layout preset
+        </Text>
 
-          {/* Horizontal draggable list */}
-          <View style={styles.listWrapper}>
-            <DraggableFlatList
-              data={elementOrder}
-              keyExtractor={(item) => item}
-              renderItem={renderItem}
-              onDragEnd={({ data }) => setElementOrder(data)}
-              horizontal
-              contentContainerStyle={styles.listContent}
-              showsHorizontalScrollIndicator={false}
+        {/* Horizontal preset list */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+        >
+          {PRESETS.map((preset, idx) => (
+            <PresetCard
+              key={idx}
+              preset={preset}
+              isSelected={presetsEqual(elementOrder, preset)}
+              onSelect={() => setElementOrder(preset)}
+              isDark={isDark}
             />
-          </View>
-        </SafeAreaView>
-      </GestureHandlerRootView>
+          ))}
+        </ScrollView>
+      </SafeAreaView>
     </Modal>
   );
 }
@@ -159,41 +197,37 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 16,
   },
-  listWrapper: {
-    alignItems: "center",
-  },
   listContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     gap: 12,
-    alignItems: "center",
+    alignItems: "flex-start",
   },
-  item: {
-    width: 110,
-    height: 110,
-    borderRadius: 16,
+});
+
+const presetStyles = StyleSheet.create({
+  card: {
+    width: 200,
+    height: 400,
+    borderRadius: 20,
     borderWidth: 1.5,
+    padding: 20,
+    gap: 16,
+  },
+  elements: {
+    flex: 1,
+    gap: 14,
+  },
+  radio: {
+    alignItems: "center",
+    marginTop: 4,
+  },
+});
+
+const miniStyles = StyleSheet.create({
+  bar: {
+    flex: 1,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    position: "relative",
-  },
-  iconCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 8,
-  },
-  itemLabel: {
-    fontSize: 12,
-    fontWeight: "500",
-    textAlign: "center",
-  },
-  dragHandle: {
-    position: "absolute",
-    top: 8,
-    right: 8,
   },
 });
