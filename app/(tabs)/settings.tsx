@@ -37,6 +37,7 @@ import { LanguageSection } from "../../components/settings/LanguageSection"; // 
 import { NotificationsSection } from "../../components/settings/NotificationsSection"; // Push notification settings
 import { SettingsHeader } from "../../components/settings/SettingsHeader"; // Header component
 import { SignOutSection } from "../../components/settings/SignOutSection"; // Sign out button
+import { DashboardSection } from "../../components/settings/DashboardSection"; // Dashboard widget settings
 import { StudySection } from "../../components/settings/StudySection"; // Study-related preferences
 
 // ============================================================================
@@ -47,6 +48,7 @@ import { useTheme } from "../../src/context/ThemeContext"; // Theme preferences 
 import { setLanguage, SupportedLanguage } from "../../src/i18n"; // Language configuration
 import { auth } from "../../src/services/firebase"; // Firebase auth instance
 import { useSubscriptionStore, useUserStatsStore } from "../../src/stores"; // Zustand stores
+import { useDashboardSettingsStore } from "../../src/stores/dashboardSettingsStore";
 
 // ============================================================================
 // NOTIFICATION UTILITIES
@@ -104,6 +106,7 @@ export default function SettingsScreen() {
   const { user } = useAuth(); // Current authenticated user
   const { stats, fetchStats, updateTargetScore } = useUserStatsStore(); // User statistics and target score
   const { fetchSubscription } = useSubscriptionStore(); // User subscription status
+  const { loadSettings: loadDashboardSettings } = useDashboardSettingsStore();
 
   // ============================================================================
   // INITIALIZATION EFFECT
@@ -115,11 +118,12 @@ export default function SettingsScreen() {
    */
   useEffect(() => {
     checkNotificationStatus(); // Load notification preferences
+    loadDashboardSettings(); // Load dashboard display settings
     if (user) {
       fetchStats(user.uid); // Fetch user statistics
       fetchSubscription(user.uid); // Fetch subscription status
     }
-  }, [user, fetchStats, fetchSubscription]);
+  }, [user, fetchStats, fetchSubscription, loadDashboardSettings]);
 
   // ============================================================================
   // NOTIFICATION STATUS CHECKER
@@ -496,6 +500,13 @@ export default function SettingsScreen() {
           onUpdateTargetScore={handleUpdateTargetScore}
           t={t}
         />
+
+        {/* ================================================================
+            DASHBOARD SECTION
+            ================================================================
+            Dashboard widget toggles and layout ordering
+        */}
+        <DashboardSection styles={styles} isDark={isDark} t={t} />
 
         {/* ================================================================
             WORD BANK SECTION

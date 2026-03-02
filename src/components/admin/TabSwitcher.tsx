@@ -28,6 +28,7 @@ export default function TabSwitcher({
           Upload CSV File
         </Text>
       </TouchableOpacity>
+
       <TouchableOpacity
         style={[styles.tab, activeTab === "link" && styles.tabActive]}
         onPress={() => setActiveTab("link")}
@@ -42,30 +43,44 @@ export default function TabSwitcher({
   );
 }
 
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const accent = "#0A84FF";
+
+  return StyleSheet.create({
     tabContainer: {
       flexDirection: "row",
       marginBottom: 12,
-      borderRadius: 10,
-      backgroundColor: isDark ? "#1c1c1e" : "#e5e5ea",
-      padding: 4,
+      alignItems: "center",
     },
     tab: {
       flex: 1,
-      paddingVertical: 12,
+      minHeight: 38,
+      paddingVertical: 9,
+      paddingHorizontal: 12,
       alignItems: "center",
-      borderRadius: 8,
+      justifyContent: "center",
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: isDark ? "#3A3A3C" : "#D1D1D6",
+      backgroundColor: "transparent",
+      marginRight: 8,
     },
     tabActive: {
-      backgroundColor: "#007AFF",
+      backgroundColor: accent,
+      borderColor: accent,
+      shadowColor: "#000",
+      shadowOpacity: isDark ? 0.22 : 0.14,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 1 },
+      elevation: 2,
     },
     tabText: {
-      fontSize: 15,
+      fontSize: 14,
       fontWeight: "600",
-      color: isDark ? "#8e8e93" : "#6e6e73",
+      color: isDark ? "#AEAEB2" : "#6E6E73",
     },
     tabTextActive: {
-      color: "#fff",
+      color: "#FFFFFF",
     },
   });
+};
