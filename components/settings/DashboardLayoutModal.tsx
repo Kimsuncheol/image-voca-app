@@ -48,9 +48,14 @@ const ELEMENT_CONFIGS: Record<DashboardElement, ElementConfig> = {
   },
 };
 
-const PRESETS: DashboardElement[][] = [
-  ["quiz", "famousQuote", "stats"],
-  ["famousQuote", "quiz", "stats"],
+interface Preset {
+  name: string;
+  order: DashboardElement[];
+}
+
+const PRESETS: Preset[] = [
+  { name: "Quiz First", order: ["quiz", "famousQuote", "stats"] },
+  { name: "Quote First", order: ["famousQuote", "quiz", "stats"] },
 ];
 
 function presetsEqual(a: DashboardElement[], b: DashboardElement[]) {
@@ -71,13 +76,14 @@ function PresetCard({
   onSelect,
   isDark,
 }: {
-  preset: DashboardElement[];
+  preset: Preset;
   isSelected: boolean;
   onSelect: () => void;
   isDark: boolean;
 }) {
   const cardBg = isDark ? "#1c1c1e" : "#fff";
   const borderColor = isSelected ? "#007AFF" : isDark ? "#38383a" : "#e5e5ea";
+  const textColor = isDark ? "#fff" : "#000";
 
   return (
     <TouchableOpacity
@@ -85,12 +91,13 @@ function PresetCard({
       onPress={onSelect}
       style={[presetStyles.card, { backgroundColor: cardBg, borderColor }]}
     >
+      <Text style={[presetStyles.name, { color: textColor }]}>
+        {preset.name}
+      </Text>
+
       <View style={presetStyles.elements}>
-        {preset.map((id) => (
-          <MiniElementRow
-            key={id}
-            config={ELEMENT_CONFIGS[id]}
-          />
+        {preset.order.map((id) => (
+          <MiniElementRow key={id} config={ELEMENT_CONFIGS[id]} />
         ))}
       </View>
 
@@ -158,8 +165,8 @@ export function DashboardLayoutModal({
             <PresetCard
               key={idx}
               preset={preset}
-              isSelected={presetsEqual(elementOrder, preset)}
-              onSelect={() => setElementOrder(preset)}
+              isSelected={presetsEqual(elementOrder, preset.order)}
+              onSelect={() => setElementOrder(preset.order)}
               isDark={isDark}
             />
           ))}
@@ -207,11 +214,16 @@ const styles = StyleSheet.create({
 const presetStyles = StyleSheet.create({
   card: {
     width: 200,
-    height: 400,
+    height: 420,
     borderRadius: 20,
     borderWidth: 1.5,
     padding: 20,
-    gap: 16,
+    gap: 12,
+  },
+  name: {
+    fontSize: 15,
+    fontWeight: "600",
+    textAlign: "center",
   },
   elements: {
     flex: 1,
