@@ -2,8 +2,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { collection, getDocs } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
-import { db } from "../../src/services/firebase";
 import { useTheme } from "../../src/context/ThemeContext";
+import { db } from "../../src/services/firebase";
 import { ThemedText } from "../themed-text";
 
 const CACHE_KEY = "@famous_quote_cache";
@@ -88,17 +88,78 @@ function FamousQuoteSkeleton() {
       <Animated.View
         style={[
           skeletonStyles.bar,
-          { width: 28, height: 28, marginBottom: 8, opacity: animatedValue, backgroundColor: skeletonBg },
+          {
+            width: 28,
+            height: 28,
+            marginBottom: 8,
+            opacity: animatedValue,
+            backgroundColor: skeletonBg,
+          },
         ]}
       />
       {/* Quote lines */}
-      <Animated.View style={[skeletonStyles.bar, { width: "100%", height: 14, opacity: animatedValue, backgroundColor: skeletonBg }]} />
-      <Animated.View style={[skeletonStyles.bar, { width: "90%", height: 14, marginTop: 6, opacity: animatedValue, backgroundColor: skeletonBg }]} />
-      <Animated.View style={[skeletonStyles.bar, { width: "60%", height: 14, marginTop: 6, marginBottom: 10, opacity: animatedValue, backgroundColor: skeletonBg }]} />
+      <Animated.View
+        style={[
+          skeletonStyles.bar,
+          {
+            width: "100%",
+            height: 14,
+            opacity: animatedValue,
+            backgroundColor: skeletonBg,
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          skeletonStyles.bar,
+          {
+            width: "90%",
+            height: 14,
+            marginTop: 6,
+            opacity: animatedValue,
+            backgroundColor: skeletonBg,
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          skeletonStyles.bar,
+          {
+            width: "60%",
+            height: 14,
+            marginTop: 6,
+            marginBottom: 10,
+            opacity: animatedValue,
+            backgroundColor: skeletonBg,
+          },
+        ]}
+      />
       {/* Translation line */}
-      <Animated.View style={[skeletonStyles.bar, { width: "80%", height: 12, opacity: animatedValue, backgroundColor: skeletonBg }]} />
+      <Animated.View
+        style={[
+          skeletonStyles.bar,
+          {
+            width: "80%",
+            height: 12,
+            opacity: animatedValue,
+            backgroundColor: skeletonBg,
+          },
+        ]}
+      />
       {/* Author line */}
-      <Animated.View style={[skeletonStyles.bar, { width: 100, height: 12, marginTop: 12, alignSelf: "flex-end", opacity: animatedValue, backgroundColor: skeletonBg }]} />
+      <Animated.View
+        style={[
+          skeletonStyles.bar,
+          {
+            width: 100,
+            height: 12,
+            marginTop: 12,
+            alignSelf: "flex-end",
+            opacity: animatedValue,
+            backgroundColor: skeletonBg,
+          },
+        ]}
+      />
     </View>
   );
 }
