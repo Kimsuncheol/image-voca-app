@@ -7,7 +7,7 @@ import { db } from "../../src/services/firebase";
 import { ThemedText } from "../themed-text";
 
 const CACHE_KEY = "@famous_quote_cache";
-const ONE_HOUR_MS = 60 * 60 * 1000;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 interface FamousQuote {
   id: string;
@@ -26,7 +26,7 @@ async function loadQuote(): Promise<FamousQuote | null> {
     const raw = await AsyncStorage.getItem(CACHE_KEY);
     if (raw) {
       const cached: CachedQuote = JSON.parse(raw);
-      if (Date.now() - cached.fetchedAt < ONE_HOUR_MS) {
+      if (Date.now() - cached.fetchedAt < ONE_DAY_MS) {
         return cached.quote;
       }
     }
