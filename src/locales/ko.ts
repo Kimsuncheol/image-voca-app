@@ -61,6 +61,22 @@ const ko = {
       title: "관리자",
       addVocabulary: "단어 추가",
     },
+    dashboard: {
+      title: "대시보드",
+      popQuiz: "팝 퀴즈",
+      famousQuote: "명언",
+      layout: "레이아웃",
+      layoutModal: {
+        title: "레이아웃",
+        hint: "레이아웃 프리셋을 선택하세요",
+        quizFirst: "퀴즈 먼저",
+        quoteFirst: "명언 먼저",
+      },
+    },
+    wordBank: {
+      title: "단어장",
+      cardDisplay: "카드 표시",
+    },
   },
   dashboard: {
     greeting: {

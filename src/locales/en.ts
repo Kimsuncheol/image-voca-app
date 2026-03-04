@@ -61,6 +61,22 @@ const en = {
       title: "Admin",
       addVocabulary: "Add Vocabulary",
     },
+    dashboard: {
+      title: "Dashboard",
+      popQuiz: "Pop Quiz",
+      famousQuote: "Famous Quote",
+      layout: "Layout",
+      layoutModal: {
+        title: "Layout",
+        hint: "Choose a layout preset",
+        quizFirst: "Quiz First",
+        quoteFirst: "Quote First",
+      },
+    },
+    wordBank: {
+      title: "Word Bank",
+      cardDisplay: "Card Display",
+    },
   },
   dashboard: {
     greeting: {

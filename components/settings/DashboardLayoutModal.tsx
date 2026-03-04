@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Modal,
   ScrollView,
@@ -52,11 +53,6 @@ interface Preset {
   name: string;
   order: DashboardElement[];
 }
-
-const PRESETS: Preset[] = [
-  { name: "Quiz First", order: ["quiz", "famousQuote", "stats"] },
-  { name: "Quote First", order: ["famousQuote", "quiz", "stats"] },
-];
 
 function presetsEqual(a: DashboardElement[], b: DashboardElement[]) {
   return a.length === b.length && a.every((v, i) => v === b[i]);
@@ -117,7 +113,13 @@ export function DashboardLayoutModal({
   onClose,
   isDark,
 }: DashboardLayoutModalProps) {
+  const { t } = useTranslation();
   const { elementOrder, setElementOrder } = useDashboardSettingsStore();
+
+  const PRESETS: Preset[] = [
+    { name: t("settings.dashboard.layoutModal.quizFirst"), order: ["quiz", "famousQuote", "stats"] },
+    { name: t("settings.dashboard.layoutModal.quoteFirst"), order: ["famousQuote", "quiz", "stats"] },
+  ];
 
   const bg = isDark ? "#000" : "#f2f2f7";
   const cardBg = isDark ? "#1c1c1e" : "#fff";
@@ -146,13 +148,13 @@ export function DashboardLayoutModal({
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Ionicons name="close" size={24} color={textColor} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: textColor }]}>Layout</Text>
+          <Text style={[styles.headerTitle, { color: textColor }]}>{t("settings.dashboard.layoutModal.title")}</Text>
           <View style={styles.headerPlaceholder} />
         </View>
 
         {/* Hint */}
         <Text style={[styles.hint, { color: mutedColor }]}>
-          Choose a layout preset
+          {t("settings.dashboard.layoutModal.hint")}
         </Text>
 
         {/* Horizontal preset list */}

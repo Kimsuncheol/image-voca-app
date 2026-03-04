@@ -84,6 +84,19 @@ function FamousQuoteSkeleton() {
 
   return (
     <View style={[skeletonStyles.card, { backgroundColor: cardBg }]}>
+      {/* Today's quote label */}
+      <Animated.View
+        style={[
+          skeletonStyles.bar,
+          {
+            width: 100,
+            height: 12,
+            marginBottom: 14,
+            opacity: animatedValue,
+            backgroundColor: skeletonBg,
+          },
+        ]}
+      />
       {/* Opening quote mark placeholder */}
       <Animated.View
         style={[
@@ -200,7 +213,9 @@ export function DashboardPopFamousQuote() {
 
   return (
     <View style={[styles.card, { backgroundColor: cardBg }]}>
-      <ThemedText style={styles.openQuote}>"</ThemedText>
+      <ThemedText style={[styles.label, { color: mutedColor }]}>
+        Today&apos;s quote
+      </ThemedText>
       <ThemedText style={[styles.quoteText, { color: textColor }]}>
         {quote.quote}
       </ThemedText>
@@ -220,17 +235,17 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
   },
-  openQuote: {
-    fontSize: 40,
-    lineHeight: 40,
-    color: "#007AFF",
-    fontWeight: "700",
-    marginBottom: 4,
+  label: {
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    marginBottom: 10,
   },
   quoteText: {
-    fontSize: 16,
-    fontStyle: "italic",
-    lineHeight: 24,
+    fontSize: 22,
+    fontWeight: "bold",
+    lineHeight: 32,
   },
   translation: {
     fontSize: 14,
@@ -239,7 +254,7 @@ const styles = StyleSheet.create({
   },
   author: {
     fontSize: 13,
-    fontStyle: "italic",
+    fontWeight: "bold",
     marginTop: 12,
     textAlign: "right",
   },

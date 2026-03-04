@@ -10,7 +10,7 @@
 // ============================================================================
 // NAVIGATION & ROUTING
 // ============================================================================
-import { Stack, useRouter } from "expo-router"; // Stack for screen options, useRouter for navigation
+import { Stack, useFocusEffect, useRouter } from "expo-router"; // Stack for screen options, useRouter for navigation
 
 // ============================================================================
 // AUTHENTICATION
@@ -20,7 +20,7 @@ import { signOut } from "firebase/auth"; // Firebase authentication sign-out fun
 // ============================================================================
 // REACT & UI FRAMEWORKS
 // ============================================================================
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next"; // i18n for multilingual support
 import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -116,14 +116,16 @@ export default function SettingsScreen() {
    * - Loads notification preferences from AsyncStorage
    * - Fetches user stats and subscription data from Firestore
    */
-  useEffect(() => {
-    checkNotificationStatus(); // Load notification preferences
-    loadDashboardSettings(); // Load dashboard display settings
-    if (user) {
-      fetchStats(user.uid); // Fetch user statistics
-      fetchSubscription(user.uid); // Fetch subscription status
-    }
-  }, [user, fetchStats, fetchSubscription, loadDashboardSettings]);
+  useFocusEffect(
+    useCallback(() => {
+      checkNotificationStatus(); // Load notification preferences
+      loadDashboardSettings(); // Load dashboard display settings
+      if (user) {
+        fetchStats(user.uid); // Fetch user statistics
+        fetchSubscription(user.uid); // Fetch subscription status
+      }
+    }, [user, fetchStats, fetchSubscription, loadDashboardSettings]),
+  );
 
   // ============================================================================
   // NOTIFICATION STATUS CHECKER
@@ -514,7 +516,7 @@ export default function SettingsScreen() {
             Word bank card display preferences
         */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Word Bank</Text>
+          <Text style={styles.sectionTitle}>{t("settings.wordBank.title")}</Text>
           <View style={styles.card}>
             <TouchableOpacity
               style={styles.option}
@@ -526,7 +528,7 @@ export default function SettingsScreen() {
                   size={20}
                   color={isDark ? "#fff" : "#000"}
                 />
-                <Text style={styles.optionText}>Card Display</Text>
+                <Text style={styles.optionText}>{t("settings.wordBank.cardDisplay")}</Text>
               </View>
               <Ionicons
                 name="chevron-forward"
