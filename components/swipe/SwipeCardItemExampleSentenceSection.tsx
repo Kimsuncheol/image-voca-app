@@ -1,7 +1,13 @@
-import React, { useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Speech from "expo-speech";
+import React, { useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface SwipeCardItemExampleSentenceSectionProps {
   example: string;
@@ -17,21 +23,22 @@ export function SwipeCardItemExampleSentenceSection({
   // Split examples and translations by newlines
   // Remove number prefixes (e.g., "1. ", "2. ") from the raw text
   const examples = example
-    ? example.split("\n")
+    ? example
+        .split("\n")
         .filter((e) => e.trim())
         .map((e) => e.replace(/^\d+\.\s*/, "").trim())
     : [];
   const translations = translation
-    ? translation.split("\n")
+    ? translation
+        .split("\n")
         .filter((t) => t.trim())
         .map((t) => t.replace(/^\d+\.\s*/, "").trim())
     : [];
 
   const [isExpanded, setIsExpanded] = useState(false);
   const shouldCollapse = examples.length >= 4;
-  const displayedExamples = shouldCollapse && !isExpanded
-    ? examples.slice(0, 3)
-    : examples;
+  const displayedExamples =
+    shouldCollapse && !isExpanded ? examples.slice(0, 3) : examples;
 
   // TTS handler with recycling (stop previous speech before starting new)
   const handleSpeak = async (text: string) => {
@@ -62,6 +69,7 @@ export function SwipeCardItemExampleSentenceSection({
       >
         {displayedExamples.map((exampleText, index) => (
           <View key={index} style={styles.exampleGroup}>
+            {/* Example sentence */}
             <TouchableOpacity
               onPress={() => handleSpeak(exampleText.trim())}
               activeOpacity={0.7}
@@ -77,6 +85,7 @@ export function SwipeCardItemExampleSentenceSection({
                 {exampleText.trim()}
               </Text>
             </TouchableOpacity>
+            {/* Translation */}
             {translations[index] && (
               <Text
                 style={[
@@ -129,16 +138,16 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   cardExample: {
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: "500",
     color: "#444",
-    fontStyle: "italic",
     borderLeftWidth: 4,
     borderLeftColor: "#007AFF",
     paddingLeft: 12,
     lineHeight: 20,
   },
   cardTranslation: {
-    fontSize: 15,
+    fontSize: 16,
     color: "#2d5f2d",
     fontWeight: "500",
     borderLeftWidth: 4,

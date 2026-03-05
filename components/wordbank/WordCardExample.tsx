@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Speech from "expo-speech";
-import { ThemedText } from "../themed-text";
+import React, { useState } from "react";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
+import { ThemedText } from "../themed-text";
 
 interface WordCardExampleProps {
   example: string;
@@ -24,21 +24,22 @@ export function WordCardExample({
   // Split examples and translations by newlines
   // Remove number prefixes (e.g., "1. ", "2. ") from the raw text
   const examples = example
-    ? example.split("\n")
+    ? example
+        .split("\n")
         .filter((e) => e.trim())
         .map((e) => e.replace(/^\d+\.\s*/, "").trim())
     : [];
   const translations = translation
-    ? translation.split("\n")
+    ? translation
+        .split("\n")
         .filter((t) => t.trim())
         .map((t) => t.replace(/^\d+\.\s*/, "").trim())
     : [];
 
   const [isExpanded, setIsExpanded] = useState(false);
   const shouldCollapse = examples.length >= 4;
-  const displayedExamples = shouldCollapse && !isExpanded
-    ? examples.slice(0, 3)
-    : examples;
+  const displayedExamples =
+    shouldCollapse && !isExpanded ? examples.slice(0, 3) : examples;
 
   // TTS handler with recycling (stop previous speech before starting new)
   const handleSpeak = async (text: string) => {
@@ -69,6 +70,7 @@ export function WordCardExample({
       >
         {displayedExamples.map((exampleText, index) => (
           <View key={index} style={styles.exampleGroup}>
+            {/* Example sentence */}
             <TouchableOpacity
               onPress={() => handleSpeak(exampleText.trim())}
               activeOpacity={0.7}
@@ -77,6 +79,7 @@ export function WordCardExample({
                 {exampleText.trim()}
               </ThemedText>
             </TouchableOpacity>
+            {/* Translation */}
             {translations[index] && (
               <ThemedText style={styles.translation}>
                 {translations[index].trim()}
@@ -125,16 +128,14 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   example: {
-    fontSize: 14,
-    fontStyle: "italic",
+    fontSize: 16,
     opacity: 0.8,
   },
   translation: {
-    fontSize: 14,
+    fontSize: 16,
     lineHeight: 20,
     marginTop: 4,
     opacity: 0.8,
-    fontStyle: "italic",
   },
   expandButton: {
     flexDirection: "row",
