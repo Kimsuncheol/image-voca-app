@@ -11,25 +11,12 @@ const mockPagerApi = {
 };
 let mockPagerProps: any = null;
 const mockFlipHandlers = new Map<string, (() => void) | undefined>();
-const mockImpactAsync = jest.fn().mockResolvedValue(undefined);
 const originalExpoOs = process.env.EXPO_OS;
 
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
-}));
-
-jest.mock("react-native-safe-area-context", () => ({
-  useSafeAreaInsets: () => ({ top: 24, right: 0, bottom: 0, left: 0 }),
-}));
-
-jest.mock("expo-haptics", () => ({
-  __esModule: true,
-  ImpactFeedbackStyle: {
-    Light: "Light",
-  },
-  impactAsync: (...args: any[]) => mockImpactAsync(...args),
 }));
 
 jest.mock("react-native-pager-view", () => {
@@ -121,22 +108,6 @@ function buildWords(): SavedWord[] {
   ];
 }
 
-const findAnchorStyleInAncestors = (node: any) => {
-  let current = node;
-  while (current) {
-    const flattened = StyleSheet.flatten(current.props?.style);
-    if (
-      flattened &&
-      (Object.prototype.hasOwnProperty.call(flattened, "top") ||
-        Object.prototype.hasOwnProperty.call(flattened, "bottom"))
-    ) {
-      return flattened;
-    }
-    current = current.parent;
-  }
-  return {};
-};
-
 describe("WordList collocation flip gating", () => {
   beforeEach(() => {
     process.env.EXPO_OS = "ios";
@@ -145,7 +116,6 @@ describe("WordList collocation flip gating", () => {
     mockPagerApi.setScrollEnabled.mockClear();
     mockPagerProps = null;
     mockFlipHandlers.clear();
-    mockImpactAsync.mockClear();
   });
 
   afterAll(() => {
@@ -158,12 +128,6 @@ describe("WordList collocation flip gating", () => {
     });
   };
 
-  const scrollPage = (position: number, offset: number) => {
-    act(() => {
-      mockPagerProps.onPageScroll({ nativeEvent: { position, offset } });
-    });
-  };
-
   const unlockCard = (word: string) => {
     act(() => {
       const handler = mockFlipHandlers.get(word);
@@ -171,8 +135,8 @@ describe("WordList collocation flip gating", () => {
     });
   };
 
-  test("blocks forward swipe early and shows feedback until current card is flipped", () => {
-    const { getByText } = render(
+  test("does not block forward swipe in word bank collocation mode", () => {
+    render(
       <WordList
         words={buildWords()}
         courseId="COLLOCATION"
@@ -181,39 +145,12 @@ describe("WordList collocation flip gating", () => {
       />,
     );
 
-    scrollPage(0, 0.2);
-    scrollPage(0, 0.25);
-    expect(mockPagerApi.setPageWithoutAnimation).toHaveBeenCalledWith(0);
-    expect(mockPagerApi.setPageWithoutAnimation).toHaveBeenCalledTimes(1);
-    const hintTextNode = getByText("swipe.hints.flipFirst");
-    const hintStyle = findAnchorStyleInAncestors(hintTextNode);
-    expect(hintTextNode).toBeTruthy();
-    expect(hintStyle.top).toBe(36);
-    expect(hintStyle.bottom).toBeUndefined();
-    expect(mockImpactAsync).toHaveBeenCalledTimes(1);
-
-    mockPagerApi.setPageWithoutAnimation.mockClear();
-    unlockCard("dramatic drop");
     selectPage(1);
-    expect(mockPagerApi.setPageWithoutAnimation).not.toHaveBeenCalled();
-  });
-
-  test("does not block early forward drag when current card is already unlocked", () => {
-    const { queryByText } = render(
-      <WordList
-        words={buildWords()}
-        courseId="COLLOCATION"
-        isDark={false}
-        onDelete={jest.fn()}
-      />,
-    );
-
-    unlockCard("dramatic drop");
-    scrollPage(0, 0.2);
 
     expect(mockPagerApi.setPageWithoutAnimation).not.toHaveBeenCalled();
-    expect(queryByText("swipe.hints.flipFirst")).toBeNull();
-    expect(mockImpactAsync).not.toHaveBeenCalled();
+    unlockCard("unseasonably cold");
+    selectPage(2);
+    expect(mockPagerApi.setPageWithoutAnimation).not.toHaveBeenCalled();
   });
 
   test("allows backward swipe without current-card flip", () => {

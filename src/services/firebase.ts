@@ -4,6 +4,7 @@ import { initializeApp } from 'firebase/app';
 import { Auth, getAuth, getReactNativePersistence, initializeAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { Platform } from 'react-native';
 
 // Replace these placeholders with your actual Firebase project configuration
 const firebaseConfig = {
@@ -20,9 +21,12 @@ const app = initializeApp(firebaseConfig);
 
 let auth: Auth;
 try {
-  auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(ReactNativeAsyncStorage)
-  });
+  auth =
+    Platform.OS === 'web'
+      ? getAuth(app)
+      : initializeAuth(app, {
+          persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+        });
 } catch (e: any) {
   if (e.code === 'auth/already-initialized') {
     auth = getAuth(app);

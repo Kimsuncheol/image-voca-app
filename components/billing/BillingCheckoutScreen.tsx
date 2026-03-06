@@ -1,0 +1,349 @@
+import { Ionicons } from "@expo/vector-icons";
+import type {
+  AgreementWidgetControl,
+  PaymentMethodWidgetControl,
+} from "@tosspayments/widget-sdk-react-native";
+import {
+  AgreementWidget,
+  PaymentMethodWidget,
+  PaymentWidgetProvider,
+  usePaymentWidget,
+} from "@tosspayments/widget-sdk-react-native";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import React, { useState } from "react";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
+import { ThemedText } from "../../components/themed-text";
+import { useAuth } from "../../src/context/AuthContext";
+import { useTheme } from "../../src/context/ThemeContext";
+import { PLANS, PlanType, useSubscriptionStore } from "../../src/stores";
+
+const TOSS_CLIENT_KEY = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
+
+const normalizeCheckoutPlanId = (planId?: string): PlanType | null => {
+  if (planId === "voca_speaking") {
+    return "voca_unlimited";
+  }
+  if (planId === "free" || planId === "voca_unlimited") {
+    return planId;
+  }
+  return null;
+};
+
+function CheckoutContent() {
+  const { isDark } = useTheme();
+  const { user } = useAuth();
+  const router = useRouter();
+  const { t } = useTranslation();
+  const { planId } = useLocalSearchParams<{ planId?: string }>();
+  const { updateSubscription } = useSubscriptionStore();
+
+  const paymentWidgetControl = usePaymentWidget();
+  const [paymentMethodWidgetControl, setPaymentMethodWidgetControl] =
+    useState<PaymentMethodWidgetControl | null>(null);
+  const [agreementWidgetControl, setAgreementWidgetControl] =
+    useState<AgreementWidgetControl | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const normalizedPlanId = normalizeCheckoutPlanId(planId);
+  const selectedPlan = PLANS.find((p) => p.id === normalizedPlanId);
+
+  if (!selectedPlan || selectedPlan.price === 0) {
+    return (
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      >
+        <View style={styles.errorContainer}>
+          <ThemedText>{t("billing.checkout.invalidPlan")}</ThemedText>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const effectivePlanId = selectedPlan.id;
+
+  const generateOrderId = () => {
+    return `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  const handlePayment = async () => {
+    if (!user) {
+      Alert.alert(t("common.error"), t("billing.checkout.loginRequired"));
+      return;
+    }
+
+    if (paymentWidgetControl == null || agreementWidgetControl == null) {
+      Alert.alert(t("common.error"), t("billing.checkout.notInitialized"));
+      return;
+    }
+
+    const agreement = await agreementWidgetControl.getAgreementStatus();
+    if (agreement.agreedRequiredTerms !== true) {
+      Alert.alert(t("common.notice"), t("billing.checkout.agreeRequired"));
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const orderId = generateOrderId();
+      const result = await paymentWidgetControl.requestPayment?.({
+        orderId,
+        orderName: t("billing.checkout.orderName", {
+          plan: t(`plans.${selectedPlan.id}.name`, {
+            defaultValue: selectedPlan.name,
+          }),
+        }),
+      });
+
+      if (result?.success) {
+        await updateSubscription(user.uid, effectivePlanId, orderId);
+        Alert.alert(
+          t("billing.checkout.successTitle"),
+          t("billing.checkout.successMessage", {
+            plan: t(`plans.${selectedPlan.id}.name`, {
+              defaultValue: selectedPlan.name,
+            }),
+          }),
+          [
+            {
+              text: t("common.confirm"),
+              onPress: () => {
+                router.back();
+                router.back();
+              },
+            },
+          ],
+        );
+      } else if (result?.fail) {
+        Alert.alert(
+          t("billing.checkout.failTitle"),
+          result.fail.message || t("billing.checkout.failMessage"),
+        );
+      }
+    } catch (error: any) {
+      Alert.alert(
+        t("common.error"),
+        error.message || t("billing.checkout.errorMessage"),
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+    >
+      <Stack.Screen
+        options={{
+          title: t("billing.checkout.title"),
+          headerBackTitle: t("common.back"),
+        }}
+      />
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View
+          style={[
+            styles.summaryCard,
+            { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
+          ]}
+        >
+          <ThemedText type="subtitle" style={styles.summaryTitle}>
+            {t("billing.checkout.summaryTitle")}
+          </ThemedText>
+          <View style={styles.summaryRow}>
+            <ThemedText style={styles.summaryLabel}>
+              {t("billing.checkout.productLabel")}
+            </ThemedText>
+            <ThemedText style={styles.summaryValue}>
+              {t(`plans.${selectedPlan.id}.name`, {
+                defaultValue: selectedPlan.name,
+              })}
+            </ThemedText>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.summaryRow}>
+            <ThemedText style={styles.summaryLabel}>
+              {t("billing.checkout.amountLabel")}
+            </ThemedText>
+            <ThemedText type="subtitle" style={styles.summaryPrice}>
+              {selectedPlan.priceDisplay}
+            </ThemedText>
+          </View>
+        </View>
+
+        <View
+          style={[
+            styles.featuresCard,
+            { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
+          ]}
+        >
+          <ThemedText type="subtitle" style={styles.featuresTitle}>
+            {t("billing.checkout.featuresTitle")}
+          </ThemedText>
+          {selectedPlan.features.map((feature, index) => (
+            <View key={index} style={styles.featureRow}>
+              <Ionicons name="checkmark-circle" size={18} color="#28a745" />
+              <ThemedText style={styles.featureText}>
+                {t(`plans.${selectedPlan.id}.features.${index}`, {
+                  defaultValue: feature,
+                })}
+              </ThemedText>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.paymentSection}>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>
+            {t("billing.checkout.paymentMethods")}
+          </ThemedText>
+          <PaymentMethodWidget
+            selector="payment-methods"
+            onLoadEnd={() => {
+              paymentWidgetControl
+                .renderPaymentMethods("payment-methods", {
+                  value: selectedPlan.price,
+                })
+                .then((control) => {
+                  setPaymentMethodWidgetControl(control);
+                });
+            }}
+          />
+        </View>
+
+        <View style={styles.agreementSection}>
+          <AgreementWidget
+            selector="agreement"
+            onLoadEnd={() => {
+              paymentWidgetControl
+                .renderAgreement("agreement", {
+                  variantKey: "DEFAULT",
+                })
+                .then((control) => {
+                  setAgreementWidgetControl(control);
+                });
+            }}
+          />
+        </View>
+
+        <TouchableOpacity
+          style={[styles.payButton, isProcessing && styles.payButtonDisabled]}
+          onPress={handlePayment}
+          disabled={isProcessing}
+        >
+          <ThemedText style={styles.payButtonText}>
+            {isProcessing
+              ? t("billing.checkout.processing")
+              : t("billing.checkout.payButton", {
+                  price: selectedPlan.priceDisplay,
+                })}
+          </ThemedText>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+export default function BillingCheckoutScreen() {
+  return (
+    <PaymentWidgetProvider
+      clientKey={TOSS_CLIENT_KEY}
+      customerKey="ANONYMOUS"
+    >
+      <CheckoutContent />
+    </PaymentWidgetProvider>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  summaryCard: {
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
+  },
+  summaryTitle: {
+    marginBottom: 16,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  summaryLabel: {
+    opacity: 0.7,
+  },
+  summaryValue: {
+    fontWeight: "600",
+  },
+  summaryPrice: {
+    color: "#007AFF",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(128, 128, 128, 0.2)",
+    marginVertical: 16,
+  },
+  featuresCard: {
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
+  },
+  featuresTitle: {
+    marginBottom: 16,
+  },
+  featureRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  featureText: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  paymentSection: {
+    marginBottom: 20,
+  },
+  agreementSection: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    marginBottom: 12,
+  },
+  payButton: {
+    backgroundColor: "#007AFF",
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: "center",
+  },
+  payButtonDisabled: {
+    opacity: 0.6,
+  },
+  payButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+});

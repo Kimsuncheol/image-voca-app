@@ -27,37 +27,38 @@ describe('Course Metadata Management', () => {
   // Clear all mocks before each test
   beforeEach(() => {
     jest.clearAllMocks();
+    (doc as jest.Mock).mockReturnValue({});
   });
 
   describe('getCourseConfig', () => {
     test('should return correct config for TOEIC', () => {
       const config = getCourseConfig('TOEIC');
       expect(config.prefix).toBe('TOEIC');
-      expect(config.path).toBeDefined();
+      expect(config.path).toBe('courses/toeic');
     });
 
     test('should return correct config for 수능 (CSAT)', () => {
       const config = getCourseConfig('수능');
       expect(config.prefix).toBe('CSAT');
-      expect(config.path).toBeDefined();
+      expect(config.path).toBe('courses/csat');
     });
 
     test('should return correct config for TOEFL', () => {
       const config = getCourseConfig('TOEFL');
       expect(config.prefix).toBe('TOEFL');
-      expect(config.path).toBeDefined();
+      expect(config.path).toBe('courses/toefl');
     });
 
     test('should return correct config for IELTS', () => {
       const config = getCourseConfig('IELTS');
       expect(config.prefix).toBe('IELTS');
-      expect(config.path).toBeDefined();
+      expect(config.path).toBe('courses/ielts');
     });
 
     test('should return correct config for COLLOCATION', () => {
       const config = getCourseConfig('COLLOCATION');
       expect(config.prefix).toBe('COLLOCATION');
-      expect(config.path).toBeDefined();
+      expect(config.path).toBe('courses/collocation');
     });
   });
 
@@ -78,8 +79,8 @@ describe('Course Metadata Management', () => {
         expect.anything(),
         expect.objectContaining({
           totalDays: dayNumber,
-          courseId: courseId,
           lastUpdated: expect.any(String),
+          lastUploadedDayId: 'Day5',
         })
       );
     });
@@ -103,11 +104,12 @@ describe('Course Metadata Management', () => {
         expect.objectContaining({
           totalDays: newDayNumber,
           lastUpdated: expect.any(String),
+          lastUploadedDayId: 'Day10',
         })
       );
     });
 
-    test('should not update metadata when new day is less than current max', async () => {
+    test('should preserve totalDays when new day is less than current max', async () => {
       const courseId: CourseType = 'TOEIC';
       const currentMaxDay = 10;
       const newDayNumber = 5;
@@ -120,8 +122,14 @@ describe('Course Metadata Management', () => {
 
       await updateCourseMetadata(courseId, newDayNumber);
 
-      // Verify updateDoc was NOT called (day number not greater)
-      expect(updateDoc).not.toHaveBeenCalled();
+      expect(updateDoc).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          lastUpdated: expect.any(String),
+          lastUploadedDayId: 'Day5',
+        })
+      );
+      expect((updateDoc as jest.Mock).mock.calls[0][1].totalDays).toBeUndefined();
     });
 
     test('should handle errors gracefully', async () => {
@@ -232,7 +240,7 @@ describe('Course Metadata Management', () => {
       const mockMetadata = {
         totalDays: 30,
         lastUpdated: '2026-02-03T10:30:00.000Z',
-        courseId: 'TOEIC',
+        lastUploadedDayId: 'Day30',
       };
 
       // Mock document exists with metadata
@@ -245,8 +253,8 @@ describe('Course Metadata Management', () => {
 
       expect(result).toEqual(mockMetadata);
       expect(result?.totalDays).toBe(30);
-      expect(result?.courseId).toBe('TOEIC');
       expect(result?.lastUpdated).toBe('2026-02-03T10:30:00.000Z');
+      expect(result?.lastUploadedDayId).toBe('Day30');
     });
 
     test('should return null when metadata document does not exist', async () => {
@@ -313,14 +321,14 @@ describe('Course Metadata Management', () => {
       await updateCourseMetadata(courseId, 2);
       expect(updateDoc).toHaveBeenCalledTimes(1);
 
-      // Scenario: Re-upload same day (should not update)
+      // Scenario: Re-upload same day (still refreshes metadata)
       (getDoc as jest.Mock).mockResolvedValueOnce({
         exists: () => true,
         data: () => ({ totalDays: 2 }),
       });
 
       await updateCourseMetadata(courseId, 2);
-      expect(updateDoc).toHaveBeenCalledTimes(1); // Still 1, not incremented
+      expect(updateDoc).toHaveBeenCalledTimes(2);
     });
 
     test('should work with all course types', async () => {
@@ -333,7 +341,7 @@ describe('Course Metadata Management', () => {
           data: () => ({
             totalDays: 25,
             lastUpdated: new Date().toISOString(),
-            courseId,
+            lastUploadedDayId: 'Day25',
           }),
         });
 
@@ -342,7 +350,7 @@ describe('Course Metadata Management', () => {
 
         const metadata = await getCourseMetadata(courseId);
         expect(metadata).not.toBeNull();
-        expect(metadata?.courseId).toBe(courseId);
+        expect(metadata?.lastUploadedDayId).toBe('Day25');
       }
     });
   });

@@ -1,34 +1,35 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
-import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { addDoc, collection, getDocs } from "firebase/firestore";
 import { getMetadata, uploadBytes } from "firebase/storage";
 import Papa from "papaparse";
 import React from "react";
-import { Alert } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 import AddVocaScreen from "../../../app/admin/add-voca";
-import { generateExampleSentence } from "../../../src/services/exampleGenerationService";
+import { generateLinguisticData } from "../../../src/services/linguisticDataService";
 import { updateCourseMetadata } from "../../../src/services/vocabularyPrefetch";
 
-// Mock dependencies
+const mockRouterPush = jest.fn();
+const mockConsumeResult = jest.fn();
+
 jest.mock("expo-router", () => ({
   Stack: {
     Screen: () => null,
   },
-}));
-
-jest.mock("expo-document-picker", () => ({
-  getDocumentAsync: jest.fn(),
+  useRouter: () => ({
+    back: jest.fn(),
+    push: mockRouterPush,
+    replace: jest.fn(),
+  }),
 }));
 
 jest.mock("expo-file-system/legacy", () => ({
   readAsStringAsync: jest.fn(),
-  EncodingType: { UTF8: "utf8" },
 }));
 
 jest.mock("firebase/firestore", () => ({
   addDoc: jest.fn(),
-  collection: jest.fn(),
+  collection: jest.fn(() => "collection-ref"),
   deleteDoc: jest.fn(),
   getDocs: jest.fn(() => ({
     empty: true,
@@ -38,7 +39,7 @@ jest.mock("firebase/firestore", () => ({
 
 jest.mock("firebase/storage", () => ({
   getMetadata: jest.fn(),
-  ref: jest.fn(),
+  ref: jest.fn(() => "storage-ref"),
   uploadBytes: jest.fn(),
 }));
 
@@ -48,6 +49,12 @@ jest.mock("papaparse", () => ({
 
 jest.mock("../../../src/context/ThemeContext", () => ({
   useTheme: () => ({ isDark: false }),
+}));
+
+jest.mock("../../../src/context/UploadContext", () => ({
+  useUploadContext: () => ({
+    consumeResult: mockConsumeResult,
+  }),
 }));
 
 jest.mock("../../../src/hooks/useGoogleSheetsAuth", () => ({
@@ -64,10 +71,27 @@ jest.mock("../../../src/services/firebase", () => ({
 }));
 
 jest.mock("../../../src/services/exampleGenerationService", () => ({
-  generateExampleSentence: jest.fn(() =>
-    Promise.resolve({ success: true, example: "Mock example" }),
-  ),
+  generateExampleSentence: jest.fn(),
   isExampleValid: jest.fn(() => true),
+}));
+
+jest.mock("../../../src/services/ipa/wiktionaryIpaService", () => ({
+  getIpaUSUK: jest.fn(() =>
+    Promise.resolve({ source: "wiktionary", us: "/test/", uk: "/test/" }),
+  ),
+}));
+
+jest.mock("../../../src/services/linguisticDataService", () => ({
+  generateLinguisticData: jest.fn(() =>
+    Promise.resolve({
+      success: true,
+      partOfSpeech: "noun",
+      synonyms: [],
+      antonyms: [],
+      relatedWords: [],
+      wordForms: null,
+    }),
+  ),
 }));
 
 jest.mock("../../../src/services/vocabularyPrefetch", () => ({
@@ -78,243 +102,247 @@ jest.mock("../../../src/utils/googleSheetsUtils", () => ({
   parseSheetValues: jest.fn(() => []),
 }));
 
-// Mock child components with interactive implementations
-jest.mock("../../../src/components/admin/AddVocaHeader", () => "AddVocaHeader");
+jest.mock("../../../src/utils/vocaParser", () => ({
+  extractVocaFields: jest.fn((raw) => ({
+    type: "vocabulary",
+    word: raw.word,
+    meaning: raw.meaning,
+    translation: raw.translation,
+    pronunciation: raw.pronunciation,
+    example: raw.example,
+  })),
+}));
+
+jest.mock("../../../src/components/admin/AddVocaHeader", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+
+  return function MockAddVocaHeader({ selectedCourse }: any) {
+    return <Text testID="selected-course">{selectedCourse.name}</Text>;
+  };
+});
 
 jest.mock("../../../src/components/admin/TabSwitcher", () => {
-  const { View, Button, Text } = jest.requireActual("react-native");
-  const MockTabSwitcher = ({ activeTab, setActiveTab }: any) => (
-    <View testID="tab-switcher">
-      <Text testID="active-tab-label">{activeTab}</Text>
-      <Button
-        testID="switch-to-csv"
-        title="CSV"
-        onPress={() => setActiveTab("csv")}
-      />
-      <Button
-        testID="switch-to-link"
-        title="Link"
-        onPress={() => setActiveTab("link")}
-      />
-    </View>
-  );
-  return MockTabSwitcher;
+  const React = require("react");
+  const { Text, TouchableOpacity, View } = require("react-native");
+
+  return function MockTabSwitcher({ activeTab, setActiveTab }: any) {
+    return (
+      <View testID="tab-switcher">
+        <Text testID="active-tab-label">{activeTab}</Text>
+        <TouchableOpacity
+          testID="switch-to-csv"
+          onPress={() => setActiveTab("csv")}
+        >
+          <Text>CSV</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          testID="switch-to-link"
+          onPress={() => setActiveTab("link")}
+        >
+          <Text>Link</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 });
 
-jest.mock("../../../src/components/admin/UploadCSVFileView", () => {
-  const { View, Button, Text, TextInput } = jest.requireActual("react-native");
-  const MockUploadCSVFileView = ({
-    onPickDocument,
-    onUpload,
-    items,
-    setItems,
-  }: any) => (
-    <View testID="csv-view">
-      <Text>CSV View</Text>
-      <TextInput
-        testID="day-input"
-        value={items[0].day}
-        onChangeText={(text: string) => {
-          const newItems = [...items];
-          newItems[0] = { ...newItems[0], day: text };
-          setItems(newItems);
-        }}
-      />
-      <Button
-        testID="pick-csv-button"
-        title="Pick CSV"
-        onPress={() => onPickDocument(items[0].id)}
-      />
-      <Button testID="upload-csv-button" title="Upload" onPress={onUpload} />
-      <Text testID="picked-file-name">
-        {items[0]?.file ? items[0].file.name : "No file"}
-      </Text>
-    </View>
-  );
-  return MockUploadCSVFileView;
+jest.mock("../../../src/components/admin/AddAnotherButton", () => {
+  const React = require("react");
+  const { Text, TouchableOpacity } = require("react-native");
+
+  return function MockAddAnotherButton({ onPress, text, disabled }: any) {
+    return (
+      <TouchableOpacity
+        testID="add-item-button"
+        disabled={disabled}
+        onPress={onPress}
+      >
+        <Text>{text}</Text>
+      </TouchableOpacity>
+    );
+  };
 });
 
-jest.mock("../../../src/components/admin/UploadViaLinkView", () => {
-  const { View, Text } = jest.requireActual("react-native");
-  const MockUploadViaLinkView = () => (
-    <View testID="link-view">
-      <Text>Link View</Text>
-    </View>
-  );
-  return MockUploadViaLinkView;
+jest.mock("../../../src/components/admin/UploadListSection", () => {
+  const React = require("react");
+  const { Text, View } = require("react-native");
+
+  return function MockUploadListSection({ type, items }: any) {
+    return (
+      <View testID="upload-list-section">
+        <Text testID="upload-list-summary">{`${type}:${items.length}`}</Text>
+      </View>
+    );
+  };
 });
+
+jest.mock("../../../src/components/admin/UploadFooter", () => {
+  const React = require("react");
+  const { Text, TouchableOpacity, View } = require("react-native");
+
+  return function MockUploadFooter({ onPress, disabled, text }: any) {
+    return (
+      <View>
+        <Text testID="upload-footer-label">{text}</Text>
+        <TouchableOpacity
+          testID="upload-footer-button"
+          disabled={disabled}
+          onPress={onPress}
+        >
+          <Text>{disabled ? "disabled" : "enabled"}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+});
+
+jest.mock("../../../src/components/admin/UploadProgressModal", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+
+  return function MockUploadProgressModal({ visible, progress }: any) {
+    return visible ? <Text testID="upload-progress">{progress}</Text> : null;
+  };
+});
+
+function buildCsvResult() {
+  return {
+    mode: "add",
+    type: "csv",
+    item: {
+      id: "csv-1",
+      day: "3",
+      file: {
+        name: "test.csv",
+        uri: "file://path/to/test.csv",
+      },
+    },
+  };
+}
 
 describe("AddVocaScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(Alert, "alert");
+    mockRouterPush.mockReset();
+    mockConsumeResult.mockReturnValue(null);
+    jest.spyOn(Alert, "alert").mockImplementation(jest.fn());
+    global.fetch = jest.fn(async () => ({
+      blob: async () => new Blob(["csv"]),
+      json: async () => ({ values: [] }),
+    })) as jest.Mock;
   });
 
-  it("renders correctly", () => {
-    const { toJSON } = render(<AddVocaScreen />);
-    expect(toJSON()).toMatchSnapshot();
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
-  it("switches tabs correctly", () => {
-    const { getByTestId, queryByTestId } = render(<AddVocaScreen />);
+  it("renders the current course and switches tabs", () => {
+    const screen = render(<AddVocaScreen />);
 
-    // Initial state should be csv
-    expect(getByTestId("active-tab-label").props.children).toBe("csv");
-    expect(getByTestId("csv-view")).toBeTruthy();
-    expect(queryByTestId("link-view")).toBeNull();
-
-    // Switch to link tab
-    fireEvent.press(getByTestId("switch-to-link"));
-
-    // Check if state updated
-    expect(getByTestId("active-tab-label").props.children).toBe("link");
-    expect(queryByTestId("csv-view")).toBeNull();
-    expect(getByTestId("link-view")).toBeTruthy();
-
-    // Switch back to csv tab
-    fireEvent.press(getByTestId("switch-to-csv"));
-
-    // Check if state updated back
-    expect(getByTestId("active-tab-label").props.children).toBe("csv");
-    expect(getByTestId("csv-view")).toBeTruthy();
-    expect(queryByTestId("link-view")).toBeNull();
-  });
-
-  it("handles CSV file selection correctly", async () => {
-    const mockFileName = "test.csv";
-    const mockFileUri = "file://path/to/test.csv";
-    const mockFileType = "text/csv";
-
-    (DocumentPicker.getDocumentAsync as jest.Mock).mockResolvedValue({
-      canceled: false,
-      assets: [
-        {
-          name: mockFileName,
-          uri: mockFileUri,
-          mimeType: mockFileType,
-          size: 100,
-        },
-      ],
-    });
-
-    const { getByTestId } = render(<AddVocaScreen />);
-
-    // Ensure we are on the CSV tab
-    fireEvent.press(getByTestId("switch-to-csv"));
-
-    // Click the button to pick a CSV file
-    fireEvent.press(getByTestId("pick-csv-button"));
-
-    // Wait for the async operation to complete and the state to update
-    await waitFor(() => {
-      expect(DocumentPicker.getDocumentAsync).toHaveBeenCalledWith({
-        type: [
-          "text/csv",
-          "text/comma-separated-values",
-          "application/csv",
-          "application/vnd.ms-excel",
-        ],
-        copyToCacheDirectory: true,
-      });
-      expect(getByTestId("picked-file-name").props.children).toBe(mockFileName);
-    });
-  });
-
-  it("handles batch upload process for CSV file", async () => {
-    const mockFileName = "vocabulary.csv";
-    const mockFileUri = "file://path/to/vocabulary.csv";
-    const mockFileType = "text/csv";
-    const mockCsvContent =
-      "word,meaning,example\nhello,greeting,Hello world\nbye,farewell,Goodbye";
-    const mockParsedData = [
-      { word: "hello", meaning: "greeting", example: "Hello world" },
-      { word: "bye", meaning: "farewell", example: "Goodbye" },
-    ];
-
-    // Set up item with file selected
-    (DocumentPicker.getDocumentAsync as jest.Mock).mockResolvedValue({
-      canceled: false,
-      assets: [
-        {
-          name: mockFileName,
-          uri: mockFileUri,
-          mimeType: mockFileType,
-          size: 100,
-        },
-      ],
-    });
-
-    // Mock file content reading
-    (FileSystem.readAsStringAsync as jest.Mock).mockResolvedValue(
-      mockCsvContent,
+    expect(screen.getByTestId("selected-course").props.children).toBe("CSAT");
+    expect(screen.getByTestId("active-tab-label").props.children).toBe("csv");
+    expect(screen.getByTestId("upload-footer-label").props.children).toBe(
+      "Upload 0 Item(s)",
     );
 
-    // Mock parsing
-    (Papa.parse as jest.Mock).mockImplementation((file, config) => {
-      if (config && config.complete) {
-        config.complete({ data: mockParsedData, errors: [], meta: {} });
-      }
+    fireEvent.press(screen.getByTestId("switch-to-link"));
+
+    expect(screen.getByTestId("active-tab-label").props.children).toBe("link");
+    expect(screen.getByTestId("upload-footer-label").props.children).toBe(
+      "Import 0 Item(s)",
+    );
+  });
+
+  it("opens the upload-item route for the active tab", () => {
+    const screen = render(<AddVocaScreen />);
+
+    fireEvent.press(screen.getByTestId("add-item-button"));
+    expect(mockRouterPush).toHaveBeenCalledWith({
+      pathname: "/admin/upload-item",
+      params: { type: "csv", mode: "add" },
     });
 
-    // Mock Firestore interactions
-    (collection as jest.Mock).mockReturnValue({});
-    (getDocs as jest.Mock).mockResolvedValue({ empty: true, docs: [] });
-    (addDoc as jest.Mock).mockResolvedValue({ id: "new-doc-id" });
-    (uploadBytes as jest.Mock).mockResolvedValue({});
-    (updateCourseMetadata as jest.Mock).mockResolvedValue(undefined);
-    (generateExampleSentence as jest.Mock).mockResolvedValue({
-      success: true,
-      example: "Generated example",
+    fireEvent.press(screen.getByTestId("switch-to-link"));
+    fireEvent.press(screen.getByTestId("add-item-button"));
+    expect(mockRouterPush).toHaveBeenLastCalledWith({
+      pathname: "/admin/upload-item",
+      params: { type: "link", mode: "add" },
     });
+  });
 
-    // Mock getMetadata to throw (simulate file not exists, so no overwrite prompt)
-    (getMetadata as jest.Mock).mockRejectedValue(new Error("File not found"));
+  it("consumes upload context results and enables CSV upload", async () => {
+    mockConsumeResult.mockReturnValueOnce(buildCsvResult());
 
-    // We also need to mock global fetch for uploading file to storage, since source code does fetch(item.file.uri)
-    const mockFetchPromise = Promise.resolve({
-      blob: () => Promise.resolve("mock-blob"),
-    });
-    global.fetch = jest.fn(() => mockFetchPromise) as any;
+    const screen = render(<AddVocaScreen />);
 
-    const { getByTestId } = render(<AddVocaScreen />);
-
-    // Ensure we are on the CSV tab
-    fireEvent.press(getByTestId("switch-to-csv"));
-
-    // 1. Pick the CSV file first (state setup)
-    fireEvent.press(getByTestId("pick-csv-button"));
     await waitFor(() => {
-      expect(getByTestId("picked-file-name").props.children).toBe(mockFileName);
-    });
-
-    // 2. Set the Day (Required for validation)
-    fireEvent.changeText(getByTestId("day-input"), "1");
-
-    // 3. Trigger the upload
-    fireEvent.press(getByTestId("upload-csv-button"));
-
-    // Check if Alert was called (validation failure)
-    expect(Alert.alert).not.toHaveBeenCalled();
-
-    // Wait for upload process to trigger parsing and uploading
-    await waitFor(() => {
-      // Should read the file
-      expect(FileSystem.readAsStringAsync).toHaveBeenCalledWith(mockFileUri);
-
-      // Should parse it
-      expect(Papa.parse).toHaveBeenCalledWith(
-        mockCsvContent,
-        expect.any(Object),
+      expect(screen.getByTestId("upload-list-summary").props.children).toBe(
+        "csv:1",
       );
+      expect(screen.getByTestId("upload-footer-label").props.children).toBe(
+        "Upload 1 Item(s)",
+      );
+      expect(screen.getByText("enabled")).toBeTruthy();
+    });
+  });
 
-      // Should clear existing data (getDocs and potentially deleteDoc)
-      expect(getDocs).toHaveBeenCalled();
+  it("uploads parsed CSV items and updates course metadata", async () => {
+    mockConsumeResult.mockReturnValueOnce(buildCsvResult());
+    (getMetadata as jest.Mock).mockRejectedValue(new Error("not found"));
+    (FileSystem.readAsStringAsync as jest.Mock).mockResolvedValue("csv-content");
+    (uploadBytes as jest.Mock).mockResolvedValue(undefined);
+    (getDocs as jest.Mock).mockResolvedValue({ empty: true, docs: [] });
+    (addDoc as jest.Mock).mockResolvedValue(undefined);
+    (collection as jest.Mock).mockReturnValue("collection-ref");
+    (generateLinguisticData as jest.Mock).mockResolvedValue({
+      success: false,
+      error: "skip AI delay",
+      partOfSpeech: null,
+      synonyms: [],
+      antonyms: [],
+      relatedWords: [],
+      wordForms: null,
+    });
+    (Papa.parse as jest.Mock).mockImplementation(
+      (_content: string, config: { complete: (results: { data: any[] }) => void }) => {
+        config.complete({
+          data: [
+            {
+              word: "seed",
+              meaning: "씨앗",
+              translation: "seed",
+              pronunciation: "",
+              example: "A farmer plants a seed.",
+            },
+          ],
+        });
+      },
+    );
 
-      // Should add docs
-      expect(addDoc).toHaveBeenCalledTimes(mockParsedData.length);
+    const screen = render(<AddVocaScreen />);
 
-      // Should update metadata
-      expect(updateCourseMetadata).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByTestId("upload-footer-label").props.children).toBe(
+        "Upload 1 Item(s)",
+      );
+    });
+
+    fireEvent.press(screen.getByTestId("upload-footer-button"));
+
+    await waitFor(() => {
+      expect(uploadBytes).toHaveBeenCalled();
+      expect(addDoc).toHaveBeenCalledWith(
+        "collection-ref",
+        expect.objectContaining({
+          word: "seed",
+          meaning: "씨앗",
+          translation: "seed",
+          partOfSpeech: null,
+        }),
+      );
+      expect(generateLinguisticData).toHaveBeenCalled();
+      expect(updateCourseMetadata).toHaveBeenCalledWith("수능", 3);
     });
   });
 });
