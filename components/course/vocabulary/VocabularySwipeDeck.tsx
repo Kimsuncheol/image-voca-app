@@ -6,6 +6,9 @@ import {
 import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
 import { CollocationSwipeable } from "../../CollocationFlipCard/CollocationSwipeable";
 import { SwipeCardItem } from "../../swipe/SwipeCardItem";
+import { CarouselSwipeDeck } from "./CarouselSwipeDeck";
+
+const CAROUSEL_COURSES: CourseType[] = ["수능", "TOEIC", "TOEFL", "IELTS"];
 
 interface VocabularySwipeDeckProps {
   cards: VocabularyCard[];
@@ -47,6 +50,22 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         day={dayNumber}
         savedWordIds={savedWordIds}
         isStudyCompleted={isStudyCompleted}
+      />
+    );
+  }
+
+  if (CAROUSEL_COURSES.includes(courseId)) {
+    return (
+      <CarouselSwipeDeck
+        cards={cards}
+        isDark={isDark}
+        dayNumber={dayNumber}
+        savedWordIds={savedWordIds}
+        onSwipeRight={onSwipeRight}
+        onSwipeLeft={onSwipeLeft}
+        onIndexChange={onIndexChange}
+        onFinish={onFinish}
+        renderFinishView={renderFinishView}
       />
     );
   }

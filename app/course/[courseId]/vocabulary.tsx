@@ -375,10 +375,17 @@ export default function VocabularyScreen() {
             style={{
               flex: 1,
               width: "100%",
-              // For Collocation cards (PagerView), we keep the view visible to show the finish page inside the pager
-              // For TinderSwipe, we hide it when finished to show the separate completion view
+              // COLLOCATION and carousel courses (수능, TOEIC, TOEFL, IELTS) handle the
+              // finish page internally via PagerView, so keep the deck visible.
+              // TinderSwipe (fallback) hides the deck and shows an external finish view.
               display:
-                isFinished && courseId !== "COLLOCATION" ? "none" : "flex",
+                isFinished &&
+                courseId !== "COLLOCATION" &&
+                !["수능", "TOEIC", "TOEFL", "IELTS"].includes(
+                  courseId as string,
+                )
+                  ? "none"
+                  : "flex",
             }}
           >
             {/* The core deck component that handles either swiping or paging */}
@@ -403,11 +410,14 @@ export default function VocabularyScreen() {
           <VocabularyEmptyState isDark={isDark} />
         )}
 
-        {/* 
-          Show finish view explicitly for non-Collocation courses.
-          Collocation courses handle the finish view internally within the PagerView.
+        {/*
+          Show finish view explicitly only for TinderSwipe (fallback) courses.
+          COLLOCATION and carousel courses handle the finish view internally.
         */}
-        {isFinished && courseId !== "COLLOCATION" && renderFinishedView()}
+        {isFinished &&
+          courseId !== "COLLOCATION" &&
+          !["수능", "TOEIC", "TOEFL", "IELTS"].includes(courseId as string) &&
+          renderFinishedView()}
       </View>
     </SafeAreaView>
   );
