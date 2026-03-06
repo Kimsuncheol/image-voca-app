@@ -3,9 +3,13 @@ import {
   TinderSwipe,
   TinderSwipeRef,
 } from "../../../src/components/tinder-swipe/TinderSwipe";
+import { CarouselSwipe } from "../../../src/components/carousel-swipe/CarouselSwipe";
 import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
 import { CollocationSwipeable } from "../../CollocationFlipCard/CollocationSwipeable";
 import { SwipeCardItem } from "../../swipe/SwipeCardItem";
+
+/** Courses that use the new carousel-style card deck. */
+const CAROUSEL_COURSES: CourseType[] = ["수능", "TOEIC", "TOEFL", "IELTS"];
 
 interface VocabularySwipeDeckProps {
   cards: VocabularyCard[];
@@ -47,6 +51,25 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         day={dayNumber}
         savedWordIds={savedWordIds}
         isStudyCompleted={isStudyCompleted}
+      />
+    );
+  }
+
+  if (CAROUSEL_COURSES.includes(courseId)) {
+    return (
+      <CarouselSwipe
+        data={cards}
+        renderCard={(item) => (
+          <SwipeCardItem
+            item={item}
+            initialIsSaved={savedWordIds.has(item.id)}
+            day={dayNumber}
+          />
+        )}
+        onSwipeRight={onSwipeRight}
+        onSwipeLeft={onSwipeLeft}
+        onIndexChange={onIndexChange}
+        onRunOutOfCards={onFinish}
       />
     );
   }
