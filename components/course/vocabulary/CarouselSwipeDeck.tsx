@@ -1,26 +1,22 @@
 import React, { useCallback, useRef } from "react";
-import { Dimensions, FlatList, StyleSheet, View } from "react-native";
+import { Dimensions, StyleSheet, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   interpolate,
   SharedValue,
-  useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
 } from "react-native-reanimated";
 import { VocabularyCard } from "../../../src/types/vocabulary";
 import { SwipeCardItem } from "../../swipe/SwipeCardItem";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
-// Each card occupies 90% of screen width (matches SwipeCardItem's internal width)
 const CARD_WIDTH = SCREEN_WIDTH * 0.9;
-// Remaining space split to each side → shows a peek of adjacent cards
 const PEEK = (SCREEN_WIDTH - CARD_WIDTH) / 2;
-// Snap interval equals card width (no gap; peek provides the visual separation)
 const SNAP_INTERVAL = CARD_WIDTH;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const AnimatedFlatList = Animated.createAnimatedComponent<any>(FlatList);
+const SPRING = { damping: 22, stiffness: 200, mass: 0.8 };
 
 // ─────────────────────────────────────────────────────────────
 // Interfaces
@@ -37,8 +33,6 @@ interface CarouselSwipeDeckProps {
   renderFinishView?: () => React.ReactNode;
 }
 
-type DataItem = VocabularyCard | { id: "__finish__" };
-
 // ─────────────────────────────────────────────────────────────
 // CardItem — animated per-card wrapper
 // ─────────────────────────────────────────────────────────────
@@ -46,7 +40,7 @@ type DataItem = VocabularyCard | { id: "__finish__" };
 interface CardItemProps {
   item: VocabularyCard;
   index: number;
-  scrollX: SharedValue<number>;
+  translateX: SharedValue<number>;
   savedWordIds: Set<string>;
   dayNumber: number;
 }
@@ -54,26 +48,17 @@ interface CardItemProps {
 const CardItem = React.memo(function CardItem({
   item,
   index,
-  scrollX,
+  translateX,
   savedWordIds,
   dayNumber,
 }: CardItemProps) {
-  const center = index * SNAP_INTERVAL;
-
   const animatedStyle = useAnimatedStyle(() => {
+    // scrollPos: 0 at card 0, SNAP_INTERVAL at card 1, etc.
+    const scrollPos = -translateX.value;
+    const center = index * SNAP_INTERVAL;
     const inputRange = [center - SNAP_INTERVAL, center, center + SNAP_INTERVAL];
-    const scale = interpolate(
-      scrollX.value,
-      inputRange,
-      [0.93, 1, 0.93],
-      "clamp",
-    );
-    const opacity = interpolate(
-      scrollX.value,
-      inputRange,
-      [0.5, 1, 0.5],
-      "clamp",
-    );
+    const scale = interpolate(scrollPos, inputRange, [0.93, 1, 0.93], "clamp");
+    const opacity = interpolate(scrollPos, inputRange, [0.5, 1, 0.5], "clamp");
     return { transform: [{ scale }], opacity };
   });
 
@@ -89,7 +74,7 @@ const CardItem = React.memo(function CardItem({
 });
 
 // ─────────────────────────────────────────────────────────────
-// CarouselSwipeDeck — main component
+// CarouselSwipeDeck
 // ─────────────────────────────────────────────────────────────
 
 export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
@@ -102,86 +87,84 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
   onFinish,
   renderFinishView,
 }) => {
-  const scrollX = useSharedValue(0);
+  const translateX = useSharedValue(0);
   const currentIndexRef = useRef(0);
+  const totalItems = renderFinishView ? cards.length + 1 : cards.length;
+  const maxIndex = totalItems - 1;
 
-  const data: DataItem[] = renderFinishView
-    ? [...cards, { id: "__finish__" }]
-    : cards;
+  // Translate the entire row: starts at PEEK so card 0 is centered
+  const rowStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: PEEK + translateX.value }],
+  }));
 
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollX.value = event.contentOffset.x;
-    },
-  });
+  const navigateTo = useCallback(
+    (nextIndex: number) => {
+      const prevIndex = currentIndexRef.current;
+      if (nextIndex === prevIndex) return;
 
-  const handleMomentumScrollEnd = useCallback(
-    (e: any) => {
-      const newIndex = Math.round(
-        e.nativeEvent.contentOffset.x / SNAP_INTERVAL,
-      );
-      const previousIndex = currentIndexRef.current;
-      if (newIndex === previousIndex) return;
-
-      if (newIndex < cards.length) {
-        if (newIndex > previousIndex) {
-          // Swiped left → next word
-          onSwipeLeft(cards[newIndex]);
+      if (nextIndex < cards.length) {
+        if (nextIndex > prevIndex) {
+          onSwipeLeft(cards[nextIndex]);
         } else {
-          // Swiped right → previous word
-          onSwipeRight(cards[newIndex]);
+          onSwipeRight(cards[nextIndex]);
         }
-        onIndexChange(newIndex);
-      } else if (renderFinishView && newIndex === cards.length) {
+        onIndexChange(nextIndex);
+      } else if (renderFinishView && nextIndex === cards.length) {
         onFinish();
       }
-
-      currentIndexRef.current = newIndex;
+      currentIndexRef.current = nextIndex;
     },
     [cards, onSwipeLeft, onSwipeRight, onIndexChange, onFinish, renderFinishView],
   );
 
-  const renderItem = useCallback(
-    ({ item, index }: { item: DataItem; index: number }) => {
-      if (item.id === "__finish__") {
-        return <View style={styles.cardSlot}>{renderFinishView?.()}</View>;
-      }
-      return (
-        <CardItem
-          item={item as VocabularyCard}
-          index={index}
-          scrollX={scrollX}
-          savedWordIds={savedWordIds}
-          dayNumber={dayNumber}
-        />
-      );
-    },
-    [scrollX, savedWordIds, dayNumber, renderFinishView],
-  );
+  const panGesture = Gesture.Pan()
+    .runOnJS(true)
+    .onUpdate((event) => {
+      const base = -(currentIndexRef.current * SNAP_INTERVAL);
+      const raw = base + event.translationX;
+      const min = -(maxIndex * SNAP_INTERVAL);
+      const max = 0;
+      // Rubber-band resistance at the edges
+      translateX.value =
+        raw > max ? max + (raw - max) * 0.2
+        : raw < min ? min + (raw - min) * 0.2
+        : raw;
+    })
+    .onEnd((event) => {
+      const { translationX: tx, velocityX: vx } = event;
+      const current = currentIndexRef.current;
 
-  const keyExtractor = useCallback((item: DataItem) => item.id, []);
+      let target = current;
+      if (vx < -300 || tx < -SNAP_INTERVAL * 0.3) {
+        target = Math.min(maxIndex, current + 1); // swipe left → next
+      } else if (vx > 300 || tx > SNAP_INTERVAL * 0.3) {
+        target = Math.max(0, current - 1); // swipe right → previous
+      }
+
+      translateX.value = withSpring(-target * SNAP_INTERVAL, SPRING);
+      navigateTo(target);
+    });
 
   return (
-    <View style={styles.container}>
-      <AnimatedFlatList
-        style={styles.list}
-        horizontal
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        snapToInterval={SNAP_INTERVAL}
-        snapToAlignment="start"
-        decelerationRate="fast"
-        disableIntervalMomentum
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: PEEK }}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        onMomentumScrollEnd={handleMomentumScrollEnd}
-        initialNumToRender={3}
-        windowSize={5}
-      />
-    </View>
+    <GestureDetector gesture={panGesture}>
+      <View style={styles.container}>
+        <Animated.View style={[styles.row, rowStyle]}>
+          {cards.map((item, index) => (
+            <CardItem
+              key={item.id}
+              item={item}
+              index={index}
+              translateX={translateX}
+              savedWordIds={savedWordIds}
+              dayNumber={dayNumber}
+            />
+          ))}
+          {renderFinishView && (
+            <View style={styles.cardSlot}>{renderFinishView()}</View>
+          )}
+        </Animated.View>
+      </View>
+    </GestureDetector>
   );
 };
 
@@ -189,9 +172,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: "100%",
+    overflow: "hidden",
   },
-  list: {
-    flex: 1,
+  // Absolutely positioned so it isn't width-constrained by the parent,
+  // letting flexDirection:"row" size it to fit all cards naturally.
+  row: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    flexDirection: "row",
   },
   cardSlot: {
     width: CARD_WIDTH,
