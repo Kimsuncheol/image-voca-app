@@ -58,7 +58,6 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
     return (
       <CarouselSwipeDeck
         cards={cards}
-        isDark={isDark}
         dayNumber={dayNumber}
         savedWordIds={savedWordIds}
         onSwipeRight={onSwipeRight}

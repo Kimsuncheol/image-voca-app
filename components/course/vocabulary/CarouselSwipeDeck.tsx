@@ -1,12 +1,33 @@
-import React from "react";
-import { StyleSheet, View } from "react-native";
-import PagerView from "react-native-pager-view";
+import React, { useCallback, useRef } from "react";
+import { Dimensions, FlatList, StyleSheet, View } from "react-native";
+import Animated, {
+  interpolate,
+  SharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
 import { VocabularyCard } from "../../../src/types/vocabulary";
 import { SwipeCardItem } from "../../swipe/SwipeCardItem";
 
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+// Each card occupies 90% of screen width (matches SwipeCardItem's internal width)
+const CARD_WIDTH = SCREEN_WIDTH * 0.9;
+// Remaining space split to each side → shows a peek of adjacent cards
+const PEEK = (SCREEN_WIDTH - CARD_WIDTH) / 2;
+// Snap interval equals card width (no gap; peek provides the visual separation)
+const SNAP_INTERVAL = CARD_WIDTH;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const AnimatedFlatList = Animated.createAnimatedComponent<any>(FlatList);
+
+// ─────────────────────────────────────────────────────────────
+// Interfaces
+// ─────────────────────────────────────────────────────────────
+
 interface CarouselSwipeDeckProps {
   cards: VocabularyCard[];
-  isDark: boolean;
   dayNumber: number;
   savedWordIds: Set<string>;
   onSwipeRight: (item: VocabularyCard) => void;
@@ -15,6 +36,61 @@ interface CarouselSwipeDeckProps {
   onFinish: () => void;
   renderFinishView?: () => React.ReactNode;
 }
+
+type DataItem = VocabularyCard | { id: "__finish__" };
+
+// ─────────────────────────────────────────────────────────────
+// CardItem — animated per-card wrapper
+// ─────────────────────────────────────────────────────────────
+
+interface CardItemProps {
+  item: VocabularyCard;
+  index: number;
+  scrollX: SharedValue<number>;
+  savedWordIds: Set<string>;
+  dayNumber: number;
+}
+
+const CardItem = React.memo(function CardItem({
+  item,
+  index,
+  scrollX,
+  savedWordIds,
+  dayNumber,
+}: CardItemProps) {
+  const center = index * SNAP_INTERVAL;
+
+  const animatedStyle = useAnimatedStyle(() => {
+    const inputRange = [center - SNAP_INTERVAL, center, center + SNAP_INTERVAL];
+    const scale = interpolate(
+      scrollX.value,
+      inputRange,
+      [0.93, 1, 0.93],
+      "clamp",
+    );
+    const opacity = interpolate(
+      scrollX.value,
+      inputRange,
+      [0.5, 1, 0.5],
+      "clamp",
+    );
+    return { transform: [{ scale }], opacity };
+  });
+
+  return (
+    <Animated.View style={[styles.cardSlot, animatedStyle]}>
+      <SwipeCardItem
+        item={item}
+        initialIsSaved={savedWordIds.has(item.id)}
+        day={dayNumber}
+      />
+    </Animated.View>
+  );
+});
+
+// ─────────────────────────────────────────────────────────────
+// CarouselSwipeDeck — main component
+// ─────────────────────────────────────────────────────────────
 
 export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
   cards,
@@ -26,67 +102,98 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
   onFinish,
   renderFinishView,
 }) => {
-  const currentIndexRef = React.useRef(0);
+  const scrollX = useSharedValue(0);
+  const currentIndexRef = useRef(0);
 
-  const handlePageSelected = React.useCallback(
+  const data: DataItem[] = renderFinishView
+    ? [...cards, { id: "__finish__" }]
+    : cards;
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x;
+    },
+  });
+
+  const handleMomentumScrollEnd = useCallback(
     (e: any) => {
-      const nextIndex = e.nativeEvent.position;
+      const newIndex = Math.round(
+        e.nativeEvent.contentOffset.x / SNAP_INTERVAL,
+      );
       const previousIndex = currentIndexRef.current;
+      if (newIndex === previousIndex) return;
 
-      if (nextIndex > previousIndex) {
-        // Swiped left → moving forward to next word
-        if (nextIndex < cards.length) {
-          onSwipeLeft(cards[nextIndex]);
-          onIndexChange(nextIndex);
+      if (newIndex < cards.length) {
+        if (newIndex > previousIndex) {
+          // Swiped left → next word
+          onSwipeLeft(cards[newIndex]);
+        } else {
+          // Swiped right → previous word
+          onSwipeRight(cards[newIndex]);
         }
-        if (renderFinishView && nextIndex === cards.length) {
-          onFinish();
-        }
-      } else if (nextIndex < previousIndex) {
-        // Swiped right → moving back to previous word
-        if (nextIndex < cards.length) {
-          onSwipeRight(cards[nextIndex]);
-          onIndexChange(nextIndex);
-        }
+        onIndexChange(newIndex);
+      } else if (renderFinishView && newIndex === cards.length) {
+        onFinish();
       }
 
-      currentIndexRef.current = nextIndex;
+      currentIndexRef.current = newIndex;
     },
     [cards, onSwipeLeft, onSwipeRight, onIndexChange, onFinish, renderFinishView],
   );
 
+  const renderItem = useCallback(
+    ({ item, index }: { item: DataItem; index: number }) => {
+      if (item.id === "__finish__") {
+        return <View style={styles.cardSlot}>{renderFinishView?.()}</View>;
+      }
+      return (
+        <CardItem
+          item={item as VocabularyCard}
+          index={index}
+          scrollX={scrollX}
+          savedWordIds={savedWordIds}
+          dayNumber={dayNumber}
+        />
+      );
+    },
+    [scrollX, savedWordIds, dayNumber, renderFinishView],
+  );
+
+  const keyExtractor = useCallback((item: DataItem) => item.id, []);
+
   return (
-    <PagerView
-      style={styles.pagerView}
-      initialPage={0}
-      onPageSelected={handlePageSelected}
-    >
-      {cards.map((item) => (
-        <View key={item.id} style={styles.page}>
-          <SwipeCardItem
-            item={item}
-            initialIsSaved={savedWordIds.has(item.id)}
-            day={dayNumber}
-          />
-        </View>
-      ))}
-      {renderFinishView && (
-        <View key="final-page" style={styles.page}>
-          {renderFinishView()}
-        </View>
-      )}
-    </PagerView>
+    <View style={styles.container}>
+      <AnimatedFlatList
+        style={styles.list}
+        horizontal
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        snapToInterval={SNAP_INTERVAL}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        disableIntervalMomentum
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: PEEK }}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        initialNumToRender={3}
+        windowSize={5}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  pagerView: {
+  container: {
     flex: 1,
     width: "100%",
   },
-  page: {
+  list: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  },
+  cardSlot: {
+    width: CARD_WIDTH,
   },
 });
