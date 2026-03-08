@@ -6,8 +6,8 @@ import {
   Modal,
   StyleSheet,
   Text,
-  useWindowDimensions,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import Animated, {
@@ -64,6 +64,7 @@ interface Preset {
 
 interface CarouselMetrics {
   cardWidth: number;
+  cardHeight: number;
   cardGap: number;
   snapInterval: number;
   sideInset: number;
@@ -110,9 +111,24 @@ function PresetCard({
       centerOffset + metrics.snapInterval,
     ];
 
-    const scale = interpolate(scrollX.value, inputRange, [0.92, 1, 0.92], "clamp");
-    const translateY = interpolate(scrollX.value, inputRange, [10, 0, 10], "clamp");
-    const opacity = interpolate(scrollX.value, inputRange, [0.75, 1, 0.75], "clamp");
+    const scale = interpolate(
+      scrollX.value,
+      inputRange,
+      [0.92, 1, 0.92],
+      "clamp",
+    );
+    const translateY = interpolate(
+      scrollX.value,
+      inputRange,
+      [10, 0, 10],
+      "clamp",
+    );
+    const opacity = interpolate(
+      scrollX.value,
+      inputRange,
+      [0.75, 1, 0.75],
+      "clamp",
+    );
 
     return {
       opacity,
@@ -126,7 +142,12 @@ function PresetCard({
       centerOffset,
       centerOffset + metrics.snapInterval,
     ];
-    const translateX = interpolate(scrollX.value, inputRange, [-12, 0, 12], "clamp");
+    const translateX = interpolate(
+      scrollX.value,
+      inputRange,
+      [-12, 0, 12],
+      "clamp",
+    );
 
     return {
       transform: [{ translateX }],
@@ -145,7 +166,10 @@ function PresetCard({
         activeOpacity={0.8}
         onPress={onSelect}
         testID={`preset-card-${index}`}
-        style={[presetStyles.card, { backgroundColor: cardBg, borderColor }]}
+        style={[
+          presetStyles.card,
+          { backgroundColor: cardBg, borderColor, height: metrics.cardHeight },
+        ]}
       >
         <Text style={[presetStyles.name, { color: textColor }]}>
           {preset.name}
@@ -177,7 +201,7 @@ export function DashboardLayoutModal({
 }: DashboardLayoutModalProps) {
   const { t } = useTranslation();
   const { elementOrder, setElementOrder } = useDashboardSettingsStore();
-  const { width: screenWidth } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const listRef = useRef<FlatList<Preset>>(null);
   const scrollX = useSharedValue(0);
 
@@ -197,15 +221,17 @@ export function DashboardLayoutModal({
 
   const metrics = useMemo<CarouselMetrics>(() => {
     const cardGap = 12;
-    const cardWidth = Math.min(240, Math.max(screenWidth - 96, 0));
+    const cardWidth = screenWidth * 0.75;
+    const cardHeight = screenHeight * 0.75;
     const snapInterval = cardWidth + cardGap;
     const sideInset = Math.max((screenWidth - cardWidth) / 2, 0);
 
-    return { cardWidth, cardGap, snapInterval, sideInset };
-  }, [screenWidth]);
+    return { cardWidth, cardHeight, cardGap, snapInterval, sideInset };
+  }, [screenWidth, screenHeight]);
 
   const selectedPresetIndex = useMemo(
-    () => PRESETS.findIndex((preset) => presetsEqual(elementOrder, preset.order)),
+    () =>
+      PRESETS.findIndex((preset) => presetsEqual(elementOrder, preset.order)),
     [PRESETS, elementOrder],
   );
 
@@ -242,7 +268,13 @@ export function DashboardLayoutModal({
     });
 
     return () => cancelAnimationFrame(frame);
-  }, [metrics.snapInterval, scrollToPreset, scrollX, selectedPresetIndex, visible]);
+  }, [
+    metrics.snapInterval,
+    scrollToPreset,
+    scrollX,
+    selectedPresetIndex,
+    visible,
+  ]);
 
   const renderPreset = useCallback(
     ({ item, index }: { item: Preset; index: number }) => (
@@ -366,7 +398,6 @@ const presetStyles = StyleSheet.create({
     paddingVertical: 6,
   },
   card: {
-    height: 420,
     borderRadius: 20,
     borderWidth: 1.5,
     padding: 20,
