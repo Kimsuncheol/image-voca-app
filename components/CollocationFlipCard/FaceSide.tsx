@@ -250,8 +250,26 @@ export default React.memo(function FaceSide({
       onPress={onFlip}
       disabled={!onFlip}
     >
-      {/* Visual Accent Mark (Top Right) */}
-      <View style={styles.accentMark} />
+      {/* Bookmark button (top-right corner) */}
+      {canAddToWordBank && (
+        <Pressable
+          style={({ pressed }) => [
+            styles.addButton,
+            isAdded && styles.addButtonAdded,
+            isAdding && styles.addButtonDisabled,
+            !isAdded && (isDark ? styles.addButtonDark : styles.addButtonLight),
+            pressed && { opacity: 0.7 },
+          ]}
+          onPress={handleToggleWordBank}
+          disabled={isAdding}
+        >
+          <Ionicons
+            name={isAdded ? "bookmark" : "bookmark-outline"}
+            size={20}
+            color={isAdded ? "#fff" : isDark ? "#0a84ff" : "#007AFF"}
+          />
+        </Pressable>
+      )}
 
       <View style={styles.contentContainer}>
         {/* Section: Day Badge */}
@@ -304,42 +322,8 @@ export default React.memo(function FaceSide({
         </View>
       </View>
 
-      {/* Section: Footer Actions (Word Bank / Delete) */}
+      {/* Section: Footer Actions (Delete) */}
       <View style={styles.footer}>
-        {canAddToWordBank && (
-          <Pressable
-            style={({ pressed }) => [
-              styles.addButton,
-              isAdded && styles.addButtonAdded,
-              isAdding && styles.addButtonDisabled,
-              !isAdded &&
-                (isDark ? styles.addButtonDark : styles.addButtonLight),
-              pressed && { opacity: 0.7 },
-            ]}
-            onPress={handleToggleWordBank}
-            disabled={isAdding}
-          >
-            <Ionicons
-              name={isAdded ? "checkmark-circle" : "add-circle-outline"}
-              size={20}
-              color={isAdded ? "#fff" : isDark ? "#0a84ff" : "#007AFF"}
-            />
-            <Text
-              style={[
-                styles.addButtonText,
-                isAdded && styles.addButtonTextAdded,
-                !isAdded && { color: isDark ? "#0a84ff" : "#007AFF" },
-              ]}
-            >
-              {isAdding
-                ? t("swipe.actions.adding")
-                : isAdded
-                  ? "Added"
-                  : t("swipe.actions.addToWordBank")}
-            </Text>
-          </Pressable>
-        )}
-
         {canDelete && (
           <TouchableOpacity
             style={[styles.deleteButton, isDark && styles.deleteButtonDark]}
@@ -376,16 +360,6 @@ const styles = StyleSheet.create({
     borderColor: "#333",
     shadowColor: "#000",
     shadowOpacity: 0.3,
-  },
-  accentMark: {
-    position: "absolute",
-    top: 32,
-    right: 32,
-    width: 6,
-    height: 24,
-    backgroundColor: "#4A90E2",
-    borderRadius: 3,
-    transform: [{ rotate: "15deg" }],
   },
   contentContainer: {
     flex: 1,
@@ -460,13 +434,14 @@ const styles = StyleSheet.create({
     minHeight: 52,
   },
   addButton: {
-    flexDirection: "row",
+    position: "absolute",
+    top: 28,
+    right: 28,
+    width: 38,
+    height: 38,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 22,
-    gap: 8,
+    borderRadius: 10,
     borderWidth: 1,
   },
   addButtonLight: {
