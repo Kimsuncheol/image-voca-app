@@ -31,7 +31,6 @@ import { WordBankSettingsModal } from "../../components/course-wordbank/WordBank
 // ============================================================================
 // Each section component represents a specific category of settings
 import { AccountSection } from "../../components/settings/AccountSection"; // Account management options
-import { AdminSection } from "../../components/settings/AdminSection"; // Admin-only features
 import { AppearanceSection } from "../../components/settings/AppearanceSection"; // Theme and visual preferences
 import { LanguageSection } from "../../components/settings/LanguageSection"; // Language selection
 import { NotificationsSection } from "../../components/settings/NotificationsSection"; // Push notification settings
@@ -572,14 +571,6 @@ export default function SettingsScreen() {
           onChangeLanguage={handleLanguageChange}
           t={t}
         />
-
-        {/* ================================================================
-            ADMIN SECTION
-            ================================================================
-            Admin-only features (only visible to admin users)
-            Provides access to administrative functions
-        */}
-        <AdminSection styles={styles} t={t} isDark={isDark} />
 
         {/* ================================================================
             SIGN OUT SECTION

@@ -43,8 +43,8 @@ export const getCourseConfig = (courseId: CourseType): CourseConfig
 
 ---
 
-#### [app/admin/add-voca.tsx](app/admin/add-voca.tsx) (Modified)
-**Lines ~416+**: Automatic metadata updates integrated
+#### Vocabulary ingestion integration (legacy admin screen removed)
+**Integration point:** Call `updateCourseMetadata()` after a successful day import
 
 ```typescript
 // After successful upload
@@ -71,8 +71,8 @@ if (successCount > 0) {
 ```
 
 **Integration Points:**
-- ✅ Runs automatically after successful upload
-- ✅ Non-blocking (upload succeeds even if metadata fails)
+- ✅ Runs automatically after successful import
+- ✅ Non-blocking (data ingestion can succeed even if metadata fails)
 - ✅ Logged for debugging
 - ✅ Works with all course types
 
@@ -180,8 +180,7 @@ import { quickSmokeTest } from '../src/examples/testMetadataIntegration';
 ```
 
 #### Option C: Real-World Testing
-1. Go to admin panel
-2. Upload vocabulary for any course
+1. Run your vocabulary ingestion tool for any course/day
 3. Check console for `[Metadata] Updated...`
 4. Verify in Firestore Console
 
@@ -256,8 +255,8 @@ Example Paths:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ 1. Admin uploads vocabulary data (add-voca.tsx)            │
-│    - Upload Day 5 vocabulary for TOEIC                     │
+│ 1. Vocabulary ingestion workflow imports day data          │
+│    - Example: import Day 5 vocabulary for TOEIC            │
 └─────────────────────┬───────────────────────────────────────┘
                       ▼
 ┌─────────────────────────────────────────────────────────────┐

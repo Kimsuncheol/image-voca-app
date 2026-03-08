@@ -14,9 +14,9 @@ The Course Metadata System has been successfully implemented and is ready for te
    - Added `getCourseMetadata()` - Retrieves complete metadata object
    - Exported `getCourseConfig()` - Made public for wider use
 
-2. **app/admin/add-voca.tsx** (Modified)
-   - Integrated automatic metadata updates after successful uploads
-   - Metadata updates happen transparently when uploading vocabulary
+2. **Vocabulary ingestion workflow** (Historical integration point)
+   - Automatic metadata updates should run after a successful day import
+   - Any replacement admin tool or script should call `updateCourseMetadata()`
 
 3. **src/examples/courseMetadataExample.ts** (Created)
    - 7 complete usage examples
@@ -79,7 +79,7 @@ npm test
 
 #### Step 1: Add test button to your app
 
-In any screen (e.g., `app/admin/add-voca.tsx` or a test screen):
+In any screen (for example, a temporary dev/test screen):
 
 ```typescript
 import { runAllMetadataTests, quickSmokeTest } from '../../src/examples/testMetadataIntegration';
@@ -146,20 +146,15 @@ The test script will output detailed results:
 
 #### Test the Upload → Metadata Update Flow
 
-1. **Navigate to Admin Panel**
-   - Open `app/admin/add-voca.tsx`
+1. **Run a Vocabulary Import**
+   - Use your current script, admin tool, or dev helper
+   - Import a course/day payload (for example, TOEIC Day 5)
 
-2. **Upload Vocabulary Data**
-   - Select a course (e.g., TOEIC)
-   - Choose a day number (e.g., Day 5)
-   - Upload a CSV file or paste data
-   - Click "Upload to Firestore"
-
-3. **Verify Metadata Update**
+2. **Verify Metadata Update**
    - Check console for: `[Metadata] Updated TOEIC with day 5`
    - Should see: "Data upload complete! 10/10 succeeded"
 
-4. **Query the Metadata**
+3. **Query the Metadata**
    - Use the manual test buttons OR
    - Check Firestore directly
 

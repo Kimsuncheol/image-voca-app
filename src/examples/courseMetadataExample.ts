@@ -222,7 +222,7 @@ function DayPickerScreen({ courseId }: { courseId: CourseType }) {
 /*
 IMPORTANT: The metadata system works automatically!
 
-1. When you upload data via the admin panel (add-voca.tsx):
+1. When your vocabulary ingestion workflow writes a new day of data:
    - The metadata document is automatically created/updated
    - It tracks the highest day number uploaded
 

@@ -57,10 +57,6 @@ const ko = {
       english: "영어",
       korean: "한국어",
     },
-    admin: {
-      title: "관리자",
-      addVocabulary: "단어 추가",
-    },
     dashboard: {
       title: "대시보드",
       popQuiz: "팝 퀴즈",

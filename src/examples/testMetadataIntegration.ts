@@ -158,7 +158,7 @@ export async function test5_CheckUpdateFunction() {
 
     if (isFunction) {
       console.log('✅ PASS: updateCourseMetadata function exists');
-      console.log('   ℹ️  This function is called automatically in add-voca.tsx');
+      console.log('   ℹ️  Call this from any workflow that imports new course days');
       console.log('   ℹ️  It updates metadata after successful uploads');
       return true;
     } else {

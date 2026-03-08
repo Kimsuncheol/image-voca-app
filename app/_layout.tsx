@@ -22,7 +22,6 @@ import {
   ThemeProvider as AppThemeProvider,
   useTheme as useAppTheme,
 } from "../src/context/ThemeContext";
-import { UploadProvider } from "../src/context/UploadContext";
 import { useNotificationTapNavigation } from "../src/hooks/useNotificationTapNavigation";
 import { usePushNotifications } from "../src/hooks/usePushNotifications";
 import "../src/i18n";
@@ -220,11 +219,9 @@ export default function RootLayout() {
   return (
     <AppThemeProvider>
       <AuthProvider>
-        <UploadProvider>
-          <AppBootstrap>
-            <RootLayoutNav />
-          </AppBootstrap>
-        </UploadProvider>
+        <AppBootstrap>
+          <RootLayoutNav />
+        </AppBootstrap>
       </AuthProvider>
     </AppThemeProvider>
   );

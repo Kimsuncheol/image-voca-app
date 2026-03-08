@@ -57,10 +57,6 @@ const en = {
       english: "English",
       korean: "Korean",
     },
-    admin: {
-      title: "Admin",
-      addVocabulary: "Add Vocabulary",
-    },
     dashboard: {
       title: "Dashboard",
       popQuiz: "Pop Quiz",

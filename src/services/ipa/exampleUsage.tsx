@@ -188,7 +188,7 @@ export function Example3_BatchImport() {
 
 /**
  * Example of enhancing CSV import with auto-fetched IPA
- * This shows how to integrate with your existing add-voca.tsx workflow
+ * This shows how to integrate with an existing CSV ingestion workflow
  */
 export async function Example4_EnhanceCSVRow(csvRow: any) {
   const word = String(csvRow["Word"] || "").trim();

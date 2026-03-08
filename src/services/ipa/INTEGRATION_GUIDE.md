@@ -80,12 +80,12 @@ async function handleAddWord(word: string) {
 }
 ```
 
-## 📝 Integration with CSV Import (add-voca.tsx)
+## 📝 Integration with a CSV import workflow
 
 To enhance your existing CSV import workflow, add IPA fetching after parsing:
 
 ```tsx
-// In add-voca.tsx, inside the uploadData function
+// In your CSV import handler, after parsing each row batch
 
 const uploadData = async (data: any[], day: string) => {
   // ... existing code ...
