@@ -1,14 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  FlatList,
   Modal,
-  ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, {
+  interpolate,
+  type SharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   DashboardElement,
@@ -54,6 +62,13 @@ interface Preset {
   order: DashboardElement[];
 }
 
+interface CarouselMetrics {
+  cardWidth: number;
+  cardGap: number;
+  snapInterval: number;
+  sideInset: number;
+}
+
 function presetsEqual(a: DashboardElement[], b: DashboardElement[]) {
   return a.length === b.length && a.every((v, i) => v === b[i]);
 }
@@ -68,43 +83,90 @@ function MiniElementRow({ config }: { config: ElementConfig }) {
 
 function PresetCard({
   preset,
+  index,
   isSelected,
+  scrollX,
+  metrics,
   onSelect,
   isDark,
 }: {
   preset: Preset;
+  index: number;
   isSelected: boolean;
+  scrollX: SharedValue<number>;
+  metrics: CarouselMetrics;
   onSelect: () => void;
   isDark: boolean;
 }) {
   const cardBg = isDark ? "#1c1c1e" : "#fff";
   const borderColor = isSelected ? "#007AFF" : isDark ? "#38383a" : "#e5e5ea";
   const textColor = isDark ? "#fff" : "#000";
+  const centerOffset = index * metrics.snapInterval;
+
+  const cardAnimatedStyle = useAnimatedStyle(() => {
+    const inputRange = [
+      centerOffset - metrics.snapInterval,
+      centerOffset,
+      centerOffset + metrics.snapInterval,
+    ];
+
+    const scale = interpolate(scrollX.value, inputRange, [0.92, 1, 0.92], "clamp");
+    const translateY = interpolate(scrollX.value, inputRange, [10, 0, 10], "clamp");
+    const opacity = interpolate(scrollX.value, inputRange, [0.75, 1, 0.75], "clamp");
+
+    return {
+      opacity,
+      transform: [{ scale }, { translateY }],
+    };
+  });
+
+  const parallaxAnimatedStyle = useAnimatedStyle(() => {
+    const inputRange = [
+      centerOffset - metrics.snapInterval,
+      centerOffset,
+      centerOffset + metrics.snapInterval,
+    ];
+    const translateX = interpolate(scrollX.value, inputRange, [-12, 0, 12], "clamp");
+
+    return {
+      transform: [{ translateX }],
+    };
+  });
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.8}
-      onPress={onSelect}
-      style={[presetStyles.card, { backgroundColor: cardBg, borderColor }]}
+    <Animated.View
+      style={[
+        presetStyles.cardContainer,
+        { width: metrics.cardWidth, marginRight: metrics.cardGap },
+        cardAnimatedStyle,
+      ]}
     >
-      <Text style={[presetStyles.name, { color: textColor }]}>
-        {preset.name}
-      </Text>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={onSelect}
+        testID={`preset-card-${index}`}
+        style={[presetStyles.card, { backgroundColor: cardBg, borderColor }]}
+      >
+        <Text style={[presetStyles.name, { color: textColor }]}>
+          {preset.name}
+        </Text>
 
-      <View style={presetStyles.elements}>
-        {preset.order.map((id) => (
-          <MiniElementRow key={id} config={ELEMENT_CONFIGS[id]} />
-        ))}
-      </View>
+        <Animated.View style={[presetStyles.elements, parallaxAnimatedStyle]}>
+          {preset.order.map((id) => (
+            <MiniElementRow key={id} config={ELEMENT_CONFIGS[id]} />
+          ))}
+        </Animated.View>
 
-      <View style={presetStyles.radio}>
-        <Ionicons
-          name={isSelected ? "radio-button-on" : "radio-button-off"}
-          size={20}
-          color={isSelected ? "#007AFF" : isDark ? "#636366" : "#c7c7cc"}
-        />
-      </View>
-    </TouchableOpacity>
+        <View style={presetStyles.radio}>
+          <Ionicons
+            name={isSelected ? "radio-button-on" : "radio-button-off"}
+            size={20}
+            color={isSelected ? "#007AFF" : isDark ? "#636366" : "#c7c7cc"}
+            testID={`preset-radio-${index}-${isSelected ? "selected" : "unselected"}`}
+          />
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
@@ -115,17 +177,99 @@ export function DashboardLayoutModal({
 }: DashboardLayoutModalProps) {
   const { t } = useTranslation();
   const { elementOrder, setElementOrder } = useDashboardSettingsStore();
+  const { width: screenWidth } = useWindowDimensions();
+  const listRef = useRef<FlatList<Preset>>(null);
+  const scrollX = useSharedValue(0);
 
-  const PRESETS: Preset[] = [
-    { name: t("settings.dashboard.layoutModal.quizFirst"), order: ["quiz", "famousQuote", "stats"] },
-    { name: t("settings.dashboard.layoutModal.quoteFirst"), order: ["famousQuote", "quiz", "stats"] },
-  ];
+  const PRESETS: Preset[] = useMemo(
+    () => [
+      {
+        name: t("settings.dashboard.layoutModal.quizFirst"),
+        order: ["quiz", "famousQuote", "stats"],
+      },
+      {
+        name: t("settings.dashboard.layoutModal.quoteFirst"),
+        order: ["famousQuote", "quiz", "stats"],
+      },
+    ],
+    [t],
+  );
+
+  const metrics = useMemo<CarouselMetrics>(() => {
+    const cardGap = 12;
+    const cardWidth = Math.min(240, Math.max(screenWidth - 96, 0));
+    const snapInterval = cardWidth + cardGap;
+    const sideInset = Math.max((screenWidth - cardWidth) / 2, 0);
+
+    return { cardWidth, cardGap, snapInterval, sideInset };
+  }, [screenWidth]);
+
+  const selectedPresetIndex = useMemo(
+    () => PRESETS.findIndex((preset) => presetsEqual(elementOrder, preset.order)),
+    [PRESETS, elementOrder],
+  );
 
   const bg = isDark ? "#000" : "#f2f2f7";
   const cardBg = isDark ? "#1c1c1e" : "#fff";
   const borderColor = isDark ? "#38383a" : "#e5e5ea";
   const textColor = isDark ? "#fff" : "#000";
   const mutedColor = isDark ? "#8e8e93" : "#6d6d72";
+
+  const scrollToPreset = useCallback(
+    (index: number, animated: boolean) => {
+      if (index < 0) return;
+
+      listRef.current?.scrollToOffset?.({
+        offset: index * metrics.snapInterval,
+        animated,
+      });
+    },
+    [metrics.snapInterval],
+  );
+
+  const handleScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x;
+    },
+  });
+
+  useEffect(() => {
+    if (!visible || selectedPresetIndex < 0) return;
+
+    const frame = requestAnimationFrame(() => {
+      scrollToPreset(selectedPresetIndex, false);
+      scrollX.value = selectedPresetIndex * metrics.snapInterval;
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [metrics.snapInterval, scrollToPreset, scrollX, selectedPresetIndex, visible]);
+
+  const renderPreset = useCallback(
+    ({ item, index }: { item: Preset; index: number }) => (
+      <PresetCard
+        preset={item}
+        index={index}
+        isSelected={presetsEqual(elementOrder, item.order)}
+        scrollX={scrollX}
+        metrics={metrics}
+        onSelect={() => {
+          setElementOrder(item.order);
+          scrollToPreset(index, true);
+        }}
+        isDark={isDark}
+      />
+    ),
+    [elementOrder, isDark, metrics, scrollToPreset, scrollX, setElementOrder],
+  );
+
+  const getItemLayout = useCallback(
+    (_data: ArrayLike<Preset> | null | undefined, index: number) => ({
+      length: metrics.snapInterval,
+      offset: metrics.snapInterval * index,
+      index,
+    }),
+    [metrics.snapInterval],
+  );
 
   return (
     <Modal
@@ -148,7 +292,9 @@ export function DashboardLayoutModal({
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Ionicons name="close" size={24} color={textColor} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: textColor }]}>{t("settings.dashboard.layoutModal.title")}</Text>
+          <Text style={[styles.headerTitle, { color: textColor }]}>
+            {t("settings.dashboard.layoutModal.title")}
+          </Text>
           <View style={styles.headerPlaceholder} />
         </View>
 
@@ -157,22 +303,26 @@ export function DashboardLayoutModal({
           {t("settings.dashboard.layoutModal.hint")}
         </Text>
 
-        {/* Horizontal preset list */}
-        <ScrollView
+        <Animated.FlatList
+          ref={listRef}
+          data={PRESETS}
           horizontal
+          keyExtractor={(item) => item.name}
+          renderItem={renderPreset}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          snapToInterval={metrics.snapInterval}
+          decelerationRate="fast"
+          disableIntervalMomentum
+          bounces={false}
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-        >
-          {PRESETS.map((preset, idx) => (
-            <PresetCard
-              key={idx}
-              preset={preset}
-              isSelected={presetsEqual(elementOrder, preset.order)}
-              onSelect={() => setElementOrder(preset.order)}
-              isDark={isDark}
-            />
-          ))}
-        </ScrollView>
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingHorizontal: metrics.sideInset },
+          ]}
+          getItemLayout={getItemLayout}
+          testID="dashboard-layout-carousel"
+        />
       </SafeAreaView>
     </Modal>
   );
@@ -207,15 +357,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   listContent: {
-    paddingHorizontal: 20,
-    gap: 12,
     alignItems: "flex-start",
   },
 });
 
 const presetStyles = StyleSheet.create({
+  cardContainer: {
+    paddingVertical: 6,
+  },
   card: {
-    width: 200,
     height: 420,
     borderRadius: 20,
     borderWidth: 1.5,
