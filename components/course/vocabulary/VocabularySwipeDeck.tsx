@@ -64,7 +64,6 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         onSwipeLeft={onSwipeLeft}
         onIndexChange={onIndexChange}
         onFinish={onFinish}
-        renderFinishView={renderFinishView}
       />
     );
   }

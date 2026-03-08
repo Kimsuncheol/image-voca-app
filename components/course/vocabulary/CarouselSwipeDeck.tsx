@@ -3,6 +3,7 @@ import { Dimensions, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   interpolate,
+  runOnJS,
   SharedValue,
   useAnimatedStyle,
   useSharedValue,
@@ -30,7 +31,6 @@ interface CarouselSwipeDeckProps {
   onSwipeLeft: (item: VocabularyCard) => void;
   onIndexChange: (index: number) => void;
   onFinish: () => void;
-  renderFinishView?: () => React.ReactNode;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -85,12 +85,10 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
   onSwipeLeft,
   onIndexChange,
   onFinish,
-  renderFinishView,
 }) => {
   const translateX = useSharedValue(0);
   const currentIndexRef = useRef(0);
-  const totalItems = renderFinishView ? cards.length + 1 : cards.length;
-  const maxIndex = totalItems - 1;
+  const maxIndex = cards.length - 1;
 
   // Translate the entire row: starts at PEEK so card 0 is centered
   const rowStyle = useAnimatedStyle(() => ({
@@ -102,19 +100,15 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
       const prevIndex = currentIndexRef.current;
       if (nextIndex === prevIndex) return;
 
-      if (nextIndex < cards.length) {
-        if (nextIndex > prevIndex) {
-          onSwipeLeft(cards[nextIndex]);
-        } else {
-          onSwipeRight(cards[nextIndex]);
-        }
-        onIndexChange(nextIndex);
-      } else if (renderFinishView && nextIndex === cards.length) {
-        onFinish();
+      if (nextIndex > prevIndex) {
+        onSwipeLeft(cards[nextIndex] ?? cards[prevIndex]);
+      } else {
+        onSwipeRight(cards[nextIndex]);
       }
+      onIndexChange(nextIndex);
       currentIndexRef.current = nextIndex;
     },
-    [cards, onSwipeLeft, onSwipeRight, onIndexChange, onFinish, renderFinishView],
+    [cards, onSwipeLeft, onSwipeRight, onIndexChange],
   );
 
   const panGesture = Gesture.Pan()
@@ -136,7 +130,20 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
 
       let target = current;
       if (vx < -300 || tx < -SNAP_INTERVAL * 0.3) {
-        target = Math.min(maxIndex, current + 1); // swipe left → next
+        if (current === maxIndex) {
+          // Slide the last card off-screen to the left, then trigger finish
+          translateX.value = withSpring(
+            -(maxIndex * SNAP_INTERVAL + SCREEN_WIDTH),
+            SPRING,
+            (finished) => {
+              if (finished) {
+                runOnJS(onFinish)();
+              }
+            },
+          );
+          return;
+        }
+        target = current + 1; // swipe left → next
       } else if (vx > 300 || tx > SNAP_INTERVAL * 0.3) {
         target = Math.max(0, current - 1); // swipe right → previous
       }
@@ -159,9 +166,6 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
               dayNumber={dayNumber}
             />
           ))}
-          {renderFinishView && (
-            <View style={styles.cardSlot}>{renderFinishView()}</View>
-          )}
         </Animated.View>
       </View>
     </GestureDetector>

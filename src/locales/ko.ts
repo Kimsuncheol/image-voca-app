@@ -443,40 +443,22 @@ const ko = {
         title: "리스닝",
         description: "듣고 단어 입력",
       },
-      spelling: {
-        title: "스펠링",
-        description: "정확한 철자를 입력하세요",
-      },
       flashcard: {
         title: "플래시카드 복습",
         description: "빠른 복습 모드",
-      },
-      wordArrangement: {
-        title: "문장 배열",
-        description: "단어를 배열하여 문장을 만드세요",
       },
     },
     questionTitle: "{{current}}/{{total}}문항",
     questions: {
       matchMeaning: "이 뜻에 맞는 단어는?",
-      spellPrompt: "뜻에 맞는 단어의 철자를 입력하세요.",
       meaningOf: "다음 단어의 뜻은?",
     },
     actions: {
       typeAnswer: "정답을 입력하세요...",
-      typeSpelling: "철자를 입력하세요...",
     },
     matching: {
       instructions: "단어와 뜻을 각각 눌러 짝을 맞추세요.",
       progressTitle: "매칭 {{current}}/{{total}}",
-    },
-    wordArrangement: {
-      instructions: "올바른 문장을 만들려면 단어를 순서대로 탭하세요.",
-      targetWord: "대상 단어",
-      yourSentence: "내 문장",
-      tapToRemove: "탭하여 제거",
-      completed: "정답! 🎉",
-      noExample: "예문이 없습니다.",
     },
     feedback: {
       correct: "정답!",

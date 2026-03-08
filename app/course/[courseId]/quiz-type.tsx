@@ -5,96 +5,9 @@ import { ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { QuizTypeGrid, QuizTypeHeader } from "../../../components/course";
+import { getQuizTypesForCourse } from "../../../src/course/quizModes";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { COURSES, CourseType } from "../../../src/types/vocabulary";
-
-interface QuizType {
-  id: string;
-  title: string;
-  titleKey: string;
-  description: string;
-  descriptionKey: string;
-  icon: string;
-  color: string;
-}
-
-const QUIZ_TYPES_GROUP_A: QuizType[] = [
-  {
-    id: "matching",
-    title: "Matching",
-    titleKey: "quiz.types.matching.title",
-    description: "Match words with meanings",
-    descriptionKey: "quiz.types.matching.description",
-    icon: "git-compare",
-    color: "#FFE66D",
-  },
-  {
-    id: "spelling",
-    title: "Spelling",
-    titleKey: "quiz.types.spelling.title",
-    description: "Spell the word correctly",
-    descriptionKey: "quiz.types.spelling.description",
-    icon: "text",
-    color: "#DDA0DD",
-  },
-  {
-    id: "fill-in-blank",
-    title: "Fill in the Blank",
-    titleKey: "quiz.types.fillInBlank.title",
-    description: "Complete the sentence",
-    descriptionKey: "quiz.types.fillInBlank.description",
-    icon: "create-outline",
-    color: "#4ECDC4",
-  },
-  {
-    id: "word-arrangement",
-    title: "Word Arrangement",
-    titleKey: "quiz.types.wordArrangement.title",
-    description: "Arrange words to form a sentence",
-    descriptionKey: "quiz.types.wordArrangement.description",
-    icon: "reorder-four",
-    color: "#9B59B6",
-  },
-];
-
-const QUIZ_TYPES_GROUP_B: QuizType[] = [
-  {
-    id: "gap-fill-sentence",
-    title: "Gap-Fill Sentence",
-    titleKey: "quiz.types.gapFillSentence.title",
-    description: "Complete the collocation in a sentence",
-    descriptionKey: "quiz.types.gapFillSentence.description",
-    icon: "create-outline",
-    color: "#4ECDC4",
-  },
-  {
-    id: "collocation-matching",
-    title: "Matching",
-    titleKey: "quiz.types.collocationMatching.title",
-    description: "Match collocations with meanings",
-    descriptionKey: "quiz.types.collocationMatching.description",
-    icon: "git-compare",
-    color: "#FFE66D",
-  },
-  {
-    id: "error-correction",
-    title: "Error Correction",
-    titleKey: "quiz.types.errorCorrection.title",
-    description: "Fix the incorrect collocation",
-    descriptionKey: "quiz.types.errorCorrection.description",
-    icon: "alert-circle",
-    color: "#FF8A65",
-  },
-  {
-    id: "word-order-tiles",
-    title: "Word Order Tiles",
-    titleKey: "quiz.types.wordOrderTiles.title",
-    description: "Arrange tiles to form the sentence",
-    descriptionKey: "quiz.types.wordOrderTiles.description",
-    icon: "reorder-four",
-    color: "#9B59B6",
-  },
-];
 
 export default function QuizTypeSelectionScreen() {
   const { isDark } = useTheme();
@@ -106,10 +19,9 @@ export default function QuizTypeSelectionScreen() {
   }>();
 
   const course = COURSES.find((c) => c.id === courseId);
-  const quizTypes =
-    courseId === "COLLOCATION" ? QUIZ_TYPES_GROUP_B : QUIZ_TYPES_GROUP_A;
+  const quizTypes = getQuizTypesForCourse(courseId);
 
-  const handleQuizTypeSelect = (quizType: QuizType) => {
+  const handleQuizTypeSelect = (quizType: (typeof quizTypes)[number]) => {
     router.push({
       pathname: "/course/[courseId]/quiz-play",
       params: { courseId, day, quizType: quizType.id },

@@ -93,10 +93,6 @@ const en = {
       matchingHint: "Tap a word, then tap its meaning",
       words: "Words",
       meanings: "Meanings",
-      wordArrangement: "Arrange the words",
-      yourAnswer: "Your answer:",
-      tapWordsBelow: "Tap words below to arrange",
-      availableWords: "Available words:",
       correct: "Correct!",
       incorrect: "Try again tomorrow.",
       stoppedTitle: "Quiz Paused",
@@ -450,40 +446,22 @@ const en = {
         title: "Listening",
         description: "Listen and type the word",
       },
-      spelling: {
-        title: "Spelling",
-        description: "Type the correct spelling",
-      },
       flashcard: {
         title: "Flashcard Review",
         description: "Quick review mode",
-      },
-      wordArrangement: {
-        title: "Word Arrangement",
-        description: "Arrange words to form a sentence",
       },
     },
     questionTitle: "Question {{current}}/{{total}}",
     questions: {
       matchMeaning: "What word matches this meaning?",
-      spellPrompt: "Spell the word that matches this meaning.",
       meaningOf: "What is the meaning of:",
     },
     actions: {
       typeAnswer: "Type your answer...",
-      typeSpelling: "Type the spelling...",
     },
     matching: {
       instructions: "Tap a word and its matching meaning.",
       progressTitle: "Matching {{current}}/{{total}}",
-    },
-    wordArrangement: {
-      instructions: "Tap words in order to form the correct sentence.",
-      targetWord: "Target Word",
-      yourSentence: "Your Sentence",
-      tapToRemove: "Tap to remove",
-      completed: "Correct! 🎉",
-      noExample: "No example sentence available.",
     },
     feedback: {
       correct: "Correct!",

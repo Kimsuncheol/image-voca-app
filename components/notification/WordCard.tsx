@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Card, Divider, Text } from "react-native-paper";
+import { SpeakerButton } from "../CollocationFlipCard/SpeakerButton";
 import type { NotificationWordCardPayload } from "../../src/types/notificationCard";
 
 interface WordCardProps {
@@ -64,12 +65,15 @@ export default function WordCard({
     >
       <Card.Content style={styles.content}>
         <View style={styles.hero}>
-          <Text
-            variant="headlineMedium"
-            style={[styles.word, { color: isDark ? "#FFFFFF" : "#0F172A" }]}
-          >
-            {data.word}
-          </Text>
+          <View style={styles.wordRow}>
+            <Text
+              variant="headlineMedium"
+              style={[styles.word, { color: isDark ? "#FFFFFF" : "#0F172A" }]}
+            >
+              {data.word}
+            </Text>
+            <SpeakerButton text={data.word} isDark={isDark ?? false} />
+          </View>
           <Text
             variant="titleMedium"
             style={[styles.meaning, { color: isDark ? "#BFDBFE" : "#1D4ED8" }]}
@@ -114,6 +118,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   hero: {
+    gap: 8,
+  },
+  wordRow: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   word: {

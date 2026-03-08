@@ -4,8 +4,6 @@ export { CollocationMatchingGame } from "./CollocationMatchingGame";
 export { CourseCard } from "./CourseCard";
 export { DayCard } from "./DayCard";
 export { DayGrid } from "./DayGrid";
-
-export { ErrorCorrectionGame } from "./ErrorCorrectionGame";
 export { FillInTheBlankGame } from "./FillInTheBlankGame";
 export { FillInTheBlankGameClozeSentenceCard } from "./FillInTheBlankGameClozeSentenceCard";
 export { FillInTheBlankGameOptions } from "./FillInTheBlankGameOptions";
@@ -22,13 +20,4 @@ export { QuizTypeCard } from "./QuizTypeCard";
 export { QuizTypeGrid } from "./QuizTypeGrid";
 export { QuizTypeHeader } from "./QuizTypeHeader";
 export { RecentCourseSection } from "./RecentCourseSection";
-export { SpellingGame } from "./SpellingGame";
 export { VocaHeader } from "./VocaHeader";
-export { WordArrangementAnswerZone } from "./WordArrangementAnswerZone";
-export { WordArrangementAvailableChunks } from "./WordArrangementAvailableChunks";
-export { WordArrangementChunk } from "./WordArrangementChunk";
-export { WordArrangementComplete } from "./WordArrangementComplete";
-export { WordArrangementGame } from "./WordArrangementGame";
-export { WordArrangementInstructions } from "./WordArrangementInstructions";
-export { WordOrderTilesGame } from "./WordOrderTilesGame";
-

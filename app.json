@@ -12,6 +12,11 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.benjaminkim96.imagevocaapp"
     },
+    "splash": {
+      "image": "./assets/images/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
