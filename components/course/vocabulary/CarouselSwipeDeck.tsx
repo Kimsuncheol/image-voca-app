@@ -113,6 +113,8 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
 
   const panGesture = Gesture.Pan()
     .runOnJS(true)
+    .activeOffsetX([-12, 12])  // only activate for clear horizontal movement
+    .failOffsetY([-10, 10])    // fail immediately on vertical movement (lets ScrollView scroll)
     .onUpdate((event) => {
       const base = -(currentIndexRef.current * SNAP_INTERVAL);
       const raw = base + event.translationX;

@@ -472,6 +472,11 @@ const ko = {
       keepPracticing: "계속 연습해요! 💪",
     },
     seeResults: "결과 보기",
+    quit: {
+      title: "퀴즈를 종료할까요?",
+      message: "현재 진행 상황이 사라집니다. 정말 종료하시겠어요?",
+      confirm: "종료",
+    },
   },
   student: {
     classes: {

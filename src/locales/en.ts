@@ -475,6 +475,11 @@ const en = {
       keepPracticing: "Keep practicing! 💪",
     },
     seeResults: "See Results",
+    quit: {
+      title: "Quit Quiz?",
+      message: "Your progress will be lost. Are you sure you want to quit?",
+      confirm: "Quit",
+    },
   },
   student: {
     classes: {

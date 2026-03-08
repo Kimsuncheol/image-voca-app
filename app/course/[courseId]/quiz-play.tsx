@@ -1,4 +1,5 @@
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import {
   collection,
   doc,
@@ -8,13 +9,16 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  Alert,
+  BackHandler,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -522,6 +526,32 @@ export default function QuizPlayScreen() {
     }
   };
 
+  const handleQuit = useCallback(() => {
+    if (quizFinished) {
+      router.back();
+      return;
+    }
+    Alert.alert(t("quiz.quit.title"), t("quiz.quit.message"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("quiz.quit.confirm"),
+        style: "destructive",
+        onPress: () => router.back(),
+      },
+    ]);
+  }, [quizFinished, router, t]);
+
+  // Android hardware back button
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+        handleQuit();
+        return true;
+      });
+      return () => sub.remove();
+    }, [handleQuit]),
+  );
+
   const handleFinish = () => {
     router.back();
     router.back();
@@ -600,6 +630,15 @@ export default function QuizPlayScreen() {
                 total: totalQuestions,
               }),
           headerBackTitle: t("common.back"),
+          headerLeft: () => (
+            <TouchableOpacity onPress={handleQuit} hitSlop={8}>
+              <Ionicons
+                name="chevron-back"
+                size={28}
+                color={isDark ? "#fff" : "#000"}
+              />
+            </TouchableOpacity>
+          ),
         }}
       />
       {!quizFinished && !loading && (
