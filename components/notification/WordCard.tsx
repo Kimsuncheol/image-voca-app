@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Card, Divider, Text } from "react-native-paper";
 import { SpeakerButton } from "../CollocationFlipCard/SpeakerButton";
+import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import type { NotificationWordCardPayload } from "../../src/types/notificationCard";
 
 interface WordCardProps {
@@ -74,12 +75,19 @@ export default function WordCard({
             </Text>
             <SpeakerButton text={data.word} isDark={isDark ?? false} />
           </View>
-          <Text
-            variant="titleMedium"
-            style={[styles.meaning, { color: isDark ? "#BFDBFE" : "#1D4ED8" }]}
-          >
-            {data.meaning}
-          </Text>
+          <View style={styles.meaningSection}>
+            <InlineMeaningWithChips
+              meaning={data.meaning}
+              isDark={isDark}
+              textStyle={[
+                styles.meaning,
+                { color: isDark ? "#BFDBFE" : "#1D4ED8" },
+              ]}
+              containerStyle={styles.inlineMeaning}
+              chipStyle={styles.inlineChip}
+              testID="inline-meaning"
+            />
+          </View>
         </View>
 
         <Divider style={styles.divider} />
@@ -119,6 +127,15 @@ const styles = StyleSheet.create({
   },
   hero: {
     gap: 8,
+  },
+  meaningSection: {
+    marginTop: 2,
+  },
+  inlineMeaning: {
+    gap: 6,
+  },
+  inlineChip: {
+    marginRight: 6,
   },
   wordRow: {
     flexDirection: "row",

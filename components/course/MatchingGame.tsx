@@ -57,6 +57,7 @@ export function MatchingGame({
             <MatchingCard
               key={question.word}
               text={question.word}
+              variant="word"
               isMatched={Boolean(matchedPairs[question.word])}
               isSelected={selectedWord === question.word}
               onPress={() => onSelectWord(question.word)}
@@ -71,6 +72,7 @@ export function MatchingGame({
             <MatchingCard
               key={meaning}
               text={meaning}
+              variant="meaning"
               isMatched={Object.values(matchedPairs).includes(meaning)}
               isSelected={selectedMeaning === meaning}
               onPress={() => onSelectMeaning(meaning)}

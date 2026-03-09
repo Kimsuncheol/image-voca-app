@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSpeech } from "../../src/hooks/useSpeech";
+import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { SwipeCardItemAddToWordBankButton } from "./SwipeCardItemAddToWordBankButton";
 
@@ -75,15 +76,19 @@ export function SwipeCardItemWordMeaningSection({
           {normalizedPronunciation}
         </Text>
       ) : null}
-      <Text
-        style={[
-          styles.cardDescription,
-          { color: isDark ? "#e0e0e0" : "#2c2c2c" },
-        ]}
-        numberOfLines={2}
-      >
-        {meaning}
-      </Text>
+      <View style={styles.meaningSection}>
+        <InlineMeaningWithChips
+          meaning={meaning}
+          isDark={isDark}
+          textStyle={[
+            styles.cardDescription,
+            { color: isDark ? "#e0e0e0" : "#2c2c2c" },
+          ]}
+          containerStyle={styles.inlineMeaning}
+          chipStyle={styles.inlineChip}
+          testID="inline-meaning"
+        />
+      </View>
     </>
   );
 }
@@ -124,11 +129,19 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     letterSpacing: 0.2,
   },
+  meaningSection: {
+    marginBottom: 8,
+  },
+  inlineMeaning: {
+    gap: 4,
+  },
+  inlineChip: {
+    marginRight: 6,
+  },
   cardDescription: {
     fontSize: 17,
     color: "#2c2c2c",
     lineHeight: 24,
-    marginBottom: 8,
     fontWeight: "500",
   },
 });

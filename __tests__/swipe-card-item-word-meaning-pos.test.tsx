@@ -1,0 +1,65 @@
+import { render } from "@testing-library/react-native";
+import React from "react";
+import { SwipeCardItemWordMeaningSection } from "../components/swipe/SwipeCardItemWordMeaningSection";
+import { VocabularyCard } from "../src/types/vocabulary";
+
+jest.mock("../src/hooks/useSpeech", () => ({
+  useSpeech: () => ({
+    speak: jest.fn(),
+  }),
+}));
+
+jest.mock("../components/swipe/SwipeCardItemAddToWordBankButton", () => ({
+  __esModule: true,
+  SwipeCardItemAddToWordBankButton: () => null,
+}));
+
+function buildItem(): VocabularyCard {
+  return {
+    id: "1",
+    word: "seed",
+    meaning: "n. 씨, 씨앗",
+    example: "A farmer is sowing seeds in the field.",
+    course: "TOEIC",
+  };
+}
+
+describe("SwipeCardItemWordMeaningSection", () => {
+  it("renders inline chips for later markers in the same line", () => {
+    const { getByText, queryByText } = render(
+      <SwipeCardItemWordMeaningSection
+        item={buildItem()}
+        word="sparkle"
+        meaning="n. 불꽃, 번쩍임 v. 번쩍이다."
+        isDark={false}
+      />,
+    );
+
+    expect(getByText("n")).toBeTruthy();
+    expect(getByText("v")).toBeTruthy();
+    expect(getByText(" 불꽃, 번쩍임 ")).toBeTruthy();
+    expect(getByText(" 번쩍이다.")).toBeTruthy();
+    expect(queryByText("n.")).toBeNull();
+    expect(queryByText("v.")).toBeNull();
+  });
+
+  it("preserves numbered prefixes while converting line markers to chips", () => {
+    const { getByText, queryByText } = render(
+      <SwipeCardItemWordMeaningSection
+        item={buildItem()}
+        word="reason"
+        meaning={"1. n. 이유\n2. v. 추론하다, 추리하다"}
+        isDark={false}
+      />,
+    );
+
+    expect(getByText("1. ")).toBeTruthy();
+    expect(getByText("2. ")).toBeTruthy();
+    expect(getByText("n")).toBeTruthy();
+    expect(getByText("v")).toBeTruthy();
+    expect(getByText(" 이유")).toBeTruthy();
+    expect(getByText(" 추론하다, 추리하다")).toBeTruthy();
+    expect(queryByText("n. 이유")).toBeNull();
+    expect(queryByText("v. 추론하다, 추리하다")).toBeNull();
+  });
+});

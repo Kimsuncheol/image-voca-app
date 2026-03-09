@@ -64,7 +64,7 @@ export function WordCard({
       </View>
 
       {/* Meaning section */}
-      <WordCardMeaning meaning={word.meaning} />
+      <WordCardMeaning meaning={word.meaning} isDark={isDark} />
 
       {/* Example section — hidden in word+meaning-only mode */}
       {showDetails && (
