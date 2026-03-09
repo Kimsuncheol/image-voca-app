@@ -25,6 +25,7 @@ export function SwipeCardItemWordMeaningSection({
   day,
 }: SwipeCardItemWordMeaningSectionProps) {
   const { speak: speakText } = useSpeech();
+  const normalizedPronunciation = pronunciation?.trim();
 
   const speak = () => {
     speakText(word, {
@@ -67,13 +68,13 @@ export function SwipeCardItemWordMeaningSection({
           />
         </View>
       </View>
-      {pronunciation && (
+      {normalizedPronunciation ? (
         <Text
           style={[styles.cardSubtitle, { color: isDark ? "#999" : "#666" }]}
         >
-          {pronunciation}
+          {normalizedPronunciation}
         </Text>
-      )}
+      ) : null}
       <Text
         style={[
           styles.cardDescription,
@@ -116,10 +117,12 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   cardSubtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: "#666",
     fontStyle: "italic",
-    marginBottom: 8,
+    marginTop: 2,
+    marginBottom: 10,
+    letterSpacing: 0.2,
   },
   cardDescription: {
     fontSize: 17,

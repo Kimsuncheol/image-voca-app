@@ -5,6 +5,7 @@ import { SwipeCardItemMeaningExampleSentenceSection } from "./SwipeCardItemMeani
 
 interface CardInfoSectionProps {
   item: VocabularyCard;
+  pronunciation?: string;
   isDark: boolean;
   initialIsSaved?: boolean;
   day?: number;
@@ -12,6 +13,7 @@ interface CardInfoSectionProps {
 
 export function SwipeCardItemCardInfoSection({
   item,
+  pronunciation,
   isDark,
   initialIsSaved = false,
   day,
@@ -27,7 +29,7 @@ export function SwipeCardItemCardInfoSection({
       <SwipeCardItemMeaningExampleSentenceSection
         item={item}
         word={item.word}
-        pronunciation={item.pronunciation}
+        pronunciation={pronunciation}
         meaning={item.meaning}
         example={item.example}
         translation={item.translation}

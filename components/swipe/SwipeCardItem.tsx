@@ -19,6 +19,7 @@ export function SwipeCardItem({
   day,
 }: SwipeCardItemProps) {
   const { isDark } = useTheme();
+  const pronunciation = item.pronunciation?.trim();
 
   return (
     <View
@@ -34,6 +35,7 @@ export function SwipeCardItem({
       {/* Card Info Section */}
       <SwipeCardItemCardInfoSection
         item={item}
+        pronunciation={pronunciation}
         isDark={isDark}
         initialIsSaved={initialIsSaved}
         day={day}

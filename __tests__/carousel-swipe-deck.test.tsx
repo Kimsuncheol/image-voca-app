@@ -23,6 +23,8 @@ jest.mock("react-native-gesture-handler", () => {
       Pan: () => {
         const builder = {
           runOnJS: jest.fn(() => builder),
+          activeOffsetX: jest.fn(() => builder),
+          failOffsetY: jest.fn(() => builder),
           onUpdate: jest.fn(() => builder),
           onEnd: jest.fn((handler: (event: PanEvent) => void) => {
             panEndHandler = handler;
