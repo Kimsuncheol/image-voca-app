@@ -1,0 +1,123 @@
+import nlp from "compromise";
+
+export interface QuizQuestion {
+  id: string;
+  word: string;
+  meaning: string;
+  options?: string[];
+  correctAnswer: string;
+  clozeSentence?: string;
+  translation?: string;
+  correctForms?: string[];
+  prompt?: string;
+  highlightText?: string;
+}
+
+export interface QuizVocabData {
+  word: string;
+  meaning: string;
+  pronunciation?: string;
+  example?: string;
+  translation?: string;
+}
+
+const shuffleArray = <T,>(items: T[]): T[] => {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+};
+
+const escapeRegex = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+export const generateQuizQuestions = (
+  vocabData: QuizVocabData[],
+  quizType: string,
+): QuizQuestion[] => {
+  const selectedWords = shuffleArray([...vocabData]);
+
+  return selectedWords.map((vocab, index) => {
+    const isWordAnswer = quizType === "fill-in-blank";
+
+    let options: string[] | undefined;
+    if (quizType === "multiple-choice") {
+      const otherMeanings = vocabData
+        .filter((v) => v.word !== vocab.word)
+        .map((v) => v.meaning);
+      const shuffledOthers = shuffleArray(otherMeanings);
+      const wrongAnswers = shuffledOthers.slice(0, 3);
+
+      options = shuffleArray([vocab.meaning, ...wrongAnswers]);
+    }
+
+    let clozeSentence: string | undefined;
+    let translation: string | undefined;
+    let correctForms: string[] | undefined;
+
+    if (quizType === "fill-in-blank" && vocab.example) {
+      const doc = nlp(vocab.example);
+      const targetWord = vocab.word;
+      const variations = new Set([targetWord, targetWord.toLowerCase()]);
+
+      try {
+        variations.add(nlp(targetWord).verbs().toPastTense().out());
+        variations.add(nlp(targetWord).verbs().toPresentTense().out());
+        variations.add(nlp(targetWord).verbs().toGerund().out());
+
+        variations.add(nlp(targetWord).nouns().toPlural().out());
+        variations.add(nlp(targetWord).nouns().toSingular().out());
+      } catch {
+        // Ignore unsupported transformations for unusual tokens.
+      }
+
+      const variationArray = Array.from(variations)
+        .filter((v) => v)
+        .map((v) => escapeRegex(v));
+
+      const matchString = variationArray.map((v) => `\\b${v}\\b`).join("|");
+      const matchRegex = new RegExp(matchString, "gi");
+
+      const docText = doc.text();
+      const matches = docText.match(matchRegex);
+
+      if (matches && matches.length > 0) {
+        correctForms = Array.from(matches);
+        clozeSentence = docText.replace(matchRegex, "___");
+      } else {
+        const fallbackRegex = new RegExp(`\\b${vocab.word}[a-z]*\\b`, "gi");
+        const fallbackMatches = vocab.example.match(fallbackRegex);
+        correctForms = fallbackMatches ? Array.from(fallbackMatches) : [];
+        clozeSentence = vocab.example.replace(fallbackRegex, "___");
+      }
+
+      translation = vocab.translation;
+
+      const otherWords = vocabData
+        .filter((v) => v.word !== vocab.word)
+        .map((v) => v.word);
+      const shuffledOthers = shuffleArray(otherWords);
+      const wrongAnswers = shuffledOthers.slice(0, 3);
+
+      options = shuffleArray([vocab.word, ...wrongAnswers]);
+    }
+
+    return {
+      id: `q${index}`,
+      word: vocab.word,
+      meaning: vocab.meaning,
+      options,
+      correctAnswer: isWordAnswer ? vocab.word : vocab.meaning,
+      clozeSentence,
+      translation,
+      correctForms,
+    };
+  });
+};
+
+export const hasReachedQuizCompletionThreshold = (
+  accumulatedCorrect: number,
+  totalQuestions: number,
+) => totalQuestions > 0 && accumulatedCorrect >= totalQuestions;

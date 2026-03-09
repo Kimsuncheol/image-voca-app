@@ -9,9 +9,6 @@ dist/
 web-build/
 expo-env.d.ts
 
-# Firebase
-firebase.json
-
 # CSV
 *.csv
 
@@ -42,6 +39,7 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+functions/lib/
 
 app-example
 

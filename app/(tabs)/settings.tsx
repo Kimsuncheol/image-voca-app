@@ -37,7 +37,6 @@ import { NotificationsSection } from "../../components/settings/NotificationsSec
 import { SettingsHeader } from "../../components/settings/SettingsHeader"; // Header component
 import { SignOutSection } from "../../components/settings/SignOutSection"; // Sign out button
 import { DashboardSection } from "../../components/settings/DashboardSection"; // Dashboard widget settings
-import { StudySection } from "../../components/settings/StudySection"; // Study-related preferences
 
 // ============================================================================
 // CONTEXT & STATE MANAGEMENT
@@ -46,7 +45,7 @@ import { useAuth } from "../../src/context/AuthContext"; // User authentication 
 import { useTheme } from "../../src/context/ThemeContext"; // Theme preferences context
 import { setLanguage, SupportedLanguage } from "../../src/i18n"; // Language configuration
 import { auth } from "../../src/services/firebase"; // Firebase auth instance
-import { useSubscriptionStore, useUserStatsStore } from "../../src/stores"; // Zustand stores
+import { useSubscriptionStore } from "../../src/stores"; // Zustand stores
 import { useDashboardSettingsStore } from "../../src/stores/dashboardSettingsStore";
 
 // ============================================================================
@@ -103,7 +102,6 @@ export default function SettingsScreen() {
   // USER DATA & STORES
   // ============================================================================
   const { user } = useAuth(); // Current authenticated user
-  const { stats, fetchStats, updateTargetScore } = useUserStatsStore(); // User statistics and target score
   const { fetchSubscription } = useSubscriptionStore(); // User subscription status
   const { loadSettings: loadDashboardSettings } = useDashboardSettingsStore();
 
@@ -120,10 +118,9 @@ export default function SettingsScreen() {
       checkNotificationStatus(); // Load notification preferences
       loadDashboardSettings(); // Load dashboard display settings
       if (user) {
-        fetchStats(user.uid); // Fetch user statistics
         fetchSubscription(user.uid); // Fetch subscription status
       }
-    }, [user, fetchStats, fetchSubscription, loadDashboardSettings]),
+    }, [user, fetchSubscription, loadDashboardSettings]),
   );
 
   // ============================================================================
@@ -417,25 +414,6 @@ export default function SettingsScreen() {
   };
 
   // ============================================================================
-  // TARGET SCORE UPDATE HANDLER
-  // ============================================================================
-  /**
-   * Updates the user's target score for daily pop quizzes
-   *
-   * The target score determines how many questions appear in daily pop quizzes.
-   * This value is saved to Firestore and synced across devices.
-   *
-   * @async
-   * @param {number} score - New target score (number of questions per quiz)
-   * @returns {Promise<void>}
-   */
-  const handleUpdateTargetScore = async (score: number) => {
-    if (user) {
-      await updateTargetScore(user.uid, score); // Updates Firestore
-    }
-  };
-
-  // ============================================================================
   // STYLES
   // ============================================================================
   // Get theme-aware styles based on dark mode preference
@@ -485,20 +463,6 @@ export default function SettingsScreen() {
           isDark={isDark}
           theme={theme}
           setTheme={setTheme}
-          t={t}
-        />
-
-        {/* ================================================================
-            STUDY SECTION
-            ================================================================
-            Target score configuration for daily pop quizzes
-            Users can set how many questions they want in their daily quizzes
-        */}
-        <StudySection
-          styles={styles}
-          isDark={isDark}
-          targetScore={stats?.targetScore || 10} // Default to 10 if not set
-          onUpdateTargetScore={handleUpdateTargetScore}
           t={t}
         />
 

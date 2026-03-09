@@ -1,11 +1,10 @@
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { ThemedText } from "../themed-text";
 
 interface MatchingCardProps {
   text: string;
-  variant?: "word" | "meaning";
+
   isMatched: boolean;
   isSelected: boolean;
   onPress: () => void;
@@ -15,7 +14,7 @@ interface MatchingCardProps {
 
 export function MatchingCard({
   text,
-  variant = "word",
+
   isMatched,
   isSelected,
   onPress,
@@ -38,30 +37,15 @@ export function MatchingCard({
       disabled={isMatched}
     >
       <View style={styles.content}>
-        {variant === "meaning" ? (
-          <InlineMeaningWithChips
-            meaning={text}
-            isDark={isDark}
-            textStyle={[
-              styles.matchingItemText,
-              isMatched && styles.matchingItemTextMatched,
-              isSelected && { color: courseColor || "#007AFF" },
-            ]}
-            containerStyle={styles.inlineMeaning}
-            chipStyle={styles.inlineChip}
-            testID="inline-meaning"
-          />
-        ) : (
-          <ThemedText
-            style={[
-              styles.matchingItemText,
-              isMatched && styles.matchingItemTextMatched,
-              isSelected && { color: courseColor || "#007AFF" },
-            ]}
-          >
-            {text}
-          </ThemedText>
-        )}
+        <ThemedText
+          style={[
+            styles.matchingItemText,
+            isMatched && styles.matchingItemTextMatched,
+            isSelected && { color: courseColor || "#007AFF" },
+          ]}
+        >
+          {text}
+        </ThemedText>
       </View>
     </TouchableOpacity>
   );
@@ -90,13 +74,7 @@ const styles = StyleSheet.create({
   content: {
     width: "100%",
   },
-  inlineMeaning: {
-    alignSelf: "stretch",
-    gap: 6,
-  },
-  inlineChip: {
-    marginRight: 6,
-  },
+
   matchingItemMatched: {
     borderColor: "#28a745",
     backgroundColor: "transparent",

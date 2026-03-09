@@ -19,6 +19,7 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -31,35 +32,18 @@ import {
   resolveRuntimeQuizType,
   sanitizeRequestedQuizType,
 } from "../../../src/course/quizModes";
+import {
+  generateQuizQuestions,
+  hasReachedQuizCompletionThreshold,
+  type QuizQuestion,
+  type QuizVocabData,
+} from "../../../src/course/quizUtils";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
 import { db } from "../../../src/services/firebase";
 import { useUserStatsStore } from "../../../src/stores";
 import { COURSES, CourseType } from "../../../src/types/vocabulary";
-
-import nlp from "compromise";
-
-interface QuizQuestion {
-  id: string;
-  word: string;
-  meaning: string;
-  options?: string[];
-  correctAnswer: string;
-  clozeSentence?: string;
-  translation?: string;
-  correctForms?: string[];
-  prompt?: string;
-  highlightText?: string;
-}
-
-interface VocabData {
-  word: string;
-  meaning: string;
-  pronunciation?: string;
-  example?: string;
-  translation?: string;
-}
 
 const shuffleArray = <T,>(items: T[]): T[] => {
   const copy = [...items];
@@ -103,98 +87,6 @@ const getCourseConfig = (courseId: CourseType) => {
   }
 };
 
-const escapeRegex = (value: string) =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-// Generate quiz questions from real vocabulary data
-const generateQuizQuestions = (
-  vocabData: VocabData[],
-  quizType: string,
-  targetScore: number = 10,
-): QuizQuestion[] => {
-  const selectedWords = shuffleArray([...vocabData]).slice(
-    0,
-    Math.min(targetScore, vocabData.length),
-  );
-
-  return selectedWords.map((vocab, index) => {
-    const isWordAnswer = quizType === "fill-in-blank";
-
-    let options: string[] | undefined;
-    if (quizType === "multiple-choice") {
-      const otherMeanings = vocabData
-        .filter((v) => v.word !== vocab.word)
-        .map((v) => v.meaning);
-      const shuffledOthers = shuffleArray(otherMeanings);
-      const wrongAnswers = shuffledOthers.slice(0, 3);
-
-      options = shuffleArray([vocab.meaning, ...wrongAnswers]);
-    }
-
-    let clozeSentence: string | undefined;
-    let translation: string | undefined;
-    let correctForms: string[] | undefined;
-
-    if (quizType === "fill-in-blank" && vocab.example) {
-      const doc = nlp(vocab.example);
-      const targetWord = vocab.word;
-      const variations = new Set([targetWord, targetWord.toLowerCase()]);
-
-      try {
-        variations.add(nlp(targetWord).verbs().toPastTense().out());
-        variations.add(nlp(targetWord).verbs().toPresentTense().out());
-        variations.add(nlp(targetWord).verbs().toGerund().out());
-
-        variations.add(nlp(targetWord).nouns().toPlural().out());
-        variations.add(nlp(targetWord).nouns().toSingular().out());
-      } catch {
-        // Ignore unsupported transformations for unusual tokens.
-      }
-
-      const variationArray = Array.from(variations)
-        .filter((v) => v)
-        .map((v) => escapeRegex(v));
-
-      const matchString = variationArray.map((v) => `\\b${v}\\b`).join("|");
-      const matchRegex = new RegExp(matchString, "gi");
-
-      const docText = doc.text();
-      const matches = docText.match(matchRegex);
-
-      if (matches && matches.length > 0) {
-        correctForms = Array.from(matches);
-        clozeSentence = docText.replace(matchRegex, "___");
-      } else {
-        const fallbackRegex = new RegExp(`\\b${vocab.word}[a-z]*\\b`, "gi");
-        const fallbackMatches = vocab.example.match(fallbackRegex);
-        correctForms = fallbackMatches ? Array.from(fallbackMatches) : [];
-        clozeSentence = vocab.example.replace(fallbackRegex, "___");
-      }
-
-      translation = vocab.translation;
-
-      const otherWords = vocabData
-        .filter((v) => v.word !== vocab.word)
-        .map((v) => v.word);
-      const shuffledOthers = shuffleArray(otherWords);
-      const wrongAnswers = shuffledOthers.slice(0, 3);
-
-      options = shuffleArray([vocab.word, ...wrongAnswers]);
-    }
-
-    return {
-      id: `q${index}`,
-      word: vocab.word,
-      meaning: vocab.meaning,
-      options,
-      correctAnswer: isWordAnswer ? vocab.word : vocab.meaning,
-      clozeSentence,
-      translation,
-      correctForms,
-    };
-  });
-};
-
 export default function QuizPlayScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
@@ -203,12 +95,10 @@ export default function QuizPlayScreen() {
   const {
     bufferQuizAnswer,
     flushQuizStats,
-    stats,
     courseProgress,
     fetchCourseProgress,
     updateCourseDayProgress,
   } = useUserStatsStore();
-  const targetScore = stats?.targetScore || 10;
   useTimeTracking(); // Track time spent on this screen
   const { courseId, day, quizType } = useLocalSearchParams<{
     courseId: CourseType;
@@ -217,8 +107,7 @@ export default function QuizPlayScreen() {
   }>();
   const sanitizedQuizType = sanitizeRequestedQuizType(courseId, quizType);
   const resolvedQuizType = resolveRuntimeQuizType(sanitizedQuizType);
-
-  const course = COURSES.find((c) => c.id === courseId);
+  const course = COURSES.find((candidate) => candidate.id === courseId);
   const dayNumber = parseInt(day || "1", 10);
 
   const [loading, setLoading] = useState(true);
@@ -268,7 +157,7 @@ export default function QuizPlayScreen() {
         const q = query(targetCollection);
         const querySnapshot = await getDocs(q);
 
-        const fetchedVocab: VocabData[] = querySnapshot.docs.map((doc) => {
+        const fetchedVocab: QuizVocabData[] = querySnapshot.docs.map((doc) => {
           const data = doc.data();
           if (courseId === "COLLOCATION") {
             return {
@@ -299,7 +188,6 @@ export default function QuizPlayScreen() {
         const generatedQuestions = generateQuizQuestions(
           fetchedVocab,
           resolvedQuizType,
-          targetScore,
         );
         setQuestions(generatedQuestions);
 
@@ -314,12 +202,11 @@ export default function QuizPlayScreen() {
         console.error("Error fetching vocabulary for quiz:", error);
       } finally {
         setLoading(false);
-        console.log("Stats:", targetScore);
       }
     };
 
     fetchVocabulary();
-  }, [courseId, dayNumber, resolvedQuizType, targetScore]);
+  }, [courseId, dayNumber, resolvedQuizType]);
 
   const currentQuestion = questions[currentIndex];
   const isMatching = resolvedQuizType === "matching";
@@ -336,7 +223,9 @@ export default function QuizPlayScreen() {
         courseProgress[courseId]?.[dayNumber]?.accumulatedCorrect || 0;
       const totalCorrect = existingAccumulated + nextScore;
 
-      if (totalCorrect < targetScore) return;
+      if (!hasReachedQuizCompletionThreshold(totalCorrect, totalQuestions)) {
+        return;
+      }
 
       retakeMarkedRef.current = true;
       updateCourseDayProgress(courseId, dayNumber, { isRetake: true });
@@ -354,7 +243,7 @@ export default function QuizPlayScreen() {
       courseId,
       courseProgress,
       dayNumber,
-      targetScore,
+      totalQuestions,
       updateCourseDayProgress,
     ],
   );
@@ -486,7 +375,10 @@ export default function QuizPlayScreen() {
           accumulatedCorrect += storedProgress.accumulatedCorrect || 0;
         }
       }
-      const didReachTarget = accumulatedCorrect >= targetScore;
+      const didReachTarget = hasReachedQuizCompletionThreshold(
+        accumulatedCorrect,
+        totalQuestions,
+      );
 
       await updateDoc(doc(db, "users", user.uid), {
         [`courseProgress.${courseId}.${dayNumber}.quizCompleted`]:
@@ -653,33 +545,58 @@ export default function QuizPlayScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <GameBoard
-            quizType={sanitizedQuizType}
-            currentQuestion={currentQuestion}
-            questions={questions}
-            progressCurrent={progressCurrent}
-            courseColor={course?.color}
-            isDark={isDark}
-            matchingMeanings={matchingMeanings}
-            selectedWord={selectedWord}
-            selectedMeaning={selectedMeaning}
-            matchedPairs={matchedPairs}
-            // matchingFeedback={matchingFeedback} // Removed
-            onSelectWord={handleSelectWord}
-            onSelectMeaning={handleSelectMeaning}
-            userAnswer={userAnswer}
-            showResult={showResult}
-            isCorrect={isCorrect}
-            onAnswer={(answer) => {
-              setUserAnswer(answer);
-              handleAnswer(answer);
-            }}
-          />
-        </ScrollView>
+        {isMatching ? (
+          <View style={styles.matchingContent}>
+            <GameBoard
+              quizType={sanitizedQuizType}
+              currentQuestion={currentQuestion}
+              questions={questions}
+              progressCurrent={progressCurrent}
+              courseColor={course?.color}
+              isDark={isDark}
+              matchingMeanings={matchingMeanings}
+              selectedWord={selectedWord}
+              selectedMeaning={selectedMeaning}
+              matchedPairs={matchedPairs}
+              onSelectWord={handleSelectWord}
+              onSelectMeaning={handleSelectMeaning}
+              userAnswer={userAnswer}
+              showResult={showResult}
+              isCorrect={isCorrect}
+              onAnswer={(answer) => {
+                setUserAnswer(answer);
+                handleAnswer(answer);
+              }}
+            />
+          </View>
+        ) : (
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <GameBoard
+              quizType={sanitizedQuizType}
+              currentQuestion={currentQuestion}
+              questions={questions}
+              progressCurrent={progressCurrent}
+              courseColor={course?.color}
+              isDark={isDark}
+              matchingMeanings={matchingMeanings}
+              selectedWord={selectedWord}
+              selectedMeaning={selectedMeaning}
+              matchedPairs={matchedPairs}
+              onSelectWord={handleSelectWord}
+              onSelectMeaning={handleSelectMeaning}
+              userAnswer={userAnswer}
+              showResult={showResult}
+              isCorrect={isCorrect}
+              onAnswer={(answer) => {
+                setUserAnswer(answer);
+                handleAnswer(answer);
+              }}
+            />
+          </ScrollView>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -695,6 +612,10 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
     paddingBottom: 40,
+  },
+  matchingContent: {
+    flex: 1,
+    padding: 20,
   },
   nextButton: {
     flexDirection: "row",

@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as Speech from "expo-speech";
 import React, { useState } from "react";
 import {
   ScrollView,
@@ -8,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSpeech } from "../../src/hooks/useSpeech";
 
 interface SwipeCardItemExampleSentenceSectionProps {
   example: string;
@@ -20,6 +20,8 @@ export function SwipeCardItemExampleSentenceSection({
   translation,
   isDark,
 }: SwipeCardItemExampleSentenceSectionProps) {
+  const { speak } = useSpeech();
+
   // Split examples and translations by newlines
   // Remove number prefixes (e.g., "1. ", "2. ") from the raw text
   const examples = example
@@ -43,14 +45,7 @@ export function SwipeCardItemExampleSentenceSection({
   // TTS handler with recycling (stop previous speech before starting new)
   const handleSpeak = async (text: string) => {
     try {
-      // Stop any ongoing speech (TTS recycling)
-      await Speech.stop();
-
-      // Clean the text: remove quotes and trim
-      const cleanText = text.replace(/^"|"$/g, "").trim();
-
-      // Speak the cleaned text
-      Speech.speak(cleanText, {
+      await speak(text, {
         language: "en-US",
         pitch: 1.0,
         rate: 0.9,

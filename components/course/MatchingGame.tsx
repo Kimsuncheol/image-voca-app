@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../themed-text";
 import { MatchingCard } from "./MatchingCard";
+
+const PAGE_SIZE = 5;
 
 interface QuizQuestion {
   id: string;
@@ -34,16 +36,34 @@ export function MatchingGame({
   isDark,
 }: MatchingGameProps) {
   const { t } = useTranslation();
+  const [page, setPage] = useState(0);
 
-  // Shuffle meanings once on mount
+  const pageCount = Math.ceil(questions.length / PAGE_SIZE);
+  const currentQuestions = questions.slice(
+    page * PAGE_SIZE,
+    (page + 1) * PAGE_SIZE,
+  );
+
+  // Shuffle meanings for the current page only; re-shuffle when page changes
   const shuffledMeanings = React.useMemo(() => {
-    const shuffled = questions.map((q) => q.meaning);
+    const shuffled = currentQuestions.map((q) => q.meaning);
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
-  }, [questions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
+
+  // Auto-advance to the next page when all current cards are matched
+  useEffect(() => {
+    if (currentQuestions.length === 0) return;
+    const allMatched = currentQuestions.every((q) => matchedPairs[q.word]);
+    if (allMatched && page < pageCount - 1) {
+      const timer = setTimeout(() => setPage((p) => p + 1), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [matchedPairs, currentQuestions, page, pageCount]);
 
   return (
     <View style={styles.matchingContainer}>
@@ -53,11 +73,11 @@ export function MatchingGame({
 
       <View style={styles.matchingColumns}>
         <View style={styles.matchingColumn}>
-          {questions.map((question) => (
+          {currentQuestions.map((question) => (
             <MatchingCard
               key={question.word}
               text={question.word}
-              variant="word"
+
               isMatched={Boolean(matchedPairs[question.word])}
               isSelected={selectedWord === question.word}
               onPress={() => onSelectWord(question.word)}
@@ -72,7 +92,7 @@ export function MatchingGame({
             <MatchingCard
               key={meaning}
               text={meaning}
-              variant="meaning"
+
               isMatched={Object.values(matchedPairs).includes(meaning)}
               isSelected={selectedMeaning === meaning}
               onPress={() => onSelectMeaning(meaning)}
@@ -83,24 +103,6 @@ export function MatchingGame({
         </View>
       </View>
 
-      {/* Pagination dots — one dot per question, filled when matched */}
-      <View style={styles.paginationDots}>
-        {questions.map((q) => (
-          <View
-            key={q.id}
-            style={[
-              styles.dot,
-              {
-                backgroundColor: matchedPairs[q.word]
-                  ? courseColor || "#007AFF"
-                  : isDark
-                    ? "#333"
-                    : "#ddd",
-              },
-            ]}
-          />
-        ))}
-      </View>
     </View>
   );
 }
@@ -126,17 +128,5 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 12,
   },
-  paginationDots: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 10,
-    marginTop: 20,
-    height: 20,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
+
 });

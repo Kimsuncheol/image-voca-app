@@ -5,13 +5,14 @@
  * Provides a clean interface for components to use TTS
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   speak,
   stopSpeech,
   pauseSpeech,
   resumeSpeech,
   SpeechOptions,
+  subscribeToSpeechState,
 } from "../services/speechService";
 
 export interface UseSpeechReturn {
@@ -57,6 +58,13 @@ export const useSpeech = (): UseSpeechReturn => {
   const [isPaused, setIsPaused] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  useEffect(() => {
+    return subscribeToSpeechState((state) => {
+      setIsSpeaking(state.isSpeaking);
+      setIsPaused(state.isPaused);
+    });
+  }, []);
+
   const speakText = useCallback(
     async (text: string, options?: SpeechOptions) => {
       try {
@@ -87,6 +95,7 @@ export const useSpeech = (): UseSpeechReturn => {
         setError(err as Error);
         setIsSpeaking(false);
         setIsPaused(false);
+        throw err;
       }
     },
     []
@@ -100,6 +109,7 @@ export const useSpeech = (): UseSpeechReturn => {
       setError(null);
     } catch (err) {
       setError(err as Error);
+      throw err;
     }
   }, []);
 
@@ -111,6 +121,7 @@ export const useSpeech = (): UseSpeechReturn => {
       setError(null);
     } catch (err) {
       setError(err as Error);
+      throw err;
     }
   }, []);
 
@@ -122,6 +133,7 @@ export const useSpeech = (): UseSpeechReturn => {
       setError(null);
     } catch (err) {
       setError(err as Error);
+      throw err;
     }
   }, []);
 

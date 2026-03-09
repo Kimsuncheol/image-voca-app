@@ -12,6 +12,7 @@ process.env.EXPO_PUBLIC_COURSE_PATH_IELTS = "courses/ielts";
 process.env.EXPO_PUBLIC_COURSE_PATH_OPIC = "courses/opic";
 process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC_SPEAKING = "courses/toeic-speaking";
 process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION = "courses/collocation";
+process.env.EXPO_PUBLIC_QWEN_TTS_ENDPOINT = "https://example.com/qwen-tts";
 
 jest.mock('expo-image', () => {
   const React = require('react');
@@ -32,6 +33,61 @@ jest.mock("@expo/vector-icons", () => {
     Ionicons: Icon,
   };
 });
+
+jest.mock("expo-av", () => {
+  const playbackStatus = {
+    isLoaded: true,
+    isPlaying: false,
+    didJustFinish: false,
+    positionMillis: 0,
+    durationMillis: 1000,
+  };
+
+  const createSound = () => ({
+    setOnPlaybackStatusUpdate: jest.fn(),
+    unloadAsync: jest.fn(async () => playbackStatus),
+    playAsync: jest.fn(async () => ({ ...playbackStatus, isPlaying: true })),
+    pauseAsync: jest.fn(async () => ({ ...playbackStatus, isPlaying: false })),
+    setRateAsync: jest.fn(async () => playbackStatus),
+  });
+
+  return {
+    Audio: {
+      setAudioModeAsync: jest.fn(async () => undefined),
+      Sound: {
+        createAsync: jest.fn(async (_source, _initialStatus, onPlaybackStatusUpdate) => {
+          const sound = createSound();
+          sound.setOnPlaybackStatusUpdate.mockImplementation(() => undefined);
+          if (onPlaybackStatusUpdate) {
+            sound.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
+          }
+          return {
+            sound,
+            status: playbackStatus,
+          };
+        }),
+      },
+    },
+  };
+});
+
+jest.mock("expo-file-system/legacy", () => ({
+  cacheDirectory: "file:///mock-cache/",
+  EncodingType: {
+    Base64: "base64",
+  },
+  getInfoAsync: jest.fn(async () => ({ exists: false, isDirectory: false })),
+  makeDirectoryAsync: jest.fn(async () => undefined),
+  writeAsStringAsync: jest.fn(async () => undefined),
+}));
+
+jest.mock("expo-crypto", () => ({
+  CryptoDigestAlgorithm: {
+    SHA256: "SHA256",
+  },
+  digestStringAsync: jest.fn(async (_algorithm, value) => `hash:${value}`),
+}));
+
 jest.mock('firebase/app', () => {
   return {
     initializeApp: jest.fn(),

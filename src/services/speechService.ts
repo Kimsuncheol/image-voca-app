@@ -1,21 +1,22 @@
 /**
  * Speech Service
  *
- * Centralized Text-to-Speech functionality using expo-speech
- * Provides configuration and utilities for TTS across the app
+ * Centralized Text-to-Speech functionality backed by Qwen3-TTS.
+ * Audio is synthesized remotely, cached locally, and played with expo-av.
  */
 
-import * as Speech from "expo-speech";
-import { Platform } from "react-native";
+import { Audio, type AVPlaybackStatus, type AVPlaybackStatusSuccess } from "expo-av";
+import * as Crypto from "expo-crypto";
+import * as FileSystem from "expo-file-system/legacy";
 
 export interface SpeechOptions {
   /** Language code (e.g., "en-US", "ko-KR") */
   language?: string;
   /** Speech rate (0.5 - 2.0, default: 1.0) */
   rate?: number;
-  /** Pitch (0.5 - 2.0, default: 1.0) */
+  /** Pitch (reserved for future Qwen support) */
   pitch?: number;
-  /** Voice identifier (platform-specific) */
+  /** App-supported Qwen voice identifier */
   voice?: string;
   /** Callback when speech starts */
   onStart?: () => void;
@@ -25,178 +26,438 @@ export interface SpeechOptions {
   onError?: (error: Error) => void;
 }
 
-/**
- * Default speech configuration
- */
+export interface SpeechVoiceOption {
+  id: string;
+  providerVoice: string;
+  label: string;
+  languages: string[];
+}
+
+interface SpeechState {
+  isSpeaking: boolean;
+  isPaused: boolean;
+}
+
+interface QwenSpeechResponse {
+  audioBase64: string;
+  mimeType: string;
+  cacheKey: string;
+}
+
 const DEFAULT_CONFIG: SpeechOptions = {
   language: "en-US",
   rate: 0.9,
   pitch: 1.0,
 };
 
-/**
- * Speaks the given text with optional configuration
- */
-export const speak = async (
-  text: string,
-  options?: SpeechOptions
-): Promise<void> => {
-  try {
-    // Check if speech is available
-    const isAvailable = await Speech.isSpeakingAsync();
+const TTS_CACHE_DIRECTORY = `${FileSystem.cacheDirectory ?? ""}qwen-tts/`;
 
-    // Stop current speech if playing
-    if (isAvailable) {
-      await Speech.stop();
-    }
+export const SUPPORTED_VOICES: SpeechVoiceOption[] = [
+  {
+    id: "Aiden",
+    providerVoice: "Aiden",
+    label: "Aiden",
+    languages: ["en", "es", "fr", "de", "it", "pt", "ru", "ja", "ko", "zh"],
+  },
+  {
+    id: "Sohee",
+    providerVoice: "Sohee",
+    label: "Sohee",
+    languages: ["ko", "en", "ja", "zh"],
+  },
+  {
+    id: "Ono_Anna",
+    providerVoice: "Ono Anna",
+    label: "Ono Anna",
+    languages: ["ja", "en", "ko", "zh"],
+  },
+];
 
-    // Merge with defaults
-    const config = { ...DEFAULT_CONFIG, ...options };
-
-    // Speak with configuration
-    Speech.speak(text, {
-      language: config.language,
-      rate: config.rate,
-      pitch: config.pitch,
-      voice: config.voice,
-      onStart: config.onStart,
-      onDone: config.onDone,
-      onError: config.onError,
-    });
-  } catch (error) {
-    console.error("Speech error:", error);
-    options?.onError?.(error as Error);
-  }
+const DEFAULT_VOICE_BY_LANGUAGE: Record<string, string> = {
+  en: "Aiden",
+  ja: "Ono_Anna",
+  ko: "Sohee",
 };
 
-/**
- * Stops any currently playing speech
- */
-export const stopSpeech = async (): Promise<void> => {
-  try {
-    await Speech.stop();
-  } catch (error) {
-    console.error("Error stopping speech:", error);
-  }
-};
-
-/**
- * Pauses currently playing speech (iOS only)
- */
-export const pauseSpeech = async (): Promise<void> => {
-  try {
-    if (Platform.OS === "ios") {
-      await Speech.pause();
-    } else {
-      // Android doesn't support pause, so stop instead
-      await Speech.stop();
-    }
-  } catch (error) {
-    console.error("Error pausing speech:", error);
-  }
-};
-
-/**
- * Resumes paused speech (iOS only)
- */
-export const resumeSpeech = async (): Promise<void> => {
-  try {
-    if (Platform.OS === "ios") {
-      await Speech.resume();
-    }
-  } catch (error) {
-    console.error("Error resuming speech:", error);
-  }
-};
-
-/**
- * Checks if speech is currently playing
- */
-export const isSpeaking = async (): Promise<boolean> => {
-  try {
-    return await Speech.isSpeakingAsync();
-  } catch (error) {
-    console.error("Error checking speech status:", error);
-    return false;
-  }
-};
-
-/**
- * Checks if speech is paused (iOS only)
- */
-export const isPaused = async (): Promise<boolean> => {
-  try {
-    if (Platform.OS === "ios") {
-      return await Speech.isPausedAsync();
-    }
-    return false;
-  } catch (error) {
-    console.error("Error checking pause status:", error);
-    return false;
-  }
-};
-
-/**
- * Gets available voices for the platform
- */
-export const getAvailableVoices = async () => {
-  try {
-    return await Speech.getAvailableVoicesAsync();
-  } catch (error) {
-    console.error("Error getting voices:", error);
-    return [];
-  }
-};
-
-/**
- * Language-specific configurations
- */
 export const LANGUAGE_CONFIGS: Record<string, Partial<SpeechOptions>> = {
   en: {
     language: "en-US",
     rate: 0.9,
     pitch: 1.0,
+    voice: "Aiden",
   },
   ko: {
     language: "ko-KR",
     rate: 0.85,
     pitch: 1.0,
+    voice: "Sohee",
   },
   es: {
     language: "es-ES",
     rate: 0.9,
     pitch: 1.0,
+    voice: "Aiden",
   },
   fr: {
     language: "fr-FR",
     rate: 0.9,
     pitch: 1.0,
+    voice: "Aiden",
   },
   ja: {
     language: "ja-JP",
     rate: 0.85,
     pitch: 1.0,
+    voice: "Ono_Anna",
   },
   zh: {
     language: "zh-CN",
     rate: 0.85,
     pitch: 1.0,
+    voice: "Aiden",
   },
 };
 
-/**
- * Gets language-specific configuration
- */
+let currentSound: Audio.Sound | null = null;
+let currentPlaybackToken = 0;
+let audioModeConfigured = false;
+let cacheDirectoryReady = false;
+let speechState: SpeechState = { isSpeaking: false, isPaused: false };
+const speechListeners = new Set<(state: SpeechState) => void>();
+
+const clampRate = (rate: number | undefined): number => {
+  const fallbackRate = DEFAULT_CONFIG.rate ?? 1;
+  if (typeof rate !== "number" || Number.isNaN(rate)) {
+    return fallbackRate;
+  }
+  return Math.min(2, Math.max(0.5, rate));
+};
+
+const stripSurroundingQuotes = (text: string): string => {
+  const trimmedText = text.trim();
+  if (
+    (trimmedText.startsWith('"') && trimmedText.endsWith('"')) ||
+    (trimmedText.startsWith("'") && trimmedText.endsWith("'"))
+  ) {
+    return trimmedText.slice(1, -1).trim();
+  }
+  return trimmedText;
+};
+
+const getBaseLanguageCode = (languageCode?: string): string =>
+  (languageCode || DEFAULT_CONFIG.language || "en-US").split("-")[0].toLowerCase();
+
+const setSpeechState = (nextState: Partial<SpeechState>) => {
+  speechState = { ...speechState, ...nextState };
+  speechListeners.forEach((listener) => listener(speechState));
+};
+
+const resolveVoiceId = (languageCode?: string, voice?: string): string => {
+  if (voice && SUPPORTED_VOICES.some((item) => item.id === voice)) {
+    return voice;
+  }
+
+  const baseCode = getBaseLanguageCode(languageCode);
+  return DEFAULT_VOICE_BY_LANGUAGE[baseCode] || "Aiden";
+};
+
+const getEndpoint = (): string => {
+  const endpoint = process.env.EXPO_PUBLIC_QWEN_TTS_ENDPOINT?.trim();
+  if (!endpoint) {
+    throw new Error("EXPO_PUBLIC_QWEN_TTS_ENDPOINT is not configured.");
+  }
+  return endpoint;
+};
+
+const ensureCacheDirectory = async () => {
+  if (cacheDirectoryReady || !TTS_CACHE_DIRECTORY) {
+    return;
+  }
+
+  const directoryInfo = await FileSystem.getInfoAsync(TTS_CACHE_DIRECTORY);
+  if (!directoryInfo.exists) {
+    await FileSystem.makeDirectoryAsync(TTS_CACHE_DIRECTORY, {
+      intermediates: true,
+    });
+  }
+  cacheDirectoryReady = true;
+};
+
+const ensureAudioMode = async () => {
+  if (audioModeConfigured) {
+    return;
+  }
+
+  await Audio.setAudioModeAsync({
+    allowsRecordingIOS: false,
+    playsInSilentModeIOS: true,
+    shouldDuckAndroid: true,
+    playThroughEarpieceAndroid: false,
+    staysActiveInBackground: false,
+  });
+  audioModeConfigured = true;
+};
+
+const getCacheFileUri = (cacheKey: string): string =>
+  `${TTS_CACHE_DIRECTORY}${cacheKey}.mp3`;
+
+const isPlaybackStatusSuccess = (
+  status: AVPlaybackStatus
+): status is AVPlaybackStatusSuccess => status.isLoaded;
+
+const unloadCurrentSound = async () => {
+  if (!currentSound) {
+    return;
+  }
+
+  const soundToUnload = currentSound;
+  currentSound = null;
+  soundToUnload.setOnPlaybackStatusUpdate(null);
+  await soundToUnload.unloadAsync();
+};
+
+const stopActiveSound = async () => {
+  try {
+    await unloadCurrentSound();
+  } catch (error) {
+    console.error("Error unloading speech audio:", error);
+  } finally {
+    setSpeechState({ isSpeaking: false, isPaused: false });
+  }
+};
+
+const normalizeResponseError = async (response: Response): Promise<string> => {
+  try {
+    const data = await response.json();
+    if (data?.message) {
+      return data.message;
+    }
+  } catch {
+    // Ignore JSON parse errors and fall through to status text.
+  }
+
+  return response.statusText || "Speech synthesis failed.";
+};
+
+const handlePlaybackStatus = (
+  status: AVPlaybackStatus,
+  playbackToken: number,
+  options?: SpeechOptions
+) => {
+  if (playbackToken !== currentPlaybackToken) {
+    return;
+  }
+
+  if (!isPlaybackStatusSuccess(status)) {
+    if (status.error) {
+      const error = new Error(status.error);
+      setSpeechState({ isSpeaking: false, isPaused: false });
+      options?.onError?.(error);
+      void stopActiveSound();
+    }
+    return;
+  }
+
+  if (status.didJustFinish) {
+    setSpeechState({ isSpeaking: false, isPaused: false });
+    options?.onDone?.();
+    void stopActiveSound();
+    return;
+  }
+
+  if (status.isPlaying) {
+    setSpeechState({ isSpeaking: true, isPaused: false });
+    return;
+  }
+
+  if (status.positionMillis > 0 && status.positionMillis < (status.durationMillis ?? 0)) {
+    setSpeechState({ isSpeaking: false, isPaused: true });
+  }
+};
+
+export const normalizeSpeechText = (text: string): string =>
+  stripSurroundingQuotes(text).replace(/\s+/g, " ").trim();
+
+export const buildSpeechCacheKey = async (
+  text: string,
+  options?: SpeechOptions
+): Promise<string> => {
+  const normalizedText = normalizeSpeechText(text);
+  const language = options?.language || DEFAULT_CONFIG.language || "en-US";
+  const voice = resolveVoiceId(language, options?.voice);
+  const rate = clampRate(options?.rate);
+
+  return Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    JSON.stringify({
+      text: normalizedText,
+      language,
+      voice,
+      rate,
+    })
+  );
+};
+
+const fetchSpeechAudio = async (
+  text: string,
+  options?: SpeechOptions
+): Promise<QwenSpeechResponse> => {
+  const normalizedText = normalizeSpeechText(text);
+  const response = await fetch(getEndpoint(), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      text: normalizedText,
+      language: options?.language || DEFAULT_CONFIG.language,
+      rate: clampRate(options?.rate),
+      voice: resolveVoiceId(options?.language, options?.voice),
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(await normalizeResponseError(response));
+  }
+
+  const payload = (await response.json()) as Partial<QwenSpeechResponse>;
+  if (!payload.audioBase64 || !payload.cacheKey) {
+    throw new Error("Qwen TTS response is missing audio data.");
+  }
+
+  return {
+    audioBase64: payload.audioBase64,
+    mimeType: payload.mimeType || "audio/mpeg",
+    cacheKey: payload.cacheKey,
+  };
+};
+
+const playFromFile = async (
+  fileUri: string,
+  options?: SpeechOptions,
+  playbackToken?: number
+) => {
+  await ensureAudioMode();
+
+  const activeToken = playbackToken ?? currentPlaybackToken;
+  const { sound } = await Audio.Sound.createAsync(
+    { uri: fileUri },
+    { shouldPlay: false },
+    (status) => handlePlaybackStatus(status, activeToken, options)
+  );
+
+  if (activeToken !== currentPlaybackToken) {
+    sound.setOnPlaybackStatusUpdate(null);
+    await sound.unloadAsync();
+    return;
+  }
+
+  currentSound = sound;
+  await sound.setRateAsync(clampRate(options?.rate), true);
+  await sound.playAsync();
+  setSpeechState({ isSpeaking: true, isPaused: false });
+  options?.onStart?.();
+};
+
+export const speak = async (
+  text: string,
+  options?: SpeechOptions
+): Promise<void> => {
+  const normalizedText = normalizeSpeechText(text);
+
+  if (!normalizedText) {
+    const error = new Error("Speech text cannot be empty.");
+    options?.onError?.(error);
+    throw error;
+  }
+
+  const config = { ...DEFAULT_CONFIG, ...options };
+  const cacheKey = await buildSpeechCacheKey(normalizedText, config);
+  const fileUri = getCacheFileUri(cacheKey);
+  const playbackToken = ++currentPlaybackToken;
+
+  try {
+    await stopActiveSound();
+    await ensureCacheDirectory();
+
+    const cacheInfo = await FileSystem.getInfoAsync(fileUri);
+    if (!cacheInfo.exists) {
+      const synthesizedAudio = await fetchSpeechAudio(normalizedText, config);
+      await FileSystem.writeAsStringAsync(fileUri, synthesizedAudio.audioBase64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+    }
+
+    if (playbackToken !== currentPlaybackToken) {
+      return;
+    }
+
+    await playFromFile(fileUri, config, playbackToken);
+  } catch (error) {
+    setSpeechState({ isSpeaking: false, isPaused: false });
+    console.error("Speech error:", error);
+    options?.onError?.(error as Error);
+    throw error;
+  }
+};
+
+export const stopSpeech = async (): Promise<void> => {
+  currentPlaybackToken += 1;
+  await stopActiveSound();
+};
+
+export const pauseSpeech = async (): Promise<void> => {
+  try {
+    if (!currentSound) {
+      return;
+    }
+
+    await currentSound.pauseAsync();
+    setSpeechState({ isSpeaking: false, isPaused: true });
+  } catch (error) {
+    console.error("Error pausing speech:", error);
+    throw error;
+  }
+};
+
+export const resumeSpeech = async (): Promise<void> => {
+  try {
+    if (!currentSound) {
+      return;
+    }
+
+    await currentSound.playAsync();
+    setSpeechState({ isSpeaking: true, isPaused: false });
+  } catch (error) {
+    console.error("Error resuming speech:", error);
+    throw error;
+  }
+};
+
+export const isSpeaking = async (): Promise<boolean> => speechState.isSpeaking;
+
+export const isPaused = async (): Promise<boolean> => speechState.isPaused;
+
+export const getAvailableVoices = async () => SUPPORTED_VOICES;
+
+export const subscribeToSpeechState = (
+  listener: (state: SpeechState) => void
+): (() => void) => {
+  speechListeners.add(listener);
+  listener(speechState);
+
+  return () => {
+    speechListeners.delete(listener);
+  };
+};
+
 export const getLanguageConfig = (
   languageCode: string
 ): Partial<SpeechOptions> => {
-  const baseCode = languageCode.split("-")[0];
+  const baseCode = getBaseLanguageCode(languageCode);
   return LANGUAGE_CONFIGS[baseCode] || DEFAULT_CONFIG;
 };
 
-/**
- * Speaks text with auto-detected language configuration
- */
 export const speakWithLanguage = async (
   text: string,
   languageCode: string,
@@ -204,4 +465,13 @@ export const speakWithLanguage = async (
 ): Promise<void> => {
   const langConfig = getLanguageConfig(languageCode);
   await speak(text, { ...langConfig, ...options });
+};
+
+export const __resetSpeechServiceForTests = async () => {
+  currentPlaybackToken += 1;
+  await stopActiveSound();
+  speechListeners.clear();
+  audioModeConfigured = false;
+  cacheDirectoryReady = false;
+  speechState = { isSpeaking: false, isPaused: false };
 };
