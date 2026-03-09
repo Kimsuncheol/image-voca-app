@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
   imagePlaceholder: {
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#9f9f9f",
     justifyContent: "center",
     alignItems: "center",
   },
