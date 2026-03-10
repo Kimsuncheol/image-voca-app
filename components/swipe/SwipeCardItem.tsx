@@ -30,7 +30,7 @@ export function SwipeCardItem({
       ]}
     >
       {/* Image Section */}
-      <SwipeCardItemImageSection image={item.image} isDark={isDark} />
+      <SwipeCardItemImageSection imageUrl={item.imageUrl} isDark={isDark} />
 
       {/* Card Info Section */}
       <SwipeCardItemCardInfoSection

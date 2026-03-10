@@ -3,18 +3,18 @@ import React from "react";
 import { Image, StyleSheet, View } from "react-native";
 
 interface SwipeCardItemImageSectionProps {
-  image?: string;
+  imageUrl?: string;
   isDark: boolean;
 }
 
 export function SwipeCardItemImageSection({
-  image,
+  imageUrl,
   isDark,
 }: SwipeCardItemImageSectionProps) {
   return (
     <View style={styles.imageContainer}>
-      {image ? (
-        <Image source={{ uri: image }} style={styles.cardImage} />
+      {imageUrl ? (
+        <Image source={{ uri: imageUrl }} style={styles.cardImage} />
       ) : (
         <View style={[styles.cardImage, styles.imagePlaceholder]}>
           <Ionicons

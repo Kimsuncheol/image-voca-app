@@ -162,7 +162,7 @@ export const fetchVocabularyCards = async (
         translation: data.translation,
         pronunciation: data.explanation,
         example: data.example,
-        image: data.image,
+        imageUrl: data.imageUrl,
         course: courseId,
       };
     }

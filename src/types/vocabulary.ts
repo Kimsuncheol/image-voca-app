@@ -7,7 +7,7 @@ export interface VocabularyCard {
   translation?: string;
   pronunciation?: string;
   example: string;
-  image?: string;
+  imageUrl?: string;
   course: CourseType;
   // Linguistic data fields
   partOfSpeech?: PartOfSpeech;
