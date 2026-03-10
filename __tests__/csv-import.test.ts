@@ -38,6 +38,14 @@ guilty,"a. 1. 유죄의
       example: String(
         item["Example sentence"] || item["Example"] || item["example"] || item["_4"] || ""
       ).trim(),
+      imageUrl: String(
+        item["Image URL"] ||
+          item["ImageUrl"] ||
+          item["imageUrl"] ||
+          item["Image"] ||
+          item["image"] ||
+          ""
+      ).trim(),
     };
   };
 
@@ -169,5 +177,21 @@ seed,"n. 씨, 씨앗",,A farmer is sowing seeds in the field`;
     const renamedResult = extractFields(renamedItem);
     expect(renamedResult?.word).toBe('test2');
     expect(renamedResult?.meaning).toBe('테스트2');
+  });
+
+  test("should map imageUrl from supported CSV headers", () => {
+    const directUrl = extractFields({
+      Word: "visual",
+      Meaning: "이미지",
+      "Image URL": "https://cdn.example.com/visual.jpg",
+    });
+    const legacyColumn = extractFields({
+      Word: "photo",
+      Meaning: "사진",
+      Image: "https://cdn.example.com/photo.jpg",
+    });
+
+    expect(directUrl?.imageUrl).toBe("https://cdn.example.com/visual.jpg");
+    expect(legacyColumn?.imageUrl).toBe("https://cdn.example.com/photo.jpg");
   });
 });

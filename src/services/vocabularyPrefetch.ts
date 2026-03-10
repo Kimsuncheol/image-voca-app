@@ -1,5 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { collection, getDocs, query, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
 import { db } from "./firebase";
 import { CourseType, VocabularyCard } from "../types/vocabulary";
 
@@ -8,7 +16,7 @@ type CourseConfig = {
   prefix?: string;
 };
 
-const STORAGE_PREFIX = "vocab_cache_v1";
+const STORAGE_PREFIX = "vocab_cache_v2";
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 
 const vocabularyCache = new Map<string, VocabularyCard[]>();
@@ -57,6 +65,77 @@ const makeCacheKey = (courseId: CourseType, dayNumber: number) =>
 const makeStorageKey = (courseId: CourseType, dayNumber: number) =>
   `${STORAGE_PREFIX}:${makeCacheKey(courseId, dayNumber)}`;
 
+export const normalizeVocabularyImageUrl = (value: unknown) => {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+};
+
+export const normalizeVocabularyCard = (
+  card: VocabularyCard & { image?: unknown },
+): VocabularyCard => {
+  const { image: legacyImage, ...rest } = card;
+  const imageUrl =
+    normalizeVocabularyImageUrl(rest.imageUrl) ??
+    normalizeVocabularyImageUrl(legacyImage);
+
+  return {
+    ...rest,
+    imageUrl,
+  };
+};
+
+export const mapVocabularyDocToCard = (
+  docId: string,
+  data: Record<string, unknown>,
+  courseId: CourseType,
+): VocabularyCard => {
+  const imageUrl =
+    normalizeVocabularyImageUrl(data.imageUrl) ??
+    normalizeVocabularyImageUrl(data.image);
+
+  if (courseId === "COLLOCATION") {
+    return {
+      id: docId,
+      word: typeof data.collocation === "string" ? data.collocation : "",
+      meaning: typeof data.meaning === "string" ? data.meaning : "",
+      translation:
+        typeof data.translation === "string" ? data.translation : undefined,
+      pronunciation:
+        typeof data.explanation === "string" ? data.explanation : undefined,
+      example: typeof data.example === "string" ? data.example : "",
+      imageUrl,
+      course: courseId,
+    };
+  }
+
+  return {
+    id: docId,
+    word: typeof data.word === "string" ? data.word : "",
+    meaning: typeof data.meaning === "string" ? data.meaning : "",
+    translation:
+      typeof data.translation === "string" ? data.translation : undefined,
+    pronunciation:
+      typeof data.pronunciation === "string"
+        ? data.pronunciation
+        : undefined,
+    example: typeof data.example === "string" ? data.example : "",
+    imageUrl,
+    course: courseId,
+    partOfSpeech: data.partOfSpeech as VocabularyCard["partOfSpeech"],
+    synonyms: Array.isArray(data.synonyms)
+      ? (data.synonyms as string[])
+      : [],
+    antonyms: Array.isArray(data.antonyms)
+      ? (data.antonyms as string[])
+      : [],
+    relatedWords: Array.isArray(data.relatedWords)
+      ? (data.relatedWords as string[])
+      : [],
+    wordForms: data.wordForms as VocabularyCard["wordForms"],
+  };
+};
+
 const setCachedVocabularyCards = (
   courseId: CourseType,
   dayNumber: number,
@@ -64,7 +143,8 @@ const setCachedVocabularyCards = (
   updatedAt = Date.now(),
 ) => {
   const key = makeCacheKey(courseId, dayNumber);
-  vocabularyCache.set(key, cards);
+  const normalizedCards = cards.map((card) => normalizeVocabularyCard(card));
+  vocabularyCache.set(key, normalizedCards);
   vocabularyCacheUpdatedAt.set(key, updatedAt);
 };
 
@@ -94,7 +174,10 @@ const persistVocabularyCache = async (
   updatedAt: number,
 ) => {
   try {
-    const payload = JSON.stringify({ updatedAt, cards });
+    const payload = JSON.stringify({
+      updatedAt,
+      cards: cards.map((card) => normalizeVocabularyCard(card)),
+    });
     await AsyncStorage.setItem(makeStorageKey(courseId, dayNumber), payload);
   } catch (error) {
     console.warn("Failed to persist vocabulary cache:", error);
@@ -123,13 +206,16 @@ export const hydrateVocabularyCache = async (
       return null;
     }
 
+    const normalizedCards = parsed.cards.map((card) =>
+      normalizeVocabularyCard(card as VocabularyCard & { image?: unknown }),
+    );
     setCachedVocabularyCards(
       courseId,
       dayNumber,
-      parsed.cards,
+      normalizedCards,
       parsed.updatedAt,
     );
-    return parsed.cards;
+    return normalizedCards;
   } catch (error) {
     console.warn("Failed to hydrate vocabulary cache:", error);
     return null;
@@ -151,39 +237,13 @@ export const fetchVocabularyCards = async (
   const targetCollection = collection(db, config.path, subCollectionName);
   const querySnapshot = await getDocs(query(targetCollection));
 
-  const cards: VocabularyCard[] = querySnapshot.docs.map((doc) => {
-    const data = doc.data();
-
-    if (courseId === "COLLOCATION") {
-      return {
-        id: doc.id,
-        word: data.collocation,
-        meaning: data.meaning,
-        translation: data.translation,
-        pronunciation: data.explanation,
-        example: data.example,
-        imageUrl: data.imageUrl,
-        course: courseId,
-      };
-    }
-
-    return {
-      id: doc.id,
-      word: data.word,
-      meaning: data.meaning,
-      translation: data.translation,
-      pronunciation: data.pronunciation,
-      example: data.example || "",
-      image: data.image,
-      course: courseId,
-      // Linguistic data fields
-      partOfSpeech: data.partOfSpeech,
-      synonyms: data.synonyms || [],
-      antonyms: data.antonyms || [],
-      relatedWords: data.relatedWords || [],
-      wordForms: data.wordForms,
-    };
-  });
+  const cards: VocabularyCard[] = querySnapshot.docs.map((snapshot) =>
+    mapVocabularyDocToCard(
+      snapshot.id,
+      snapshot.data() as Record<string, unknown>,
+      courseId,
+    ),
+  );
 
   console.log(`Fetched ${cards.length} words from ${subCollectionName}`);
   const updatedAt = Date.now();

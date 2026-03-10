@@ -47,6 +47,18 @@ const TARGET_COLLECTION =
   "voca/pdw9crwerFb2qGFltJJY/course/BKQz1pqPyizbHzi1RxKK/CSAT/mNaFSzquidDTdaOq1cS0/CSAT1_Day1";
 const auth = getAuth(app);
 
+function extractImageUrl(record) {
+  const value =
+    record["Image URL"] ||
+    record["ImageUrl"] ||
+    record["imageUrl"] ||
+    record["Image"] ||
+    record["image"] ||
+    "";
+
+  return String(value).trim();
+}
+
 async function uploadData() {
   try {
     console.log("Signing in anonymously...");
@@ -78,6 +90,11 @@ async function uploadData() {
       example: record["Example sentence"] || "",
       createdAt: new Date(),
     };
+
+    const imageUrl = extractImageUrl(record);
+    if (imageUrl) {
+      docData.imageUrl = imageUrl;
+    }
 
     try {
       await addDoc(collection(db, TARGET_COLLECTION), docData);

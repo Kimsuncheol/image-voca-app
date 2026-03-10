@@ -20,7 +20,6 @@ export function SwipeCardItem({
 }: SwipeCardItemProps) {
   const { isDark } = useTheme();
   const pronunciation = item.pronunciation?.trim();
-  console.log("[SwipeCardItem] imageUrl:", item.imageUrl);
 
   return (
     <View

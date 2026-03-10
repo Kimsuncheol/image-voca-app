@@ -1,9 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSpeech } from "../../src/hooks/useSpeech";
-import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { VocabularyCard } from "../../src/types/vocabulary";
+import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { SwipeCardItemAddToWordBankButton } from "./SwipeCardItemAddToWordBankButton";
 
 interface SwipeCardItemWordMeaningSectionProps {
@@ -40,24 +39,14 @@ export function SwipeCardItemWordMeaningSection({
       {/* Word & Meaning Section */}
       <View style={styles.titleContainer}>
         <View style={styles.leftRow}>
-          <Text
-            style={[styles.cardTitle, { color: isDark ? "#fff" : "#1a1a1a" }]}
-            numberOfLines={1}
-          >
-            {word}
-          </Text>
-          <TouchableOpacity
-            onPress={speak}
-            style={[
-              styles.speakerButton,
-              { backgroundColor: isDark ? "#2c2c2c" : "#F5F5F5" },
-            ]}
-          >
-            <Ionicons
-              name="volume-medium"
-              size={24}
-              color={isDark ? "#aaa" : "#666"}
-            />
+          {/* Word */}
+          <TouchableOpacity onPress={speak}>
+            <Text
+              style={[styles.cardTitle, { color: isDark ? "#fff" : "#1a1a1a" }]}
+              numberOfLines={1}
+            >
+              {word}
+            </Text>
           </TouchableOpacity>
         </View>
         <View style={styles.addButtonContainer}>
@@ -108,12 +97,6 @@ const styles = StyleSheet.create({
   addButtonContainer: {
     marginLeft: "auto",
     paddingLeft: 12,
-  },
-  speakerButton: {
-    marginLeft: 10,
-    padding: 8,
-    backgroundColor: "#F5F5F5",
-    borderRadius: 20,
   },
   cardTitle: {
     fontSize: 32,

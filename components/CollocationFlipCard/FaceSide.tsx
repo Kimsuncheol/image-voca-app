@@ -282,18 +282,21 @@ export default React.memo(function FaceSide({
         )}
 
         {/* Section: Main Content (Word) */}
-        <Text
-          style={[
-            styles.collocationText,
-            isDark && styles.textDark,
-            { fontSize: dynamicFontSize },
-          ]}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.5}
-        >
-          {data.collocation}
-        </Text>
+        {/* Collocation Text */}
+        <TouchableOpacity onPress={speak} activeOpacity={0.7}>
+          <Text
+            style={[
+              styles.collocationText,
+              isDark && styles.textDark,
+              { fontSize: dynamicFontSize },
+            ]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.5}
+          >
+            {data.collocation}
+          </Text>
+        </TouchableOpacity>
 
         {/* Section: Meaning & Audio */}
         <View style={styles.meaningContainer}>
@@ -312,13 +315,6 @@ export default React.memo(function FaceSide({
                 </Text>
             }
           </View>
-          <TouchableOpacity onPress={speak} style={styles.speakerButton}>
-            <Ionicons
-              name="volume-medium"
-              size={24}
-              color={isDark ? "#ccc" : "#666"}
-            />
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -397,12 +393,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
-  },
-  speakerButton: {
-    marginLeft: 8,
-    padding: 4,
-    alignSelf: "flex-start",
-    marginTop: 2,
   },
   collocationText: {
     fontSize: 42,
