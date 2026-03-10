@@ -1,4 +1,6 @@
+import { Ionicons } from "@expo/vector-icons";
 import { SubscriptionBadge } from "@/components/subscription";
+import { ThemedText } from "../../../components/themed-text";
 import {
   Stack,
   useFocusEffect,
@@ -7,7 +9,13 @@ import {
 } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, ScrollView, StyleSheet } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DayGrid } from "../../../components/course";
 import { useAuth } from "../../../src/context/AuthContext";
@@ -75,6 +83,14 @@ export default function DayPickerScreen() {
     if (!courseId) return {};
     return courseProgress[courseId] || {};
   }, [courseId, courseProgress]);
+
+  // First day that hasn't been completed yet
+  const firstIncompleteDay = useMemo(() => {
+    for (let day = 1; day <= totalDays; day++) {
+      if (!dayProgress[day]?.completed) return day;
+    }
+    return totalDays;
+  }, [dayProgress, totalDays]);
 
   // ---------------------------------------------------------------------------
   // Effects
@@ -270,6 +286,33 @@ export default function DayPickerScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Continue banner — shown when the user has prior progress */}
+        {firstIncompleteDay > 1 && (
+          <TouchableOpacity
+            style={[
+              styles.continueBanner,
+              { backgroundColor: (course?.color ?? "#007AFF") + "18",
+                borderColor: course?.color ?? "#007AFF" },
+            ]}
+            onPress={() => handleDayPress(firstIncompleteDay)}
+            activeOpacity={0.75}
+          >
+            <View style={styles.continueBannerLeft}>
+              <ThemedText style={[styles.continueBannerLabel, { color: course?.color ?? "#007AFF" }]}>
+                {t("course.continueFrom", { defaultValue: "Continue" })}
+              </ThemedText>
+              <ThemedText style={styles.continueBannerDay}>
+                {t("course.dayTitle", { day: firstIncompleteDay })}
+              </ThemedText>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={course?.color ?? "#007AFF"}
+            />
+          </TouchableOpacity>
+        )}
+
         {/* Subscription Status Banner - Show only for free users */}
         {!hasUnlimitedAccess && <SubscriptionBadge />}
 
@@ -300,5 +343,27 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
     paddingBottom: 40,
+  },
+  continueBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1.5,
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 20,
+  },
+  continueBannerLeft: {
+    gap: 2,
+  },
+  continueBannerLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    opacity: 0.8,
+  },
+  continueBannerDay: {
+    fontSize: 18,
+    fontWeight: "700",
   },
 });
