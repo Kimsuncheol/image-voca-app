@@ -28,6 +28,7 @@ interface WordCardProps {
   courseColor?: string;
   isDark: boolean;
   showPronunciation?: boolean;
+  expandExampleToContent?: boolean;
   isDeleteMode?: boolean;
   isSelected?: boolean;
   onStartDeleteMode?: (wordId: string) => void;
@@ -43,6 +44,7 @@ export function WordCard({
   word,
   isDark,
   showPronunciation = true,
+  expandExampleToContent = false,
   isDeleteMode = false,
   isSelected = false,
   onStartDeleteMode,
@@ -99,7 +101,11 @@ export function WordCard({
         {/* Meaning section */}
         <WordCardMeaning meaning={word.meaning} isDark={isDark} />
 
-        <WordCardExample example={word.example} translation={word.translation} />
+        <WordCardExample
+          example={word.example}
+          translation={word.translation}
+          expandToContent={expandExampleToContent}
+        />
       </View>
 
       {isDeleteMode ? (

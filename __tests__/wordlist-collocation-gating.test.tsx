@@ -4,13 +4,21 @@ import { WordList } from "../components/course-wordbank/WordList";
 import { SavedWord } from "../components/wordbank/WordCard";
 
 jest.mock("../components/wordbank/WordCard", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Text, View } = require("react-native");
 
-  const MockWordCard = ({ word, showPronunciation, isSelected }: any) => (
+  const MockWordCard = ({
+    word,
+    showPronunciation,
+    expandExampleToContent,
+    isSelected,
+  }: any) => (
     <View testID={`word-card-${word.id}`}>
       <Text>{word.word}</Text>
       <Text>{showPronunciation ? "show-pronunciation" : "hide-pronunciation"}</Text>
+      <Text>{expandExampleToContent ? "expand-example" : "cap-example"}</Text>
       <Text>{isSelected ? "selected" : "idle"}</Text>
     </View>
   );
@@ -77,6 +85,7 @@ describe("WordList fixed word bank layout", () => {
     expect(screen.getByTestId("word-card-2")).toBeTruthy();
     expect(screen.getByTestId("word-card-3")).toBeTruthy();
     expect(screen.getAllByText("hide-pronunciation")).toHaveLength(3);
+    expect(screen.getAllByText("expand-example")).toHaveLength(3);
   });
 
   test("preserves selection props in the fixed collocation list", () => {
@@ -110,5 +119,6 @@ describe("WordList fixed word bank layout", () => {
     );
 
     expect(screen.getAllByText("show-pronunciation")).toHaveLength(3);
+    expect(screen.getAllByText("cap-example")).toHaveLength(3);
   });
 });

@@ -24,6 +24,7 @@ export function WordList({
   onToggleSelection,
 }: WordListProps) {
   const showPronunciation = courseId !== "COLLOCATION";
+  const expandExampleToContent = courseId === "COLLOCATION";
 
   return (
     <View>
@@ -34,6 +35,7 @@ export function WordList({
           courseColor={courseColor}
           isDark={isDark}
           showPronunciation={showPronunciation}
+          expandExampleToContent={expandExampleToContent}
           isDeleteMode={isDeleteMode}
           isSelected={selectedIds.has(word.id)}
           onStartDeleteMode={onStartDeleteMode}

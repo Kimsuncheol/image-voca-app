@@ -8,6 +8,7 @@ import { ThemedText } from "../themed-text";
 interface WordCardExampleProps {
   example: string;
   translation?: string;
+  expandToContent?: boolean;
 }
 
 /**
@@ -18,6 +19,7 @@ interface WordCardExampleProps {
 export function WordCardExample({
   example,
   translation,
+  expandToContent = false,
 }: WordCardExampleProps) {
   const { isDark } = useTheme();
   const { speak } = useSpeech();
@@ -38,7 +40,7 @@ export function WordCardExample({
     : [];
 
   const [isExpanded, setIsExpanded] = useState(false);
-  const shouldCollapse = examples.length >= 4;
+  const shouldCollapse = !expandToContent && examples.length >= 4;
   const displayedExamples =
     shouldCollapse && !isExpanded ? examples.slice(0, 3) : examples;
 
@@ -55,33 +57,45 @@ export function WordCardExample({
     }
   };
 
+  const content = displayedExamples.map((exampleText, index) => (
+    <View key={index} style={styles.exampleGroup}>
+      {/* Example sentence */}
+      <TouchableOpacity
+        onPress={() => handleSpeak(exampleText.trim())}
+        activeOpacity={0.7}
+      >
+        <ThemedText style={styles.example}>
+          {exampleText.trim()}
+        </ThemedText>
+      </TouchableOpacity>
+      {/* Translation */}
+      {translations[index] && (
+        <ThemedText style={styles.translation}>
+          {translations[index].trim()}
+        </ThemedText>
+      )}
+    </View>
+  ));
+
   return (
     <>
-      <ScrollView
-        style={styles.exampleContainer}
-        showsVerticalScrollIndicator={true}
-        nestedScrollEnabled={true}
-      >
-        {displayedExamples.map((exampleText, index) => (
-          <View key={index} style={styles.exampleGroup}>
-            {/* Example sentence */}
-            <TouchableOpacity
-              onPress={() => handleSpeak(exampleText.trim())}
-              activeOpacity={0.7}
-            >
-              <ThemedText style={styles.example}>
-                {exampleText.trim()}
-              </ThemedText>
-            </TouchableOpacity>
-            {/* Translation */}
-            {translations[index] && (
-              <ThemedText style={styles.translation}>
-                {translations[index].trim()}
-              </ThemedText>
-            )}
-          </View>
-        ))}
-      </ScrollView>
+      {expandToContent ? (
+        <View
+          testID="word-card-example-content"
+          style={[styles.exampleContainer, styles.exampleContainerExpanded]}
+        >
+          {content}
+        </View>
+      ) : (
+        <ScrollView
+          testID="word-card-example-scroll"
+          style={styles.exampleContainer}
+          showsVerticalScrollIndicator={true}
+          nestedScrollEnabled={true}
+        >
+          {content}
+        </ScrollView>
+      )}
 
       {shouldCollapse && (
         <TouchableOpacity
@@ -117,6 +131,9 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
     marginTop: 4,
     maxHeight: 200,
+  },
+  exampleContainerExpanded: {
+    maxHeight: undefined,
   },
   exampleGroup: {
     marginTop: 8,

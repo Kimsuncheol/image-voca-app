@@ -4,13 +4,20 @@ import { WordList } from "../components/course-wordbank/WordList.web";
 import { SavedWord } from "../components/wordbank/WordCard";
 
 jest.mock("../components/wordbank/WordCard", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Text, View } = require("react-native");
 
-  const MockWordCard = ({ word, showPronunciation }: any) => (
+  const MockWordCard = ({
+    word,
+    showPronunciation,
+    expandExampleToContent,
+  }: any) => (
     <View testID={`word-card-${word.id}`}>
       <Text>{word.word}</Text>
       <Text>{showPronunciation ? "show-pronunciation" : "hide-pronunciation"}</Text>
+      <Text>{expandExampleToContent ? "expand-example" : "cap-example"}</Text>
     </View>
   );
 
@@ -65,6 +72,7 @@ describe("WordList.web", () => {
     expect(screen.getByTestId("word-card-2")).toBeTruthy();
     expect(screen.queryByText("show-pronunciation")).toBeNull();
     expect(screen.getAllByText("hide-pronunciation")).toHaveLength(2);
+    expect(screen.getAllByText("expand-example")).toHaveLength(2);
   });
 
   test("renders non-collocation courses as full cards with pronunciation", () => {
@@ -81,5 +89,6 @@ describe("WordList.web", () => {
     );
 
     expect(screen.getAllByText("show-pronunciation")).toHaveLength(2);
+    expect(screen.getAllByText("cap-example")).toHaveLength(2);
   });
 });
