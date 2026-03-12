@@ -62,4 +62,37 @@ describe("SwipeCardItemWordMeaningSection", () => {
     expect(queryByText("n. 이유")).toBeNull();
     expect(queryByText("v. 추론하다, 추리하다")).toBeNull();
   });
+
+  it("renders '='-separated word variants as trimmed stacked lines", () => {
+    const { getByText, queryByText } = render(
+      <SwipeCardItemWordMeaningSection
+        item={buildItem()}
+        word=" connection flight  = connecting flight =  connection "
+        meaning="n. 연결"
+        isDark={false}
+      />,
+    );
+
+    expect(getByText("connection flight")).toBeTruthy();
+    expect(getByText("connecting flight")).toBeTruthy();
+    expect(getByText("connection")).toBeTruthy();
+    expect(
+      queryByText(" connection flight  = connecting flight =  connection "),
+    ).toBeNull();
+    expect(queryByText(/=/)).toBeNull();
+  });
+
+  it("keeps a plain word as a single title", () => {
+    const { getByText, queryByText } = render(
+      <SwipeCardItemWordMeaningSection
+        item={buildItem()}
+        word="abandon"
+        meaning="to leave behind"
+        isDark={false}
+      />,
+    );
+
+    expect(getByText("abandon")).toBeTruthy();
+    expect(queryByText(/=/)).toBeNull();
+  });
 });

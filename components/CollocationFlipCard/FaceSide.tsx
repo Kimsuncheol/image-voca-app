@@ -16,6 +16,7 @@ import { useAuth } from "../../src/context/AuthContext";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { db } from "../../src/services/firebase";
 import { useUserStatsStore } from "../../src/stores";
+import { parseWordVariants, speakWordVariants } from "../../src/utils/wordVariants";
 import { SavedWord } from "../wordbank/WordCard";
 import { CollocationData, CollocationWordBankConfig } from "./types";
 
@@ -99,10 +100,27 @@ export default React.memo(function FaceSide({
     setIsAdded(wordBankConfig?.initialIsSaved ?? false);
   }, [wordBankConfig?.initialIsSaved]);
 
+  const collocationVariants = React.useMemo(
+    () => parseWordVariants(data.collocation),
+    [data.collocation],
+  );
+  const isMultiVariantCollocation = collocationVariants.length > 1;
+  const longestVariant = React.useMemo(
+    () =>
+      collocationVariants.reduce(
+        (longest, current) =>
+          current.length > longest.length ? current : longest,
+        collocationVariants[0] ?? data.collocation,
+      ),
+    [collocationVariants, data.collocation],
+  );
+  const isDeleteMode = wordBankConfig?.isDeleteMode === true;
+  const isSelected = wordBankConfig?.isSelected === true;
+
   // Calculate dynamic font size based on collocation text length
   const dynamicFontSize = React.useMemo(() => {
-    return getDynamicFontSize(data.collocation);
-  }, [data.collocation]);
+    return getDynamicFontSize(longestVariant);
+  }, [longestVariant]);
 
   // ============================================================================
   // Event Handlers
@@ -111,12 +129,17 @@ export default React.memo(function FaceSide({
   /**
    * Plays the audio pronunciation of the collocation using TTS.
    */
-  const speak = React.useCallback(() => {
-    speakText(data.collocation, {
-      language: "en-US", // You can make this dynamic based on course/language
-      rate: 0.9,
-    });
-  }, [data.collocation, speakText]);
+  const speak = React.useCallback(async () => {
+    if (isDeleteMode) {
+      return;
+    }
+
+    try {
+      await speakWordVariants(data.collocation, speakText);
+    } catch (error) {
+      console.error("Collocation TTS error:", error);
+    }
+  }, [data.collocation, isDeleteMode, speakText]);
 
   // Determine permissions based on config
   const canAddToWordBank =
@@ -124,8 +147,8 @@ export default React.memo(function FaceSide({
     Boolean(wordBankConfig?.id) &&
     Boolean(wordBankConfig?.course);
 
-  const canDelete =
-    wordBankConfig?.enableDelete === true && Boolean(wordBankConfig?.onDelete);
+  const canStartDeleteMode = Boolean(wordBankConfig?.onStartDeleteMode);
+  const canToggleSelection = Boolean(wordBankConfig?.onToggleSelection);
 
   /**
    * Toggles the word's presence in the user's Word Bank.
@@ -230,28 +253,102 @@ export default React.memo(function FaceSide({
     wordBankConfig,
   ]);
 
-  /**
-   * Action: Delete Word
-   * Calls the parent's onDelete callback (used primarily in the Word Bank screen).
-   */
-  const handleDelete = React.useCallback(() => {
-    if (!canDelete || !wordBankConfig?.onDelete || !wordBankConfig?.id) {
+  const handleStartDeleteMode = React.useCallback(() => {
+    if (!wordBankConfig?.id) {
       return;
     }
-    wordBankConfig.onDelete(wordBankConfig.id);
-  }, [canDelete, wordBankConfig]);
+    wordBankConfig.onStartDeleteMode?.(wordBankConfig.id);
+  }, [wordBankConfig]);
+
+  const handleToggleSelection = React.useCallback(() => {
+    if (!wordBankConfig?.id) {
+      return;
+    }
+    wordBankConfig.onToggleSelection?.(wordBankConfig.id);
+  }, [wordBankConfig]);
+
+  const handleCardPress = React.useCallback(() => {
+    if (isDeleteMode) {
+      handleToggleSelection();
+      return;
+    }
+    onFlip?.();
+  }, [handleToggleSelection, isDeleteMode, onFlip]);
+
+  const renderCollocationText = () => {
+    if (!isMultiVariantCollocation) {
+      return (
+        <Text
+          style={[
+            styles.collocationText,
+            isDark && styles.textDark,
+            { fontSize: dynamicFontSize },
+          ]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.5}
+        >
+          {collocationVariants[0] ?? data.collocation}
+        </Text>
+      );
+    }
+
+    return (
+      <View style={styles.collocationVariantsContainer}>
+        {collocationVariants.map((variant, index) => (
+          <Text
+            key={`${variant}-${index}`}
+            style={[
+              styles.collocationText,
+              styles.collocationTextVariant,
+              isDark && styles.textDark,
+              { fontSize: dynamicFontSize },
+            ]}
+          >
+            {variant}
+          </Text>
+        ))}
+      </View>
+    );
+  };
 
   // ============================================================================
   // Main Render
   // ============================================================================
   return (
     <Pressable
-      style={[styles.face, isDark && styles.faceDark]}
-      onPress={onFlip}
-      disabled={!onFlip}
+      style={[
+        styles.face,
+        isDark && styles.faceDark,
+        isDeleteMode &&
+          (isDark ? styles.faceDeleteModeDark : styles.faceDeleteModeLight),
+        isSelected && (isDark ? styles.faceSelectedDark : styles.faceSelectedLight),
+      ]}
+      onPress={handleCardPress}
+      onLongPress={handleStartDeleteMode}
+      disabled={isDeleteMode ? !canToggleSelection && !canStartDeleteMode : !onFlip && !canStartDeleteMode}
     >
+      {isDeleteMode ? (
+        <View
+          style={[
+            styles.selectionBadge,
+            isSelected
+              ? styles.selectionBadgeSelected
+              : isDark
+                ? styles.selectionBadgeIdleDark
+                : styles.selectionBadgeIdleLight,
+          ]}
+        >
+          <Ionicons
+            name={isSelected ? "checkmark" : "ellipse-outline"}
+            size={16}
+            color={isSelected ? "#fff" : isDark ? "#fff" : "#666"}
+          />
+        </View>
+      ) : null}
+
       {/* Bookmark button (top-right corner) */}
-      {canAddToWordBank && (
+      {canAddToWordBank && !isDeleteMode && (
         <Pressable
           style={({ pressed }) => [
             styles.addButton,
@@ -283,20 +380,19 @@ export default React.memo(function FaceSide({
 
         {/* Section: Main Content (Word) */}
         {/* Collocation Text */}
-        <TouchableOpacity onPress={speak} activeOpacity={0.7}>
-          <Text
-            style={[
-              styles.collocationText,
-              isDark && styles.textDark,
-              { fontSize: dynamicFontSize },
-            ]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.5}
+        {isDeleteMode ? (
+          <View>{renderCollocationText()}</View>
+        ) : (
+          <TouchableOpacity
+            onPress={() => {
+              void speak();
+            }}
+            onLongPress={handleStartDeleteMode}
+            activeOpacity={0.7}
           >
-            {data.collocation}
-          </Text>
-        </TouchableOpacity>
+            {renderCollocationText()}
+          </TouchableOpacity>
+        )}
 
         {/* Section: Meaning & Audio */}
         <View style={styles.meaningContainer}>
@@ -318,20 +414,7 @@ export default React.memo(function FaceSide({
         </View>
       </View>
 
-      {/* Section: Footer Actions (Delete) */}
-      <View style={styles.footer}>
-        {canDelete && (
-          <TouchableOpacity
-            style={[styles.deleteButton, isDark && styles.deleteButtonDark]}
-            onPress={handleDelete}
-          >
-            <Ionicons name="trash-outline" size={18} color="#FF3B30" />
-            <Text style={styles.deleteButtonText}>
-              {t("common.delete", { defaultValue: "Delete" })}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      <View style={styles.footer} />
     </Pressable>
   );
 });
@@ -356,6 +439,20 @@ const styles = StyleSheet.create({
     borderColor: "#333",
     shadowColor: "#000",
     shadowOpacity: 0.3,
+  },
+  faceDeleteModeLight: {
+    borderColor: "#d0d0d0",
+  },
+  faceDeleteModeDark: {
+    borderColor: "#3a3a3c",
+  },
+  faceSelectedLight: {
+    borderColor: "#007AFF",
+    backgroundColor: "#F1F7FF",
+  },
+  faceSelectedDark: {
+    borderColor: "#0A84FF",
+    backgroundColor: "#162331",
   },
   contentContainer: {
     flex: 1,
@@ -403,6 +500,12 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     letterSpacing: -0.5,
   },
+  collocationVariantsContainer: {
+    gap: 6,
+  },
+  collocationTextVariant: {
+    lineHeight: 46,
+  },
   meaningText: {
     fontSize: 22,
     fontWeight: "400",
@@ -422,6 +525,30 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingTop: 12,
     minHeight: 52,
+  },
+  selectionBadge: {
+    position: "absolute",
+    top: 28,
+    left: 28,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    zIndex: 2,
+  },
+  selectionBadgeSelected: {
+    backgroundColor: "#007AFF",
+    borderColor: "#007AFF",
+  },
+  selectionBadgeIdleLight: {
+    backgroundColor: "#fff",
+    borderColor: "#c7c7cc",
+  },
+  selectionBadgeIdleDark: {
+    backgroundColor: "#2c2c2e",
+    borderColor: "#636366",
   },
   addButton: {
     position: "absolute",
@@ -456,25 +583,5 @@ const styles = StyleSheet.create({
   },
   addButtonTextAdded: {
     color: "#fff",
-  },
-  deleteButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 22,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: "#FF3B30",
-    backgroundColor: "rgba(255,59,48,0.08)",
-  },
-  deleteButtonDark: {
-    backgroundColor: "rgba(255,59,48,0.16)",
-  },
-  deleteButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#FF3B30",
   },
 });

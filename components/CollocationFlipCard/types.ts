@@ -16,4 +16,8 @@ export interface CollocationWordBankConfig {
   enableAdd?: boolean;
   enableDelete?: boolean;
   onDelete?: (id: string) => void;
+  isDeleteMode?: boolean;
+  isSelected?: boolean;
+  onStartDeleteMode?: (id: string) => void;
+  onToggleSelection?: (id: string) => void;
 }

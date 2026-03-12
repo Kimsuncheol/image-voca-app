@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -53,7 +53,6 @@ const CardItem = React.memo(function CardItem({
   dayNumber,
 }: CardItemProps) {
   const animatedStyle = useAnimatedStyle(() => {
-    // scrollPos: 0 at card 0, SNAP_INTERVAL at card 1, etc.
     const scrollPos = -translateX.value;
     const center = index * SNAP_INTERVAL;
     const inputRange = [center - SNAP_INTERVAL, center, center + SNAP_INTERVAL];
@@ -87,71 +86,70 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
   onFinish,
 }) => {
   const translateX = useSharedValue(0);
-  const currentIndexRef = useRef(0);
+  // Use shared value instead of ref so it's readable inside worklets
+  const currentIndex = useSharedValue(0);
   const maxIndex = cards.length - 1;
 
-  // Translate the entire row: starts at PEEK so card 0 is centered
   const rowStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: PEEK + translateX.value }],
   }));
 
+  // Called from the UI thread via runOnJS — fires JS callbacks
   const navigateTo = useCallback(
-    (nextIndex: number) => {
-      const prevIndex = currentIndexRef.current;
+    (prevIndex: number, nextIndex: number) => {
       if (nextIndex === prevIndex) return;
-
       if (nextIndex > prevIndex) {
         onSwipeLeft(cards[nextIndex] ?? cards[prevIndex]);
       } else {
         onSwipeRight(cards[nextIndex]);
       }
       onIndexChange(nextIndex);
-      currentIndexRef.current = nextIndex;
     },
     [cards, onSwipeLeft, onSwipeRight, onIndexChange],
   );
 
   const panGesture = Gesture.Pan()
-    .runOnJS(true)
-    .activeOffsetX([-12, 12])  // only activate for clear horizontal movement
-    .failOffsetY([-10, 10])    // fail immediately on vertical movement (lets ScrollView scroll)
+    .activeOffsetX([-12, 12])
+    .failOffsetY([-10, 10])
     .onUpdate((event) => {
-      const base = -(currentIndexRef.current * SNAP_INTERVAL);
+      "worklet";
+      const base = -(currentIndex.value * SNAP_INTERVAL);
       const raw = base + event.translationX;
       const min = -(maxIndex * SNAP_INTERVAL);
       const max = 0;
-      // Rubber-band resistance at the edges
       translateX.value =
-        raw > max ? max + (raw - max) * 0.2
-        : raw < min ? min + (raw - min) * 0.2
-        : raw;
+        raw > max
+          ? max + (raw - max) * 0.2
+          : raw < min
+            ? min + (raw - min) * 0.2
+            : raw;
     })
     .onEnd((event) => {
+      "worklet";
       const { translationX: tx, velocityX: vx } = event;
-      const current = currentIndexRef.current;
+      const current = currentIndex.value;
 
       let target = current;
       if (vx < -300 || tx < -SNAP_INTERVAL * 0.3) {
         if (current === maxIndex) {
-          // Slide the last card off-screen to the left, then trigger finish
           translateX.value = withSpring(
             -(maxIndex * SNAP_INTERVAL + SCREEN_WIDTH),
             SPRING,
             (finished) => {
-              if (finished) {
-                runOnJS(onFinish)();
-              }
+              "worklet";
+              if (finished) runOnJS(onFinish)();
             },
           );
           return;
         }
-        target = current + 1; // swipe left → next
+        target = current + 1;
       } else if (vx > 300 || tx > SNAP_INTERVAL * 0.3) {
-        target = Math.max(0, current - 1); // swipe right → previous
+        target = Math.max(0, current - 1);
       }
 
+      currentIndex.value = target;
       translateX.value = withSpring(-target * SNAP_INTERVAL, SPRING);
-      navigateTo(target);
+      runOnJS(navigateTo)(current, target);
     });
 
   return (
@@ -180,8 +178,6 @@ const styles = StyleSheet.create({
     width: "100%",
     overflow: "hidden",
   },
-  // Absolutely positioned so it isn't width-constrained by the parent,
-  // letting flexDirection:"row" size it to fit all cards naturally.
   row: {
     position: "absolute",
     top: 0,

@@ -1,11 +1,14 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { parseWordVariants } from "../../src/utils/wordVariants";
 import { ThemedText } from "../themed-text";
 
 interface WordCardHeaderProps {
   word: string;
   day?: number;
   pronunciation?: string;
+  onSpeak?: () => void;
+  onLongPress?: () => void;
 }
 
 /**
@@ -16,13 +19,43 @@ export function WordCardHeader({
   word,
   day,
   pronunciation,
+  onSpeak,
+  onLongPress,
 }: WordCardHeaderProps) {
+  const wordVariants = React.useMemo(() => parseWordVariants(word), [word]);
+  const isMultilineWord = wordVariants.length > 1;
+  const titleContent = (
+    <View style={styles.wordTitleTextContainer}>
+      {wordVariants.map((variant, index) => (
+        <ThemedText
+          key={`${variant}-${index}`}
+          type="subtitle"
+          style={[styles.wordTitle, isMultilineWord && styles.wordTitleMultiline]}
+          numberOfLines={isMultilineWord ? undefined : 1}
+        >
+          {variant}
+        </ThemedText>
+      ))}
+    </View>
+  );
+  const canInteract = Boolean(onSpeak || onLongPress);
+
   return (
     <View style={styles.wordHeader}>
       <View style={styles.wordTitleContainer}>
-        <ThemedText type="subtitle" style={styles.wordTitle}>
-          {word}
-        </ThemedText>
+        {canInteract ? (
+          <TouchableOpacity
+            onPress={onSpeak}
+            onLongPress={onLongPress}
+            activeOpacity={0.7}
+            style={styles.wordTitleButton}
+            accessibilityRole={onSpeak ? "button" : undefined}
+          >
+            {titleContent}
+          </TouchableOpacity>
+        ) : (
+          titleContent
+        )}
         {day && <ThemedText style={styles.dayBadge}>Day {day}</ThemedText>}
       </View>
       {pronunciation && (
@@ -38,12 +71,24 @@ const styles = StyleSheet.create({
   },
   wordTitleContainer: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 8,
     flex: 1,
   },
+  wordTitleButton: {
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  wordTitleTextContainer: {
+    flexShrink: 1,
+    minWidth: 0,
+  },
   wordTitle: {
     fontSize: 22,
+    flexShrink: 1,
+  },
+  wordTitleMultiline: {
+    lineHeight: 28,
   },
   dayBadge: {
     fontSize: 13,

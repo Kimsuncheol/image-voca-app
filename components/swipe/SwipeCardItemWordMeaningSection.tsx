@@ -15,6 +15,17 @@ interface SwipeCardItemWordMeaningSectionProps {
   day?: number;
 }
 
+const WORD_TTS_OPTIONS = {
+  language: "en-US",
+  rate: 0.9,
+} as const;
+
+const parseWordVariants = (value: string): string[] =>
+  value
+    .split("=")
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+
 export function SwipeCardItemWordMeaningSection({
   item,
   word,
@@ -26,12 +37,64 @@ export function SwipeCardItemWordMeaningSection({
 }: SwipeCardItemWordMeaningSectionProps) {
   const { speak: speakText } = useSpeech();
   const normalizedPronunciation = pronunciation?.trim();
+  const wordVariants = React.useMemo(() => parseWordVariants(word), [word]);
+  const isMultiVariantWord = wordVariants.length > 1;
 
-  const speak = () => {
-    speakText(word, {
-      language: "en-US",
-      rate: 0.9,
-    });
+  const speakVariant = React.useCallback(
+    (text: string) =>
+      new Promise<void>((resolve, reject) => {
+        speakText(text, {
+          ...WORD_TTS_OPTIONS,
+          onDone: resolve,
+          onError: reject,
+        }).catch(reject);
+      }),
+    [speakText],
+  );
+
+  const speak = React.useCallback(async () => {
+    if (!isMultiVariantWord) {
+      await speakText(wordVariants[0] ?? word, WORD_TTS_OPTIONS);
+      return;
+    }
+
+    for (const variant of wordVariants) {
+      await speakVariant(variant);
+    }
+  }, [isMultiVariantWord, speakText, speakVariant, word, wordVariants]);
+
+  const handlePressWord = React.useCallback(() => {
+    void speak();
+  }, [speak]);
+
+  const renderWord = () => {
+    if (!isMultiVariantWord) {
+      return (
+        <Text
+          style={[styles.cardTitle, { color: isDark ? "#fff" : "#1a1a1a" }]}
+          numberOfLines={1}
+        >
+          {wordVariants[0] ?? word}
+        </Text>
+      );
+    }
+
+    return (
+      <View style={styles.wordVariantsContainer}>
+        {wordVariants.map((variant, index) => (
+          <Text
+            key={`${variant}-${index}`}
+            style={[
+              styles.cardTitle,
+              styles.cardTitleVariant,
+              { color: isDark ? "#fff" : "#1a1a1a" },
+            ]}
+          >
+            {variant}
+          </Text>
+        ))}
+      </View>
+    );
   };
 
   return (
@@ -40,13 +103,8 @@ export function SwipeCardItemWordMeaningSection({
       <View style={styles.titleContainer}>
         <View style={styles.leftRow}>
           {/* Word */}
-          <TouchableOpacity onPress={speak}>
-            <Text
-              style={[styles.cardTitle, { color: isDark ? "#fff" : "#1a1a1a" }]}
-              numberOfLines={1}
-            >
-              {word}
-            </Text>
+          <TouchableOpacity onPress={handlePressWord} activeOpacity={0.7}>
+            {renderWord()}
           </TouchableOpacity>
         </View>
         <View style={styles.addButtonContainer}>
@@ -85,24 +143,31 @@ export function SwipeCardItemWordMeaningSection({
 const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     marginBottom: 8,
   },
   leftRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     flexShrink: 1,
     minWidth: 0,
   },
   addButtonContainer: {
     marginLeft: "auto",
     paddingLeft: 12,
+    alignSelf: "flex-start",
   },
   cardTitle: {
     fontSize: 32,
     fontWeight: "bold",
     color: "#1a1a1a",
     flexShrink: 1,
+  },
+  wordVariantsContainer: {
+    gap: 4,
+  },
+  cardTitleVariant: {
+    lineHeight: 38,
   },
   cardSubtitle: {
     fontSize: 15,

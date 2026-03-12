@@ -1,6 +1,5 @@
 import { act, render } from "@testing-library/react-native";
 import React from "react";
-import { StyleSheet } from "react-native";
 import { WordList } from "../components/course-wordbank/WordList";
 import { SavedWord } from "../components/wordbank/WordCard";
 
@@ -40,11 +39,15 @@ jest.mock("react-native-pager-view", () => {
 
 jest.mock("../components/CollocationFlipCard", () => {
   const React = require("react");
-  const { View } = require("react-native");
+  const { Text, View } = require("react-native");
 
-  const MockCollocationFlipCard = ({ data, onFirstFlipToBack }: any) => {
+  const MockCollocationFlipCard = ({ data, onFirstFlipToBack, wordBankConfig }: any) => {
     mockFlipHandlers.set(String(data.collocation), onFirstFlipToBack);
-    return <View testID={`mock-card-${data.collocation}`} />;
+    return (
+      <View testID={`mock-card-${data.collocation}`}>
+        <Text>{wordBankConfig?.isSelected ? "selected" : "idle"}</Text>
+      </View>
+    );
   };
 
   return {
@@ -141,7 +144,10 @@ describe("WordList collocation flip gating", () => {
         words={buildWords()}
         courseId="COLLOCATION"
         isDark={false}
-        onDelete={jest.fn()}
+        isDeleteMode={false}
+        selectedIds={new Set()}
+        onStartDeleteMode={jest.fn()}
+        onToggleSelection={jest.fn()}
       />,
     );
 
@@ -159,7 +165,10 @@ describe("WordList collocation flip gating", () => {
         words={buildWords()}
         courseId="COLLOCATION"
         isDark={false}
-        onDelete={jest.fn()}
+        isDeleteMode={false}
+        selectedIds={new Set()}
+        onStartDeleteMode={jest.fn()}
+        onToggleSelection={jest.fn()}
       />,
     );
 
@@ -178,7 +187,10 @@ describe("WordList collocation flip gating", () => {
         words={words}
         courseId="TOEIC"
         isDark={false}
-        onDelete={jest.fn()}
+        isDeleteMode={false}
+        selectedIds={new Set()}
+        onStartDeleteMode={jest.fn()}
+        onToggleSelection={jest.fn()}
       />,
     );
 
@@ -186,5 +198,25 @@ describe("WordList collocation flip gating", () => {
     expect(getByTestId("word-card-2")).toBeTruthy();
     expect(getByTestId("word-card-3")).toBeTruthy();
     expect(queryByTestId("mock-pager")).toBeNull();
+  });
+
+  test("keeps selection state while navigating collocation cards in delete mode", () => {
+    const { getAllByText } = render(
+      <WordList
+        words={buildWords()}
+        courseId="COLLOCATION"
+        isDark={false}
+        isDeleteMode={true}
+        selectedIds={new Set(["2"])}
+        onStartDeleteMode={jest.fn()}
+        onToggleSelection={jest.fn()}
+      />,
+    );
+
+    expect(getAllByText("idle").length).toBeGreaterThan(0);
+
+    selectPage(1);
+
+    expect(getAllByText("selected").length).toBeGreaterThan(0);
   });
 });

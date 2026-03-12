@@ -11,7 +11,10 @@ interface WordListProps {
   courseId: string;
   courseColor?: string;
   isDark: boolean;
-  onDelete: (wordId: string) => void;
+  isDeleteMode: boolean;
+  selectedIds: Set<string>;
+  onStartDeleteMode: (wordId: string) => void;
+  onToggleSelection: (wordId: string) => void;
 }
 
 export function WordList({
@@ -19,7 +22,10 @@ export function WordList({
   courseId,
   courseColor,
   isDark,
-  onDelete,
+  isDeleteMode,
+  selectedIds,
+  onStartDeleteMode,
+  onToggleSelection,
 }: WordListProps) {
   const { collocationDisplay, otherDisplay } = useWordBankDisplayStore();
   const pagerRef = React.useRef<PagerView>(null);
@@ -35,7 +41,25 @@ export function WordList({
     unlockedIndicesRef.current = new Set();
     revertingTargetRef.current = null;
     isBlockingForwardDragRef.current = false;
-  }, [courseId, words.length]);
+  }, [courseId]);
+
+  React.useEffect(() => {
+    if (words.length === 0) {
+      currentIndexRef.current = 0;
+      setActiveIndex(0);
+      return;
+    }
+
+    const nextIndex = Math.min(currentIndexRef.current, words.length - 1);
+    if (nextIndex !== currentIndexRef.current) {
+      currentIndexRef.current = nextIndex;
+      setActiveIndex(nextIndex);
+      pagerRef.current?.setPageWithoutAnimation(nextIndex);
+      return;
+    }
+
+    setActiveIndex((previous) => Math.min(previous, words.length - 1));
+  }, [words.length]);
 
   const unlockIndex = React.useCallback((index: number) => {
     unlockedIndicesRef.current.add(index);
@@ -130,8 +154,11 @@ export function WordList({
                     day: word.day,
                     initialIsSaved: true, // Already saved in word bank
                     enableAdd: false, // Can't add again
-                    enableDelete: true, // Can delete from word bank
-                    onDelete,
+                    enableDelete: false,
+                    isDeleteMode,
+                    isSelected: selectedIds.has(word.id),
+                    onStartDeleteMode,
+                    onToggleSelection,
                   }}
                   onFirstFlipToBack={() => unlockIndex(index)}
                   isActive={activeIndex === index}
@@ -152,8 +179,11 @@ export function WordList({
             word={word}
             courseColor={courseColor}
             isDark={isDark}
-            onDelete={onDelete}
             showDetails={false}
+            isDeleteMode={isDeleteMode}
+            isSelected={selectedIds.has(word.id)}
+            onStartDeleteMode={onStartDeleteMode}
+            onToggleSelection={onToggleSelection}
           />
         ))}
       </>
@@ -169,8 +199,11 @@ export function WordList({
           word={word}
           courseColor={courseColor}
           isDark={isDark}
-          onDelete={onDelete}
           showDetails={otherDisplay === "all"}
+          isDeleteMode={isDeleteMode}
+          isSelected={selectedIds.has(word.id)}
+          onStartDeleteMode={onStartDeleteMode}
+          onToggleSelection={onToggleSelection}
         />
       ))}
     </>

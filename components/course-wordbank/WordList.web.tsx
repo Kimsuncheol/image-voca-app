@@ -15,7 +15,10 @@ interface WordListProps {
   courseId: string;
   courseColor?: string;
   isDark: boolean;
-  onDelete: (wordId: string) => void;
+  isDeleteMode: boolean;
+  selectedIds: Set<string>;
+  onStartDeleteMode: (wordId: string) => void;
+  onToggleSelection: (wordId: string) => void;
 }
 
 export function WordList({
@@ -23,14 +26,23 @@ export function WordList({
   courseId,
   courseColor,
   isDark,
-  onDelete,
+  isDeleteMode,
+  selectedIds,
+  onStartDeleteMode,
+  onToggleSelection,
 }: WordListProps) {
   const { collocationDisplay, otherDisplay } = useWordBankDisplayStore();
   const [activeIndex, setActiveIndex] = React.useState(0);
 
   React.useEffect(() => {
     setActiveIndex(0);
-  }, [courseId, words.length]);
+  }, [courseId]);
+
+  React.useEffect(() => {
+    setActiveIndex((index) =>
+      words.length === 0 ? 0 : Math.min(index, words.length - 1),
+    );
+  }, [words.length]);
 
   if (courseId === "COLLOCATION" && collocationDisplay === "all") {
     const activeWord = words[activeIndex];
@@ -57,8 +69,11 @@ export function WordList({
               day: activeWord.day,
               initialIsSaved: true,
               enableAdd: false,
-              enableDelete: true,
-              onDelete,
+              enableDelete: false,
+              isDeleteMode,
+              isSelected: selectedIds.has(activeWord.id),
+              onStartDeleteMode,
+              onToggleSelection,
             }}
             isActive={true}
           />
@@ -110,8 +125,11 @@ export function WordList({
             word={word}
             courseColor={courseColor}
             isDark={isDark}
-            onDelete={onDelete}
             showDetails={false}
+            isDeleteMode={isDeleteMode}
+            isSelected={selectedIds.has(word.id)}
+            onStartDeleteMode={onStartDeleteMode}
+            onToggleSelection={onToggleSelection}
           />
         ))}
       </>
@@ -126,8 +144,11 @@ export function WordList({
           word={word}
           courseColor={courseColor}
           isDark={isDark}
-          onDelete={onDelete}
           showDetails={otherDisplay === "all"}
+          isDeleteMode={isDeleteMode}
+          isSelected={selectedIds.has(word.id)}
+          onStartDeleteMode={onStartDeleteMode}
+          onToggleSelection={onToggleSelection}
         />
       ))}
     </>

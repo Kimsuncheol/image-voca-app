@@ -1,8 +1,9 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
+import FaceSide from "../components/CollocationFlipCard/FaceSide";
 import { SpeakerButton } from "../components/CollocationFlipCard/SpeakerButton";
 import { SwipeCardItemWordMeaningSection } from "../components/swipe/SwipeCardItemWordMeaningSection";
-import { WordCardActions } from "../components/wordbank/WordCardActions";
+import { WordCard } from "../components/wordbank/WordCard";
 import { WordCardExample } from "../components/wordbank/WordCardExample";
 
 const mockSpeak = jest.fn();
@@ -14,6 +15,10 @@ jest.mock("../src/context/ThemeContext", () => ({
   useTheme: () => ({ isDark: false }),
 }));
 
+jest.mock("../src/context/AuthContext", () => ({
+  useAuth: () => ({ user: null }),
+}));
+
 jest.mock("../src/hooks/useSpeech", () => ({
   useSpeech: () => ({
     speak: mockSpeak,
@@ -23,6 +28,28 @@ jest.mock("../src/hooks/useSpeech", () => ({
     isSpeaking: false,
     isPaused: false,
     error: null,
+  }),
+}));
+
+jest.mock("../src/stores", () => ({
+  useUserStatsStore: () => ({
+    recordWordLearned: jest.fn(),
+  }),
+}));
+
+jest.mock("../src/services/firebase", () => ({
+  db: {},
+}));
+
+jest.mock("firebase/firestore", () => ({
+  doc: jest.fn(),
+  runTransaction: jest.fn(),
+}));
+
+jest.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (_key: string, options?: { defaultValue?: string }) =>
+      options?.defaultValue ?? _key,
   }),
 }));
 
@@ -64,18 +91,27 @@ jest.mock("../components/themed-text", () => {
 describe("TTS entrypoints", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSpeak.mockResolvedValue(undefined);
   });
 
-  it("uses the shared speech hook from WordCardActions", async () => {
+  it("uses the shared speech hook from the word card title", async () => {
     const { getByText } = render(
-      <WordCardActions
-        word="abandon"
-        wordId="1"
-        onDelete={jest.fn()}
+      <WordCard
+        word={{
+          id: "1",
+          word: "abandon",
+          meaning: "to leave behind",
+          translation: "버리다",
+          pronunciation: "/əˈbændən/",
+          example: "They abandoned the plan.",
+          course: "TOEIC",
+          addedAt: "2026-01-01T00:00:00.000Z",
+        }}
+        isDark={false}
       />
     );
 
-    fireEvent.press(getByText("volume-medium"));
+    fireEvent.press(getByText("abandon"));
 
     await waitFor(() => {
       expect(mockSpeak).toHaveBeenCalledWith("abandon", {
@@ -102,7 +138,7 @@ describe("TTS entrypoints", () => {
       />
     );
 
-    fireEvent.press(getByText("volume-medium"));
+    fireEvent.press(getByText("abandon"));
 
     await waitFor(() => {
       expect(mockSpeak).toHaveBeenCalledWith("abandon", {
@@ -110,6 +146,68 @@ describe("TTS entrypoints", () => {
         rate: 0.9,
       });
     });
+  });
+
+  it("reads '='-separated swipe card word variants as separate utterances", async () => {
+    mockSpeak.mockImplementation(async (_text, options) => {
+      options?.onDone?.();
+    });
+
+    const { getByText, queryByText } = render(
+      <SwipeCardItemWordMeaningSection
+        item={{
+          id: "1",
+          word: "connection flight = connecting flight = connection",
+          meaning: "a transfer flight",
+          example: "I missed my connection.",
+          translation: "나는 환승편을 놓쳤다.",
+          course: "TOEIC",
+        }}
+        word="connection flight = connecting flight = connection"
+        meaning="a transfer flight"
+        isDark={false}
+      />
+    );
+
+    expect(getByText("connecting flight")).toBeTruthy();
+    expect(getByText("connection")).toBeTruthy();
+    expect(queryByText(/=/)).toBeNull();
+
+    fireEvent.press(getByText("connection flight"));
+
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledTimes(3);
+    });
+
+    expect(mockSpeak.mock.calls).toEqual([
+      [
+        "connection flight",
+        expect.objectContaining({
+          language: "en-US",
+          rate: 0.9,
+          onDone: expect.any(Function),
+          onError: expect.any(Function),
+        }),
+      ],
+      [
+        "connecting flight",
+        expect.objectContaining({
+          language: "en-US",
+          rate: 0.9,
+          onDone: expect.any(Function),
+          onError: expect.any(Function),
+        }),
+      ],
+      [
+        "connection",
+        expect.objectContaining({
+          language: "en-US",
+          rate: 0.9,
+          onDone: expect.any(Function),
+          onError: expect.any(Function),
+        }),
+      ],
+    ]);
   });
 
   it("uses the shared speech hook from word examples", async () => {
@@ -143,6 +241,97 @@ describe("TTS entrypoints", () => {
         language: "en-US",
         rate: 0.9,
       });
+    });
+  });
+
+  it("uses the collocation title as the TTS trigger on the face side", async () => {
+    const { getByText } = render(
+      <FaceSide
+        data={{
+          collocation: "make a decision",
+          meaning: "결정을 내리다",
+          explanation: "",
+          example: "She made a decision quickly.",
+          translation: "그녀는 빨리 결정을 내렸다.",
+        }}
+        isDark={false}
+        wordBankConfig={{
+          id: "1",
+          course: "COLLOCATION",
+          enableAdd: false,
+        }}
+      />
+    );
+
+    fireEvent.press(getByText("make a decision"));
+
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledWith("make a decision", {
+        language: "en-US",
+        rate: 0.9,
+      });
+    });
+  });
+
+  it("reads '='-separated word card titles as separate utterances", async () => {
+    mockSpeak.mockImplementation(async (_text, options) => {
+      options?.onDone?.();
+    });
+
+    const { getByText } = render(
+      <WordCard
+        word={{
+          id: "1",
+          word: "connection flight = connecting flight = connection",
+          meaning: "a transfer flight",
+          translation: "환승 항공편",
+          pronunciation: "",
+          example: "We made our connection.",
+          course: "TOEIC",
+          addedAt: "2026-01-01T00:00:00.000Z",
+        }}
+        isDark={false}
+      />
+    );
+
+    fireEvent.press(getByText("connection flight"));
+
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  it("reads '='-separated collocation titles as separate utterances", async () => {
+    mockSpeak.mockImplementation(async (_text, options) => {
+      options?.onDone?.();
+    });
+
+    const { getByText, queryByText } = render(
+      <FaceSide
+        data={{
+          collocation: "connection flight = connecting flight = connection",
+          meaning: "환승 항공편",
+          explanation: "",
+          example: "We made our connection.",
+          translation: "우리는 환승에 성공했다.",
+        }}
+        isDark={false}
+        wordBankConfig={{
+          id: "1",
+          course: "COLLOCATION",
+          enableAdd: false,
+        }}
+      />
+    );
+
+    expect(getByText("connecting flight")).toBeTruthy();
+    expect(getByText("connection")).toBeTruthy();
+    expect(queryByText(/=/)).toBeNull();
+
+    fireEvent.press(getByText("connection flight"));
+
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledTimes(3);
     });
   });
 });

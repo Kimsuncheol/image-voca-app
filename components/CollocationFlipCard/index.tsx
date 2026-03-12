@@ -60,6 +60,12 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
       }
     }, [isActive, isFlipped]);
 
+    React.useEffect(() => {
+      if (wordBankConfig?.isDeleteMode && isFlipped) {
+        setIsFlipped(false);
+      }
+    }, [isFlipped, wordBankConfig?.isDeleteMode]);
+
     // ============================================================================
     // Event Handlers
     // ============================================================================
@@ -112,7 +118,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
           data={data}
           isDark={isDark}
           wordBankConfig={wordBankConfig}
-          onFlip={handleFlipToBack}
+          onFlip={wordBankConfig?.isDeleteMode ? undefined : handleFlipToBack}
         />
 
         {/* ============================================================ */}
