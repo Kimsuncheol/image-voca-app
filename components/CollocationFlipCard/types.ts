@@ -20,4 +20,5 @@ export interface CollocationWordBankConfig {
   isSelected?: boolean;
   onStartDeleteMode?: (id: string) => void;
   onToggleSelection?: (id: string) => void;
+  onSavedStateChange?: (id: string, isSaved: boolean) => void;
 }

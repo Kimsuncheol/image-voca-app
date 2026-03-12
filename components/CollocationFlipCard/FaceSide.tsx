@@ -223,12 +223,14 @@ export default React.memo(function FaceSide({
       // Handle UI updates based on transaction result
       if (action === "removed") {
         setIsAdded(false);
+        wordBankConfig.onSavedStateChange?.(wordBankConfig.id, false);
         wordBankConfig.onDelete?.(wordBankConfig.id);
         // Alert.alert(t("common.success"), "Removed from Word Bank.");
         return;
       }
 
       setIsAdded(true);
+      wordBankConfig.onSavedStateChange?.(wordBankConfig.id, true);
       await recordWordLearned(user.uid);
       // Alert.alert(
       //   t("common.success"),

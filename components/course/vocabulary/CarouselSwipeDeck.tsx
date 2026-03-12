@@ -27,6 +27,7 @@ interface CarouselSwipeDeckProps {
   cards: VocabularyCard[];
   dayNumber: number;
   savedWordIds: Set<string>;
+  onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   onSwipeRight: (item: VocabularyCard) => void;
   onSwipeLeft: (item: VocabularyCard) => void;
   onIndexChange: (index: number) => void;
@@ -43,6 +44,7 @@ interface CardItemProps {
   translateX: SharedValue<number>;
   savedWordIds: Set<string>;
   dayNumber: number;
+  onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
 }
 
 const CardItem = React.memo(function CardItem({
@@ -51,6 +53,7 @@ const CardItem = React.memo(function CardItem({
   translateX,
   savedWordIds,
   dayNumber,
+  onSavedWordChange,
 }: CardItemProps) {
   const animatedStyle = useAnimatedStyle(() => {
     const scrollPos = -translateX.value;
@@ -67,6 +70,7 @@ const CardItem = React.memo(function CardItem({
         item={item}
         initialIsSaved={savedWordIds.has(item.id)}
         day={dayNumber}
+        onSavedWordChange={onSavedWordChange}
       />
     </Animated.View>
   );
@@ -80,6 +84,7 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
   cards,
   dayNumber,
   savedWordIds,
+  onSavedWordChange,
   onSwipeRight,
   onSwipeLeft,
   onIndexChange,
@@ -164,6 +169,7 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
               translateX={translateX}
               savedWordIds={savedWordIds}
               dayNumber={dayNumber}
+              onSavedWordChange={onSavedWordChange}
             />
           ))}
         </Animated.View>

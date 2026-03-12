@@ -187,7 +187,10 @@ export default function VocabularyScreen() {
    */
   useEffect(() => {
     const fetchSavedWords = async () => {
-      if (!user || !courseId) return;
+      if (!user || !courseId) {
+        setSavedWordIds(new Set());
+        return;
+      }
 
       try {
         const wordBankRef = doc(db, "vocabank", user.uid, "course", courseId);
@@ -198,7 +201,10 @@ export default function VocabularyScreen() {
           const words = data.words || [];
           const ids = new Set(words.map((w: any) => w.id));
           setSavedWordIds(ids as Set<string>);
+          return;
         }
+
+        setSavedWordIds(new Set());
       } catch (error) {
         console.error("Error fetching saved words:", error);
       }
@@ -298,6 +304,21 @@ export default function VocabularyScreen() {
     }
   };
 
+  const handleSavedWordChange = React.useCallback(
+    (wordId: string, isSaved: boolean) => {
+      setSavedWordIds((previous) => {
+        const next = new Set(previous);
+        if (isSaved) {
+          next.add(wordId);
+        } else {
+          next.delete(wordId);
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
   // ============================================================================
   // Section 5: Navigation Actions
   // ============================================================================
@@ -388,6 +409,7 @@ export default function VocabularyScreen() {
               isDark={isDark}
               dayNumber={dayNumber}
               savedWordIds={savedWordIds}
+              onSavedWordChange={handleSavedWordChange}
               onSwipeRight={onSwipeRight}
               onSwipeLeft={onSwipeLeft}
               onIndexChange={handlePageChange}

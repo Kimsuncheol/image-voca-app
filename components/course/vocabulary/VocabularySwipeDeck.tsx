@@ -16,6 +16,7 @@ interface VocabularySwipeDeckProps {
   isDark: boolean;
   dayNumber: number;
   savedWordIds: Set<string>;
+  onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   onSwipeRight: (item: VocabularyCard) => void;
   onSwipeLeft: (item: VocabularyCard) => void;
   onIndexChange: (index: number) => void;
@@ -30,6 +31,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
   isDark,
   dayNumber,
   savedWordIds,
+  onSavedWordChange,
   onSwipeRight,
   onSwipeLeft,
   onIndexChange,
@@ -49,6 +51,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         renderFinalPage={renderFinishView}
         day={dayNumber}
         savedWordIds={savedWordIds}
+        onSavedWordChange={onSavedWordChange}
         isStudyCompleted={isStudyCompleted}
       />
     );
@@ -60,6 +63,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         cards={cards}
         dayNumber={dayNumber}
         savedWordIds={savedWordIds}
+        onSavedWordChange={onSavedWordChange}
         onSwipeRight={onSwipeRight}
         onSwipeLeft={onSwipeLeft}
         onIndexChange={onIndexChange}
@@ -77,6 +81,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
           item={item}
           initialIsSaved={savedWordIds.has(item.id)}
           day={dayNumber}
+          onSavedWordChange={onSavedWordChange}
         />
       )}
       onSwipeRight={onSwipeRight}

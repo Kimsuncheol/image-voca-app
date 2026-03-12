@@ -13,6 +13,7 @@ interface SwipeCardItemMeaningExampleSentenceSectionProps {
   isDark: boolean;
   initialIsSaved?: boolean;
   day?: number;
+  onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
 }
 
 export function SwipeCardItemMeaningExampleSentenceSection({
@@ -25,6 +26,7 @@ export function SwipeCardItemMeaningExampleSentenceSection({
   isDark,
   initialIsSaved = false,
   day,
+  onSavedWordChange,
 }: SwipeCardItemMeaningExampleSentenceSectionProps) {
   return (
     <>
@@ -36,6 +38,7 @@ export function SwipeCardItemMeaningExampleSentenceSection({
         isDark={isDark}
         initialIsSaved={initialIsSaved}
         day={day}
+        onSavedWordChange={onSavedWordChange}
       />
       <SwipeCardItemExampleSentenceSection
         example={example}

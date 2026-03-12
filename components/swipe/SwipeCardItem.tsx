@@ -11,12 +11,14 @@ interface SwipeCardItemProps {
   item: VocabularyCard;
   initialIsSaved?: boolean;
   day?: number;
+  onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
 }
 
 export function SwipeCardItem({
   item,
   initialIsSaved = false,
   day,
+  onSavedWordChange,
 }: SwipeCardItemProps) {
   const { isDark } = useTheme();
   const pronunciation = item.pronunciation?.trim();
@@ -39,6 +41,7 @@ export function SwipeCardItem({
         isDark={isDark}
         initialIsSaved={initialIsSaved}
         day={day}
+        onSavedWordChange={onSavedWordChange}
       />
     </View>
   );

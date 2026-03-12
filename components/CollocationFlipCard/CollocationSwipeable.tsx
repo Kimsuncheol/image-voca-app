@@ -16,6 +16,7 @@ interface Props {
   isDark?: boolean;
   day?: number;
   savedWordIds?: Set<string>;
+  onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isStudyCompleted?: boolean;
 }
 
@@ -30,6 +31,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
   isDark = false,
   day,
   savedWordIds,
+  onSavedWordChange,
   isStudyCompleted = false,
 }) => {
   const { t } = useTranslation();
@@ -225,11 +227,12 @@ export const CollocationSwipeable: React.FC<Props> = ({
               wordBankConfig={{
                 id: item.id,
                 course: item.course,
-                day,
-                initialIsSaved: savedWordIds?.has(item.id) ?? false,
-                enableAdd: true,
-                enableDelete: false,
-              }}
+              day,
+              initialIsSaved: savedWordIds?.has(item.id) ?? false,
+              enableAdd: true,
+              enableDelete: false,
+              onSavedStateChange: onSavedWordChange,
+            }}
               onFirstFlipToBack={() => handleCardFirstFlip(index)}
               isActive={activeIndex === index}
             />

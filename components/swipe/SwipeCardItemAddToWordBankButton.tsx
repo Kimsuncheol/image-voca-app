@@ -14,6 +14,7 @@ interface SwipeCardItemAddToWordBankButtonProps {
   isDark: boolean;
   initialIsSaved?: boolean;
   day?: number;
+  onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
 }
 
 export function SwipeCardItemAddToWordBankButton({
@@ -21,6 +22,7 @@ export function SwipeCardItemAddToWordBankButton({
   isDark,
   initialIsSaved = false,
   day,
+  onSavedWordChange,
 }: SwipeCardItemAddToWordBankButtonProps) {
   const { user } = useAuth();
   const { recordWordLearned } = useUserStatsStore();
@@ -32,14 +34,9 @@ export function SwipeCardItemAddToWordBankButton({
     setIsAdded(initialIsSaved);
   }, [initialIsSaved]);
 
-  const addToWordBank = async () => {
+  const toggleWordBank = async () => {
     if (!user) {
       Alert.alert(t("common.error"), t("swipe.errors.loginRequired"));
-      return;
-    }
-
-    if (isAdded) {
-      Alert.alert(t("common.info"), t("swipe.errors.alreadyAdded"));
       return;
     }
 
@@ -58,8 +55,9 @@ export function SwipeCardItemAddToWordBankButton({
         );
 
         if (dedupedWords.some((word) => word.id === item.id)) {
-          transaction.set(wordRef, { words: dedupedWords }, { merge: true });
-          return "exists" as const;
+          const updatedWords = dedupedWords.filter((word) => word.id !== item.id);
+          transaction.set(wordRef, { words: updatedWords }, { merge: true });
+          return "removed" as const;
         }
 
         const newWord: SavedWord = {
@@ -82,21 +80,18 @@ export function SwipeCardItemAddToWordBankButton({
         return "added" as const;
       });
 
-      if (action === "exists") {
-        setIsAdded(true);
-        Alert.alert(t("common.info"), t("swipe.errors.alreadyAdded"));
+      if (action === "removed") {
+        setIsAdded(false);
+        onSavedWordChange?.(item.id, false);
         return;
       }
 
       setIsAdded(true);
+      onSavedWordChange?.(item.id, true);
       // Record word learned for stats
       await recordWordLearned(user.uid);
-      Alert.alert(
-        t("common.success"),
-        t("swipe.success.addedToWordBank", { word: item.word }),
-      );
     } catch (error) {
-      console.error("Error adding to word bank:", error);
+      console.error("Error toggling word bank:", error);
       Alert.alert(t("common.error"), t("swipe.errors.addFailed"));
     } finally {
       setIsAdding(false);
@@ -114,8 +109,8 @@ export function SwipeCardItemAddToWordBankButton({
           borderColor: isDark ? "#0a84ff80" : "#007AFF40",
         },
       ]}
-      onPress={addToWordBank}
-      disabled={isAdding || isAdded}
+      onPress={toggleWordBank}
+      disabled={isAdding}
     >
       <Ionicons
         name={isAdded ? "bookmark" : "bookmark-outline"}

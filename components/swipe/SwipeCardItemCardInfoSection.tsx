@@ -9,6 +9,7 @@ interface CardInfoSectionProps {
   isDark: boolean;
   initialIsSaved?: boolean;
   day?: number;
+  onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
 }
 
 export function SwipeCardItemCardInfoSection({
@@ -17,6 +18,7 @@ export function SwipeCardItemCardInfoSection({
   isDark,
   initialIsSaved = false,
   day,
+  onSavedWordChange,
 }: CardInfoSectionProps) {
   return (
     <View
@@ -36,6 +38,7 @@ export function SwipeCardItemCardInfoSection({
         isDark={isDark}
         initialIsSaved={initialIsSaved}
         day={day}
+        onSavedWordChange={onSavedWordChange}
       />
     </View>
   );

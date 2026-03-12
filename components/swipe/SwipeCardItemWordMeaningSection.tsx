@@ -13,6 +13,7 @@ interface SwipeCardItemWordMeaningSectionProps {
   isDark: boolean;
   initialIsSaved?: boolean;
   day?: number;
+  onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
 }
 
 const WORD_TTS_OPTIONS = {
@@ -34,6 +35,7 @@ export function SwipeCardItemWordMeaningSection({
   isDark,
   initialIsSaved = false,
   day,
+  onSavedWordChange,
 }: SwipeCardItemWordMeaningSectionProps) {
   const { speak: speakText } = useSpeech();
   const normalizedPronunciation = pronunciation?.trim();
@@ -113,6 +115,7 @@ export function SwipeCardItemWordMeaningSection({
             isDark={isDark}
             initialIsSaved={initialIsSaved}
             day={day}
+            onSavedWordChange={onSavedWordChange}
           />
         </View>
       </View>
