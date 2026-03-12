@@ -1,7 +1,30 @@
-import { render } from "@testing-library/react-native";
+import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
 import { WordList } from "../components/course-wordbank/WordList";
 import { SavedWord } from "../components/wordbank/WordCard";
+
+const mockDeleteWord = jest.fn();
+
+jest.mock("../components/course-wordbank/SwipeToDeleteRow", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Text, TouchableOpacity, View } = require("react-native");
+
+  const MockSwipeToDeleteRow = ({ itemId, onDelete, children }: any) => (
+    <View testID={`swipe-row-${itemId}`}>
+      <TouchableOpacity onPress={() => onDelete(itemId)}>
+        <Text>{`delete-${itemId}`}</Text>
+      </TouchableOpacity>
+      {children}
+    </View>
+  );
+
+  return {
+    __esModule: true,
+    SwipeToDeleteRow: MockSwipeToDeleteRow,
+  };
+});
 
 jest.mock("../components/wordbank/WordCard", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -13,13 +36,11 @@ jest.mock("../components/wordbank/WordCard", () => {
     word,
     showPronunciation,
     expandExampleToContent,
-    isSelected,
   }: any) => (
     <View testID={`word-card-${word.id}`}>
       <Text>{word.word}</Text>
       <Text>{showPronunciation ? "show-pronunciation" : "hide-pronunciation"}</Text>
       <Text>{expandExampleToContent ? "expand-example" : "cap-example"}</Text>
-      <Text>{isSelected ? "selected" : "idle"}</Text>
     </View>
   );
 
@@ -68,16 +89,17 @@ function buildWords(course: string): SavedWord[] {
 }
 
 describe("WordList fixed word bank layout", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   test("renders collocations as standard cards with pronunciation hidden", () => {
     const screen = render(
       <WordList
         words={buildWords("COLLOCATION")}
         courseId="COLLOCATION"
         isDark={false}
-        isDeleteMode={false}
-        selectedIds={new Set()}
-        onStartDeleteMode={jest.fn()}
-        onToggleSelection={jest.fn()}
+        onDeleteWord={mockDeleteWord}
       />,
     );
 
@@ -88,21 +110,18 @@ describe("WordList fixed word bank layout", () => {
     expect(screen.getAllByText("expand-example")).toHaveLength(3);
   });
 
-  test("preserves selection props in the fixed collocation list", () => {
+  test("passes delete callbacks through the swipe rows", () => {
     const screen = render(
       <WordList
         words={buildWords("COLLOCATION")}
         courseId="COLLOCATION"
         isDark={false}
-        isDeleteMode={true}
-        selectedIds={new Set(["2"])}
-        onStartDeleteMode={jest.fn()}
-        onToggleSelection={jest.fn()}
+        onDeleteWord={mockDeleteWord}
       />,
     );
 
-    expect(screen.getAllByText("selected")).toHaveLength(1);
-    expect(screen.getAllByText("idle")).toHaveLength(2);
+    fireEvent.press(screen.getByText("delete-2"));
+    expect(mockDeleteWord).toHaveBeenCalledWith("2");
   });
 
   test("renders non-collocation courses as full cards", () => {
@@ -111,10 +130,7 @@ describe("WordList fixed word bank layout", () => {
         words={buildWords("TOEIC")}
         courseId="TOEIC"
         isDark={false}
-        isDeleteMode={false}
-        selectedIds={new Set()}
-        onStartDeleteMode={jest.fn()}
-        onToggleSelection={jest.fn()}
+        onDeleteWord={mockDeleteWord}
       />,
     );
 

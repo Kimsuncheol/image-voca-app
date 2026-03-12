@@ -1,5 +1,6 @@
 import React from "react";
 import { View } from "react-native";
+import { SwipeToDeleteRow } from "./SwipeToDeleteRow";
 import { SavedWord, WordCard } from "../wordbank/WordCard";
 
 interface WordListProps {
@@ -7,10 +8,7 @@ interface WordListProps {
   courseId: string;
   courseColor?: string;
   isDark: boolean;
-  isDeleteMode: boolean;
-  selectedIds: Set<string>;
-  onStartDeleteMode: (wordId: string) => void;
-  onToggleSelection: (wordId: string) => void;
+  onDeleteWord: (wordId: string) => void;
 }
 
 export function WordList({
@@ -18,10 +16,7 @@ export function WordList({
   courseId,
   courseColor,
   isDark,
-  isDeleteMode,
-  selectedIds,
-  onStartDeleteMode,
-  onToggleSelection,
+  onDeleteWord,
 }: WordListProps) {
   const showPronunciation = courseId !== "COLLOCATION";
   const expandExampleToContent = courseId === "COLLOCATION";
@@ -29,18 +24,20 @@ export function WordList({
   return (
     <View>
       {words.map((word, index) => (
-        <WordCard
+        <SwipeToDeleteRow
           key={word.id + index}
-          word={word}
-          courseColor={courseColor}
+          itemId={word.id}
           isDark={isDark}
-          showPronunciation={showPronunciation}
-          expandExampleToContent={expandExampleToContent}
-          isDeleteMode={isDeleteMode}
-          isSelected={selectedIds.has(word.id)}
-          onStartDeleteMode={onStartDeleteMode}
-          onToggleSelection={onToggleSelection}
-        />
+          onDelete={onDeleteWord}
+        >
+          <WordCard
+            word={word}
+            courseColor={courseColor}
+            isDark={isDark}
+            showPronunciation={showPronunciation}
+            expandExampleToContent={expandExampleToContent}
+          />
+        </SwipeToDeleteRow>
       ))}
     </View>
   );

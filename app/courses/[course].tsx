@@ -3,7 +3,7 @@ import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { doc, getDoc, setDoc } from "firebase/firestore"; // Firestore database operations
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next"; // Internationalization
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Custom components
@@ -52,9 +52,6 @@ export default function CourseWordBankScreen() {
   const [words, setWords] = useState<SavedWord[]>([]); // Array of saved words for this course
   const [loading, setLoading] = useState(true); // Loading state while fetching data
   const [selectedFilter, setSelectedFilter] = useState("all");
-  const [isDeleteMode, setIsDeleteMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Generate filter options dynamically based on available days
   const filterOptions = useMemo(() => {
@@ -145,106 +142,28 @@ export default function CourseWordBankScreen() {
     }, [fetchWords]),
   );
 
-  React.useEffect(() => {
-    setSelectedIds((previous) => {
-      const validIds = new Set(words.map((word) => word.id));
-      const nextIds = Array.from(previous).filter((id) => validIds.has(id));
-
-      if (
-        nextIds.length === previous.size &&
-        nextIds.every((id) => previous.has(id))
-      ) {
-        return previous;
-      }
-
-      return new Set(nextIds);
-    });
-  }, [words]);
-
   // === Event Handlers ===
 
-  const handleStartDeleteMode = useCallback((wordId: string) => {
-    setIsDeleteMode(true);
-    setSelectedIds((previous) => {
-      const next = new Set(previous);
-      next.add(wordId);
-      return next;
-    });
-  }, []);
-
-  const handleToggleSelection = useCallback((wordId: string) => {
-    setSelectedIds((previous) => {
-      const next = new Set(previous);
-      if (next.has(wordId)) {
-        next.delete(wordId);
-      } else {
-        next.add(wordId);
-      }
-      return next;
-    });
-  }, []);
-
-  const handleCancelDeleteMode = useCallback(() => {
-    setIsDeleteMode(false);
-    setSelectedIds(new Set());
-  }, []);
-
-  const handleConfirmDeleteSelection = useCallback(async () => {
-    if (!user || !course || selectedIds.size === 0) {
+  const handleDeleteWord = useCallback(async (wordId: string) => {
+    if (!user || !course) {
       return;
     }
 
-    setIsDeleting(true);
     try {
-      const updatedWords = words.filter((word) => !selectedIds.has(word.id));
+      const updatedWords = words.filter((word) => word.id !== wordId);
       const courseRef = doc(db, "vocabank", user.uid, "course", course);
       await setDoc(courseRef, { words: updatedWords });
       setWords(updatedWords);
-      setSelectedIds(new Set());
-      setIsDeleteMode(false);
     } catch (error) {
-      console.error("Error deleting selected words:", error);
+      console.error("Error deleting word:", error);
       Alert.alert(
         t("common.error", { defaultValue: "Error" }),
         t("wordBank.delete.error", {
           defaultValue: "Failed to delete word. Please try again.",
         }),
       );
-    } finally {
-      setIsDeleting(false);
     }
-  }, [course, selectedIds, t, user, words]);
-
-  const handleDeleteSelected = useCallback(() => {
-    const selectedCount = selectedIds.size;
-    if (selectedCount === 0) {
-      return;
-    }
-
-    Alert.alert(
-      t("wordBank.delete.title", { defaultValue: "Delete Words" }),
-      t("wordBank.delete.bulkMessage", {
-        defaultValue:
-          selectedCount === 1
-            ? "Delete the selected word?"
-            : `Delete ${selectedCount} selected items?`,
-        count: selectedCount,
-      }),
-      [
-        {
-          text: t("common.cancel"),
-          style: "cancel",
-        },
-        {
-          text: t("common.delete", { defaultValue: "Delete" }),
-          style: "destructive",
-          onPress: () => {
-            void handleConfirmDeleteSelection();
-          },
-        },
-      ],
-    );
-  }, [handleConfirmDeleteSelection, selectedIds.size, t]);
+  }, [course, t, user, words]);
 
   // === Render ===
 
@@ -276,10 +195,7 @@ export default function CourseWordBankScreen() {
       )}
 
       <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          isDeleteMode && styles.scrollContentDeleteMode,
-        ]}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Conditional rendering based on loading and data state */}
@@ -297,63 +213,10 @@ export default function CourseWordBankScreen() {
             courseId={course}
             courseColor={courseData?.color}
             isDark={isDark}
-            isDeleteMode={isDeleteMode}
-            selectedIds={selectedIds}
-            onStartDeleteMode={handleStartDeleteMode}
-            onToggleSelection={handleToggleSelection}
+            onDeleteWord={handleDeleteWord}
           />
         )}
       </ScrollView>
-
-      {isDeleteMode ? (
-        <View
-          style={[
-            styles.deleteBar,
-            { backgroundColor: isDark ? "#111214" : "#FFFFFF" },
-          ]}
-        >
-          <Text style={[styles.deleteBarText, { color: isDark ? "#fff" : "#111" }]}>
-            {t("wordBank.delete.selectedCount", {
-              defaultValue:
-                selectedIds.size === 1
-                  ? "1 item selected"
-                  : `${selectedIds.size} items selected`,
-              count: selectedIds.size,
-            })}
-          </Text>
-          <View style={styles.deleteBarActions}>
-            <TouchableOpacity
-              onPress={handleCancelDeleteMode}
-              disabled={isDeleting}
-              style={[
-                styles.deleteBarButton,
-                styles.cancelButton,
-                isDeleting && styles.actionButtonDisabled,
-              ]}
-            >
-              <Text style={styles.cancelButtonText}>
-                {t("common.cancel")}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleDeleteSelected}
-              disabled={selectedIds.size === 0 || isDeleting}
-              style={[
-                styles.deleteBarButton,
-                styles.deleteButton,
-                (selectedIds.size === 0 || isDeleting) && styles.actionButtonDisabled,
-              ]}
-            >
-              <Text style={styles.deleteButtonText}>
-                {isDeleting
-                  ? t("common.loading", { defaultValue: "Deleting..." })
-                  : t("common.delete", { defaultValue: "Delete" })}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ) : null}
-
     </SafeAreaView>
   );
 }
@@ -368,53 +231,7 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
-  scrollContentDeleteMode: {
-    paddingBottom: 120,
-  },
   filterContainer: {
     paddingVertical: 12,
-  },
-  deleteBar: {
-    borderTopWidth: 1,
-    borderTopColor: "rgba(127,127,127,0.2)",
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 20,
-    gap: 12,
-  },
-  deleteBarText: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  deleteBarActions: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  deleteBarButton: {
-    flex: 1,
-    minHeight: 48,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 16,
-  },
-  cancelButton: {
-    backgroundColor: "#E9E9EB",
-  },
-  cancelButtonText: {
-    color: "#111",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  deleteButton: {
-    backgroundColor: "#FF3B30",
-  },
-  deleteButtonText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  actionButtonDisabled: {
-    opacity: 0.5,
   },
 });

@@ -1,7 +1,30 @@
-import { render } from "@testing-library/react-native";
+import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
 import { WordList } from "../components/course-wordbank/WordList.web";
 import { SavedWord } from "../components/wordbank/WordCard";
+
+const mockDeleteWord = jest.fn();
+
+jest.mock("../components/course-wordbank/SwipeToDeleteRow", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Text, TouchableOpacity, View } = require("react-native");
+
+  const MockSwipeToDeleteRow = ({ itemId, onDelete, children }: any) => (
+    <View testID={`swipe-row-${itemId}`}>
+      <TouchableOpacity onPress={() => onDelete(itemId)}>
+        <Text>{`delete-${itemId}`}</Text>
+      </TouchableOpacity>
+      {children}
+    </View>
+  );
+
+  return {
+    __esModule: true,
+    SwipeToDeleteRow: MockSwipeToDeleteRow,
+  };
+});
 
 jest.mock("../components/wordbank/WordCard", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -55,16 +78,17 @@ function buildWords(course: string): SavedWord[] {
 }
 
 describe("WordList.web", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   test("renders collocations as word cards and hides pronunciation", () => {
     const screen = render(
       <WordList
         words={buildWords("COLLOCATION")}
         courseId="COLLOCATION"
         isDark={false}
-        isDeleteMode={false}
-        selectedIds={new Set()}
-        onStartDeleteMode={jest.fn()}
-        onToggleSelection={jest.fn()}
+        onDeleteWord={mockDeleteWord}
       />,
     );
 
@@ -81,14 +105,25 @@ describe("WordList.web", () => {
         words={buildWords("TOEIC")}
         courseId="TOEIC"
         isDark={false}
-        isDeleteMode={false}
-        selectedIds={new Set()}
-        onStartDeleteMode={jest.fn()}
-        onToggleSelection={jest.fn()}
+        onDeleteWord={mockDeleteWord}
       />,
     );
 
     expect(screen.getAllByText("show-pronunciation")).toHaveLength(2);
     expect(screen.getAllByText("cap-example")).toHaveLength(2);
+  });
+
+  test("wires delete actions through the web row wrapper", () => {
+    const screen = render(
+      <WordList
+        words={buildWords("TOEIC")}
+        courseId="TOEIC"
+        isDark={false}
+        onDeleteWord={mockDeleteWord}
+      />,
+    );
+
+    fireEvent.press(screen.getByText("delete-1"));
+    expect(mockDeleteWord).toHaveBeenCalledWith("1");
   });
 });
