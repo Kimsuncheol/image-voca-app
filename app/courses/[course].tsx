@@ -19,7 +19,6 @@ import { SavedWord } from "../../components/wordbank/WordCard";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
-import { useWordBankDisplayStore } from "../../src/stores/wordBankDisplayStore";
 import { COURSES } from "../../src/types/vocabulary";
 
 /**
@@ -32,7 +31,7 @@ import { COURSES } from "../../src/types/vocabulary";
  * - Navigate back to the course to learn more words
  *
  * Features:
- * - Uses different card types for COLLOCATION vs regular courses
+ * - Renders all saved items in a unified word-card layout
  * - Fetches data from Firestore on screen focus
  * - Shows empty state with call-to-action when no words are saved
  * - Supports internationalization for all text
@@ -56,7 +55,6 @@ export default function CourseWordBankScreen() {
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
-  const { collocationDisplay, loadSettings } = useWordBankDisplayStore();
 
   // Generate filter options dynamically based on available days
   const filterOptions = useMemo(() => {
@@ -94,10 +92,6 @@ export default function CourseWordBankScreen() {
 
   // Find course metadata (color, title, etc.) from course configuration
   const courseData = COURSES.find((c) => c.id === course);
-  const isCollocationCourse = course === "COLLOCATION";
-
-  // Use PagerView layout only when COLLOCATION is in "all" (flip card) mode
-  const usePagerLayout = isCollocationCourse && collocationDisplay === "all";
 
   // === Data Fetching ===
 
@@ -144,13 +138,11 @@ export default function CourseWordBankScreen() {
 
   /**
    * Refetch words whenever the screen comes into focus
-   * Also loads persisted display settings on first focus
    */
   useFocusEffect(
     useCallback(() => {
-      loadSettings();
       fetchWords();
-    }, [fetchWords, loadSettings]),
+    }, [fetchWords]),
   );
 
   React.useEffect(() => {
@@ -283,61 +275,35 @@ export default function CourseWordBankScreen() {
         </View>
       )}
 
-      {usePagerLayout ? (
-        <View style={styles.pagerContainer}>
-          {/* Conditional rendering based on loading and data state */}
-          {loading ? (
-            <SkeletonList courseId={course} isDark={isDark} count={1} />
-          ) : filteredWords.length === 0 ? (
-            <EmptyWordBankView
-              courseId={course}
-              courseColor={courseData?.color}
-              isDark={isDark}
-            />
-          ) : (
-            <WordList
-              words={filteredWords}
-              courseId={course}
-              courseColor={courseData?.color}
-              isDark={isDark}
-              isDeleteMode={isDeleteMode}
-              selectedIds={selectedIds}
-              onStartDeleteMode={handleStartDeleteMode}
-              onToggleSelection={handleToggleSelection}
-            />
-          )}
-        </View>
-      ) : (
-        <ScrollView
-          contentContainerStyle={[
-            styles.scrollContent,
-            isDeleteMode && styles.scrollContentDeleteMode,
-          ]}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Conditional rendering based on loading and data state */}
-          {loading ? (
-            <SkeletonList courseId={course} isDark={isDark} count={3} />
-          ) : filteredWords.length === 0 ? (
-            <EmptyWordBankView
-              courseId={course}
-              courseColor={courseData?.color}
-              isDark={isDark}
-            />
-          ) : (
-            <WordList
-              words={filteredWords}
-              courseId={course}
-              courseColor={courseData?.color}
-              isDark={isDark}
-              isDeleteMode={isDeleteMode}
-              selectedIds={selectedIds}
-              onStartDeleteMode={handleStartDeleteMode}
-              onToggleSelection={handleToggleSelection}
-            />
-          )}
-        </ScrollView>
-      )}
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          isDeleteMode && styles.scrollContentDeleteMode,
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Conditional rendering based on loading and data state */}
+        {loading ? (
+          <SkeletonList courseId={course} isDark={isDark} count={3} />
+        ) : filteredWords.length === 0 ? (
+          <EmptyWordBankView
+            courseId={course}
+            courseColor={courseData?.color}
+            isDark={isDark}
+          />
+        ) : (
+          <WordList
+            words={filteredWords}
+            courseId={course}
+            courseColor={courseData?.color}
+            isDark={isDark}
+            isDeleteMode={isDeleteMode}
+            selectedIds={selectedIds}
+            onStartDeleteMode={handleStartDeleteMode}
+            onToggleSelection={handleToggleSelection}
+          />
+        )}
+      </ScrollView>
 
       {isDeleteMode ? (
         <View
@@ -404,10 +370,6 @@ const styles = StyleSheet.create({
   },
   scrollContentDeleteMode: {
     paddingBottom: 120,
-  },
-  pagerContainer: {
-    flex: 1,
-    width: "100%",
   },
   filterContainer: {
     paddingVertical: 12,

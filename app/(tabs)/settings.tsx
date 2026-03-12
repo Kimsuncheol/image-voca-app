@@ -22,9 +22,7 @@ import { signOut } from "firebase/auth"; // Firebase authentication sign-out fun
 // ============================================================================
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next"; // i18n for multilingual support
-import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { WordBankSettingsModal } from "../../components/course-wordbank/WordBankSettingsModal";
+import { Alert, Linking, ScrollView, StyleSheet, View } from "react-native";
 
 // ============================================================================
 // SETTINGS SECTION COMPONENTS
@@ -90,7 +88,6 @@ export default function SettingsScreen() {
   const [pushEnabled, setPushEnabled] = useState(false); // Master notification toggle
   const [studyReminderEnabled, setStudyReminderEnabled] = useState(true); // Daily study reminder notifications
   const [popWordEnabled, setPopWordEnabled] = useState(true); // Pop word quiz notifications
-  const [showWordBankSettings, setShowWordBankSettings] = useState(false);
 
   // ============================================================================
   // NAVIGATION & INTERNATIONALIZATION
@@ -474,35 +471,6 @@ export default function SettingsScreen() {
         <DashboardSection styles={styles} isDark={isDark} t={t} />
 
         {/* ================================================================
-            WORD BANK SECTION
-            ================================================================
-            Word bank card display preferences
-        */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t("settings.wordBank.title")}</Text>
-          <View style={styles.card}>
-            <TouchableOpacity
-              style={styles.option}
-              onPress={() => setShowWordBankSettings(true)}
-            >
-              <View style={styles.optionLeft}>
-                <Ionicons
-                  name="library-outline"
-                  size={20}
-                  color={isDark ? "#fff" : "#000"}
-                />
-                <Text style={styles.optionText}>{t("settings.wordBank.cardDisplay")}</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color={isDark ? "#636366" : "#c7c7cc"}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* ================================================================
             NOTIFICATIONS SECTION
             ================================================================
             Push notification preferences:
@@ -544,12 +512,6 @@ export default function SettingsScreen() {
         */}
         <SignOutSection styles={styles} onSignOut={handleSignOut} t={t} />
       </ScrollView>
-
-      <WordBankSettingsModal
-        visible={showWordBankSettings}
-        onClose={() => setShowWordBankSettings(false)}
-        isDark={isDark}
-      />
     </View>
   );
 }

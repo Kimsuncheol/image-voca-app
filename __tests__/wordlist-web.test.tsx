@@ -1,47 +1,16 @@
-import { fireEvent, render } from "@testing-library/react-native";
+import { render } from "@testing-library/react-native";
 import React from "react";
 import { WordList } from "../components/course-wordbank/WordList.web";
 import { SavedWord } from "../components/wordbank/WordCard";
 
-jest.mock("../src/stores/wordBankDisplayStore", () => ({
-  useWordBankDisplayStore: () => ({
-    collocationDisplay: "all",
-    otherDisplay: "all",
-  }),
-}));
-
-jest.mock("../components/CollocationFlipCard", () => {
+jest.mock("../components/wordbank/WordCard", () => {
   const React = require("react");
   const { Text, View } = require("react-native");
 
-  const MockCollocationFlipCard = ({ data, wordBankConfig }: any) => (
-    <View>
-      <Text>{data.collocation}</Text>
-      <Text>{wordBankConfig?.isSelected ? "selected" : "idle"}</Text>
-    </View>
-  );
-
-  return {
-    __esModule: true,
-    CollocationFlipCard: MockCollocationFlipCard,
-    default: MockCollocationFlipCard,
-  };
-});
-
-jest.mock("../components/wordbank/WordCard", () => {
-  const React = require("react");
-  const { Text, TouchableOpacity, View } = require("react-native");
-
-  const MockWordCard = ({ word, isSelected, onStartDeleteMode, onToggleSelection }: any) => (
-    <View>
+  const MockWordCard = ({ word, showPronunciation }: any) => (
+    <View testID={`word-card-${word.id}`}>
       <Text>{word.word}</Text>
-      <Text>{isSelected ? "selected" : "idle"}</Text>
-      <TouchableOpacity onPress={() => onStartDeleteMode(word.id)}>
-        <Text>Start delete {word.word}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => onToggleSelection(word.id)}>
-        <Text>Toggle {word.word}</Text>
-      </TouchableOpacity>
+      <Text>{showPronunciation ? "show-pronunciation" : "hide-pronunciation"}</Text>
     </View>
   );
 
@@ -51,7 +20,7 @@ jest.mock("../components/wordbank/WordCard", () => {
   };
 });
 
-function buildWords(): SavedWord[] {
+function buildWords(course: string): SavedWord[] {
   return [
     {
       id: "1",
@@ -60,7 +29,7 @@ function buildWords(): SavedWord[] {
       translation: "급격한 하락",
       pronunciation: "desc",
       example: "example one",
-      course: "COLLOCATION",
+      course,
       day: 1,
       addedAt: "2026-01-01T00:00:00.000Z",
     },
@@ -71,7 +40,7 @@ function buildWords(): SavedWord[] {
       translation: "상황의 변화",
       pronunciation: "desc",
       example: "example two",
-      course: "COLLOCATION",
+      course,
       day: 1,
       addedAt: "2026-01-01T00:00:00.000Z",
     },
@@ -79,10 +48,10 @@ function buildWords(): SavedWord[] {
 }
 
 describe("WordList.web", () => {
-  test("renders collocation words one at a time and navigates with buttons", () => {
+  test("renders collocations as word cards and hides pronunciation", () => {
     const screen = render(
       <WordList
-        words={buildWords()}
+        words={buildWords("COLLOCATION")}
         courseId="COLLOCATION"
         isDark={false}
         isDeleteMode={false}
@@ -92,35 +61,25 @@ describe("WordList.web", () => {
       />,
     );
 
-    expect(screen.getByText("dramatic drop")).toBeTruthy();
-    expect(screen.queryByText("change of scenery")).toBeNull();
-
-    fireEvent.press(screen.getByLabelText("Next saved card"));
-
-    expect(screen.getByText("change of scenery")).toBeTruthy();
-
-    fireEvent.press(screen.getByLabelText("Previous saved card"));
-
-    expect(screen.getByText("dramatic drop")).toBeTruthy();
+    expect(screen.getByTestId("word-card-1")).toBeTruthy();
+    expect(screen.getByTestId("word-card-2")).toBeTruthy();
+    expect(screen.queryByText("show-pronunciation")).toBeNull();
+    expect(screen.getAllByText("hide-pronunciation")).toHaveLength(2);
   });
 
-  test("passes delete-mode selection props through the web pager", () => {
+  test("renders non-collocation courses as full cards with pronunciation", () => {
     const screen = render(
       <WordList
-        words={buildWords()}
-        courseId="COLLOCATION"
+        words={buildWords("TOEIC")}
+        courseId="TOEIC"
         isDark={false}
-        isDeleteMode={true}
-        selectedIds={new Set(["2"])}
+        isDeleteMode={false}
+        selectedIds={new Set()}
         onStartDeleteMode={jest.fn()}
         onToggleSelection={jest.fn()}
       />,
     );
 
-    expect(screen.getByText("idle")).toBeTruthy();
-
-    fireEvent.press(screen.getByLabelText("Next saved card"));
-
-    expect(screen.getByText("selected")).toBeTruthy();
+    expect(screen.getAllByText("show-pronunciation")).toHaveLength(2);
   });
 });

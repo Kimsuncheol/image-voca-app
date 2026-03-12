@@ -69,10 +69,6 @@ const ko = {
         quoteFirst: "명언 먼저",
       },
     },
-    wordBank: {
-      title: "단어장",
-      cardDisplay: "카드 표시",
-    },
   },
   dashboard: {
     greeting: {

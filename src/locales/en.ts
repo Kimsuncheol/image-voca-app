@@ -69,10 +69,6 @@ const en = {
         quoteFirst: "Quote First",
       },
     },
-    wordBank: {
-      title: "Word Bank",
-      cardDisplay: "Card Display",
-    },
   },
   dashboard: {
     greeting: {

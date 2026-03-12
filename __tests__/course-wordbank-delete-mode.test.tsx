@@ -4,8 +4,6 @@ import React from "react";
 import { Alert } from "react-native";
 import CourseWordBankScreen from "../app/courses/[course]";
 
-const mockLoadSettings = jest.fn();
-
 jest.mock("expo-router", () => {
   const React = require("react");
 
@@ -37,13 +35,6 @@ jest.mock("../src/context/AuthContext", () => ({
 jest.mock("../src/context/ThemeContext", () => ({
   useTheme: () => ({
     isDark: false,
-  }),
-}));
-
-jest.mock("../src/stores/wordBankDisplayStore", () => ({
-  useWordBankDisplayStore: () => ({
-    collocationDisplay: "meaning_only",
-    loadSettings: mockLoadSettings,
   }),
 }));
 
@@ -94,7 +85,6 @@ jest.mock("../components/course-wordbank", () => ({
 describe("CourseWordBankScreen delete mode", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockLoadSettings.mockClear();
     (getDoc as jest.Mock).mockResolvedValue({
       exists: () => true,
       data: () => ({

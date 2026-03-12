@@ -27,7 +27,7 @@ interface WordCardProps {
   word: SavedWord;
   courseColor?: string;
   isDark: boolean;
-  showDetails?: boolean;
+  showPronunciation?: boolean;
   isDeleteMode?: boolean;
   isSelected?: boolean;
   onStartDeleteMode?: (wordId: string) => void;
@@ -42,7 +42,7 @@ interface WordCardProps {
 export function WordCard({
   word,
   isDark,
-  showDetails = true,
+  showPronunciation = true,
   isDeleteMode = false,
   isSelected = false,
   onStartDeleteMode,
@@ -90,7 +90,7 @@ export function WordCard({
           <WordCardHeader
             word={word.word}
             day={word.day}
-            pronunciation={showDetails ? word.pronunciation : undefined}
+            pronunciation={showPronunciation ? word.pronunciation : undefined}
             onSpeak={handleSpeakWord}
             onLongPress={handleStartDeleteMode}
           />
@@ -99,10 +99,7 @@ export function WordCard({
         {/* Meaning section */}
         <WordCardMeaning meaning={word.meaning} isDark={isDark} />
 
-        {/* Example section — hidden in word+meaning-only mode */}
-        {showDetails && (
-          <WordCardExample example={word.example} translation={word.translation} />
-        )}
+        <WordCardExample example={word.example} translation={word.translation} />
       </View>
 
       {isDeleteMode ? (

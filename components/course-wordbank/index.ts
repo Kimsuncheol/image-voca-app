@@ -1,5 +1,4 @@
 export { EmptyWordBankView } from "./EmptyWordBankView";
 export { LoadingView } from "./LoadingView";
 export { SkeletonList } from "./SkeletonList";
-export { WordBankSettingsModal } from "./WordBankSettingsModal";
 export { WordList } from "./WordList";

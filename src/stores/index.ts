@@ -5,8 +5,6 @@ export { useDashboardSettingsStore } from "./dashboardSettingsStore";
 export type { DashboardElement } from "./dashboardSettingsStore";
 export { useNotificationCardStore } from "./notificationCardStore";
 export { useUserStatsStore } from "./userStatsStore";
-export { useWordBankDisplayStore } from "./wordBankDisplayStore";
-export type { CollocationDisplay, OtherDisplay } from "./wordBankDisplayStore";
 export type {
     CourseProgress, DailyStats, DayProgress, UserStats
 } from "./userStatsStore";

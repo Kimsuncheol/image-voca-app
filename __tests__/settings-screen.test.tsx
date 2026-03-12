@@ -79,10 +79,6 @@ jest.mock("../src/utils/notifications", () => ({
   setStudyReminderEnabledPreference: jest.fn(),
 }));
 
-jest.mock("../components/course-wordbank/WordBankSettingsModal", () => ({
-  WordBankSettingsModal: () => null,
-}));
-
 jest.mock("../components/settings/AccountSection", () => ({
   AccountSection: () => null,
 }));
@@ -121,5 +117,12 @@ describe("SettingsScreen", () => {
 
     expect(queryByText("Study Settings")).toBeNull();
     expect(queryByText("Target Score")).toBeNull();
+  });
+
+  it("does not render the removed word bank display section", () => {
+    const { queryByText } = render(<SettingsScreen />);
+
+    expect(queryByText("Word Bank")).toBeNull();
+    expect(queryByText("Card Display")).toBeNull();
   });
 });

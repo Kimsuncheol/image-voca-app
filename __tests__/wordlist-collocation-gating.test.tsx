@@ -1,69 +1,17 @@
-import { act, render } from "@testing-library/react-native";
+import { render } from "@testing-library/react-native";
 import React from "react";
 import { WordList } from "../components/course-wordbank/WordList";
 import { SavedWord } from "../components/wordbank/WordCard";
 
-const mockPagerApi = {
-  setPage: jest.fn(),
-  setPageWithoutAnimation: jest.fn(),
-  setScrollEnabled: jest.fn(),
-};
-let mockPagerProps: any = null;
-const mockFlipHandlers = new Map<string, (() => void) | undefined>();
-const originalExpoOs = process.env.EXPO_OS;
-
-jest.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}));
-
-jest.mock("react-native-pager-view", () => {
-  const React = require("react");
-  const { View } = require("react-native");
-
-  const MockPagerView = React.forwardRef(function MockPagerView(
-    props: any,
-    ref: any,
-  ) {
-    mockPagerProps = props;
-    React.useImperativeHandle(ref, () => mockPagerApi);
-    return <View testID="mock-pager">{props.children}</View>;
-  });
-
-  return {
-    __esModule: true,
-    default: MockPagerView,
-  };
-});
-
-jest.mock("../components/CollocationFlipCard", () => {
+jest.mock("../components/wordbank/WordCard", () => {
   const React = require("react");
   const { Text, View } = require("react-native");
 
-  const MockCollocationFlipCard = ({ data, onFirstFlipToBack, wordBankConfig }: any) => {
-    mockFlipHandlers.set(String(data.collocation), onFirstFlipToBack);
-    return (
-      <View testID={`mock-card-${data.collocation}`}>
-        <Text>{wordBankConfig?.isSelected ? "selected" : "idle"}</Text>
-      </View>
-    );
-  };
-
-  return {
-    __esModule: true,
-    CollocationFlipCard: MockCollocationFlipCard,
-    default: MockCollocationFlipCard,
-  };
-});
-
-jest.mock("../components/wordbank/WordCard", () => {
-  const React = require("react");
-  const { View, Text } = require("react-native");
-
-  const MockWordCard = ({ word }: { word: SavedWord }) => (
+  const MockWordCard = ({ word, showPronunciation, isSelected }: any) => (
     <View testID={`word-card-${word.id}`}>
       <Text>{word.word}</Text>
+      <Text>{showPronunciation ? "show-pronunciation" : "hide-pronunciation"}</Text>
+      <Text>{isSelected ? "selected" : "idle"}</Text>
     </View>
   );
 
@@ -73,7 +21,7 @@ jest.mock("../components/wordbank/WordCard", () => {
   };
 });
 
-function buildWords(): SavedWord[] {
+function buildWords(course: string): SavedWord[] {
   return [
     {
       id: "1",
@@ -82,7 +30,7 @@ function buildWords(): SavedWord[] {
       translation: "급격한 하락",
       pronunciation: "desc",
       example: "example one",
-      course: "COLLOCATION",
+      course,
       day: 1,
       addedAt: "2026-01-01T00:00:00.000Z",
     },
@@ -93,7 +41,7 @@ function buildWords(): SavedWord[] {
       translation: "계절에 맞지 않게 추운",
       pronunciation: "desc",
       example: "example two",
-      course: "COLLOCATION",
+      course,
       day: 1,
       addedAt: "2026-01-01T00:00:00.000Z",
     },
@@ -104,44 +52,18 @@ function buildWords(): SavedWord[] {
       translation: "상황의 변화",
       pronunciation: "desc",
       example: "example three",
-      course: "COLLOCATION",
+      course,
       day: 1,
       addedAt: "2026-01-01T00:00:00.000Z",
     },
   ];
 }
 
-describe("WordList collocation flip gating", () => {
-  beforeEach(() => {
-    process.env.EXPO_OS = "ios";
-    mockPagerApi.setPage.mockClear();
-    mockPagerApi.setPageWithoutAnimation.mockClear();
-    mockPagerApi.setScrollEnabled.mockClear();
-    mockPagerProps = null;
-    mockFlipHandlers.clear();
-  });
-
-  afterAll(() => {
-    process.env.EXPO_OS = originalExpoOs;
-  });
-
-  const selectPage = (position: number) => {
-    act(() => {
-      mockPagerProps.onPageSelected({ nativeEvent: { position } });
-    });
-  };
-
-  const unlockCard = (word: string) => {
-    act(() => {
-      const handler = mockFlipHandlers.get(word);
-      handler?.();
-    });
-  };
-
-  test("does not block forward swipe in word bank collocation mode", () => {
-    render(
+describe("WordList fixed word bank layout", () => {
+  test("renders collocations as standard cards with pronunciation hidden", () => {
+    const screen = render(
       <WordList
-        words={buildWords()}
+        words={buildWords("COLLOCATION")}
         courseId="COLLOCATION"
         isDark={false}
         isDeleteMode={false}
@@ -151,59 +73,16 @@ describe("WordList collocation flip gating", () => {
       />,
     );
 
-    selectPage(1);
-
-    expect(mockPagerApi.setPageWithoutAnimation).not.toHaveBeenCalled();
-    unlockCard("unseasonably cold");
-    selectPage(2);
-    expect(mockPagerApi.setPageWithoutAnimation).not.toHaveBeenCalled();
+    expect(screen.getByTestId("word-card-1")).toBeTruthy();
+    expect(screen.getByTestId("word-card-2")).toBeTruthy();
+    expect(screen.getByTestId("word-card-3")).toBeTruthy();
+    expect(screen.getAllByText("hide-pronunciation")).toHaveLength(3);
   });
 
-  test("allows backward swipe without current-card flip", () => {
-    render(
+  test("preserves selection props in the fixed collocation list", () => {
+    const screen = render(
       <WordList
-        words={buildWords()}
-        courseId="COLLOCATION"
-        isDark={false}
-        isDeleteMode={false}
-        selectedIds={new Set()}
-        onStartDeleteMode={jest.fn()}
-        onToggleSelection={jest.fn()}
-      />,
-    );
-
-    unlockCard("dramatic drop");
-    selectPage(1);
-    mockPagerApi.setPageWithoutAnimation.mockClear();
-
-    selectPage(0);
-    expect(mockPagerApi.setPageWithoutAnimation).not.toHaveBeenCalled();
-  });
-
-  test("non-collocation branch remains standard list rendering", () => {
-    const words = buildWords();
-    const { getByTestId, queryByTestId } = render(
-      <WordList
-        words={words}
-        courseId="TOEIC"
-        isDark={false}
-        isDeleteMode={false}
-        selectedIds={new Set()}
-        onStartDeleteMode={jest.fn()}
-        onToggleSelection={jest.fn()}
-      />,
-    );
-
-    expect(getByTestId("word-card-1")).toBeTruthy();
-    expect(getByTestId("word-card-2")).toBeTruthy();
-    expect(getByTestId("word-card-3")).toBeTruthy();
-    expect(queryByTestId("mock-pager")).toBeNull();
-  });
-
-  test("keeps selection state while navigating collocation cards in delete mode", () => {
-    const { getAllByText } = render(
-      <WordList
-        words={buildWords()}
+        words={buildWords("COLLOCATION")}
         courseId="COLLOCATION"
         isDark={false}
         isDeleteMode={true}
@@ -213,10 +92,23 @@ describe("WordList collocation flip gating", () => {
       />,
     );
 
-    expect(getAllByText("idle").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("selected")).toHaveLength(1);
+    expect(screen.getAllByText("idle")).toHaveLength(2);
+  });
 
-    selectPage(1);
+  test("renders non-collocation courses as full cards", () => {
+    const screen = render(
+      <WordList
+        words={buildWords("TOEIC")}
+        courseId="TOEIC"
+        isDark={false}
+        isDeleteMode={false}
+        selectedIds={new Set()}
+        onStartDeleteMode={jest.fn()}
+        onToggleSelection={jest.fn()}
+      />,
+    );
 
-    expect(getAllByText("selected").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("show-pronunciation")).toHaveLength(3);
   });
 });
