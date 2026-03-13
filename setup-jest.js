@@ -13,6 +13,7 @@ process.env.EXPO_PUBLIC_COURSE_PATH_OPIC = "courses/opic";
 process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC_SPEAKING = "courses/toeic-speaking";
 process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION = "courses/collocation";
 process.env.EXPO_PUBLIC_QWEN_TTS_ENDPOINT = "https://example.com/qwen-tts";
+process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID = "demo-project";
 
 jest.mock('expo-image', () => {
   const React = require('react');

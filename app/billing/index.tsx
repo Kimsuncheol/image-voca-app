@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { ThemedText } from "../../components/themed-text";
 import { PromotionCodeInput } from "../../components/promotion/PromotionCodeInput";
+import { getDeviceBillingPrice } from "../../src/billing/storefront";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { PLANS, Plan, useSubscriptionStore } from "../../src/stores";
@@ -16,6 +17,7 @@ export default function BillingScreen() {
   const router = useRouter();
   const { currentPlan, fetchSubscription } = useSubscriptionStore();
   const { t } = useTranslation();
+  const storefrontPrice = getDeviceBillingPrice();
 
   useFocusEffect(
     useCallback(() => {
@@ -124,9 +126,11 @@ export default function BillingScreen() {
 
                 <View style={styles.priceContainer}>
                   <ThemedText type="title" style={styles.price}>
-                    {plan.priceDisplay}
+                    {plan.id === "free"
+                      ? t("plans.free.name", { defaultValue: plan.name })
+                      : storefrontPrice.displayAmount}
                   </ThemedText>
-                  {plan.price > 0 && (
+                  {plan.id !== "free" && (
                     <ThemedText style={styles.priceNote}>
                       {t("billing.oneTimePayment")}
                     </ThemedText>

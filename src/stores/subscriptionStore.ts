@@ -15,8 +15,6 @@ type LegacyStoredPlanId = PlanType | "voca_speaking";
 export interface Plan {
   id: PlanType;
   name: string;
-  price: number;
-  priceDisplay: string;
   features: string[];
   recommended?: boolean;
 }
@@ -25,23 +23,25 @@ export const PLANS: Plan[] = [
   {
     id: "free",
     name: "Free",
-    price: 0,
-    priceDisplay: "Free",
     features: ["Limited vocabulary access"],
   },
   {
     id: "voca_unlimited",
     name: "Voca Unlimited",
-    price: 10_000,
-    priceDisplay: "KRW 10,000",
     features: ["Unlimited vocabulary access"],
     recommended: true,
   },
 ];
 
-interface SubscriptionData {
+export interface SubscriptionData {
   planId: LegacyStoredPlanId;
   orderId?: string;
+  provider?: "toss_payments";
+  paymentKey?: string;
+  amount?: number;
+  currency?: "KRW" | "USD";
+  country?: "KR" | "US";
+  paidAt?: string;
   updatedAt: string;
 }
 
@@ -54,11 +54,7 @@ interface SubscriptionState {
   unlockedIds: string[];
   currentUserId: string | null;
   fetchSubscription: (userId: string) => Promise<void>;
-  updateSubscription: (
-    userId: string,
-    planId: PlanType,
-    orderId: string,
-  ) => Promise<void>;
+  applyConfirmedSubscription: (subscription: SubscriptionData) => void;
   loadUnlockedIds: (userId: string) => Promise<void>;
   unlockViaAd: (userId: string, featureId: string) => Promise<void>;
   canAccessUnlimitedVoca: () => boolean;
@@ -151,22 +147,13 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     }
   },
 
-  updateSubscription: async (
-    userId: string,
-    planId: PlanType,
-    orderId: string,
-  ) => {
-    set({ loading: true, error: null });
-    try {
-      const subscription = buildSubscription(planId, orderId);
-      await setDoc(doc(db, "users", userId), { subscription }, { merge: true });
-      set({ currentPlan: planId, orderId, loading: false });
-    } catch (error: any) {
-      set({
-        error: error.message || "Failed to update subscription.",
-        loading: false,
-      });
-    }
+  applyConfirmedSubscription: (subscription: SubscriptionData) => {
+    set({
+      currentPlan: normalizePlanId(subscription.planId),
+      orderId: subscription.orderId ?? null,
+      loading: false,
+      error: null,
+    });
   },
 
   loadUnlockedIds: async (userId: string) => {

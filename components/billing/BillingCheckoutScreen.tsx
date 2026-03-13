@@ -21,11 +21,15 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { ThemedText } from "../../components/themed-text";
+import { getDeviceBillingPrice } from "../../src/billing/storefront";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
+import { confirmTossPayment } from "../../src/services/tossBillingService";
 import { PLANS, PlanType, useSubscriptionStore } from "../../src/stores";
 
-const TOSS_CLIENT_KEY = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
+const TOSS_CLIENT_KEY =
+  process.env.EXPO_PUBLIC_TOSS_CLIENT_KEY ||
+  "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
 
 const normalizeCheckoutPlanId = (planId?: string): PlanType | null => {
   if (planId === "voca_speaking") {
@@ -43,10 +47,11 @@ function CheckoutContent() {
   const router = useRouter();
   const { t } = useTranslation();
   const { planId } = useLocalSearchParams<{ planId?: string }>();
-  const { updateSubscription } = useSubscriptionStore();
+  const { applyConfirmedSubscription } = useSubscriptionStore();
+  const storefrontPrice = getDeviceBillingPrice();
 
   const paymentWidgetControl = usePaymentWidget();
-  const [paymentMethodWidgetControl, setPaymentMethodWidgetControl] =
+  const [, setPaymentMethodWidgetControl] =
     useState<PaymentMethodWidgetControl | null>(null);
   const [agreementWidgetControl, setAgreementWidgetControl] =
     useState<AgreementWidgetControl | null>(null);
@@ -55,7 +60,7 @@ function CheckoutContent() {
   const normalizedPlanId = normalizeCheckoutPlanId(planId);
   const selectedPlan = PLANS.find((p) => p.id === normalizedPlanId);
 
-  if (!selectedPlan || selectedPlan.price === 0) {
+  if (!selectedPlan || selectedPlan.id === "free") {
     return (
       <SafeAreaView
         style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
@@ -101,10 +106,28 @@ function CheckoutContent() {
             defaultValue: selectedPlan.name,
           }),
         }),
+        customerEmail: user.email ?? undefined,
+        customerName: user.displayName ?? undefined,
+        metadata: {
+          planId: effectivePlanId,
+          country: storefrontPrice.country,
+          currency: storefrontPrice.currency,
+        },
       });
 
       if (result?.success) {
-        await updateSubscription(user.uid, effectivePlanId, orderId);
+        if (result.success.amount !== storefrontPrice.amount) {
+          throw new Error(t("billing.checkout.amountMismatch"));
+        }
+
+        const confirmation = await confirmTossPayment({
+          user,
+          planId: effectivePlanId,
+          paymentKey: result.success.paymentKey,
+          orderId: result.success.orderId,
+          storefrontPrice,
+        });
+        applyConfirmedSubscription(confirmation.subscription);
         Alert.alert(
           t("billing.checkout.successTitle"),
           t("billing.checkout.successMessage", {
@@ -177,7 +200,7 @@ function CheckoutContent() {
               {t("billing.checkout.amountLabel")}
             </ThemedText>
             <ThemedText type="subtitle" style={styles.summaryPrice}>
-              {selectedPlan.priceDisplay}
+              {storefrontPrice.displayAmount}
             </ThemedText>
           </View>
         </View>
@@ -212,7 +235,9 @@ function CheckoutContent() {
             onLoadEnd={() => {
               paymentWidgetControl
                 .renderPaymentMethods("payment-methods", {
-                  value: selectedPlan.price,
+                  value: storefrontPrice.amount,
+                  currency: storefrontPrice.currency,
+                  country: storefrontPrice.country,
                 })
                 .then((control) => {
                   setPaymentMethodWidgetControl(control);
@@ -245,7 +270,7 @@ function CheckoutContent() {
             {isProcessing
               ? t("billing.checkout.processing")
               : t("billing.checkout.payButton", {
-                  price: selectedPlan.priceDisplay,
+                  price: storefrontPrice.displayAmount,
                 })}
           </ThemedText>
         </TouchableOpacity>

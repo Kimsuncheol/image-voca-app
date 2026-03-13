@@ -38,6 +38,7 @@ import { useTheme } from "../src/context/ThemeContext";
 import { deleteUserDeviceRegistrations } from "../src/services/deviceRegistrationService";
 import { auth, db, storage } from "../src/services/firebase";
 import { useSubscriptionStore } from "../src/stores";
+import { getDeviceCountryDisplayName } from "../src/utils/deviceCountry";
 
 export default function ProfileScreen() {
   const { isDark } = useTheme();
@@ -53,6 +54,7 @@ export default function ProfileScreen() {
   const navigation = useNavigation();
   const router = useRouter();
   const role = useSubscriptionStore((state) => state.role);
+  const country = getDeviceCountryDisplayName();
 
   // State for re-authentication
   const [password, setPassword] = useState("");
@@ -309,6 +311,7 @@ export default function ProfileScreen() {
               setDisplayName(text);
             }}
             email={user?.email}
+            country={country}
             role={role}
             t={t}
           />
