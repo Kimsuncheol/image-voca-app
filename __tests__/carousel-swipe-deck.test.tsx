@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react-native";
+import { act, render } from "@testing-library/react-native";
 import React from "react";
 import { View } from "react-native";
 import { CarouselSwipeDeck } from "../components/course/vocabulary/CarouselSwipeDeck";
@@ -10,6 +10,7 @@ type PanEvent = {
 };
 
 let panEndHandler: ((event: PanEvent) => void) | undefined;
+const mockSwipeCardRenders = new Map<string, number>();
 
 jest.mock("react-native-gesture-handler", () => {
   const React = require("react");
@@ -39,6 +40,7 @@ jest.mock("react-native-gesture-handler", () => {
 });
 
 jest.mock("react-native-reanimated", () => {
+  const React = require("react");
   const { View } = jest.requireActual("react-native");
 
   return {
@@ -50,7 +52,7 @@ jest.mock("react-native-reanimated", () => {
     interpolate: (_value: number, _input: number[], output: number[]) => output[1],
     runOnJS: (fn: (...args: any[]) => unknown) => (...args: any[]) => fn(...args),
     useAnimatedStyle: (updater: () => object) => updater(),
-    useSharedValue: (value: number) => ({ value }),
+    useSharedValue: (value: number) => React.useRef({ value }).current,
     withSpring: jest.fn(
       (
         toValue: number,
@@ -68,17 +70,31 @@ jest.mock("react-native-reanimated", () => {
 
 jest.mock("../components/swipe/SwipeCardItem", () => {
   const React = require("react");
-  const { View } = require("react-native");
+  const { Text } = require("react-native");
 
   return {
     __esModule: true,
-    SwipeCardItem: ({ item }: { item: VocabularyCard }) => (
-      <View testID={`card-${item.id}`} />
-    ),
+    SwipeCardItem: ({
+      item,
+      initialIsSaved,
+    }: {
+      item: VocabularyCard;
+      initialIsSaved?: boolean;
+    }) => {
+      mockSwipeCardRenders.set(
+        item.id,
+        (mockSwipeCardRenders.get(item.id) ?? 0) + 1,
+      );
+      return (
+        <Text testID={`card-${item.id}`}>
+          {`${item.id}:${initialIsSaved ? "saved" : "unsaved"}`}
+        </Text>
+      );
+    },
   };
 });
 
-function buildCards(): VocabularyCard[] {
+function buildCards(count = 4): VocabularyCard[] {
   return [
     {
       id: "1",
@@ -98,13 +114,52 @@ function buildCards(): VocabularyCard[] {
       pronunciation: "beta",
       course: "TOEIC",
     },
-  ] as VocabularyCard[];
+    {
+      id: "3",
+      word: "gamma",
+      meaning: "third",
+      example: "example three",
+      translation: "예문 셋",
+      pronunciation: "gamma",
+      course: "TOEIC",
+    },
+    {
+      id: "4",
+      word: "delta",
+      meaning: "fourth",
+      example: "example four",
+      translation: "예문 넷",
+      pronunciation: "delta",
+      course: "TOEIC",
+    },
+  ].slice(0, count) as VocabularyCard[];
 }
 
 describe("CarouselSwipeDeck", () => {
   beforeEach(() => {
     panEndHandler = undefined;
+    mockSwipeCardRenders.clear();
     jest.clearAllMocks();
+  });
+
+  it("mounts full card content only for the active card window", () => {
+    const cards = buildCards();
+    const { queryByTestId } = render(
+      <CarouselSwipeDeck
+        cards={cards}
+        dayNumber={1}
+        savedWordIds={new Set()}
+        onSwipeRight={jest.fn()}
+        onSwipeLeft={jest.fn()}
+        onIndexChange={jest.fn()}
+        onFinish={jest.fn()}
+      />,
+    );
+
+    expect(queryByTestId("card-1")).toBeTruthy();
+    expect(queryByTestId("card-2")).toBeTruthy();
+    expect(queryByTestId("card-3")).toBeNull();
+    expect(queryByTestId("card-4")).toBeNull();
   });
 
   it("advances to the next card without finishing early", () => {
@@ -114,7 +169,7 @@ describe("CarouselSwipeDeck", () => {
     const onIndexChange = jest.fn();
     const onFinish = jest.fn();
 
-    render(
+    const { queryByTestId } = render(
       <CarouselSwipeDeck
         cards={cards}
         dayNumber={1}
@@ -126,17 +181,23 @@ describe("CarouselSwipeDeck", () => {
       />,
     );
 
-    panEndHandler?.({ translationX: -1000, velocityX: 0 });
+    act(() => {
+      panEndHandler?.({ translationX: -1000, velocityX: 0 });
+    });
 
     expect(onIndexChange).toHaveBeenCalledWith(1);
     expect(onSwipeLeft).toHaveBeenCalledTimes(1);
     expect(onSwipeLeft).toHaveBeenCalledWith(cards[1]);
     expect(onSwipeRight).not.toHaveBeenCalled();
     expect(onFinish).not.toHaveBeenCalled();
+    expect(queryByTestId("card-1")).toBeTruthy();
+    expect(queryByTestId("card-2")).toBeTruthy();
+    expect(queryByTestId("card-3")).toBeTruthy();
+    expect(queryByTestId("card-4")).toBeNull();
   });
 
   it("finishes exactly once after swiping past the last card", () => {
-    const cards = buildCards();
+    const cards = buildCards(2);
     const onSwipeLeft = jest.fn();
     const onSwipeRight = jest.fn();
     const onIndexChange = jest.fn();
@@ -154,8 +215,10 @@ describe("CarouselSwipeDeck", () => {
       />,
     );
 
-    panEndHandler?.({ translationX: -1000, velocityX: 0 });
-    panEndHandler?.({ translationX: -1000, velocityX: 0 });
+    act(() => {
+      panEndHandler?.({ translationX: -1000, velocityX: 0 });
+      panEndHandler?.({ translationX: -1000, velocityX: 0 });
+    });
 
     expect(onIndexChange).toHaveBeenCalledTimes(1);
     expect(onIndexChange).toHaveBeenCalledWith(1);
@@ -163,5 +226,43 @@ describe("CarouselSwipeDeck", () => {
     expect(onSwipeLeft).toHaveBeenCalledWith(cards[1]);
     expect(onSwipeRight).not.toHaveBeenCalled();
     expect(onFinish).toHaveBeenCalledTimes(1);
+  });
+
+  it("only re-renders the affected visible card when saved state changes", () => {
+    const cards = buildCards();
+    const { getByTestId, rerender } = render(
+      <CarouselSwipeDeck
+        cards={cards}
+        dayNumber={1}
+        savedWordIds={new Set()}
+        onSwipeRight={jest.fn()}
+        onSwipeLeft={jest.fn()}
+        onIndexChange={jest.fn()}
+        onFinish={jest.fn()}
+      />,
+    );
+
+    expect(getByTestId("card-1").props.children).toBe("1:unsaved");
+    expect(getByTestId("card-2").props.children).toBe("2:unsaved");
+
+    const initialRenderCountCard1 = mockSwipeCardRenders.get("1") ?? 0;
+    const initialRenderCountCard2 = mockSwipeCardRenders.get("2") ?? 0;
+
+    rerender(
+      <CarouselSwipeDeck
+        cards={cards}
+        dayNumber={1}
+        savedWordIds={new Set(["1"])}
+        onSwipeRight={jest.fn()}
+        onSwipeLeft={jest.fn()}
+        onIndexChange={jest.fn()}
+        onFinish={jest.fn()}
+      />,
+    );
+
+    expect(getByTestId("card-1").props.children).toBe("1:saved");
+    expect(getByTestId("card-2").props.children).toBe("2:unsaved");
+    expect(mockSwipeCardRenders.get("1")).toBe(initialRenderCountCard1 + 1);
+    expect(mockSwipeCardRenders.get("2")).toBe(initialRenderCountCard2);
   });
 });

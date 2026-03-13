@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -42,8 +42,9 @@ interface CardItemProps {
   item: VocabularyCard;
   index: number;
   translateX: SharedValue<number>;
-  savedWordIds: Set<string>;
+  isSaved: boolean;
   dayNumber: number;
+  isActiveWindow: boolean;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
 }
 
@@ -51,8 +52,9 @@ const CardItem = React.memo(function CardItem({
   item,
   index,
   translateX,
-  savedWordIds,
+  isSaved,
   dayNumber,
+  isActiveWindow,
   onSavedWordChange,
 }: CardItemProps) {
   const animatedStyle = useAnimatedStyle(() => {
@@ -66,12 +68,16 @@ const CardItem = React.memo(function CardItem({
 
   return (
     <Animated.View style={[styles.cardSlot, animatedStyle]}>
-      <SwipeCardItem
-        item={item}
-        initialIsSaved={savedWordIds.has(item.id)}
-        day={dayNumber}
-        onSavedWordChange={onSavedWordChange}
-      />
+      {isActiveWindow ? (
+        <SwipeCardItem
+          item={item}
+          initialIsSaved={isSaved}
+          day={dayNumber}
+          onSavedWordChange={onSavedWordChange}
+        />
+      ) : (
+        <View style={styles.virtualizedCard} />
+      )}
     </Animated.View>
   );
 });
@@ -93,7 +99,14 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
   const translateX = useSharedValue(0);
   // Use shared value instead of ref so it's readable inside worklets
   const currentIndex = useSharedValue(0);
+  const [activeIndex, setActiveIndex] = useState(0);
   const maxIndex = cards.length - 1;
+
+  useEffect(() => {
+    currentIndex.value = 0;
+    translateX.value = 0;
+    setActiveIndex(0);
+  }, [cards, currentIndex, translateX]);
 
   const rowStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: PEEK + translateX.value }],
@@ -103,6 +116,7 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
   const navigateTo = useCallback(
     (prevIndex: number, nextIndex: number) => {
       if (nextIndex === prevIndex) return;
+      setActiveIndex(nextIndex);
       if (nextIndex > prevIndex) {
         onSwipeLeft(cards[nextIndex] ?? cards[prevIndex]);
       } else {
@@ -167,8 +181,9 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
               item={item}
               index={index}
               translateX={translateX}
-              savedWordIds={savedWordIds}
+              isSaved={savedWordIds.has(item.id)}
               dayNumber={dayNumber}
+              isActiveWindow={Math.abs(index - activeIndex) <= 1}
               onSavedWordChange={onSavedWordChange}
             />
           ))}
@@ -193,5 +208,8 @@ const styles = StyleSheet.create({
   },
   cardSlot: {
     width: CARD_WIDTH,
+  },
+  virtualizedCard: {
+    flex: 1,
   },
 });

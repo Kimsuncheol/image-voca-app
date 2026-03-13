@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 interface SwipeCardItemImageSectionProps {
   imageUrl?: string;
@@ -14,7 +15,12 @@ export function SwipeCardItemImageSection({
   return (
     <View style={styles.imageContainer}>
       {imageUrl ? (
-        <Image source={{ uri: imageUrl }} style={styles.cardImage} />
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.cardImage}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+        />
       ) : (
         <View style={[styles.cardImage, styles.imagePlaceholder]}>
           <Ionicons
