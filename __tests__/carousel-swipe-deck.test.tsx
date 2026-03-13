@@ -1,4 +1,5 @@
 import { act, render } from "@testing-library/react-native";
+import { Image } from "expo-image";
 import React from "react";
 import { View } from "react-native";
 import { CarouselSwipeDeck } from "../components/course/vocabulary/CarouselSwipeDeck";
@@ -94,7 +95,10 @@ jest.mock("../components/swipe/SwipeCardItem", () => {
   };
 });
 
-function buildCards(count = 4): VocabularyCard[] {
+function buildCards(
+  count = 4,
+  overrides: Array<Partial<VocabularyCard>> = [],
+): VocabularyCard[] {
   return [
     {
       id: "1",
@@ -103,7 +107,9 @@ function buildCards(count = 4): VocabularyCard[] {
       example: "example one",
       translation: "예문 하나",
       pronunciation: "alpha",
+      imageUrl: "https://cdn.example.com/alpha.jpg",
       course: "TOEIC",
+      ...overrides[0],
     },
     {
       id: "2",
@@ -112,7 +118,9 @@ function buildCards(count = 4): VocabularyCard[] {
       example: "example two",
       translation: "예문 둘",
       pronunciation: "beta",
+      imageUrl: "https://cdn.example.com/beta.jpg",
       course: "TOEIC",
+      ...overrides[1],
     },
     {
       id: "3",
@@ -121,7 +129,9 @@ function buildCards(count = 4): VocabularyCard[] {
       example: "example three",
       translation: "예문 셋",
       pronunciation: "gamma",
+      imageUrl: "https://cdn.example.com/gamma.jpg",
       course: "TOEIC",
+      ...overrides[2],
     },
     {
       id: "4",
@@ -130,7 +140,9 @@ function buildCards(count = 4): VocabularyCard[] {
       example: "example four",
       translation: "예문 넷",
       pronunciation: "delta",
+      imageUrl: "https://cdn.example.com/delta.jpg",
       course: "TOEIC",
+      ...overrides[3],
     },
   ].slice(0, count) as VocabularyCard[];
 }
@@ -140,6 +152,7 @@ describe("CarouselSwipeDeck", () => {
     panEndHandler = undefined;
     mockSwipeCardRenders.clear();
     jest.clearAllMocks();
+    (Image.prefetch as jest.Mock).mockResolvedValue(true);
   });
 
   it("mounts full card content only for the active card window", () => {
@@ -264,5 +277,120 @@ describe("CarouselSwipeDeck", () => {
     expect(getByTestId("card-2").props.children).toBe("2:unsaved");
     expect(mockSwipeCardRenders.get("1")).toBe(initialRenderCountCard1 + 1);
     expect(mockSwipeCardRenders.get("2")).toBe(initialRenderCountCard2);
+  });
+
+  it("prefetches the next two upcoming image URLs on initial render", () => {
+    render(
+      <CarouselSwipeDeck
+        cards={buildCards()}
+        dayNumber={1}
+        savedWordIds={new Set()}
+        onSwipeRight={jest.fn()}
+        onSwipeLeft={jest.fn()}
+        onIndexChange={jest.fn()}
+        onFinish={jest.fn()}
+      />,
+    );
+
+    expect(Image.prefetch).toHaveBeenCalledWith(
+      [
+        "https://cdn.example.com/beta.jpg",
+        "https://cdn.example.com/gamma.jpg",
+      ],
+      "memory-disk",
+    );
+  });
+
+  it("prefetches the next unseen image URLs after swiping forward", () => {
+    render(
+      <CarouselSwipeDeck
+        cards={buildCards()}
+        dayNumber={1}
+        savedWordIds={new Set()}
+        onSwipeRight={jest.fn()}
+        onSwipeLeft={jest.fn()}
+        onIndexChange={jest.fn()}
+        onFinish={jest.fn()}
+      />,
+    );
+
+    act(() => {
+      panEndHandler?.({ translationX: -1000, velocityX: 0 });
+    });
+
+    expect(Image.prefetch).toHaveBeenNthCalledWith(
+      2,
+      ["https://cdn.example.com/delta.jpg"],
+      "memory-disk",
+    );
+  });
+
+  it("skips missing image URLs and avoids duplicate prefetches within the deck session", () => {
+    render(
+      <CarouselSwipeDeck
+        cards={buildCards(4, [
+          {},
+          { imageUrl: " https://cdn.example.com/shared.jpg " },
+          { imageUrl: "https://cdn.example.com/shared.jpg" },
+          { imageUrl: "   " },
+        ])}
+        dayNumber={1}
+        savedWordIds={new Set()}
+        onSwipeRight={jest.fn()}
+        onSwipeLeft={jest.fn()}
+        onIndexChange={jest.fn()}
+        onFinish={jest.fn()}
+      />,
+    );
+
+    expect(Image.prefetch).toHaveBeenCalledWith(
+      ["https://cdn.example.com/shared.jpg"],
+      "memory-disk",
+    );
+
+    act(() => {
+      panEndHandler?.({ translationX: -1000, velocityX: 0 });
+    });
+
+    expect(Image.prefetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("resets image prefetch deduplication when the deck cards change", () => {
+    const { rerender } = render(
+      <CarouselSwipeDeck
+        cards={buildCards()}
+        dayNumber={1}
+        savedWordIds={new Set()}
+        onSwipeRight={jest.fn()}
+        onSwipeLeft={jest.fn()}
+        onIndexChange={jest.fn()}
+        onFinish={jest.fn()}
+      />,
+    );
+
+    rerender(
+      <CarouselSwipeDeck
+        cards={buildCards(4, [
+          { imageUrl: "https://cdn.example.com/new-alpha.jpg" },
+          { imageUrl: "https://cdn.example.com/new-beta.jpg" },
+          { imageUrl: "https://cdn.example.com/new-gamma.jpg" },
+          {},
+        ])}
+        dayNumber={2}
+        savedWordIds={new Set()}
+        onSwipeRight={jest.fn()}
+        onSwipeLeft={jest.fn()}
+        onIndexChange={jest.fn()}
+        onFinish={jest.fn()}
+      />,
+    );
+
+    expect(Image.prefetch).toHaveBeenLastCalledWith(
+      [
+        "https://cdn.example.com/new-beta.jpg",
+        "https://cdn.example.com/new-gamma.jpg",
+      ],
+      "memory-disk",
+    );
   });
 });

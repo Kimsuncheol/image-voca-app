@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { useSpeech } from "../../src/hooks/useSpeech";
@@ -20,6 +21,7 @@ export interface SavedWord {
   course: string;
   day?: number;
   addedAt: string;
+  imageUrl?: string;
 }
 
 interface WordCardProps {
@@ -59,24 +61,35 @@ export function WordCard({
         { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
       ]}
     >
-      {/* Header row with title and actions */}
-      <View style={styles.wordTitleRow}>
-        <WordCardHeader
-          word={word.word}
-          day={word.day}
-          pronunciation={showPronunciation ? word.pronunciation : undefined}
-          onSpeak={handleSpeakWord}
-        />
+      <View style={styles.cardRow}>
+        <View style={styles.cardContent}>
+          <View style={styles.wordTitleRow}>
+            <WordCardHeader
+              word={word.word}
+              day={word.day}
+              pronunciation={showPronunciation ? word.pronunciation : undefined}
+              onSpeak={handleSpeakWord}
+            />
+          </View>
+
+          <WordCardMeaning meaning={word.meaning} isDark={isDark} />
+
+          <WordCardExample
+            example={word.example}
+            translation={word.translation}
+            expandToContent={expandExampleToContent}
+          />
+        </View>
+
+        {word.imageUrl && (
+          <Image
+            source={{ uri: word.imageUrl }}
+            style={styles.cardImage}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+          />
+        )}
       </View>
-
-      {/* Meaning section */}
-      <WordCardMeaning meaning={word.meaning} isDark={isDark} />
-
-      <WordCardExample
-        example={word.example}
-        translation={word.translation}
-        expandToContent={expandExampleToContent}
-      />
     </View>
   );
 }
@@ -89,6 +102,19 @@ const styles = StyleSheet.create({
     position: "relative",
     borderWidth: 1.5,
     borderColor: "transparent",
+  },
+  cardRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  cardContent: {
+    flex: 1,
+  },
+  cardImage: {
+    width: 90,
+    alignSelf: "stretch",
+    borderRadius: 8,
   },
   wordTitleRow: {
     flexDirection: "row",

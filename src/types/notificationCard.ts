@@ -12,6 +12,7 @@ interface NotificationCardPayloadBase {
   pronunciation?: string;
   example?: string;
   translation?: string;
+  imageUrl?: string;
 }
 
 export interface NotificationWordCardPayload extends NotificationCardPayloadBase {

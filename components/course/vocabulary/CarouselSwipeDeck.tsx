@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { Image } from "expo-image";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -18,6 +19,12 @@ const PEEK = (SCREEN_WIDTH - CARD_WIDTH) / 2;
 const SNAP_INTERVAL = CARD_WIDTH;
 
 const SPRING = { damping: 22, stiffness: 200, mass: 0.8 };
+
+const normalizeImageUrl = (value: string | undefined) => {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+};
 
 // ─────────────────────────────────────────────────────────────
 // Interfaces
@@ -100,13 +107,41 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
   // Use shared value instead of ref so it's readable inside worklets
   const currentIndex = useSharedValue(0);
   const [activeIndex, setActiveIndex] = useState(0);
+  const prefetchedImageUrlsRef = useRef<Set<string>>(new Set());
   const maxIndex = cards.length - 1;
 
   useEffect(() => {
     currentIndex.value = 0;
     translateX.value = 0;
     setActiveIndex(0);
+    prefetchedImageUrlsRef.current.clear();
   }, [cards, currentIndex, translateX]);
+
+  useEffect(() => {
+    const candidateUrls = Array.from(
+      new Set(
+        cards
+          .slice(activeIndex + 1, activeIndex + 3)
+          .map((card) => normalizeImageUrl(card.imageUrl))
+          .filter((url): url is string => Boolean(url))
+          .filter((url) => !prefetchedImageUrlsRef.current.has(url)),
+      ),
+    );
+
+    if (candidateUrls.length === 0) {
+      return;
+    }
+
+    candidateUrls.forEach((url) => {
+      prefetchedImageUrlsRef.current.add(url);
+    });
+
+    void Image.prefetch(candidateUrls, "memory-disk").catch((error) => {
+      if (__DEV__) {
+        console.warn("Failed to prefetch vocabulary card images:", error);
+      }
+    });
+  }, [activeIndex, cards]);
 
   const rowStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: PEEK + translateX.value }],

@@ -70,6 +70,7 @@ export function SwipeCardItemAddToWordBankButton({
           course: item.course,
           day,
           addedAt: new Date().toISOString(),
+          imageUrl: item.imageUrl,
         };
 
         transaction.set(

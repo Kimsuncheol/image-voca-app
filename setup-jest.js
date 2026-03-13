@@ -18,8 +18,11 @@ process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID = "demo-project";
 jest.mock('expo-image', () => {
   const React = require('react');
   const { View } = require('react-native');
+  const MockExpoImage = (props) =>
+    React.createElement(View, { ...props, testID: 'mock-expo-image' });
+  MockExpoImage.prefetch = jest.fn(async () => true);
   return {
-    Image: (props) => React.createElement(View, { ...props, testID: 'mock-expo-image' }),
+    Image: MockExpoImage,
   };
 });
 

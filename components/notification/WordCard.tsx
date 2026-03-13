@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Card, Divider, Text } from "react-native-paper";
@@ -8,7 +9,7 @@ import type { NotificationWordCardPayload } from "../../src/types/notificationCa
 interface WordCardProps {
   data: Pick<
     NotificationWordCardPayload,
-    "word" | "meaning" | "pronunciation" | "example" | "translation"
+    "word" | "meaning" | "pronunciation" | "example" | "translation" | "imageUrl"
   >;
   isDark?: boolean;
 }
@@ -66,27 +67,40 @@ export default function WordCard({
     >
       <Card.Content style={styles.content}>
         <View style={styles.hero}>
-          <View style={styles.wordRow}>
-            <Text
-              variant="headlineMedium"
-              style={[styles.word, { color: isDark ? "#FFFFFF" : "#0F172A" }]}
-            >
-              {data.word}
-            </Text>
-            <SpeakerButton text={data.word} isDark={isDark ?? false} />
-          </View>
-          <View style={styles.meaningSection}>
-            <InlineMeaningWithChips
-              meaning={data.meaning}
-              isDark={isDark}
-              textStyle={[
-                styles.meaning,
-                { color: isDark ? "#BFDBFE" : "#1D4ED8" },
-              ]}
-              containerStyle={styles.inlineMeaning}
-              chipStyle={styles.inlineChip}
-              testID="inline-meaning"
-            />
+          <View style={styles.heroRow}>
+            <View style={styles.heroContent}>
+              <View style={styles.wordRow}>
+                <Text
+                  variant="headlineMedium"
+                  style={[styles.word, { color: isDark ? "#FFFFFF" : "#0F172A" }]}
+                >
+                  {data.word}
+                </Text>
+                <SpeakerButton text={data.word} isDark={isDark ?? false} />
+              </View>
+              <View style={styles.meaningSection}>
+                <InlineMeaningWithChips
+                  meaning={data.meaning}
+                  isDark={isDark}
+                  textStyle={[
+                    styles.meaning,
+                    { color: isDark ? "#BFDBFE" : "#1D4ED8" },
+                  ]}
+                  containerStyle={styles.inlineMeaning}
+                  chipStyle={styles.inlineChip}
+                  testID="inline-meaning"
+                />
+              </View>
+            </View>
+
+            {data.imageUrl && (
+              <Image
+                source={{ uri: data.imageUrl }}
+                style={styles.cardImage}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+              />
+            )}
           </View>
         </View>
 
@@ -127,6 +141,20 @@ const styles = StyleSheet.create({
   },
   hero: {
     gap: 8,
+  },
+  heroRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  heroContent: {
+    flex: 1,
+    gap: 8,
+  },
+  cardImage: {
+    width: 90,
+    alignSelf: "stretch",
+    borderRadius: 8,
   },
   meaningSection: {
     marginTop: 2,
