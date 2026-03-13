@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import React from "react";
 import { StyleSheet, View } from "react-native";
+import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { speakWordVariants } from "../../src/utils/wordVariants";
 import { WordCardExample } from "./WordCardExample";
@@ -81,13 +82,15 @@ export function WordCard({
           />
         </View>
 
-        {word.imageUrl && (
+        {word.imageUrl ? (
           <Image
             source={{ uri: word.imageUrl }}
             style={styles.cardImage}
             contentFit="cover"
             cachePolicy="memory-disk"
           />
+        ) : (
+          <ImagePlaceholder isDark={isDark} style={styles.cardImage} />
         )}
       </View>
     </View>
@@ -113,7 +116,7 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: 90,
-    alignSelf: "stretch",
+    aspectRatio: 1,
     borderRadius: 8,
   },
   wordTitleRow: {

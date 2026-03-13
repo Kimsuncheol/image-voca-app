@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
 import { StyleSheet, View } from "react-native";
+import { ImagePlaceholder } from "../common/ImagePlaceholder";
 
 interface SwipeCardItemImageSectionProps {
   imageUrl?: string;
@@ -22,13 +22,7 @@ export function SwipeCardItemImageSection({
           cachePolicy="memory-disk"
         />
       ) : (
-        <View style={[styles.cardImage, styles.imagePlaceholder]}>
-          <Ionicons
-            name="image-outline"
-            size={48}
-            color={isDark ? "#555" : "#ccc"}
-          />
-        </View>
+        <ImagePlaceholder isDark={isDark} style={styles.cardImage} />
       )}
     </View>
   );
@@ -44,9 +38,5 @@ const styles = StyleSheet.create({
     width: "100%",
     resizeMode: "cover",
   },
-  imagePlaceholder: {
-    backgroundColor: "#9f9f9f",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+
 });

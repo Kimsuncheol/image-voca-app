@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Card, Divider, Text } from "react-native-paper";
+import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { SpeakerButton } from "../CollocationFlipCard/SpeakerButton";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import type { NotificationWordCardPayload } from "../../src/types/notificationCard";
@@ -93,13 +94,15 @@ export default function WordCard({
               </View>
             </View>
 
-            {data.imageUrl && (
+            {data.imageUrl ? (
               <Image
                 source={{ uri: data.imageUrl }}
                 style={styles.cardImage}
                 contentFit="cover"
                 cachePolicy="memory-disk"
               />
+            ) : (
+              <ImagePlaceholder isDark={isDark} style={styles.cardImage} />
             )}
           </View>
         </View>
@@ -153,7 +156,7 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: 90,
-    alignSelf: "stretch",
+    aspectRatio: 1,
     borderRadius: 8,
   },
   meaningSection: {
