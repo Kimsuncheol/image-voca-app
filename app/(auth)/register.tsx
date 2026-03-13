@@ -1,7 +1,6 @@
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -15,8 +14,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
-import { auth, db } from "../../src/services/firebase";
-import type { UserRole } from "../../src/types/userRole";
+import { auth } from "../../src/services/firebase";
+import { ensureUserProfileDocument } from "../../src/services/userProfileService";
 import {
   AvatarPicker,
   Divider,
@@ -29,9 +28,6 @@ import {
   PasswordStrengthMeter,
   PrimaryButton,
 } from "./components";
-
-// Pre-approved admin email addresses (case-insensitive)
-const ADMIN_EMAILS = ["benjaminadmin@example.com"];
 
 export default function RegisterScreen() {
   const { isDark } = useTheme();
@@ -221,28 +217,11 @@ export default function RegisterScreen() {
         photoURL: avatarUri || null,
       });
 
-      // ---------------------------------------------------------------------------
-      // DETERMINE USER ROLE
-      // ---------------------------------------------------------------------------
-      /**
-       * Role assignment logic:
-       * 1. Check if email is in pre-approved admin list → assign 'admin' role
-       * 2. Otherwise, assign the default 'student' role
-       */
-      const role: UserRole = ADMIN_EMAILS.includes(email.toLowerCase())
-        ? "admin"
-        : "student";
-
-      // Create user document in Firestore with initial data structure
-      await setDoc(doc(db, "users", userCredential.user.uid), {
-        uid: userCredential.user.uid, // Firebase user ID
-        displayName: displayName, // User's display name
-        email: email, // User's email address
-        photoURL: avatarUri || null, // Profile picture URL (local URI)
-        role: role, // User role (admin or user)
-        createdAt: new Date().toISOString(), // Account creation timestamp
-        wordBank: [], // Empty word bank for vocabulary learning
-        recentCourse: null, // No recent course initially
+      // Ensure the Firestore user profile exists with app defaults.
+      await ensureUserProfileDocument(userCredential.user, {
+        displayName,
+        email,
+        photoURL: avatarUri || null,
       });
 
       // Navigate to main app (tabs) on successful registration

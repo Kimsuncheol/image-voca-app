@@ -5,6 +5,7 @@ import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { Alert, Platform } from "react-native";
 import { auth } from "../services/firebase";
+import { ensureUserProfileDocument } from "../services/userProfileService";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -28,7 +29,8 @@ export function useGoogleAuth() {
       const credential = GoogleAuthProvider.credential(id_token);
       setLoading(true);
       signInWithCredential(auth, credential)
-        .then(() => {
+        .then(async (userCredential) => {
+          await ensureUserProfileDocument(userCredential.user);
           // Navigation is handled by the auth state listener or the component calling this
         })
         .catch((error) => {

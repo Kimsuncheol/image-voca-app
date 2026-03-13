@@ -35,6 +35,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AccountActionsSection } from "../components/profile/AccountActionsSection";
 import { AccountInfoSection } from "../components/profile/AccountInfoSection";
 import { useTheme } from "../src/context/ThemeContext";
+import { deleteUserDeviceRegistrations } from "../src/services/deviceRegistrationService";
 import { auth, db, storage } from "../src/services/firebase";
 import { useSubscriptionStore } from "../src/stores";
 
@@ -195,8 +196,13 @@ export default function ProfileScreen() {
         }
       }
 
-      // Step 2: Delete user document from Firestore
-      console.log("📄 Step 2: Attempting to delete Firestore document...");
+      // Step 2: Delete registered device documents before removing the user.
+      console.log("📱 Step 2: Attempting to delete registered devices...");
+      await deleteUserDeviceRegistrations(userId);
+      console.log("✅ Registered device documents deleted from Firestore");
+
+      // Step 3: Delete user document from Firestore
+      console.log("📄 Step 3: Attempting to delete Firestore document...");
       await deleteDoc(doc(db, "users", userId));
       console.log("✅ User document deleted from Firestore");
 

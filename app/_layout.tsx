@@ -22,9 +22,9 @@ import {
   ThemeProvider as AppThemeProvider,
   useTheme as useAppTheme,
 } from "../src/context/ThemeContext";
+import { useAuthenticatedDeviceRegistration } from "../src/hooks/useAuthenticatedDeviceRegistration";
 import { useNotificationTapNavigation } from "../src/hooks/useNotificationTapNavigation";
 import { usePushNotifications } from "../src/hooks/usePushNotifications";
-import "../src/i18n";
 import { hydrateLanguage } from "../src/i18n";
 import { db } from "../src/services/firebase";
 import {
@@ -54,6 +54,7 @@ function RootLayoutNav() {
   const router = useRouter();
   const { t } = useTranslation();
 
+  useAuthenticatedDeviceRegistration();
   usePushNotifications();
   useNotificationTapNavigation();
 

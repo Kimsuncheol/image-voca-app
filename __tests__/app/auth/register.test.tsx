@@ -1,9 +1,9 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { useRouter } from "expo-router";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { setDoc } from "firebase/firestore";
 import React from "react";
 import RegisterScreen from "../../../app/(auth)/register";
+import { ensureUserProfileDocument } from "../../../src/services/userProfileService";
 
 // ---------------------------------------------------------------------------
 // Shared mocks
@@ -67,11 +67,6 @@ jest.mock("firebase/auth", () => ({
   updateProfile: jest.fn(),
 }));
 
-jest.mock("firebase/firestore", () => ({
-  doc: jest.fn(),
-  setDoc: jest.fn(),
-}));
-
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => translations[key] ?? key,
@@ -79,7 +74,7 @@ jest.mock("react-i18next", () => ({
 }));
 
 jest.mock("react-native-safe-area-context", () => {
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
     SafeAreaView: ({ children }: { children: React.ReactNode }) => (
       <View>{children}</View>
@@ -100,7 +95,10 @@ jest.mock("../../../src/hooks/useGoogleAuth", () => ({
 
 jest.mock("../../../src/services/firebase", () => ({
   auth: {},
-  db: {},
+}));
+
+jest.mock("../../../src/services/userProfileService", () => ({
+  ensureUserProfileDocument: jest.fn(),
 }));
 
 // ---------------------------------------------------------------------------
@@ -156,7 +154,7 @@ describe("RegisterScreen", () => {
       user: { uid: "uid-123" },
     });
     (updateProfile as jest.Mock).mockResolvedValue(undefined);
-    (setDoc as jest.Mock).mockResolvedValue(undefined);
+    (ensureUserProfileDocument as jest.Mock).mockResolvedValue(undefined);
   });
 
   // -------------------------------------------------------------------------
@@ -272,6 +270,15 @@ describe("RegisterScreen", () => {
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith("/(tabs)");
     });
+
+    expect(ensureUserProfileDocument).toHaveBeenCalledWith(
+      { uid: "uid-123" },
+      {
+        displayName: "Test User",
+        email: "test@example.com",
+        photoURL: null,
+      },
+    );
 
     expect(utils.queryByText("Registration Error")).toBeNull();
     expect(
