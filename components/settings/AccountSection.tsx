@@ -34,6 +34,26 @@ export function AccountSection({ styles, isDark, t }: AccountSectionProps) {
           </TouchableOpacity>
         </Link>
         <View style={styles.separator} />
+        <Link href="/manage-devices" asChild>
+          <TouchableOpacity style={styles.option}>
+            <View style={styles.optionLeft}>
+              <Ionicons
+                name="phone-portrait-outline"
+                size={24}
+                color={isDark ? "#fff" : "#333"}
+              />
+              <Text style={styles.optionText}>
+                {t("settings.account.manageDevices")}
+              </Text>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={isDark ? "#666" : "#c7c7cc"}
+            />
+          </TouchableOpacity>
+        </Link>
+        <View style={styles.separator} />
         <Link href="/billing" asChild>
           <TouchableOpacity style={styles.option}>
             <View style={styles.optionLeft}>

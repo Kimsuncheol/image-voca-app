@@ -1,8 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   buildNativeDevicePayload,
+  DeviceRegistrationLimitError,
   deleteUserDeviceRegistrations,
   isNativeDeviceRegistrationSupported,
+  listUserDeviceRegistrations,
+  MAX_REGISTERED_DEVICES,
+  removeUserDeviceRegistration,
   upsertCurrentDeviceRegistration,
 } from "../../src/services/deviceRegistrationService";
 import {
@@ -88,6 +92,14 @@ const mockSnapshot = (data?: Record<string, unknown>) => ({
   data: () => data,
 });
 
+const makeDeviceDoc = (
+  id: string,
+  data: Record<string, unknown>,
+) => ({
+  id,
+  data: () => data,
+});
+
 describe("deviceRegistrationService", () => {
   let consoleWarnSpy: jest.SpyInstance;
 
@@ -141,6 +153,7 @@ describe("deviceRegistrationService", () => {
       }),
       { merge: true },
     );
+    expect(getDocs).toHaveBeenCalledWith("users/user-1/devices");
   });
 
   it("stores a null Expo push token when notification permission is not granted", async () => {
@@ -215,6 +228,9 @@ describe("deviceRegistrationService", () => {
         createdAt: "2026-03-01T00:00:00.000Z",
       }),
     );
+    (getDocs as jest.Mock).mockResolvedValue({
+      docs: [{ id: "device-a" }, { id: "device-b" }, { id: "device-c" }],
+    });
 
     const record = await upsertCurrentDeviceRegistration({
       uid: "user-1",
@@ -233,6 +249,126 @@ describe("deviceRegistrationService", () => {
     );
     expect(record?.updatedAt).toEqual(expect.any(String));
     expect(record?.lastSeenAt).toEqual(expect.any(String));
+    expect(getDocs).not.toHaveBeenCalled();
+  });
+
+  it("allows a new device registration while the user is below the cap", async () => {
+    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
+      granted: true,
+      canAskAgain: false,
+      ios: { status: 0 },
+    });
+    (Notifications.getExpoPushTokenAsync as jest.Mock).mockResolvedValue({
+      data: "ExponentPushToken[token-123]",
+    });
+    (getDocs as jest.Mock).mockResolvedValue({
+      docs: [{ id: "device-a" }, { id: "device-b" }],
+    });
+
+    const record = await upsertCurrentDeviceRegistration({
+      uid: "user-1",
+      email: "test@example.com",
+      providerData: [{ providerId: "password" }] as any,
+    });
+
+    expect(record?.deviceId).toBe("device_0123456789abcdef01234567");
+    expect(setDoc).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws a device limit error when a new device would exceed the cap", async () => {
+    (getDocs as jest.Mock).mockResolvedValue({
+      docs: new Array(MAX_REGISTERED_DEVICES).fill(null).map((_, index) => ({
+        id: `device-${index}`,
+      })),
+    });
+
+    await expect(
+      upsertCurrentDeviceRegistration({
+        uid: "user-1",
+        email: "test@example.com",
+        providerData: [{ providerId: "password" }] as any,
+      }),
+    ).rejects.toBeInstanceOf(DeviceRegistrationLimitError);
+
+    expect(setDoc).not.toHaveBeenCalled();
+  });
+
+  it("lists device docs, marks the current device, and sorts by current then lastSeenAt", async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValue("device-current");
+    (getDocs as jest.Mock).mockResolvedValue({
+      docs: [
+        makeDeviceDoc("device-old", {
+          deviceId: "device-old",
+          platform: "ios",
+          brand: "Apple",
+          manufacturer: "Apple",
+          modelName: "iPhone 13",
+          deviceType: "phone",
+          osName: "iOS",
+          osVersion: "17",
+          appVersion: "1.0.0",
+          appBuild: "100",
+          authProvider: "password",
+          notificationPermissionStatus: "granted",
+          expoPushToken: null,
+          createdAt: "2026-03-01T00:00:00.000Z",
+          updatedAt: "2026-03-01T00:00:00.000Z",
+          lastSeenAt: "2026-03-03T00:00:00.000Z",
+        }),
+        makeDeviceDoc("device-current", {
+          deviceId: "device-current",
+          platform: "ios",
+          brand: "Apple",
+          manufacturer: "Apple",
+          modelName: "iPhone 15",
+          deviceType: "phone",
+          osName: "iOS",
+          osVersion: "18",
+          appVersion: "1.0.0",
+          appBuild: "100",
+          authProvider: "google.com",
+          notificationPermissionStatus: "granted",
+          expoPushToken: null,
+          createdAt: "2026-03-02T00:00:00.000Z",
+          updatedAt: "2026-03-02T00:00:00.000Z",
+          lastSeenAt: "2026-03-02T00:00:00.000Z",
+        }),
+        makeDeviceDoc("device-newer", {
+          deviceId: "device-newer",
+          platform: "android",
+          brand: "Samsung",
+          manufacturer: "Samsung",
+          modelName: "Galaxy",
+          deviceType: "phone",
+          osName: "Android",
+          osVersion: "15",
+          appVersion: "1.0.0",
+          appBuild: "100",
+          authProvider: "password",
+          notificationPermissionStatus: "granted",
+          expoPushToken: null,
+          createdAt: "2026-03-04T00:00:00.000Z",
+          updatedAt: "2026-03-04T00:00:00.000Z",
+          lastSeenAt: "2026-03-04T00:00:00.000Z",
+        }),
+      ],
+    });
+
+    const devices = await listUserDeviceRegistrations("user-1");
+
+    expect(devices.map((device) => device.deviceId)).toEqual([
+      "device-current",
+      "device-newer",
+      "device-old",
+    ]);
+    expect(devices[0]?.isCurrentDevice).toBe(true);
+    expect(devices[1]?.isCurrentDevice).toBe(false);
+  });
+
+  it("removes a specified device doc", async () => {
+    await removeUserDeviceRegistration("user-1", "device-old");
+
+    expect(deleteDoc).toHaveBeenCalledWith("users/user-1/devices/device-old");
   });
 
   it("deletes all device documents before account cleanup continues", async () => {

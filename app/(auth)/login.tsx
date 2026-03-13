@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
 import { auth } from "../../src/services/firebase";
@@ -43,11 +44,15 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false); // Toggle "Remember Me" checkbox
   const [loading, setLoading] = useState(false); // Loading state for login process
-  const [authError, setAuthError] = useState<string | null>(null); // Authentication error message
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const router = useRouter(); // Navigation
   // Google Auth Hook
   const { promptAsync, loading: googleLoading } = useGoogleAuth();
+  const {
+    authError: contextAuthError,
+    clearAuthError,
+  } = useAuth();
   const { t } = useTranslation(); // i18n Translation hook
 
   const getLoginAuthErrorMessage = (error: unknown) => {
@@ -85,6 +90,12 @@ export default function LoginScreen() {
     loadSavedEmail();
   }, []);
 
+  useEffect(() => {
+    if (contextAuthError) {
+      setAuthError(contextAuthError);
+    }
+  }, [contextAuthError]);
+
   // --- Helper Functions ---
 
   /**
@@ -116,6 +127,7 @@ export default function LoginScreen() {
       return;
     }
     setAuthError(null);
+    clearAuthError();
     setLoading(true);
     try {
       // Handle Remember Me persistence
@@ -126,6 +138,7 @@ export default function LoginScreen() {
       }
 
       await signInWithEmailAndPassword(auth, email, password);
+      clearAuthError();
       router.replace("/(tabs)");
     } catch (error) {
       setAuthError(getLoginAuthErrorMessage(error));
@@ -139,6 +152,7 @@ export default function LoginScreen() {
    */
   const handleGoogleLogin = () => {
     setAuthError(null);
+    clearAuthError();
     promptAsync();
   };
 
@@ -171,7 +185,7 @@ export default function LoginScreen() {
               <ErrorBanner
                 title={t("auth.errors.loginTitle")}
                 message={authError || ""}
-                onClose={() => setAuthError(null)}
+                onClose={clearAuthError}
               />
 
               {/* Feature: Email Input */}
@@ -182,6 +196,7 @@ export default function LoginScreen() {
                 onChangeText={(value) => {
                   if (authError) {
                     setAuthError(null);
+                    clearAuthError();
                   }
                   setEmail(value);
                 }}
@@ -196,6 +211,7 @@ export default function LoginScreen() {
                 onChangeText={(value) => {
                   if (authError) {
                     setAuthError(null);
+                    clearAuthError();
                   }
                   setPassword(value);
                 }}

@@ -13,11 +13,24 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { Platform } from "react-native";
-import type { DeviceRegistrationRecord } from "../types/deviceRegistration";
+import type {
+  DeviceRegistrationRecord,
+  ManageableDeviceRecord,
+} from "../types/deviceRegistration";
 import { db } from "./firebase";
 import { getPrimaryAuthProvider } from "./userProfileService";
 
 const DEVICE_ID_STORAGE_KEY = "@device_registration_id";
+export const MAX_REGISTERED_DEVICES = 3;
+
+export class DeviceRegistrationLimitError extends Error {
+  code = "device/limit-exceeded" as const;
+
+  constructor(message = "Registered device limit reached.") {
+    super(message);
+    this.name = "DeviceRegistrationLimitError";
+  }
+}
 
 const getPlatform = (): DeviceRegistrationRecord["platform"] | null => {
   if (Platform.OS === "ios") return "ios";
@@ -132,14 +145,21 @@ export const upsertCurrentDeviceRegistration = async (
   if (!isNativeDeviceRegistrationSupported()) return null;
 
   const deviceId = await getOrCreateDeviceId();
-  const payload = await buildNativeDevicePayload(user);
-  if (!payload) return null;
-
   const deviceRef = doc(db, "users", user.uid, "devices", deviceId);
   const snapshot = await getDoc(deviceRef);
   const existing = snapshot.exists()
     ? (snapshot.data() as Partial<DeviceRegistrationRecord>)
     : undefined;
+
+  if (!existing) {
+    const deviceSnapshot = await getDocs(collection(db, "users", user.uid, "devices"));
+    if (deviceSnapshot.docs.length >= MAX_REGISTERED_DEVICES) {
+      throw new DeviceRegistrationLimitError();
+    }
+  }
+
+  const payload = await buildNativeDevicePayload(user);
+  if (!payload) return null;
   const now = new Date().toISOString();
 
   const record: DeviceRegistrationRecord = {
@@ -161,4 +181,39 @@ export const deleteUserDeviceRegistrations = async (userId: string) => {
       deleteDoc(doc(db, "users", userId, "devices", deviceDoc.id)),
     ),
   );
+};
+
+const getTimestampValue = (value?: string | null) => {
+  if (!value) return 0;
+  const timestamp = Date.parse(value);
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+};
+
+export const listUserDeviceRegistrations = async (
+  userId: string,
+): Promise<ManageableDeviceRecord[]> => {
+  const currentDeviceId = await getOrCreateDeviceId();
+  const snapshot = await getDocs(collection(db, "users", userId, "devices"));
+
+  return snapshot.docs
+    .map((deviceDoc) => {
+      const data = deviceDoc.data() as DeviceRegistrationRecord;
+      return {
+        ...data,
+        deviceId: data.deviceId || deviceDoc.id,
+        isCurrentDevice: (data.deviceId || deviceDoc.id) === currentDeviceId,
+      };
+    })
+    .sort((left, right) => {
+      if (left.isCurrentDevice && !right.isCurrentDevice) return -1;
+      if (!left.isCurrentDevice && right.isCurrentDevice) return 1;
+      return getTimestampValue(right.lastSeenAt) - getTimestampValue(left.lastSeenAt);
+    });
+};
+
+export const removeUserDeviceRegistration = async (
+  userId: string,
+  deviceId: string,
+) => {
+  await deleteDoc(doc(db, "users", userId, "devices", deviceId));
 };

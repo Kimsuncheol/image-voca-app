@@ -8,6 +8,8 @@ import LoginScreen from "../../../app/(auth)/login";
 const mockReplace = jest.fn();
 const mockPush = jest.fn();
 const mockPromptAsync = jest.fn();
+const mockClearAuthError = jest.fn();
+const mockUseAuth = jest.fn();
 
 const translations: Record<string, string> = {
   "auth.errors.missingCredentials": "Please enter both email and password.",
@@ -55,7 +57,7 @@ jest.mock("react-i18next", () => ({
 }));
 
 jest.mock("react-native-safe-area-context", () => {
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
     SafeAreaView: ({ children }: { children: React.ReactNode }) => (
       <View>{children}</View>
@@ -65,6 +67,10 @@ jest.mock("react-native-safe-area-context", () => {
 
 jest.mock("../../../src/context/ThemeContext", () => ({
   useTheme: () => ({ isDark: false }),
+}));
+
+jest.mock("../../../src/context/AuthContext", () => ({
+  useAuth: () => mockUseAuth(),
 }));
 
 jest.mock("../../../src/hooks/useGoogleAuth", () => ({
@@ -94,6 +100,10 @@ describe("LoginScreen", () => {
     (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
     (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
     (AsyncStorage.removeItem as jest.Mock).mockResolvedValue(undefined);
+    mockUseAuth.mockReturnValue({
+      authError: null,
+      clearAuthError: mockClearAuthError,
+    });
   });
 
   it("navigates to forgot-password when forgot password link is pressed", () => {
@@ -176,5 +186,34 @@ describe("LoginScreen", () => {
 
     expect(queryByText("Login Error")).toBeNull();
     expect(queryByText("Unable to sign in. Please try again.")).toBeNull();
+  });
+
+  it("shows a device limit message passed through auth context", () => {
+    mockUseAuth.mockReturnValue({
+      authError:
+        "You have reached the maximum number of registered devices. Remove an old device before signing in here.",
+      clearAuthError: mockClearAuthError,
+    });
+
+    const { getByText } = render(<LoginScreen />);
+
+    expect(
+      getByText(
+        "You have reached the maximum number of registered devices. Remove an old device before signing in here.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("clears the context auth error when the user edits a field", () => {
+    mockUseAuth.mockReturnValue({
+      authError:
+        "You have reached the maximum number of registered devices. Remove an old device before signing in here.",
+      clearAuthError: mockClearAuthError,
+    });
+    const { getByPlaceholderText } = render(<LoginScreen />);
+
+    fireEvent.changeText(getByPlaceholderText("Email"), "test@example.com");
+
+    expect(mockClearAuthError).toHaveBeenCalled();
   });
 });

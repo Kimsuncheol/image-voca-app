@@ -18,3 +18,7 @@ export interface DeviceRegistrationRecord {
   updatedAt: string;
   lastSeenAt: string;
 }
+
+export interface ManageableDeviceRecord extends DeviceRegistrationRecord {
+  isCurrentDevice: boolean;
+}

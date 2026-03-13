@@ -48,6 +48,7 @@ const en = {
     account: {
       title: "Account",
       profile: "Profile",
+      manageDevices: "Manage Devices",
       billing: "Billing & Plans",
       signOut: "Sign Out",
       signOutError: "Error signing out",
@@ -219,6 +220,8 @@ const en = {
       networkError:
         "Network error. Please check your connection and try again.",
       loginFailed: "Unable to sign in. Please try again.",
+      deviceLimitReached:
+        "You have reached the maximum number of registered devices. Remove an old device before signing in here.",
       permissionTitle: "Permission Required",
       permissionMessage: "Permission to access camera roll is required!",
       missingFields: "Please fill in all fields.",
@@ -351,6 +354,31 @@ const en = {
       updated: "Daily goal updated to {{goal}} words!",
       invalid: "Please enter a valid number.",
       updateButton: "Update Goal",
+    },
+  },
+  manageDevices: {
+    title: "Manage Devices",
+    subtitle: "{{count}} / {{max}} devices used",
+    currentBadge: "Current Device",
+    empty: "No registered devices found.",
+    loading: "Loading devices...",
+    error: "Failed to load registered devices.",
+    unknownDevice: "Unknown Device",
+    lastSeen: "Last active: {{date}}",
+    registeredOn: "Registered on: {{date}}",
+    remove: "Remove",
+    removing: "Removing...",
+    confirmTitle: "Remove Device",
+    confirmMessage:
+      "Remove this device from your account? You can sign in on it again later if a slot is available.",
+    removeSuccess: "Device removed successfully.",
+    removeError: "Failed to remove the device. Please try again.",
+    helper:
+      "To use a newly purchased device, remove one of your old devices here first.",
+    authProvider: {
+      password: "Email sign-in",
+      "google.com": "Google sign-in",
+      unknown: "Unknown sign-in method",
     },
   },
   billing: {

@@ -48,6 +48,7 @@ const ko = {
     account: {
       title: "계정",
       profile: "프로필",
+      manageDevices: "기기 관리",
       billing: "요금제 및 결제",
       signOut: "로그아웃",
       signOutError: "로그아웃 실패",
@@ -221,6 +222,8 @@ const ko = {
       networkError:
         "네트워크 오류가 발생했습니다. 연결을 확인하고 다시 시도하세요.",
       loginFailed: "로그인할 수 없습니다. 다시 시도하세요.",
+      deviceLimitReached:
+        "등록 가능한 기기 수를 초과했습니다. 이 기기에서 로그인하려면 기존 기기 하나를 먼저 제거하세요.",
       permissionTitle: "권한 필요",
       permissionMessage: "사진 라이브러리 접근 권한이 필요합니다.",
       missingFields: "모든 항목을 입력하세요.",
@@ -348,6 +351,31 @@ const ko = {
       updated: "일일 목표가 {{goal}}단어로 업데이트되었습니다!",
       invalid: "유효한 숫자를 입력하세요.",
       updateButton: "목표 업데이트",
+    },
+  },
+  manageDevices: {
+    title: "기기 관리",
+    subtitle: "{{count}} / {{max}}개의 기기 사용 중",
+    currentBadge: "현재 기기",
+    empty: "등록된 기기가 없습니다.",
+    loading: "기기 목록을 불러오는 중...",
+    error: "등록된 기기 목록을 불러오지 못했습니다.",
+    unknownDevice: "알 수 없는 기기",
+    lastSeen: "마지막 사용: {{date}}",
+    registeredOn: "등록일: {{date}}",
+    remove: "제거",
+    removing: "제거 중...",
+    confirmTitle: "기기 제거",
+    confirmMessage:
+      "이 기기를 계정에서 제거할까요? 자리가 있으면 나중에 다시 로그인할 수 있습니다.",
+    removeSuccess: "기기가 제거되었습니다.",
+    removeError: "기기를 제거하지 못했습니다. 다시 시도하세요.",
+    helper:
+      "새 기기를 사용하려면 여기에서 기존 기기 하나를 먼저 제거하세요.",
+    authProvider: {
+      password: "이메일 로그인",
+      "google.com": "Google 로그인",
+      unknown: "알 수 없는 로그인 방식",
     },
   },
   billing: {
