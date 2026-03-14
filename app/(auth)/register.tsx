@@ -1,3 +1,5 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
@@ -9,8 +11,10 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
+import { LEARNING_LANGUAGES_KEY } from "../../components/settings/LearningLanguageSection";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
@@ -59,12 +63,21 @@ export default function RegisterScreen() {
   const [isValidEmail, setIsValidEmail] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
 
+  // Learning language selection state (English selected by default)
+  const [learningLanguages, setLearningLanguages] = useState<string[]>(["en"]);
+
   const router = useRouter();
   const { t } = useTranslation();
 
   // ---------------------------------------------------------------------------
   // CLEAR ERRORS - Helper function to clear specific or all errors
   // ---------------------------------------------------------------------------
+  const toggleLearningLanguage = (lang: string) => {
+    setLearningLanguages((prev) =>
+      prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang],
+    );
+  };
+
   const clearError = (field?: "general" | "permission") => {
     if (field) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -201,6 +214,15 @@ export default function RegisterScreen() {
       return;
     }
 
+    // --- Step 5: Validate learning language selection ---
+    if (learningLanguages.length === 0) {
+      setErrors((prev) => ({
+        ...prev,
+        general: "Please select at least one language to learn.",
+      }));
+      return;
+    }
+
     // --- Step 5-8: Firebase registration flow ---
     setLoading(true);
     try {
@@ -223,6 +245,12 @@ export default function RegisterScreen() {
         email,
         photoURL: avatarUri || null,
       });
+
+      // Save learning language selection
+      await AsyncStorage.setItem(
+        LEARNING_LANGUAGES_KEY,
+        JSON.stringify(learningLanguages),
+      );
 
       // Navigate to main app (tabs) on successful registration
       router.replace("/(tabs)");
@@ -382,6 +410,50 @@ export default function RegisterScreen() {
                 match: t("auth.register.passwordHint.match"),
               }}
             />
+
+            {/* -----------------------------------------------------------------
+                LEARNING LANGUAGE SECTION
+            ----------------------------------------------------------------- */}
+            <View style={styles.learningSection}>
+              <Text style={styles.learningSectionLabel}>
+                The language you wish to learn
+              </Text>
+              <View style={styles.learningOptionsCard}>
+                {(
+                  [
+                    { lang: "en", label: "English" },
+                    { lang: "ja", label: "Japanese" },
+                  ] as const
+                ).map(({ lang, label }, index) => (
+                  <React.Fragment key={lang}>
+                    {index > 0 && (
+                      <View style={styles.learningOptionSeparator} />
+                    )}
+                    <TouchableOpacity
+                      style={styles.learningOption}
+                      onPress={() => toggleLearningLanguage(lang)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.learningOptionLeft}>
+                        <Ionicons
+                          name="globe-outline"
+                          size={22}
+                          color={isDark ? "#fff" : "#333"}
+                        />
+                        <Text style={styles.learningOptionText}>{label}</Text>
+                      </View>
+                      {learningLanguages.includes(lang) && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={22}
+                          color="#007AFF"
+                        />
+                      )}
+                    </TouchableOpacity>
+                  </React.Fragment>
+                ))}
+              </View>
+            </View>
 
             {/* -----------------------------------------------------------------
                 ADMIN TOGGLE BUTTON (Development/Testing)
@@ -795,5 +867,49 @@ const getStyles = (isDark: boolean) =>
     /** Admin toggle text active - When admin is selected */
     adminToggleTextActive: {
       color: "#007AFF",
+    },
+
+    // -------------------------------------------------------------------------
+    // LEARNING LANGUAGE STYLES
+    // -------------------------------------------------------------------------
+    learningSection: {
+      marginBottom: 16,
+    },
+    learningSectionLabel: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: isDark ? "#8e8e93" : "#6e6e73",
+      marginBottom: 8,
+      marginLeft: 4,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    learningOptionsCard: {
+      backgroundColor: isDark ? "#1c1c1e" : "#F9F9F9",
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: isDark ? "#333" : "#E0E0E0",
+      overflow: "hidden",
+    },
+    learningOption: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+    },
+    learningOptionLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
+    learningOptionText: {
+      fontSize: 16,
+      color: isDark ? "#fff" : "#333",
+    },
+    learningOptionSeparator: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: isDark ? "#333" : "#E0E0E0",
+      marginLeft: 48,
     },
   });

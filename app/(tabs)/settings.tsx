@@ -31,6 +31,7 @@ import { Alert, Linking, ScrollView, StyleSheet, View } from "react-native";
 import { AccountSection } from "../../components/settings/AccountSection"; // Account management options
 import { AppearanceSection } from "../../components/settings/AppearanceSection"; // Theme and visual preferences
 import { LanguageSection } from "../../components/settings/LanguageSection"; // Language selection
+import { LearningLanguageSection } from "../../components/settings/LearningLanguageSection"; // Language to learn
 import { NotificationsSection } from "../../components/settings/NotificationsSection"; // Push notification settings
 import { SettingsHeader } from "../../components/settings/SettingsHeader"; // Header component
 import { SignOutSection } from "../../components/settings/SignOutSection"; // Sign out button
@@ -496,6 +497,8 @@ export default function SettingsScreen() {
             Language selection (English, Korean, Japanese, etc.)
             Changes the app's display language
         */}
+        <LearningLanguageSection styles={styles} isDark={isDark} />
+
         <LanguageSection
           styles={styles}
           isDark={isDark}

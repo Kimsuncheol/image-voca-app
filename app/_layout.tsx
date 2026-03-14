@@ -129,6 +129,10 @@ function RootLayoutNav() {
               name="manage-devices"
               options={{ title: t("manageDevices.title") }}
             />
+            <Stack.Screen
+              name="coming-soon"
+              options={{ headerBackTitle: "Back" }}
+            />
           </Stack>
           <StatusBar style={isDark ? "light" : "dark"} />
         </NavigationThemeProvider>
