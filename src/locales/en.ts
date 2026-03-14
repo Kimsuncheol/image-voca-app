@@ -57,6 +57,7 @@ const en = {
       title: "Language",
       english: "English",
       korean: "Korean",
+      japanese: "Japanese",
     },
     dashboard: {
       title: "Dashboard",
@@ -507,6 +508,11 @@ const en = {
       message: "Your progress will be lost. Are you sure you want to quit?",
       confirm: "Quit",
     },
+  },
+  comingSoon: {
+    title: "Coming Soon",
+    description:
+      "Japanese learning content is currently under development. Stay tuned for updates!",
   },
   student: {
     classes: {

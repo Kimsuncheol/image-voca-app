@@ -2,11 +2,13 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
+import type { SupportedLanguage } from "../../src/i18n";
+
 interface LanguageSectionProps {
   styles: Record<string, any>;
   isDark: boolean;
   currentLanguage: string;
-  onChangeLanguage: (language: "en" | "ko") => void;
+  onChangeLanguage: (language: SupportedLanguage) => void;
   t: (key: string) => string;
 }
 
@@ -55,6 +57,25 @@ export function LanguageSection({
             </Text>
           </View>
           {currentLanguage === "ko" && (
+            <Ionicons name="checkmark" size={24} color="#007AFF" />
+          )}
+        </TouchableOpacity>
+        <View style={styles.separator} />
+        <TouchableOpacity
+          style={styles.option}
+          onPress={() => onChangeLanguage("ja")}
+        >
+          <View style={styles.optionLeft}>
+            <Ionicons
+              name="language-outline"
+              size={24}
+              color={isDark ? "#fff" : "#333"}
+            />
+            <Text style={styles.optionText}>
+              {t("settings.language.japanese")}
+            </Text>
+          </View>
+          {currentLanguage === "ja" && (
             <Ionicons name="checkmark" size={24} color="#007AFF" />
           )}
         </TouchableOpacity>

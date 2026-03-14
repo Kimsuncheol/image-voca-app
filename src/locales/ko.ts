@@ -57,6 +57,7 @@ const ko = {
       title: "언어",
       english: "영어",
       korean: "한국어",
+      japanese: "일본어",
     },
     dashboard: {
       title: "대시보드",
@@ -504,6 +505,11 @@ const ko = {
       message: "현재 진행 상황이 사라집니다. 정말 종료하시겠어요?",
       confirm: "종료",
     },
+  },
+  comingSoon: {
+    title: "준비 중",
+    description:
+      "일본어 학습 콘텐츠는 현재 개발 중입니다. 업데이트를 기대해 주세요!",
   },
   student: {
     classes: {

@@ -3,15 +3,17 @@ import * as Localization from "expo-localization";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import en from "./locales/en";
+import ja from "./locales/ja";
 import ko from "./locales/ko";
 
 export const LANGUAGE_STORAGE_KEY = "user_language";
-export const SUPPORTED_LANGUAGES = ["en", "ko"] as const;
+export const SUPPORTED_LANGUAGES = ["en", "ko", "ja"] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 const resources = {
   en: { translation: en },
   ko: { translation: ko },
+  ja: { translation: ja },
 };
 
 const getDeviceLanguage = (): SupportedLanguage => {
