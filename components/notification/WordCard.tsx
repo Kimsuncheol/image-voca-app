@@ -67,53 +67,44 @@ export default function WordCard({
       ]}
     >
       <Card.Content style={styles.content}>
-        <View style={styles.hero}>
-          <View style={styles.heroRow}>
-            <View style={styles.heroContent}>
-              <View style={styles.wordRow}>
-                <Text
-                  variant="headlineMedium"
-                  style={[styles.word, { color: isDark ? "#FFFFFF" : "#0F172A" }]}
-                >
-                  {data.word}
-                </Text>
-                <SpeakerButton text={data.word} isDark={isDark ?? false} />
-              </View>
-              <View style={styles.meaningSection}>
-                <InlineMeaningWithChips
-                  meaning={data.meaning}
-                  isDark={isDark}
-                  textStyle={[
-                    styles.meaning,
-                    { color: isDark ? "#BFDBFE" : "#1D4ED8" },
-                  ]}
-                  containerStyle={styles.inlineMeaning}
-                  chipStyle={styles.inlineChip}
-                  testID="inline-meaning"
-                />
-              </View>
+        <View style={styles.heroRow}>
+          <View style={styles.heroLeft}>
+            <View style={styles.wordRow}>
+              <Text
+                variant="headlineMedium"
+                style={[styles.word, { color: isDark ? "#FFFFFF" : "#0F172A" }]}
+              >
+                {data.word}
+              </Text>
+              <SpeakerButton text={data.word} isDark={isDark ?? false} />
             </View>
-
-            {data.imageUrl ? (
-              <Image
-                source={{ uri: data.imageUrl }}
-                style={styles.cardImage}
-                contentFit="cover"
-                cachePolicy="memory-disk"
-              />
-            ) : (
-              <ImagePlaceholder isDark={isDark} style={styles.cardImage} />
-            )}
+            <InlineMeaningWithChips
+              meaning={data.meaning}
+              isDark={isDark}
+              textStyle={[
+                styles.meaning,
+                { color: isDark ? "#BFDBFE" : "#1D4ED8" },
+              ]}
+              containerStyle={styles.inlineMeaning}
+              chipStyle={styles.inlineChip}
+              testID="inline-meaning"
+            />
           </View>
+
+          {data.imageUrl ? (
+            <Image
+              source={{ uri: data.imageUrl }}
+              style={styles.cardImage}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+            />
+          ) : (
+            <ImagePlaceholder isDark={isDark} style={styles.cardImage} />
+          )}
         </View>
 
         <Divider style={styles.divider} />
 
-        <SectionRow
-          label="Pronunciation"
-          value={data.pronunciation}
-          isDark={isDark}
-        />
         <SectionRow
           label="Example"
           value={data.example}
@@ -142,25 +133,19 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 18,
   },
-  hero: {
-    gap: 8,
-  },
   heroRow: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 12,
   },
-  heroContent: {
+  heroLeft: {
     flex: 1,
-    gap: 8,
+    gap: 6,
   },
   cardImage: {
     width: 90,
     aspectRatio: 1,
     borderRadius: 8,
-  },
-  meaningSection: {
-    marginTop: 2,
   },
   inlineMeaning: {
     gap: 6,

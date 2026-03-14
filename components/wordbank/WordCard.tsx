@@ -30,7 +30,6 @@ interface WordCardProps {
   courseColor?: string;
   isDark: boolean;
   showPronunciation?: boolean;
-  expandExampleToContent?: boolean;
 }
 
 /**
@@ -42,7 +41,6 @@ export function WordCard({
   word,
   isDark,
   showPronunciation = true,
-  expandExampleToContent = false,
 }: WordCardProps) {
   const { speak } = useSpeech();
 
@@ -62,26 +60,16 @@ export function WordCard({
         { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
       ]}
     >
-      <View style={styles.cardRow}>
-        <View style={styles.cardContent}>
-          <View style={styles.wordTitleRow}>
-            <WordCardHeader
-              word={word.word}
-              day={word.day}
-              pronunciation={showPronunciation ? word.pronunciation : undefined}
-              onSpeak={handleSpeakWord}
-            />
-          </View>
-
-          <WordCardMeaning meaning={word.meaning} isDark={isDark} />
-
-          <WordCardExample
-            example={word.example}
-            translation={word.translation}
-            expandToContent={expandExampleToContent}
+      <View style={styles.topSection}>
+        <View style={styles.topLeft}>
+          <WordCardHeader
+            word={word.word}
+            day={word.day}
+            pronunciation={showPronunciation ? word.pronunciation : undefined}
+            onSpeak={handleSpeakWord}
           />
+          <WordCardMeaning meaning={word.meaning} isDark={isDark} />
         </View>
-
         {word.imageUrl ? (
           <Image
             source={{ uri: word.imageUrl }}
@@ -93,6 +81,18 @@ export function WordCard({
           <ImagePlaceholder isDark={isDark} style={styles.cardImage} />
         )}
       </View>
+
+      <View
+        style={[
+          styles.divider,
+          { backgroundColor: isDark ? "#333" : "#e0e0e0" },
+        ]}
+      />
+
+      <WordCardExample
+        example={word.example}
+        translation={word.translation}
+      />
     </View>
   );
 }
@@ -102,16 +102,15 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     marginBottom: 12,
-    position: "relative",
     borderWidth: 1.5,
     borderColor: "transparent",
   },
-  cardRow: {
+  topSection: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 12,
   },
-  cardContent: {
+  topLeft: {
     flex: 1,
   },
   cardImage: {
@@ -119,9 +118,8 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: 8,
   },
-  wordTitleRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 8,
+  divider: {
+    height: 1,
+    marginVertical: 12,
   },
 });
