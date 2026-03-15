@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { doc, runTransaction } from "firebase/firestore";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -17,6 +18,7 @@ import { useSpeech } from "../../src/hooks/useSpeech";
 import { db } from "../../src/services/firebase";
 import { useUserStatsStore } from "../../src/stores";
 import { parseWordVariants, speakWordVariants } from "../../src/utils/wordVariants";
+import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { SavedWord } from "../wordbank/WordCard";
 import { CollocationData, CollocationWordBankConfig } from "./types";
 
@@ -371,17 +373,19 @@ export default React.memo(function FaceSide({
       )}
 
       <View style={styles.contentContainer}>
-        {/* Section: Day Badge */}
-        {wordBankConfig?.day && (
-          <View style={styles.dayBadgeContainer}>
-            <Text style={[styles.dayBadge, isDark && styles.dayBadgeDark]}>
-              Day {wordBankConfig.day}
-            </Text>
-          </View>
+        {/* Section: Image */}
+        {data.imageUrl ? (
+          <Image
+            source={{ uri: data.imageUrl }}
+            style={styles.cardImage}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+          />
+        ) : (
+          <ImagePlaceholder isDark={isDark} style={styles.cardImage} />
         )}
 
-        {/* Section: Main Content (Word) */}
-        {/* Collocation Text */}
+        {/* Section: Collocation Text */}
         {isDeleteMode ? (
           <View>{renderCollocationText()}</View>
         ) : (
@@ -396,7 +400,7 @@ export default React.memo(function FaceSide({
           </TouchableOpacity>
         )}
 
-        {/* Section: Meaning & Audio */}
+        {/* Section: Meaning */}
         <View style={styles.meaningContainer}>
           <View style={styles.meaningTextContainer}>
             {data.meaning.length >= 10
@@ -458,9 +462,11 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
+    flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
     width: "100%",
+    gap: 20,
   },
   dayBadgeContainer: {
     alignSelf: "center",
@@ -484,7 +490,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 24,
     width: "100%",
   },
   meaningTextContainer: {
@@ -577,6 +582,12 @@ const styles = StyleSheet.create({
   },
   addButtonDisabled: {
     opacity: 0.6,
+  },
+  cardImage: {
+    width: "100%",
+    aspectRatio: 1,
+    borderRadius: 16,
+    overflow: "hidden",
   },
   addButtonText: {
     fontSize: 14,
