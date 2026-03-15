@@ -430,6 +430,12 @@ const ko = {
     },
   },
 
+  kana: {
+    title: "일본어 문자",
+    hiragana: "히라가나",
+    katakana: "가타카나",
+  },
+
   course: {
     days: "일차",
     selectDay: "학습할 일차를 선택하세요",

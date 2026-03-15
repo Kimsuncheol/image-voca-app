@@ -1,13 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../src/context/ThemeContext";
 
 export default function ComingSoonScreen() {
   const { isDark } = useTheme();
   const { t } = useTranslation();
+  const router = useRouter();
 
   return (
     <View
@@ -38,6 +39,14 @@ export default function ComingSoonScreen() {
         >
           {t("comingSoon.description")}
         </Text>
+        <TouchableOpacity
+          onPress={() => router.push("/japanese-characters")}
+          activeOpacity={0.6}
+          style={styles.link}
+        >
+          <Text style={styles.linkText}>{t("kana.title")}</Text>
+          <Ionicons name="chevron-forward" size={15} color="#007AFF" />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -64,5 +73,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     lineHeight: 24,
+  },
+  link: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    marginTop: 8,
+  },
+  linkText: {
+    fontSize: 15,
+    color: "#007AFF",
+    fontWeight: "500",
   },
 });

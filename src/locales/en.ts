@@ -433,6 +433,12 @@ const en = {
     },
   },
 
+  kana: {
+    title: "Japanese Characters",
+    hiragana: "Hiragana",
+    katakana: "Katakana",
+  },
+
   course: {
     days: "Days",
     selectDay: "Select a day to start learning",

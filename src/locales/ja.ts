@@ -421,6 +421,12 @@ const ja = {
       format: "コードは大文字・小文字を区別しません",
     },
   },
+  kana: {
+    title: "日本語文字",
+    hiragana: "ひらがな",
+    katakana: "カタカナ",
+  },
+
   course: {
     days: "日",
     selectDay: "学習する日を選択してください",
