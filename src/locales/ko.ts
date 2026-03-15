@@ -434,6 +434,7 @@ const ko = {
     days: "일차",
     selectDay: "학습할 일차를 선택하세요",
     dayTitle: "{{day}}일차",
+    preparingVocabulary: "단어를 불러오는 중...",
     dayCompleted: "오늘 학습 완료!",
     takeQuiz: "퀴즈 풀기",
     progress: "{{learned}}/{{total}} 단어",

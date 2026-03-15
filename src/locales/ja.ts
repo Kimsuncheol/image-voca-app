@@ -425,6 +425,7 @@ const ja = {
     days: "日",
     selectDay: "学習する日を選択してください",
     dayTitle: "{{day}}日目",
+    preparingVocabulary: "単語を読み込み中...",
     dayCompleted: "今日の学習完了！",
     takeQuiz: "クイズを受ける",
     progress: "{{learned}}/{{total}} 単語",

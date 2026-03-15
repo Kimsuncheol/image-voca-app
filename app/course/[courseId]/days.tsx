@@ -7,6 +7,7 @@ import {
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
+import { Image } from "expo-image";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -18,9 +19,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DayGrid } from "../../../components/course";
+import { VocabularyPrefetchLoadingScreen } from "../../../components/course/vocabulary/VocabularyPrefetchLoadingScreen";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
-import { getTotalDaysForCourse } from "../../../src/services/vocabularyPrefetch";
+import {
+  getTotalDaysForCourse,
+  prefetchVocabularyCards,
+} from "../../../src/services/vocabularyPrefetch";
 import {
   DayProgress,
   useSubscriptionStore,
@@ -76,6 +81,7 @@ export default function DayPickerScreen() {
     [courseId],
   );
   const [totalDays, setTotalDays] = useState(MIN_TOTAL_DAYS);
+  const [loadingDay, setLoadingDay] = useState<number | null>(null);
   const freeDayLimit = 3; // Days 1-3 are always free
 
   // Progress data for this specific course
@@ -160,7 +166,7 @@ export default function DayPickerScreen() {
    * Checks for sequential progression and subscription status.
    */
   const handleDayPress = useCallback(
-    (day: number) => {
+    async (day: number) => {
       if (!courseId) return;
 
       // Check 1: Sequential Progression - Must complete previous day first
@@ -231,7 +237,30 @@ export default function DayPickerScreen() {
         return;
       }
 
-      // Access Granted: Navigate to Vocabulary List
+      // Access Granted: Prefetch cards + images, then navigate
+      setLoadingDay(day);
+      const PREFETCH_TIMEOUT_MS = 8000;
+      try {
+        const cards = await Promise.race([
+          prefetchVocabularyCards(courseId as CourseType, day),
+          new Promise<never>((_, reject) =>
+            setTimeout(
+              () => reject(new Error("prefetch timeout")),
+              PREFETCH_TIMEOUT_MS,
+            ),
+          ),
+        ]);
+        const imageUrls = cards
+          .map((c) => c.imageUrl)
+          .filter((url): url is string => Boolean(url));
+        if (imageUrls.length > 0) {
+          await Image.prefetch(imageUrls, "memory-disk").catch(() => {});
+        }
+      } catch {
+        // On timeout or error, navigate anyway — vocabulary screen handles its own loading
+      } finally {
+        setLoadingDay(null);
+      }
       router.push({
         pathname: "/course/[courseId]/vocabulary",
         params: { courseId, day: day.toString() },
@@ -295,6 +324,7 @@ export default function DayPickerScreen() {
                 borderColor: course?.color ?? "#007AFF" },
             ]}
             onPress={() => handleDayPress(firstIncompleteDay)}
+            disabled={loadingDay !== null}
             activeOpacity={0.75}
           >
             <View style={styles.continueBannerLeft}>
@@ -329,6 +359,14 @@ export default function DayPickerScreen() {
           onQuizPress={handleQuizPress}
         />
       </ScrollView>
+
+      {loadingDay !== null && (
+        <VocabularyPrefetchLoadingScreen
+          day={loadingDay}
+          isDark={isDark}
+          courseColor={course?.color}
+        />
+      )}
     </SafeAreaView>
   );
 }

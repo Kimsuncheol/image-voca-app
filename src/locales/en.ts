@@ -437,6 +437,7 @@ const en = {
     days: "Days",
     selectDay: "Select a day to start learning",
     dayTitle: "Day {{day}}",
+    preparingVocabulary: "Preparing vocabulary...",
     dayCompleted: "Day completed!",
     takeQuiz: "Take Quiz",
     progress: "{{learned}}/{{total}} words",
