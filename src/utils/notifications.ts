@@ -313,8 +313,7 @@ export const schedulePopWordNotifications = async (
   const COURSES: CourseType[] = [
     "수능",
     "TOEIC",
-    "TOEFL",
-    "IELTS",
+    "TOEFL_IELTS",
     "COLLOCATION",
   ];
   const allCards: any[] = [];

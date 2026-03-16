@@ -67,15 +67,10 @@ const getCourseConfig = (courseId: CourseType) => {
         path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC,
         prefix: "TOEIC",
       };
-    case "TOEFL":
+    case "TOEFL_IELTS":
       return {
-        path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL,
-        prefix: "TOEFL",
-      };
-    case "IELTS":
-      return {
-        path: process.env.EXPO_PUBLIC_COURSE_PATH_IELTS,
-        prefix: "IELTS",
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL_IELTS,
+        prefix: "TOEFL_IELTS",
       };
     case "COLLOCATION":
       return {

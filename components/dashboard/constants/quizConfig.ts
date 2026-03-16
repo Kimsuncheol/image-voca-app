@@ -22,8 +22,7 @@ export const QUIZ_COURSES = [
   { id: "수능", wordsPerCourse: 8 },
   { id: "COLLOCATION", wordsPerCourse: 8 },
   { id: "TOEIC", wordsPerCourse: 8 },
-  { id: "TOEFL", wordsPerCourse: 8 },
-  { id: "IELTS", wordsPerCourse: 8 },
+  { id: "TOEFL_IELTS", wordsPerCourse: 8 },
 ] as const;
 
 /**
@@ -33,6 +32,5 @@ export const DEBUG_TOTAL_DAYS_COURSES: CourseType[] = [
   "수능",
   "COLLOCATION",
   "TOEIC",
-  "TOEFL",
-  "IELTS",
+  "TOEFL_IELTS",
 ];

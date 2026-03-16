@@ -8,7 +8,7 @@ import { CollocationSwipeable } from "../../CollocationFlipCard/CollocationSwipe
 import { SwipeCardItem } from "../../swipe/SwipeCardItem";
 import { CarouselSwipeDeck } from "./CarouselSwipeDeck";
 
-const CAROUSEL_COURSES: CourseType[] = ["수능", "TOEIC", "TOEFL", "IELTS"];
+const CAROUSEL_COURSES: CourseType[] = ["수능", "TOEIC", "TOEFL_IELTS"];
 
 interface VocabularySwipeDeckProps {
   cards: VocabularyCard[];

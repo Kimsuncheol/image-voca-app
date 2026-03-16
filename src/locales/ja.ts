@@ -150,17 +150,13 @@ const ja = {
       title: "TOEIC",
       description: "ビジネス英語",
     },
-    toefl: {
-      title: "TOEFL",
-      description: "アカデミック英語",
+    toeflIelts: {
+      title: "TOEFL / IELTS",
+      description: "アカデミック・国際英語",
     },
     toeicSpeaking: {
       title: "TOEIC Speaking",
       description: "スピーキングスキル",
-    },
-    ielts: {
-      title: "IELTS",
-      description: "国際英語",
     },
     opic: {
       title: "OPIc",

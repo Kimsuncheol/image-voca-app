@@ -7,7 +7,7 @@ const openai = new OpenAI({
 export interface ExampleGenerationOptions {
   word: string;
   meaning: string;
-  courseLevel?: "CSAT" | "TOEFL" | "TOEIC" | "IELTS" | "COLLOCATION";
+  courseLevel?: "CSAT" | "TOEFL_IELTS" | "TOEIC" | "COLLOCATION";
   translation?: string; // If provided, generate translation too
 }
 

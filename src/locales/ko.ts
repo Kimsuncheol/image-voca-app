@@ -155,17 +155,13 @@ const ko = {
       title: "TOEIC",
       description: "비즈니스 영어",
     },
-    toefl: {
-      title: "TOEFL",
-      description: "학문 영어",
+    toeflIelts: {
+      title: "TOEFL / IELTS",
+      description: "학문·국제 영어",
     },
     toeicSpeaking: {
       title: "TOEIC Speaking",
       description: "스피킹 스킬",
-    },
-    ielts: {
-      title: "IELTS",
-      description: "국제 영어",
     },
     opic: {
       title: "OPIc",

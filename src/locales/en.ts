@@ -152,17 +152,13 @@ const en = {
       title: "TOEIC",
       description: "Business English",
     },
-    toefl: {
-      title: "TOEFL",
-      description: "Academic English",
+    toeflIelts: {
+      title: "TOEFL / IELTS",
+      description: "Academic & International English",
     },
     toeicSpeaking: {
       title: "TOEIC Speaking",
       description: "Speaking Skills",
-    },
-    ielts: {
-      title: "IELTS",
-      description: "International English",
     },
     opic: {
       title: "OPIc",

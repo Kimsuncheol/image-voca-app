@@ -22,8 +22,7 @@ export type { PartOfSpeech, WordForms };
 export type CourseType =
   | "수능"
   | "TOEIC"
-  | "TOEFL"
-  | "IELTS"
+  | "TOEFL_IELTS"
   | "COLLOCATION";
 
 export interface Course {
@@ -59,24 +58,14 @@ export const COURSES: Course[] = [
     wordCount: 990,
   },
   {
-    id: "TOEFL",
-    title: "TOEFL",
-    titleKey: "courses.toefl.title",
-    description: "Academic English",
-    descriptionKey: "courses.toefl.description",
+    id: "TOEFL_IELTS",
+    title: "TOEFL / IELTS",
+    titleKey: "courses.toeflIelts.title",
+    description: "Academic & International English",
+    descriptionKey: "courses.toeflIelts.description",
     icon: "library",
-    color: "#FFE66D",
-    wordCount: 1100,
-  },
-  {
-    id: "IELTS",
-    title: "IELTS",
-    titleKey: "courses.ielts.title",
-    description: "International English",
-    descriptionKey: "courses.ielts.description",
-    icon: "globe",
-    color: "#DDA0DD",
-    wordCount: 1000,
+    color: "#A855F7",
+    wordCount: 2100,
   },
   {
     id: "COLLOCATION",

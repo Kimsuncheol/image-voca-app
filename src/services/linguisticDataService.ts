@@ -20,7 +20,7 @@ export interface WordForms {
 export interface LinguisticDataOptions {
   word: string;
   meaning: string;
-  courseLevel?: "CSAT" | "TOEFL" | "TOEIC" | "IELTS" | "COLLOCATION";
+  courseLevel?: "CSAT" | "TOEFL_IELTS" | "TOEIC" | "COLLOCATION";
 }
 
 export interface GeneratedLinguisticData {

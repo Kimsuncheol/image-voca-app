@@ -37,7 +37,7 @@ import { COURSES } from "../../src/types/vocabulary";
  * - Supports internationalization for all text
  *
  * @route /courses/[course]
- * @param course - The course ID from route parameters (e.g., "CSAT", "IELTS", "COLLOCATION")
+ * @param course - The course ID from route parameters (e.g., "CSAT", "TOEFL_IELTS", "COLLOCATION")
  */
 export default function CourseWordBankScreen() {
   // === Hooks and Context ===

@@ -35,10 +35,8 @@ export function getCoursePath(courseId: string): string {
       return process.env.EXPO_PUBLIC_COURSE_PATH_CSAT || "";
     case "TOEIC":
       return process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC || "";
-    case "TOEFL":
-      return process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL || "";
-    case "IELTS":
-      return process.env.EXPO_PUBLIC_COURSE_PATH_IELTS || "";
+    case "TOEFL_IELTS":
+      return process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL_IELTS || "";
     case "COLLOCATION":
       return process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION || "";
     default:
