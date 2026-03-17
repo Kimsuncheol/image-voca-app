@@ -1,23 +1,20 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useRouter } from "expo-router";
-import { doc, updateDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { JlptLevelList } from "../../components/course/JlptLevelList";
 import { ThemedText } from "../../components/themed-text";
-import { useAuth } from "../../src/context/AuthContext";
+import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
-import { db } from "../../src/services/firebase";
 import { getTotalDaysForCourse } from "../../src/services/vocabularyPrefetch";
 import { JLPT_LEVELS, JLPTLevelCourse } from "../../src/types/vocabulary";
 
 export default function JlptLevelsScreen() {
   const { isDark } = useTheme();
-  const { user } = useAuth();
   const router = useRouter();
   const { t } = useTranslation();
+  const { setRecentCourseForLanguage } = useLearningLanguage();
   const [totalDaysByLevel, setTotalDaysByLevel] = useState<
     Partial<Record<JLPTLevelCourse["id"], number>>
   >({});
@@ -55,13 +52,7 @@ export default function JlptLevelsScreen() {
 
   const handleLevelPress = async (level: JLPTLevelCourse) => {
     try {
-      if (user) {
-        await updateDoc(doc(db, "users", user.uid), {
-          recentCourse: level.id,
-        });
-      }
-
-      await AsyncStorage.setItem("recentCourse", level.id);
+      await setRecentCourseForLanguage("ja", level.id);
 
       router.push({
         pathname: "/course/[courseId]/days",

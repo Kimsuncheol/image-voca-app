@@ -7,7 +7,6 @@ import {
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -19,6 +18,11 @@ import {
 import { useColorScheme } from "../hooks/use-color-scheme";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import {
+  LearningLanguageProvider,
+  RECENT_COURSE_STORAGE_KEY,
+  useLearningLanguage,
+} from "../src/context/LearningLanguageContext";
+import {
   ThemeProvider as AppThemeProvider,
   useTheme as useAppTheme,
 } from "../src/context/ThemeContext";
@@ -26,18 +30,16 @@ import { useAuthenticatedDeviceRegistration } from "../src/hooks/useAuthenticate
 import { useNotificationTapNavigation } from "../src/hooks/useNotificationTapNavigation";
 import { usePushNotifications } from "../src/hooks/usePushNotifications";
 import { hydrateLanguage } from "../src/i18n";
-import { db } from "../src/services/firebase";
 import {
   fetchVocabularyCards,
   hydrateVocabularyCache,
   isVocabularyCacheFresh,
 } from "../src/services/vocabularyPrefetch";
 import { useSubscriptionStore } from "../src/stores";
-import { CourseType } from "../src/types/vocabulary";
+import { CourseType, isCourseAvailableForLanguage } from "../src/types/vocabulary";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
-const RECENT_COURSE_KEY = "recentCourse";
 const BOOT_PREFETCH_DAY = 1;
 const PREFETCH_TIMEOUT_MS = 1200;
 
@@ -142,12 +144,21 @@ function RootLayoutNav() {
 }
 
 function AppBootstrap({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
+  const {
+    isReady: learningLanguageReady,
+    learningLanguage,
+    recentCourseByLanguage,
+  } = useLearningLanguage();
   const [ready, setReady] = useState(false);
   const hasBootstrapped = useRef(false);
 
   useEffect(() => {
-    if (hasBootstrapped.current || loading) {
+    if (
+      hasBootstrapped.current ||
+      loading ||
+      !learningLanguageReady
+    ) {
       return;
     }
 
@@ -157,22 +168,31 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
       try {
         const languagePromise = hydrateLanguage();
 
-        let recentCourse = await AsyncStorage.getItem(RECENT_COURSE_KEY);
+        const legacyRecentCourse = (await AsyncStorage.getItem(
+          RECENT_COURSE_STORAGE_KEY,
+        )) as CourseType | null;
+        const recentCourse =
+          recentCourseByLanguage[learningLanguage] ??
+          (legacyRecentCourse &&
+          isCourseAvailableForLanguage(legacyRecentCourse, learningLanguage)
+            ? legacyRecentCourse
+            : null);
+
         if (recentCourse) {
           const cached = await hydrateVocabularyCache(
-            recentCourse as CourseType,
+            recentCourse,
             BOOT_PREFETCH_DAY,
             { allowStale: true },
           );
 
           const isFresh = isVocabularyCacheFresh(
-            recentCourse as CourseType,
+            recentCourse,
             BOOT_PREFETCH_DAY,
           );
 
           if (!cached || cached.length === 0 || !isFresh) {
             const refreshPromise = fetchVocabularyCards(
-              recentCourse as CourseType,
+              recentCourse,
               BOOT_PREFETCH_DAY,
             ).catch((error) => {
               console.warn("Vocabulary prefetch failed:", error);
@@ -185,24 +205,6 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
               void refreshPromise;
             }
           }
-        } else if (user) {
-          void getDoc(doc(db, "users", user.uid))
-            .then((userDoc) => {
-              if (!userDoc.exists()) return null;
-              const data = userDoc.data();
-              return typeof data.recentCourse === "string"
-                ? (data.recentCourse as CourseType)
-                : null;
-            })
-            .then((courseId) => {
-              if (courseId) {
-                return fetchVocabularyCards(courseId, BOOT_PREFETCH_DAY);
-              }
-              return null;
-            })
-            .catch((error) => {
-              console.warn("Recent course prefetch failed:", error);
-            });
         }
 
         await languagePromise;
@@ -215,7 +217,7 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
     };
 
     prepare();
-  }, [loading, user]);
+  }, [learningLanguage, learningLanguageReady, loading, recentCourseByLanguage]);
 
   if (!ready) {
     return null;
@@ -228,9 +230,11 @@ export default function RootLayout() {
   return (
     <AppThemeProvider>
       <AuthProvider>
-        <AppBootstrap>
-          <RootLayoutNav />
-        </AppBootstrap>
+        <LearningLanguageProvider>
+          <AppBootstrap>
+            <RootLayoutNav />
+          </AppBootstrap>
+        </LearningLanguageProvider>
       </AuthProvider>
     </AppThemeProvider>
   );

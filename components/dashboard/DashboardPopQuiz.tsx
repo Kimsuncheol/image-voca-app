@@ -18,16 +18,20 @@
  * - QuizHeader.tsx, QuizStoppedState.tsx: Shared UI components
  */
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Animated, StyleSheet, View } from "react-native";
 import { useAuth } from "../../src/context/AuthContext";
+import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { getTotalDaysForCourse } from "../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../src/stores";
 import { CourseType } from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
-import { DEBUG_TOTAL_DAYS_COURSES } from "./constants/quizConfig";
+import {
+  getDebugTotalDaysCourses,
+  getQuizCoursesForLanguage,
+} from "./constants/quizConfig";
 import { useQuizBatchFetcher } from "./hooks/useQuizBatchFetcher";
 import { PopQuizSkeleton } from "./PopQuizSkeleton";
 import { MultipleChoiceQuiz } from "./quiz-types/MultipleChoiceQuiz";
@@ -52,13 +56,22 @@ export function DashboardPopQuiz() {
   const { isDark } = useTheme();
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { learningLanguage } = useLearningLanguage();
   const { bufferQuizAnswer, flushQuizStats } = useUserStatsStore();
+  const courseConfigs = useMemo(
+    () => getQuizCoursesForLanguage(learningLanguage),
+    [learningLanguage],
+  );
+  const debugCourseIds = useMemo(
+    () => getDebugTotalDaysCourses(learningLanguage),
+    [learningLanguage],
+  );
 
   // ==========================================================================
   // CUSTOM HOOKS
   // ==========================================================================
   const { fetchBatch, prefetchNextBatch, isPrefetching } =
-    useQuizBatchFetcher();
+    useQuizBatchFetcher(courseConfigs);
 
   // ==========================================================================
   // STATE MANAGEMENT
@@ -84,7 +97,7 @@ export function DashboardPopQuiz() {
   // REFS
   // ==========================================================================
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  const hasLoggedTotalDays = useRef(false);
+  const batchLoadVersionRef = useRef(0);
 
   // Derived state
   const quizKey = `${turnNumber}-${currentIndex}`;
@@ -235,36 +248,58 @@ export function DashboardPopQuiz() {
   // ==========================================================================
   // Debug: Log total days for courses
   useEffect(() => {
-    if (hasLoggedTotalDays.current) return;
-    hasLoggedTotalDays.current = true;
+    let isActive = true;
 
     const logTotalDays = async () => {
       try {
         const entries = await Promise.all(
-          DEBUG_TOTAL_DAYS_COURSES.map(async (courseId) => {
+          debugCourseIds.map(async (courseId) => {
             const totalDays = await getTotalDaysForCourse(courseId);
             return [courseId, totalDays] as const;
           }),
         );
 
+        if (!isActive) return;
+
         const totals = Object.fromEntries(entries) as Record<
           CourseType,
           number
         >;
-        console.log("[PopQuiz][Debug] Course totalDays:", totals);
+        console.log(`[PopQuiz][Debug][${learningLanguage}] Course totalDays:`, totals);
       } catch (error) {
         console.log("[PopQuiz][Debug] Failed to fetch totalDays:", error);
       }
     };
 
     void logTotalDays();
-  }, []);
+    return () => {
+      isActive = false;
+    };
+  }, [debugCourseIds, learningLanguage]);
 
-  // Initial load
+  // Initial load and language changes
   useEffect(() => {
+    const loadVersion = batchLoadVersionRef.current + 1;
+    batchLoadVersionRef.current = loadVersion;
+
     const init = async () => {
       setLoading(true);
+      setCurrentBatch([]);
+      setNextBatch([]);
+      setCurrentIndex(0);
+      setTurnNumber(1);
+      setQuizItem(null);
+      setOptions([]);
+      setSelectedOption(null);
+      setIsCorrect(null);
+      setWrongCount(0);
+      setIsStopped(false);
+
       const batch = await fetchBatch();
+      if (batchLoadVersionRef.current !== loadVersion) {
+        return;
+      }
+
       if (batch.length > 0) {
         setCurrentBatch(batch);
         setCurrentIndex(0);
@@ -273,8 +308,8 @@ export function DashboardPopQuiz() {
       }
       setLoading(false);
     };
-    init();
-  }, [fetchBatch, generateQuiz]);
+    void init();
+  }, [fetchBatch, generateQuiz, learningLanguage]);
 
   // Prefetch next batch when reaching 70% of current batch
   useEffect(() => {
@@ -286,7 +321,11 @@ export function DashboardPopQuiz() {
     const shouldPrefetch = currentIndex >= prefetchThreshold;
 
     if (shouldPrefetch) {
+      const loadVersion = batchLoadVersionRef.current;
       prefetchNextBatch().then((batch) => {
+        if (batchLoadVersionRef.current !== loadVersion) {
+          return;
+        }
         if (batch.length > 0) {
           setNextBatch(batch);
         }

@@ -39,6 +39,8 @@ export type JLPTLevelId =
   | "JLPT_N4"
   | "JLPT_N5";
 
+export type LearningLanguage = "en" | "ja";
+
 export type TopLevelCourseType =
   | "수능"
   | "TOEIC"
@@ -184,6 +186,15 @@ export const JLPT_LEVELS: JLPTLevelCourse[] = [
   },
 ];
 
+export const ENGLISH_COURSES: TopLevelCourseType[] = [
+  "수능",
+  "TOEIC",
+  "TOEFL_IELTS",
+  "COLLOCATION",
+];
+
+export const JAPANESE_COURSES: TopLevelCourseType[] = ["JLPT"];
+
 const JLPT_LEVEL_IDS = new Set<JLPTLevelId>(JLPT_LEVELS.map((level) => level.id));
 
 export const isJlptLevelCourseId = (courseId?: string): courseId is JLPTLevelId =>
@@ -195,6 +206,29 @@ export const isJlptParentCourseId = (
 
 export const isJlptCourseId = (courseId?: string) =>
   isJlptParentCourseId(courseId) || isJlptLevelCourseId(courseId);
+
+export const getTopLevelCoursesForLanguage = (
+  language: LearningLanguage,
+): Course[] =>
+  COURSES.filter((course) =>
+    language === "ja"
+      ? JAPANESE_COURSES.includes(course.id)
+      : ENGLISH_COURSES.includes(course.id),
+  );
+
+export const getLearningLanguageForCourse = (
+  courseId?: CourseType | string,
+): LearningLanguage | undefined => {
+  if (!courseId) return undefined;
+  if (isJlptCourseId(courseId)) return "ja";
+  if (ENGLISH_COURSES.includes(courseId as TopLevelCourseType)) return "en";
+  return undefined;
+};
+
+export const isCourseAvailableForLanguage = (
+  courseId: CourseType | string | undefined,
+  language: LearningLanguage,
+) => getLearningLanguageForCourse(courseId) === language;
 
 export const findRuntimeCourse = (
   courseId?: string,

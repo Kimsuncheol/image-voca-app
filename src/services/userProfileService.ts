@@ -2,6 +2,7 @@ import type { User } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import type { UserRole } from "../types/userRole";
+import type { CourseType, LearningLanguage } from "../types/vocabulary";
 
 const ADMIN_EMAILS = ["benjaminadmin@example.com"];
 
@@ -10,6 +11,8 @@ type UserProfileOverrides = {
   email?: string | null;
   photoURL?: string | null;
   role?: UserRole;
+  learningLanguage?: LearningLanguage;
+  recentCourseByLanguage?: Partial<Record<LearningLanguage, CourseType>>;
 };
 
 type StoredUserProfile = {
@@ -21,6 +24,8 @@ type StoredUserProfile = {
   createdAt?: string;
   wordBank?: unknown[];
   recentCourse?: string | null;
+  learningLanguage?: LearningLanguage;
+  recentCourseByLanguage?: Partial<Record<LearningLanguage, CourseType>>;
 };
 
 export const getDefaultUserRole = (email?: string | null): UserRole =>
@@ -60,6 +65,10 @@ export const ensureUserProfileDocument = async (
     createdAt: existing?.createdAt ?? now,
     wordBank: Array.isArray(existing?.wordBank) ? existing.wordBank : [],
     recentCourse: existing?.recentCourse ?? null,
+    learningLanguage:
+      existing?.learningLanguage ?? overrides.learningLanguage ?? "en",
+    recentCourseByLanguage:
+      existing?.recentCourseByLanguage ?? overrides.recentCourseByLanguage ?? {},
   };
 
   await setDoc(userRef, nextProfile, { merge: true });

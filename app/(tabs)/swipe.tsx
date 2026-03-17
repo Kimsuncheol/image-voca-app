@@ -1,7 +1,5 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useRouter } from "expo-router";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import React, { useCallback, useState } from "react";
+import React, { useCallback } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 import {
@@ -10,14 +8,13 @@ import {
   VocaHeader,
 } from "../../components/course";
 import { useAuth } from "../../src/context/AuthContext";
+import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
-import { db } from "../../src/services/firebase";
 import { useSubscriptionStore } from "../../src/stores";
 import {
   Course,
-  COURSES,
-  CourseType,
   findRuntimeCourse,
+  getTopLevelCoursesForLanguage,
   isJlptParentCourseId,
 } from "../../src/types/vocabulary";
 
@@ -25,32 +22,19 @@ export default function CourseSelectionScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
-  const [recentCourse, setRecentCourse] = useState<CourseType | null>(null);
+  const {
+    learningLanguage,
+    recentCourseByLanguage,
+    setRecentCourseForLanguage,
+  } = useLearningLanguage();
   const { fetchSubscription } = useSubscriptionStore();
-
-  const fetchRecentCourse = useCallback(async () => {
-    try {
-      const savedCourse = await AsyncStorage.getItem("recentCourse");
-      if (savedCourse) {
-        setRecentCourse(savedCourse as CourseType);
-      } else if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          setRecentCourse(userDoc.data().recentCourse || null);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching recent course:", error);
-    }
-  }, [user]);
 
   useFocusEffect(
     useCallback(() => {
-      fetchRecentCourse();
       if (user) {
         fetchSubscription(user.uid);
       }
-    }, [fetchRecentCourse, fetchSubscription, user])
+    }, [fetchSubscription, user])
   );
 
   const handleCourseSelect = async (course: Course) => {
@@ -60,14 +44,7 @@ export default function CourseSelectionScreen() {
         return;
       }
 
-      if (user) {
-        await updateDoc(doc(db, "users", user.uid), {
-          recentCourse: course.id,
-        });
-      }
-
-      await AsyncStorage.setItem("recentCourse", course.id);
-      setRecentCourse(course.id);
+      await setRecentCourseForLanguage(learningLanguage, course.id);
 
       router.push({
         pathname: "/course/[courseId]/days",
@@ -78,8 +55,10 @@ export default function CourseSelectionScreen() {
     }
   };
 
-  const recentCourseData = findRuntimeCourse(recentCourse ?? undefined);
-  const otherCourses = COURSES.filter((c) => c.id !== recentCourse);
+  const recentCourse = recentCourseByLanguage[learningLanguage];
+  const recentCourseData = findRuntimeCourse(recentCourse);
+  const allCourses = getTopLevelCoursesForLanguage(learningLanguage);
+  const otherCourses = allCourses.filter((course) => course.id !== recentCourse);
 
   return (
     <View
@@ -94,15 +73,17 @@ export default function CourseSelectionScreen() {
           <RecentCourseSection
             course={recentCourseData}
             onPress={() =>
-              router.push({
-                pathname: "/course/[courseId]/days",
-                params: { courseId: recentCourseData.id },
-              })
+              isJlptParentCourseId(recentCourseData.id)
+                ? router.push("/course/jlpt-levels")
+                : router.push({
+                    pathname: "/course/[courseId]/days",
+                    params: { courseId: recentCourseData.id },
+                  })
             }
           />
         )}
         <AllCoursesSection
-          courses={recentCourse ? otherCourses : COURSES}
+          courses={recentCourse ? otherCourses : allCourses}
           onCoursePress={handleCourseSelect}
         />
       </ScrollView>

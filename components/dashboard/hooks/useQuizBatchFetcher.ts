@@ -12,10 +12,14 @@ import { useCallback, useRef, useState } from "react";
 import { db } from "../../../src/services/firebase";
 import { getTotalDaysForCourse } from "../../../src/services/vocabularyPrefetch";
 import { CourseType } from "../../../src/types/vocabulary";
-import { QUIZ_COURSES } from "../constants/quizConfig";
 import { getCoursePath, normalizeWordData } from "../utils/quizHelpers";
 
-export function useQuizBatchFetcher() {
+type QuizCourseConfig = {
+  id: CourseType;
+  wordsPerCourse: number;
+};
+
+export function useQuizBatchFetcher(courseConfigs: QuizCourseConfig[]) {
   // ============================================================================
   // STATE
   // ============================================================================
@@ -158,7 +162,7 @@ export function useQuizBatchFetcher() {
       const allWords: any[] = [];
 
       // Fetch words from each target course in parallel
-      const fetchPromises = QUIZ_COURSES.map(async ({ id, wordsPerCourse }) => {
+      const fetchPromises = courseConfigs.map(async ({ id, wordsPerCourse }) => {
         const words = await fetchWordsFromCourse(id, wordsPerCourse);
         return { courseId: id, words };
       });
@@ -191,7 +195,7 @@ export function useQuizBatchFetcher() {
       console.error("Batch fetch error", e);
       return [];
     }
-  }, [fetchWordsFromCourse]);
+  }, [courseConfigs, fetchWordsFromCourse]);
 
   // ============================================================================
   // PREFETCH NEXT BATCH

@@ -4,6 +4,7 @@ import * as WebBrowser from "expo-web-browser";
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { Alert, Platform } from "react-native";
+import { useLearningLanguage } from "../context/LearningLanguageContext";
 import { auth } from "../services/firebase";
 import { ensureUserProfileDocument } from "../services/userProfileService";
 
@@ -11,6 +12,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 export function useGoogleAuth() {
   const [loading, setLoading] = useState(false);
+  const { learningLanguage } = useLearningLanguage();
 
   const config = {
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
@@ -30,7 +32,9 @@ export function useGoogleAuth() {
       setLoading(true);
       signInWithCredential(auth, credential)
         .then(async (userCredential) => {
-          await ensureUserProfileDocument(userCredential.user);
+          await ensureUserProfileDocument(userCredential.user, {
+            learningLanguage,
+          });
           // Navigation is handled by the auth state listener or the component calling this
         })
         .catch((error) => {
@@ -45,7 +49,7 @@ export function useGoogleAuth() {
         response.error?.message || "Something went wrong",
       );
     }
-  }, [response]);
+  }, [learningLanguage, response]);
 
   const handlePromptAsync = async () => {
     const { iosClientId, androidClientId, webClientId } = config;

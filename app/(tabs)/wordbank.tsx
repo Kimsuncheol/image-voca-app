@@ -4,15 +4,17 @@ import { ScrollView, StyleSheet, View } from "react-native";
 
 import { WordBankCourseGrid, WordBankHeader } from "../../components/wordbank";
 import { useAuth } from "../../src/context/AuthContext";
+import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useTimeTracking } from "../../src/hooks/useTimeTracking";
 import { useSubscriptionStore } from "../../src/stores";
-import { CourseType } from "../../src/types/vocabulary";
+import { CourseType, getTopLevelCoursesForLanguage } from "../../src/types/vocabulary";
 
 export default function WordBankScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
+  const { learningLanguage } = useLearningLanguage();
   const { fetchSubscription } = useSubscriptionStore();
   useTimeTracking(); // Track time spent on this screen
 
@@ -35,6 +37,8 @@ export default function WordBankScreen() {
     });
   };
 
+  const courses = getTopLevelCoursesForLanguage(learningLanguage);
+
   return (
     <View
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
@@ -44,7 +48,10 @@ export default function WordBankScreen() {
         showsVerticalScrollIndicator={false}
       >
         <WordBankHeader />
-        <WordBankCourseGrid onCoursePress={handleCoursePress} />
+        <WordBankCourseGrid
+          courses={courses}
+          onCoursePress={handleCoursePress}
+        />
       </ScrollView>
     </View>
   );

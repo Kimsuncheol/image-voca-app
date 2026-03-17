@@ -4,23 +4,26 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import {
-  COURSES,
+  Course,
   CourseType,
 } from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
 
 interface WordBankCourseGridProps {
+  courses: Course[];
   onCoursePress: (courseId: CourseType) => void;
 }
 
-export function WordBankCourseGrid({ onCoursePress }: WordBankCourseGridProps) {
+export function WordBankCourseGrid({
+  courses,
+  onCoursePress,
+}: WordBankCourseGridProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
-  const wordBankCourses = COURSES;
 
   return (
     <View style={styles.courseGrid}>
-      {wordBankCourses.map((course) => (
+      {courses.map((course) => (
         <TouchableOpacity
           key={course.id}
           style={[

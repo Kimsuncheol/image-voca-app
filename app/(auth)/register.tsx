@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
@@ -14,10 +13,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { LEARNING_LANGUAGES_KEY } from "../../components/settings/LearningLanguageSection";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
+import { LearningLanguage } from "../../src/types/vocabulary";
 import { auth } from "../../src/services/firebase";
 import { ensureUserProfileDocument } from "../../src/services/userProfileService";
 import {
@@ -62,9 +62,7 @@ export default function RegisterScreen() {
   // Email validation state
   const [isValidEmail, setIsValidEmail] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
-
-  // Learning language selection state (English selected by default)
-  const [learningLanguages, setLearningLanguages] = useState<string[]>(["en"]);
+  const { learningLanguage, setLearningLanguage } = useLearningLanguage();
 
   const router = useRouter();
   const { t } = useTranslation();
@@ -72,12 +70,6 @@ export default function RegisterScreen() {
   // ---------------------------------------------------------------------------
   // CLEAR ERRORS - Helper function to clear specific or all errors
   // ---------------------------------------------------------------------------
-  const toggleLearningLanguage = (lang: string) => {
-    setLearningLanguages((prev) =>
-      prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang],
-    );
-  };
-
   const clearError = (field?: "general" | "permission") => {
     if (field) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -215,7 +207,7 @@ export default function RegisterScreen() {
     }
 
     // --- Step 5: Validate learning language selection ---
-    if (learningLanguages.length === 0) {
+    if (!learningLanguage) {
       setErrors((prev) => ({
         ...prev,
         general: "Please select at least one language to learn.",
@@ -244,13 +236,9 @@ export default function RegisterScreen() {
         displayName,
         email,
         photoURL: avatarUri || null,
+        learningLanguage,
+        recentCourseByLanguage: {},
       });
-
-      // Save learning language selection
-      await AsyncStorage.setItem(
-        LEARNING_LANGUAGES_KEY,
-        JSON.stringify(learningLanguages),
-      );
 
       // Navigate to main app (tabs) on successful registration
       router.replace("/(tabs)");
@@ -423,7 +411,7 @@ export default function RegisterScreen() {
                   [
                     { lang: "en", label: "English" },
                     { lang: "ja", label: "Japanese" },
-                  ] as const
+                  ] as const satisfies { lang: LearningLanguage; label: string }[]
                 ).map(({ lang, label }, index) => (
                   <React.Fragment key={lang}>
                     {index > 0 && (
@@ -431,7 +419,7 @@ export default function RegisterScreen() {
                     )}
                     <TouchableOpacity
                       style={styles.learningOption}
-                      onPress={() => toggleLearningLanguage(lang)}
+                      onPress={() => void setLearningLanguage(lang)}
                       activeOpacity={0.7}
                     >
                       <View style={styles.learningOptionLeft}>
@@ -442,7 +430,7 @@ export default function RegisterScreen() {
                         />
                         <Text style={styles.learningOptionText}>{label}</Text>
                       </View>
-                      {learningLanguages.includes(lang) && (
+                      {learningLanguage === lang && (
                         <Ionicons
                           name="checkmark-circle"
                           size={22}
