@@ -32,12 +32,12 @@ jest.mock("../components/swipe/SwipeCardItemImageSection", () => ({
     imageUrl?: string;
     testID?: string;
   }) => {
-    const React = require("react");
-    const { Text } = require("react-native");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { Text: MockText } = require("react-native");
     return (
-      <Text testID={testID ?? "mock-image-section"}>
+      <MockText testID={testID ?? "mock-image-section"}>
         {imageUrl ?? "placeholder"}
-      </Text>
+      </MockText>
     );
   },
 }));
@@ -55,6 +55,7 @@ function buildCard(overrides: Partial<VocabularyCard> = {}): VocabularyCard {
     pronunciation: "あいだ",
     pronunciationRoman: "aida",
     example: "駅とホテルの間",
+    exampleRoman: "eki to hoteru no aida",
     imageUrl: "https://cdn.example.com/jlpt.jpg",
     course: "JLPT_N5",
     localized: {
@@ -92,6 +93,7 @@ describe("JlptVocabularyCard", () => {
     expect(getByText("interval; space; between")).toBeTruthy();
     expect(getByText("between the station and the hotel")).toBeTruthy();
     expect(getByText("駅とホテルの間")).toBeTruthy();
+    expect(getByText("eki to hoteru no aida")).toBeTruthy();
     expect(queryByText("Meaning")).toBeNull();
     expect(queryByText("Example")).toBeNull();
   });
@@ -129,6 +131,56 @@ describe("JlptVocabularyCard", () => {
     expect(getByText("interval; space; between")).toBeTruthy();
     expect(getByText("between the station and the hotel")).toBeTruthy();
     expect(queryByTestId("jlpt-card-translation")).toBeTruthy();
+  });
+
+  it("renders exampleRoman below the example and before the translation", () => {
+    const { getByText, toJSON } = render(<JlptVocabularyCard item={buildCard()} />);
+
+    expect(getByText("駅とホテルの間")).toBeTruthy();
+    expect(getByText("eki to hoteru no aida")).toBeTruthy();
+    expect(getByText("between the station and the hotel")).toBeTruthy();
+
+    const renderedTree = JSON.stringify(toJSON());
+    expect(renderedTree.indexOf("駅とホテルの間")).toBeLessThan(
+      renderedTree.indexOf("eki to hoteru no aida"),
+    );
+    expect(renderedTree.indexOf("eki to hoteru no aida")).toBeLessThan(
+      renderedTree.indexOf("between the station and the hotel"),
+    );
+  });
+
+  it("omits the exampleRoman row when it is missing", () => {
+    const { queryByTestId } = render(
+      <JlptVocabularyCard item={buildCard({ exampleRoman: undefined })} />,
+    );
+
+    expect(queryByTestId("jlpt-card-example-roman")).toBeNull();
+  });
+
+  it("renders mismatched exampleRoman line counts without crashing", () => {
+    const { getByText, queryByText } = render(
+      <JlptVocabularyCard
+        item={buildCard({
+          example: "1. 駅とホテルの間\n2. 家と学校の間",
+          exampleRoman: "1. eki to hoteru no aida",
+          localized: {
+            en: {
+              meaning: "interval; space; between",
+              translation:
+                "1. between the station and the hotel\n2. between home and school",
+            },
+            ko: {
+              meaning: "사이, 동안",
+              translation: "1. 역과 호텔 사이\n2. 집과 학교 사이",
+            },
+          },
+        })}
+      />,
+    );
+
+    expect(getByText("eki to hoteru no aida")).toBeTruthy();
+    expect(queryByText("ie to gakkou no aida")).toBeNull();
+    expect(getByText("between home and school")).toBeTruthy();
   });
 
   it("hides empty JLPT rows while keeping the card render stable", () => {

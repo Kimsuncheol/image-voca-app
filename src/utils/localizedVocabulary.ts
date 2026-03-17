@@ -13,6 +13,7 @@ export interface LocalizedVocabularySource {
   pronunciation?: string;
   pronunciationRoman?: string;
   example?: string;
+  exampleRoman?: string;
   imageUrl?: string;
   localized?: VocabularyLocalizationMap;
 }
@@ -25,6 +26,7 @@ export interface ResolvedVocabularyContent {
   pronunciation?: string;
   pronunciationRoman?: string;
   example: string;
+  exampleRoman?: string;
   imageUrl?: string;
   sharedPronunciation?: string;
   localizedPronunciation?: string;
@@ -106,6 +108,7 @@ export const resolveVocabularyContent = (
     pronunciation: sharedPronunciation,
     pronunciationRoman: normalizeTrimmedString(source.pronunciationRoman),
     example: source.example?.trim() ?? "",
+    exampleRoman: normalizeTrimmedString(source.exampleRoman),
     imageUrl: normalizeTrimmedString(source.imageUrl),
     sharedPronunciation,
     localizedPronunciation,

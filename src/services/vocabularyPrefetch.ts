@@ -21,7 +21,9 @@ type CourseConfig = {
   prefix?: string;
 };
 
-const STORAGE_PREFIX = "vocab_cache_v2";
+// Bump the cache version so older persisted cards without newly added fields
+// like `exampleRoman` do not mask fresh JLPT payloads from Firestore.
+const STORAGE_PREFIX = "vocab_cache_v3";
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 
 const vocabularyCache = new Map<string, VocabularyCard[]>();
@@ -94,6 +96,10 @@ export const normalizeVocabularyCard = (
   return {
     ...rest,
     imageUrl,
+    exampleRoman:
+      typeof rest.exampleRoman === "string"
+        ? rest.exampleRoman.trim() || undefined
+        : undefined,
     pronunciationRoman:
       typeof rest.pronunciationRoman === "string"
         ? rest.pronunciationRoman.trim() || undefined
@@ -119,6 +125,7 @@ export const mapVocabularyDocToCard = (
       pronunciation: typeof data.pronunciation === "string" ? data.pronunciation : undefined,
       pronunciationRoman: typeof data.pronunciationRoman === "string" ? data.pronunciationRoman : undefined,
       example: typeof data.example === "string" ? data.example : "",
+      exampleRoman: typeof data.exampleRoman === "string" ? data.exampleRoman : undefined,
       imageUrl,
       localized: {
         en: {
@@ -286,12 +293,6 @@ export const fetchVocabularyCards = async (
   const subCollectionName = `Day${dayNumber}`;
   const targetCollection = collection(db, config.path, subCollectionName);
   const querySnapshot = await getDocs(query(targetCollection));
-
-  if (isJlptLevelCourseId(courseId)) {
-    querySnapshot.docs.forEach((snapshot, index) => {
-      console.log(`[JLPT] doc[${index}]:`, JSON.stringify(snapshot.data(), null, 2));
-    });
-  }
 
   const cards: VocabularyCard[] = querySnapshot.docs.map((snapshot) =>
     mapVocabularyDocToCard(

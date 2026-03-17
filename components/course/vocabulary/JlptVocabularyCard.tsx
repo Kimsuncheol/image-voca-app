@@ -38,6 +38,7 @@ interface LabeledMeaningRowProps {
 
 interface ExampleBlockProps {
   example?: string;
+  exampleRoman?: string;
   translation?: string;
   isDark: boolean;
 }
@@ -84,15 +85,23 @@ function LabeledMeaningRow({
 
 function ExampleBlock({
   example,
+  exampleRoman,
   translation,
   isDark,
 }: ExampleBlockProps) {
   const { speak } = useSpeech();
-  const { t } = useTranslation();
   const examples = React.useMemo(() => splitLines(example), [example]);
+  const exampleRomans = React.useMemo(
+    () => splitLines(exampleRoman),
+    [exampleRoman],
+  );
   const translations = React.useMemo(() => splitLines(translation), [translation]);
 
-  const rowCount = Math.max(examples.length, translations.length);
+  const rowCount = Math.max(
+    examples.length,
+    exampleRomans.length,
+    translations.length,
+  );
   const rowIndices = React.useMemo(
     () => Array.from({ length: rowCount }, (_, index) => index),
     [rowCount],
@@ -121,6 +130,7 @@ function ExampleBlock({
     <View style={styles.exampleSection}>
       {rowIndices.map((index) => {
         const exampleText = examples[index];
+        const exampleRomanText = exampleRomans[index];
         const translationText = translations[index];
 
         return (
@@ -143,6 +153,20 @@ function ExampleBlock({
                   </Text>
                 </TouchableOpacity>
               </>
+            ) : null}
+
+            {exampleRomanText ? (
+              <Text
+                testID={index === 0 ? "jlpt-card-example-roman" : undefined}
+                style={[
+                  styles.cardExampleRoman,
+                  { color: isDark ? "#8d97a6" : "#6f7785" },
+                  { borderLeftColor: isDark ? "#5f6b7a" : "#aab3c2" },
+                ]}
+                numberOfLines={2}
+              >
+                {exampleRomanText}
+              </Text>
             ) : null}
 
             {translationText ? (
@@ -172,7 +196,7 @@ export function JlptVocabularyCard({
   onSavedWordChange,
 }: JlptVocabularyCardProps) {
   const { isDark } = useTheme();
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const { speak: speakText } = useSpeech();
   const resolved = React.useMemo(
     () => resolveVocabularyContent(item, i18n.language),
@@ -269,6 +293,7 @@ export function JlptVocabularyCard({
 
           <ExampleBlock
             example={resolved.example}
+            exampleRoman={resolved.exampleRoman}
             translation={resolved.translation}
             isDark={isDark}
           />
@@ -369,6 +394,14 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: "#007AFF",
     paddingLeft: 12,
+    lineHeight: 20,
+  },
+  cardExampleRoman: {
+    fontSize: 14,
+    fontStyle: "italic",
+    borderLeftWidth: 4,
+    paddingLeft: 12,
+    marginTop: 4,
     lineHeight: 20,
   },
   cardTranslation: {

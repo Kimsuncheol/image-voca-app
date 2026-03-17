@@ -95,6 +95,24 @@ describe("vocabulary image normalization", () => {
     expect(card.imageUrl).toBe("https://cdn.example.com/questions.jpg");
   });
 
+  it("maps exampleRoman for JLPT documents", () => {
+    const card = mapVocabularyDocToCard(
+      "jlpt-1",
+      {
+        word: "間",
+        meaningEnglish: "between",
+        pronunciation: "あいだ",
+        pronunciationRoman: "aida",
+        example: "駅とホテルの間",
+        exampleRoman: "eki to hoteru no aida",
+      },
+      "JLPT_N5",
+    );
+
+    expect(card.exampleRoman).toBe("eki to hoteru no aida");
+    expect(card.example).toBe("駅とホテルの間");
+  });
+
   it("leaves imageUrl undefined when no image fields exist", () => {
     const card = mapVocabularyDocToCard(
       "doc-4",
@@ -115,17 +133,19 @@ describe("vocabulary image normalization", () => {
       word: "build",
       meaning: "construct",
       example: "Build carefully.",
+      exampleRoman: "build carefully",
       course: "TOEIC",
       image: "https://cdn.example.com/build.jpg",
     } as VocabularyCard & { image?: string });
 
     expect(normalized.imageUrl).toBe("https://cdn.example.com/build.jpg");
+    expect(normalized.exampleRoman).toBe("build carefully");
     expect("image" in normalized).toBe(false);
   });
 
   it("hydrates legacy cached cards into imageUrl", async () => {
     await AsyncStorage.setItem(
-      "vocab_cache_v2:TOEIC-Day1",
+      "vocab_cache_v3:TOEIC-Day1",
       JSON.stringify({
         updatedAt: Date.now(),
         cards: [
@@ -150,7 +170,7 @@ describe("vocabulary image normalization", () => {
 
   it("hydrates localized cache entries", async () => {
     await AsyncStorage.setItem(
-      "vocab_cache_v2:TOEIC-Day2",
+      "vocab_cache_v3:TOEIC-Day2",
       JSON.stringify({
         updatedAt: Date.now(),
         cards: [
@@ -175,6 +195,28 @@ describe("vocabulary image normalization", () => {
 
     expect(cards?.[0].localized?.ko?.meaning).toBe("적응하다");
     expect(cards?.[0].pronunciationRoman).toBe("a-daept");
+  });
+
+  it("ignores older v2 cache entries so fresh data can repopulate new fields", async () => {
+    await AsyncStorage.setItem(
+      "vocab_cache_v2:JLPT_N5-Day1",
+      JSON.stringify({
+        updatedAt: Date.now(),
+        cards: [
+          {
+            id: "cached-jlpt-1",
+            word: "間",
+            meaning: "between",
+            example: "駅とホテルの間",
+            course: "JLPT_N5",
+          },
+        ],
+      }),
+    );
+
+    const cards = await hydrateVocabularyCache("JLPT_N5", 1);
+
+    expect(cards).toBeNull();
   });
 
   it("resolves JLPT level paths through the shared course config", () => {
