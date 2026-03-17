@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dimensions,
   ScrollView,
@@ -7,10 +8,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useTranslation } from "react-i18next";
-import { useSpeech } from "../../../src/hooks/useSpeech";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { useSpeech } from "../../../src/hooks/useSpeech";
 import { VocabularyCard } from "../../../src/types/vocabulary";
+import { resolveVocabularyContent } from "../../../src/utils/localizedVocabulary";
 import { InlineMeaningWithChips } from "../../common/InlineMeaningWithChips";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
 import { SwipeCardItemImageSection } from "../../swipe/SwipeCardItemImageSection";
@@ -31,15 +32,13 @@ interface JlptVocabularyCardProps {
 
 interface LabeledMeaningRowProps {
   testID: string;
-  label: string;
   meaning?: string;
   isDark: boolean;
 }
 
 interface ExampleBlockProps {
   example?: string;
-  englishTranslation?: string;
-  koreanTranslation?: string;
+  translation?: string;
   isDark: boolean;
 }
 
@@ -57,7 +56,6 @@ const splitLines = (value?: string) =>
 
 function LabeledMeaningRow({
   testID,
-  label,
   meaning,
   isDark,
 }: LabeledMeaningRowProps) {
@@ -69,14 +67,6 @@ function LabeledMeaningRow({
 
   return (
     <View testID={testID} style={styles.meaningRow}>
-      <Text
-        style={[
-          styles.sectionLabel,
-          { color: isDark ? "#9CA3AF" : "#6B7280" },
-        ]}
-      >
-        {label}
-      </Text>
       <InlineMeaningWithChips
         meaning={displayMeaning}
         isDark={isDark}
@@ -94,27 +84,15 @@ function LabeledMeaningRow({
 
 function ExampleBlock({
   example,
-  englishTranslation,
-  koreanTranslation,
+  translation,
   isDark,
 }: ExampleBlockProps) {
   const { speak } = useSpeech();
   const { t } = useTranslation();
   const examples = React.useMemo(() => splitLines(example), [example]);
-  const englishTranslations = React.useMemo(
-    () => splitLines(englishTranslation),
-    [englishTranslation],
-  );
-  const koreanTranslations = React.useMemo(
-    () => splitLines(koreanTranslation),
-    [koreanTranslation],
-  );
+  const translations = React.useMemo(() => splitLines(translation), [translation]);
 
-  const rowCount = Math.max(
-    examples.length,
-    englishTranslations.length,
-    koreanTranslations.length,
-  );
+  const rowCount = Math.max(examples.length, translations.length);
   const rowIndices = React.useMemo(
     () => Array.from({ length: rowCount }, (_, index) => index),
     [rowCount],
@@ -143,23 +121,12 @@ function ExampleBlock({
     <View style={styles.exampleSection}>
       {rowIndices.map((index) => {
         const exampleText = examples[index];
-        const englishTranslationText = englishTranslations[index];
-        const koreanTranslationText = koreanTranslations[index];
+        const translationText = translations[index];
 
         return (
           <View key={index} style={styles.exampleGroup}>
             {exampleText ? (
               <>
-                <Text
-                  style={[
-                    styles.sectionLabel,
-                    { color: isDark ? "#9CA3AF" : "#6B7280" },
-                  ]}
-                >
-                  {t("notifications.labels.example", {
-                    defaultValue: "Example",
-                  })}
-                </Text>
                 <TouchableOpacity
                   onPress={() => handleSpeak(exampleText)}
                   activeOpacity={0.7}
@@ -178,9 +145,9 @@ function ExampleBlock({
               </>
             ) : null}
 
-            {englishTranslationText ? (
+            {translationText ? (
               <Text
-                testID={index === 0 ? "jlpt-card-translation-english" : undefined}
+                testID={index === 0 ? "jlpt-card-translation" : undefined}
                 style={[
                   styles.cardTranslation,
                   { color: isDark ? "#a8e6a1" : "#2d5f2d" },
@@ -188,25 +155,7 @@ function ExampleBlock({
                 ]}
                 numberOfLines={2}
               >
-                {`${t("swipe.jlpt.labels.translationEnglish", {
-                  defaultValue: "English Translation",
-                })}: ${englishTranslationText}`}
-              </Text>
-            ) : null}
-
-            {koreanTranslationText ? (
-              <Text
-                testID={index === 0 ? "jlpt-card-translation-korean" : undefined}
-                style={[
-                  styles.cardTranslation,
-                  { color: isDark ? "#ffd6a5" : "#8B4513" },
-                  { borderLeftColor: isDark ? "#ff9f0a" : "#D97706" },
-                ]}
-                numberOfLines={2}
-              >
-                {`${t("swipe.jlpt.labels.translationKorean", {
-                  defaultValue: "Korean Translation",
-                })}: ${koreanTranslationText}`}
+                {translationText}
               </Text>
             ) : null}
           </View>
@@ -223,15 +172,26 @@ export function JlptVocabularyCard({
   onSavedWordChange,
 }: JlptVocabularyCardProps) {
   const { isDark } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { speak: speakText } = useSpeech();
-
-  const englishMeaning = toDisplayValue(item.localized?.en?.meaning) ?? item.meaning;
-  const koreanMeaning = toDisplayValue(item.localized?.ko?.meaning);
-  const englishTranslation = toDisplayValue(item.localized?.en?.translation);
-  const koreanTranslation = toDisplayValue(item.localized?.ko?.translation);
-  const pronunciation = toDisplayValue(item.pronunciation);
-  const pronunciationRoman = toDisplayValue(item.pronunciationRoman);
+  const resolved = React.useMemo(
+    () => resolveVocabularyContent(item, i18n.language),
+    [i18n.language, item],
+  );
+  const pronunciation = toDisplayValue(resolved.sharedPronunciation);
+  const pronunciationRoman = toDisplayValue(resolved.pronunciationRoman);
+  const combinedPronunciation = React.useMemo(() => {
+    if (pronunciation && pronunciationRoman) {
+      return `${pronunciation} [${pronunciationRoman}]`;
+    }
+    if (pronunciation) {
+      return pronunciation;
+    }
+    if (pronunciationRoman) {
+      return `[${pronunciationRoman}]`;
+    }
+    return undefined;
+  }, [pronunciation, pronunciationRoman]);
 
   const handlePressWord = React.useCallback(() => {
     void speakText(item.word, WORD_TTS_OPTIONS);
@@ -290,50 +250,26 @@ export function JlptVocabularyCard({
             </View>
           </View>
 
-          {pronunciation ? (
+          {combinedPronunciation ? (
             <Text
               testID="jlpt-card-pronunciation"
               style={[styles.cardSubtitle, { color: isDark ? "#999" : "#666" }]}
             >
-              {`${t("notifications.labels.pronunciation", {
-                defaultValue: "Pronunciation",
-              })}: ${pronunciation}`}
-            </Text>
-          ) : null}
-          {pronunciationRoman ? (
-            <Text
-              testID="jlpt-card-pronunciation-roman"
-              style={[styles.cardSubtitle, { color: isDark ? "#999" : "#666" }]}
-            >
-              {`${t("notifications.labels.pronunciationRoman", {
-                defaultValue: "Roman",
-              })}: ${pronunciationRoman}`}
+              {combinedPronunciation}
             </Text>
           ) : null}
 
           <View style={styles.meaningSection}>
             <LabeledMeaningRow
-              testID="jlpt-card-meaning-english"
-              label={t("swipe.jlpt.labels.meaningEnglish", {
-                defaultValue: "English Meaning",
-              })}
-              meaning={englishMeaning}
-              isDark={isDark}
-            />
-            <LabeledMeaningRow
-              testID="jlpt-card-meaning-korean"
-              label={t("swipe.jlpt.labels.meaningKorean", {
-                defaultValue: "Korean Meaning",
-              })}
-              meaning={koreanMeaning}
+              testID="jlpt-card-meaning"
+              meaning={resolved.meaning}
               isDark={isDark}
             />
           </View>
 
           <ExampleBlock
-            example={item.example}
-            englishTranslation={englishTranslation}
-            koreanTranslation={koreanTranslation}
+            example={resolved.example}
+            translation={resolved.translation}
             isDark={isDark}
           />
         </ScrollView>
@@ -390,7 +326,6 @@ const styles = StyleSheet.create({
   cardSubtitle: {
     fontSize: 15,
     color: "#666",
-    fontStyle: "italic",
     marginTop: 2,
     marginBottom: 6,
     letterSpacing: 0.2,

@@ -82,6 +82,7 @@ const en = {
       header: "Collocation Notification",
     },
     labels: {
+      meaning: "Meaning",
       example: "Example",
       translation: "Translation",
       pronunciation: "Pronunciation",

@@ -82,6 +82,7 @@ const ja = {
       header: "コロケーション通知",
     },
     labels: {
+      meaning: "意味",
       example: "例文",
       translation: "翻訳",
       pronunciation: "発音",

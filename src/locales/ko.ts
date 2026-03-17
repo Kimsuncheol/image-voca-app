@@ -82,6 +82,7 @@ const ko = {
       header: "연어 알림",
     },
     labels: {
+      meaning: "뜻",
       example: "예문",
       translation: "번역",
       pronunciation: "발음",
