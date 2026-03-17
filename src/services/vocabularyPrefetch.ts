@@ -9,7 +9,12 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { CourseType, VocabularyCard } from "../types/vocabulary";
+import {
+  CourseType,
+  VocabularyCard,
+  isJlptLevelCourseId,
+} from "../types/vocabulary";
+import { normalizeVocabularyLocalizationMap } from "../utils/localizedVocabulary";
 
 type CourseConfig = {
   path?: string;
@@ -28,6 +33,13 @@ const vocabularyCacheUpdatedAt = new Map<string, number>();
  * @returns Course configuration object with path and prefix
  */
 export const getCourseConfig = (courseId: CourseType): CourseConfig => {
+  if (isJlptLevelCourseId(courseId)) {
+    return {
+      path: process.env[`EXPO_PUBLIC_COURSE_PATH_${courseId}`],
+      prefix: courseId,
+    };
+  }
+
   switch (courseId) {
     case "수능":
       return {
@@ -48,6 +60,11 @@ export const getCourseConfig = (courseId: CourseType): CourseConfig => {
       return {
         path: process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION,
         prefix: "COLLOCATION",
+      };
+    case "JLPT":
+      return {
+        path: "",
+        prefix: "JLPT",
       };
     default:
       return { path: "", prefix: "" };
@@ -77,6 +94,11 @@ export const normalizeVocabularyCard = (
   return {
     ...rest,
     imageUrl,
+    pronunciationRoman:
+      typeof rest.pronunciationRoman === "string"
+        ? rest.pronunciationRoman.trim() || undefined
+        : undefined,
+    localized: normalizeVocabularyLocalizationMap(rest.localized),
   };
 };
 
@@ -89,6 +111,29 @@ export const mapVocabularyDocToCard = (
     normalizeVocabularyImageUrl(data.imageUrl) ??
     normalizeVocabularyImageUrl(data.image);
 
+  if (isJlptLevelCourseId(courseId)) {
+    return {
+      id: docId,
+      word: typeof data.word === "string" ? data.word : "",
+      meaning: typeof data.meaningEnglish === "string" ? data.meaningEnglish : "",
+      pronunciation: typeof data.pronunciation === "string" ? data.pronunciation : undefined,
+      pronunciationRoman: typeof data.pronunciationRoman === "string" ? data.pronunciationRoman : undefined,
+      example: typeof data.example === "string" ? data.example : "",
+      imageUrl,
+      localized: {
+        en: {
+          meaning: typeof data.meaningEnglish === "string" ? data.meaningEnglish : undefined,
+          translation: typeof data.translationEnglish === "string" ? data.translationEnglish : undefined,
+        },
+        ko: {
+          meaning: typeof data.meaningKorean === "string" ? data.meaningKorean : undefined,
+          translation: typeof data.translationKorean === "string" ? data.translationKorean : undefined,
+        },
+      },
+      course: courseId,
+    };
+  }
+
   if (courseId === "COLLOCATION") {
     return {
       id: docId,
@@ -98,8 +143,13 @@ export const mapVocabularyDocToCard = (
         typeof data.translation === "string" ? data.translation : undefined,
       pronunciation:
         typeof data.explanation === "string" ? data.explanation : undefined,
+      pronunciationRoman:
+        typeof data.pronunciationRoman === "string"
+          ? data.pronunciationRoman
+          : undefined,
       example: typeof data.example === "string" ? data.example : "",
       imageUrl,
+      localized: normalizeVocabularyLocalizationMap(data.localized),
       course: courseId,
     };
   }
@@ -114,8 +164,13 @@ export const mapVocabularyDocToCard = (
       typeof data.pronunciation === "string"
         ? data.pronunciation
         : undefined,
+    pronunciationRoman:
+      typeof data.pronunciationRoman === "string"
+        ? data.pronunciationRoman
+        : undefined,
     example: typeof data.example === "string" ? data.example : "",
     imageUrl,
+    localized: normalizeVocabularyLocalizationMap(data.localized),
     course: courseId,
     partOfSpeech: data.partOfSpeech as VocabularyCard["partOfSpeech"],
     synonyms: Array.isArray(data.synonyms)
@@ -231,6 +286,12 @@ export const fetchVocabularyCards = async (
   const subCollectionName = `Day${dayNumber}`;
   const targetCollection = collection(db, config.path, subCollectionName);
   const querySnapshot = await getDocs(query(targetCollection));
+
+  if (isJlptLevelCourseId(courseId)) {
+    querySnapshot.docs.forEach((snapshot, index) => {
+      console.log(`[JLPT] doc[${index}]:`, JSON.stringify(snapshot.data(), null, 2));
+    });
+  }
 
   const cards: VocabularyCard[] = querySnapshot.docs.map((snapshot) =>
     mapVocabularyDocToCard(

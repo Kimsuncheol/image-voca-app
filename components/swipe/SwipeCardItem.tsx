@@ -1,7 +1,9 @@
 import React from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../../src/context/ThemeContext";
 import { VocabularyCard } from "../../src/types/vocabulary";
+import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
 import { SwipeCardItemCardInfoSection } from "./SwipeCardItemCardInfoSection";
 import { SwipeCardItemImageSection } from "./SwipeCardItemImageSection";
 
@@ -21,7 +23,11 @@ export function SwipeCardItem({
   onSavedWordChange,
 }: SwipeCardItemProps) {
   const { isDark } = useTheme();
-  const pronunciation = item.pronunciation?.trim();
+  const { i18n } = useTranslation();
+  const resolved = React.useMemo(
+    () => resolveVocabularyContent(item, i18n.language),
+    [i18n.language, item],
+  );
 
   return (
     <View
@@ -37,7 +43,17 @@ export function SwipeCardItem({
       {/* Card Info Section */}
       <SwipeCardItemCardInfoSection
         item={item}
-        pronunciation={pronunciation}
+        pronunciation={resolved.sharedPronunciation}
+        localizedPronunciation={
+          resolved.localizedPronunciation !== resolved.sharedPronunciation
+            ? resolved.localizedPronunciation
+            : undefined
+        }
+        pronunciationRoman={resolved.pronunciationRoman}
+        word={resolved.word}
+        meaning={resolved.meaning}
+        example={resolved.example}
+        translation={resolved.translation}
         isDark={isDark}
         initialIsSaved={initialIsSaved}
         day={day}

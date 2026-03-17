@@ -406,6 +406,9 @@ export default function SettingsScreen() {
   const handleLanguageChange = async (language: SupportedLanguage) => {
     try {
       await setLanguage(language); // Updates i18n and saves to AsyncStorage
+      if (user?.uid && pushEnabled && popWordEnabled) {
+        await scheduleDailyNotifications(user.uid);
+      }
     } catch (error) {
       console.warn("Failed to change language", error);
     }

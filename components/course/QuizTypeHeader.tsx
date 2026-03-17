@@ -1,11 +1,11 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
-import { Course } from "../../src/types/vocabulary";
+import { RuntimeCourse } from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
 
 interface QuizTypeHeaderProps {
-  course?: Course;
+  course?: RuntimeCourse;
   day: string;
 }
 

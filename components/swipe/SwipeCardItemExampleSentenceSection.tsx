@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   StyleSheet,
@@ -12,15 +13,20 @@ import { useSpeech } from "../../src/hooks/useSpeech";
 interface SwipeCardItemExampleSentenceSectionProps {
   example: string;
   translation?: string;
+  pronunciation?: string;
+  pronunciationRoman?: string;
   isDark: boolean;
 }
 
 export function SwipeCardItemExampleSentenceSection({
   example,
   translation,
+  pronunciation,
+  pronunciationRoman,
   isDark,
 }: SwipeCardItemExampleSentenceSectionProps) {
   const { speak } = useSpeech();
+  const { t } = useTranslation();
 
   // Split examples and translations by newlines
   // Remove number prefixes (e.g., "1. ", "2. ") from the raw text
@@ -57,6 +63,30 @@ export function SwipeCardItemExampleSentenceSection({
 
   return (
     <>
+      {pronunciation ? (
+        <Text
+          style={[
+            styles.metaText,
+            { color: isDark ? "#b0b0b0" : "#5c5c5c" },
+          ]}
+        >
+          {`${t("notifications.labels.pronunciation", {
+            defaultValue: "Pronunciation",
+          })}: ${pronunciation}`}
+        </Text>
+      ) : null}
+      {pronunciationRoman ? (
+        <Text
+          style={[
+            styles.metaText,
+            { color: isDark ? "#b0b0b0" : "#5c5c5c" },
+          ]}
+        >
+          {`${t("notifications.labels.pronunciationRoman", {
+            defaultValue: "Roman",
+          })}: ${pronunciationRoman}`}
+        </Text>
+      ) : null}
       <ScrollView
         style={styles.examplesScrollContainer}
         showsVerticalScrollIndicator={true}
@@ -131,6 +161,11 @@ const styles = StyleSheet.create({
   },
   exampleGroup: {
     marginTop: 8,
+  },
+  metaText: {
+    fontSize: 14,
+    lineHeight: 18,
+    marginTop: 2,
   },
   cardExample: {
     fontSize: 16,

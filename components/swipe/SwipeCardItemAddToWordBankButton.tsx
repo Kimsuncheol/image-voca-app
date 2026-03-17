@@ -66,11 +66,13 @@ export function SwipeCardItemAddToWordBankButton({
           meaning: item.meaning,
           translation: item.translation || "",
           pronunciation: item.pronunciation || "",
+          pronunciationRoman: item.pronunciationRoman,
           example: item.example,
           course: item.course,
           day,
           addedAt: new Date().toISOString(),
           imageUrl: item.imageUrl,
+          localized: item.localized,
         };
 
         transaction.set(

@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { QuizTypeGrid, QuizTypeHeader } from "../../../components/course";
 import { getQuizTypesForCourse } from "../../../src/course/quizModes";
 import { useTheme } from "../../../src/context/ThemeContext";
-import { COURSES, CourseType } from "../../../src/types/vocabulary";
+import { CourseType, findRuntimeCourse } from "../../../src/types/vocabulary";
 
 export default function QuizTypeSelectionScreen() {
   const { isDark } = useTheme();
@@ -18,7 +18,7 @@ export default function QuizTypeSelectionScreen() {
     day: string;
   }>();
 
-  const course = COURSES.find((c) => c.id === courseId);
+  const course = findRuntimeCourse(courseId);
   const quizTypes = getQuizTypesForCourse(courseId);
 
   const handleQuizTypeSelect = (quizType: (typeof quizTypes)[number]) => {

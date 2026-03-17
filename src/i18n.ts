@@ -80,4 +80,18 @@ export const setLanguage = async (language: SupportedLanguage) => {
   await i18n.changeLanguage(nextLanguage);
 };
 
+export const getCurrentLanguage = async (): Promise<SupportedLanguage> => {
+  try {
+    const stored = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (stored && SUPPORTED_LANGUAGES.includes(stored as SupportedLanguage)) {
+      return stored as SupportedLanguage;
+    }
+  } catch (error) {
+    console.warn("Failed to load current language", error);
+  }
+
+  const activeLanguage = i18n.language?.split("-")[0] as SupportedLanguage;
+  return SUPPORTED_LANGUAGES.includes(activeLanguage) ? activeLanguage : "en";
+};
+
 export default i18n;

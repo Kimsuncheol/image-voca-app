@@ -31,7 +31,10 @@ import {
   useSubscriptionStore,
   useUserStatsStore,
 } from "../../../src/stores";
-import { COURSES, CourseType } from "../../../src/types/vocabulary";
+import {
+  CourseType,
+  findRuntimeCourse,
+} from "../../../src/types/vocabulary";
 
 // -----------------------------------------------------------------------------
 // Type Definitions
@@ -71,13 +74,18 @@ export default function DayPickerScreen() {
     canUnlockViaAd,
     fetchSubscription,
     loadUnlockedIds,
+    currentPlan,
   } = useSubscriptionStore();
+
+  useEffect(() => {
+    console.log("[Days] currentPlan:", currentPlan);
+  }, [currentPlan]);
 
   // ---------------------------------------------------------------------------
   // Derived State & Constants
   // ---------------------------------------------------------------------------
   const course = useMemo(
-    () => COURSES.find((c) => c.id === courseId),
+    () => findRuntimeCourse(courseId),
     [courseId],
   );
   const [totalDays, setTotalDays] = useState(MIN_TOTAL_DAYS);

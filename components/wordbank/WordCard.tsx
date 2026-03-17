@@ -3,7 +3,10 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { useSpeech } from "../../src/hooks/useSpeech";
+import { useTranslation } from "react-i18next";
 import { speakWordVariants } from "../../src/utils/wordVariants";
+import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
+import type { VocabularyLocalizationMap } from "../../src/types/vocabulary";
 import { WordCardExample } from "./WordCardExample";
 import { WordCardHeader } from "./WordCardHeader";
 import { WordCardMeaning } from "./WordCardMeaning";
@@ -18,11 +21,13 @@ export interface SavedWord {
   meaning: string;
   translation?: string;
   pronunciation: string;
+  pronunciationRoman?: string;
   example: string;
   course: string;
   day?: number;
   addedAt: string;
   imageUrl?: string;
+  localized?: VocabularyLocalizationMap;
 }
 
 interface WordCardProps {
@@ -43,6 +48,11 @@ export function WordCard({
   showPronunciation = true,
 }: WordCardProps) {
   const { speak } = useSpeech();
+  const { i18n } = useTranslation();
+  const resolved = React.useMemo(
+    () => resolveVocabularyContent(word, i18n.language),
+    [i18n.language, word],
+  );
 
   const handleSpeakWord = React.useCallback(async () => {
     try {
@@ -65,14 +75,16 @@ export function WordCard({
           <WordCardHeader
             word={word.word}
             day={word.day}
-            pronunciation={showPronunciation ? word.pronunciation : undefined}
+            pronunciation={
+              showPronunciation ? resolved.sharedPronunciation : undefined
+            }
             onSpeak={handleSpeakWord}
           />
-          <WordCardMeaning meaning={word.meaning} isDark={isDark} />
+          <WordCardMeaning meaning={resolved.meaning} isDark={isDark} />
         </View>
-        {word.imageUrl ? (
+        {resolved.imageUrl ? (
           <Image
-            source={{ uri: word.imageUrl }}
+            source={{ uri: resolved.imageUrl }}
             style={styles.cardImage}
             contentFit="cover"
             cachePolicy="memory-disk"
@@ -90,8 +102,14 @@ export function WordCard({
       />
 
       <WordCardExample
-        example={word.example}
-        translation={word.translation}
+        example={resolved.example}
+        translation={resolved.translation}
+        pronunciation={
+          resolved.localizedPronunciation !== resolved.sharedPronunciation
+            ? resolved.localizedPronunciation
+            : undefined
+        }
+        pronunciationRoman={resolved.pronunciationRoman}
       />
     </View>
   );

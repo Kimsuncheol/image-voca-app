@@ -25,6 +25,10 @@ export default function WordBankScreen() {
   );
 
   const handleCoursePress = (courseId: CourseType) => {
+    if (courseId === "JLPT") {
+      router.push("/courses/jlpt-levels");
+      return;
+    }
     router.push({
       pathname: "/courses/[course]",
       params: { course: courseId },

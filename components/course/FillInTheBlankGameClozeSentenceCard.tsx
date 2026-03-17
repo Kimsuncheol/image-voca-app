@@ -8,6 +8,7 @@ import { ThemedText } from "../themed-text";
 interface FillInTheBlankGameClozeSentenceCardProps {
   clozeSentence: string;
   translation?: string;
+  localizedPronunciation?: string;
   userAnswer?: string;
   showResult?: boolean;
   isCorrect?: boolean;
@@ -17,6 +18,7 @@ interface FillInTheBlankGameClozeSentenceCardProps {
 export function FillInTheBlankGameClozeSentenceCard({
   clozeSentence,
   translation,
+  localizedPronunciation,
   userAnswer,
   showResult,
   isCorrect,
@@ -138,6 +140,13 @@ export function FillInTheBlankGameClozeSentenceCard({
         {t("quiz.types.fillInBlank.completeSentence")}
       </ThemedText>
       {renderContent()}
+      {localizedPronunciation && (
+        <ThemedText style={styles.translationText}>
+          {`${t("notifications.labels.pronunciation", {
+            defaultValue: "Pronunciation",
+          })}: ${localizedPronunciation}`}
+        </ThemedText>
+      )}
       {translation && (
         <ThemedText style={styles.translationText}>{translation}</ThemedText>
       )}

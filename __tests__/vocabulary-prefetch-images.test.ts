@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
+  getCourseConfig,
   hydrateVocabularyCache,
   mapVocabularyDocToCard,
   normalizeVocabularyCard,
@@ -40,14 +41,26 @@ describe("vocabulary image normalization", () => {
         word: "abandon",
         meaning: "leave behind",
         pronunciation: "/ab/",
+        pronunciationRoman: "ab",
         example: "They abandoned it.",
         imageUrl: "https://cdn.example.com/abandon.jpg",
+        localized: {
+          en: {
+            meaning: "leave behind",
+          },
+          ko: {
+            meaning: "버리다",
+            translation: "포기하다",
+          },
+        },
       },
       "TOEIC",
     );
 
     expect(card.imageUrl).toBe("https://cdn.example.com/abandon.jpg");
     expect(card.word).toBe("abandon");
+    expect(card.pronunciationRoman).toBe("ab");
+    expect(card.localized?.ko?.meaning).toBe("버리다");
   });
 
   it("maps a normal course document using legacy image", () => {
@@ -133,5 +146,41 @@ describe("vocabulary image normalization", () => {
     expect(cards).toHaveLength(1);
     expect(cards?.[0].imageUrl).toBe("https://cdn.example.com/carry.jpg");
     expect("image" in (cards?.[0] ?? {})).toBe(false);
+  });
+
+  it("hydrates localized cache entries", async () => {
+    await AsyncStorage.setItem(
+      "vocab_cache_v2:TOEIC-Day2",
+      JSON.stringify({
+        updatedAt: Date.now(),
+        cards: [
+          {
+            id: "cached-2",
+            word: "adapt",
+            meaning: "adjust",
+            pronunciation: "/əˈdæpt/",
+            pronunciationRoman: "a-daept",
+            example: "Adapt fast.",
+            course: "TOEIC",
+            localized: {
+              en: { meaning: "adjust" },
+              ko: { meaning: "적응하다", translation: "맞추다" },
+            },
+          },
+        ],
+      }),
+    );
+
+    const cards = await hydrateVocabularyCache("TOEIC", 2);
+
+    expect(cards?.[0].localized?.ko?.meaning).toBe("적응하다");
+    expect(cards?.[0].pronunciationRoman).toBe("a-daept");
+  });
+
+  it("resolves JLPT level paths through the shared course config", () => {
+    expect(getCourseConfig("JLPT_N1")).toEqual({
+      path: "courses/jlpt/n1",
+      prefix: "JLPT_N1",
+    });
   });
 });

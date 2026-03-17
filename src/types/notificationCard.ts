@@ -1,4 +1,7 @@
-import type { CourseType } from "./vocabulary";
+import type {
+  CourseType,
+  VocabularyLocalizationMap,
+} from "./vocabulary";
 
 export type NotificationCardKind = "word" | "collocation";
 
@@ -10,9 +13,11 @@ interface NotificationCardPayloadBase {
   word: string;
   meaning: string;
   pronunciation?: string;
+  pronunciationRoman?: string;
   example?: string;
   translation?: string;
   imageUrl?: string;
+  localized?: VocabularyLocalizationMap;
 }
 
 export interface NotificationWordCardPayload extends NotificationCardPayloadBase {
@@ -47,8 +52,16 @@ export const isNotificationCardPayload = (
 
   if (!isStringOrUndefined(data.id)) return false;
   if (!isStringOrUndefined(data.pronunciation)) return false;
+  if (!isStringOrUndefined(data.pronunciationRoman)) return false;
   if (!isStringOrUndefined(data.example)) return false;
   if (!isStringOrUndefined(data.translation)) return false;
+  if (!isStringOrUndefined(data.imageUrl)) return false;
+  if (
+    data.localized !== undefined &&
+    (typeof data.localized !== "object" || data.localized === null)
+  ) {
+    return false;
+  }
 
   return true;
 };

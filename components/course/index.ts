@@ -9,6 +9,8 @@ export { FillInTheBlankGameClozeSentenceCard } from "./FillInTheBlankGameClozeSe
 export { FillInTheBlankGameOptions } from "./FillInTheBlankGameOptions";
 export { GameBoard } from "./GameBoard";
 export { GameScore } from "./GameScore";
+export { JlptLevelCard } from "./JlptLevelCard";
+export { JlptLevelList } from "./JlptLevelList";
 export { LoadingView } from "./LoadingView";
 export { MatchingCard } from "./MatchingCard";
 export { MatchingGame } from "./MatchingGame";

@@ -1,19 +1,23 @@
 import { Image } from "expo-image";
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
 
 interface SwipeCardItemImageSectionProps {
   imageUrl?: string;
   isDark: boolean;
+  testID?: string;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 export function SwipeCardItemImageSection({
   imageUrl,
   isDark,
+  testID,
+  containerStyle,
 }: SwipeCardItemImageSectionProps) {
   return (
-    <View style={styles.imageContainer}>
+    <View testID={testID} style={[styles.imageContainer, containerStyle]}>
       {imageUrl ? (
         <Image
           source={{ uri: imageUrl }}

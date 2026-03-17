@@ -19,7 +19,7 @@ import { SavedWord } from "../../components/wordbank/WordCard";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
-import { COURSES } from "../../src/types/vocabulary";
+import { CourseType, findRuntimeCourse } from "../../src/types/vocabulary";
 
 /**
  * Course Word Bank Screen
@@ -44,7 +44,7 @@ export default function CourseWordBankScreen() {
 
   const { isDark } = useTheme(); // Dark mode state
   const { user } = useAuth(); // Current authenticated user
-  const { course } = useLocalSearchParams<{ course: string }>(); // Course ID from URL
+  const { course } = useLocalSearchParams<{ course: CourseType }>(); // Course ID from URL
   const { t } = useTranslation(); // Translation function for i18n
 
   // === State Management ===
@@ -88,7 +88,7 @@ export default function CourseWordBankScreen() {
   }, [words, selectedFilter]);
 
   // Find course metadata (color, title, etc.) from course configuration
-  const courseData = COURSES.find((c) => c.id === course);
+  const courseData = findRuntimeCourse(course);
 
   // === Data Fetching ===
 

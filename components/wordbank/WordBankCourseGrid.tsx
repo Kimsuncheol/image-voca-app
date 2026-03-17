@@ -3,7 +3,10 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
-import { COURSES, CourseType } from "../../src/types/vocabulary";
+import {
+  COURSES,
+  CourseType,
+} from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
 
 interface WordBankCourseGridProps {
@@ -13,10 +16,11 @@ interface WordBankCourseGridProps {
 export function WordBankCourseGrid({ onCoursePress }: WordBankCourseGridProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
+  const wordBankCourses = COURSES;
 
   return (
     <View style={styles.courseGrid}>
-      {COURSES.map((course) => (
+      {wordBankCourses.map((course) => (
         <TouchableOpacity
           key={course.id}
           style={[

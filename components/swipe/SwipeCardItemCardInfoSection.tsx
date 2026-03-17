@@ -5,7 +5,13 @@ import { SwipeCardItemMeaningExampleSentenceSection } from "./SwipeCardItemMeani
 
 interface CardInfoSectionProps {
   item: VocabularyCard;
+  word: string;
   pronunciation?: string;
+  localizedPronunciation?: string;
+  pronunciationRoman?: string;
+  meaning: string;
+  example: string;
+  translation?: string;
   isDark: boolean;
   initialIsSaved?: boolean;
   day?: number;
@@ -14,7 +20,13 @@ interface CardInfoSectionProps {
 
 export function SwipeCardItemCardInfoSection({
   item,
+  word,
   pronunciation,
+  localizedPronunciation,
+  pronunciationRoman,
+  meaning,
+  example,
+  translation,
   isDark,
   initialIsSaved = false,
   day,
@@ -30,11 +42,13 @@ export function SwipeCardItemCardInfoSection({
       {/* Merged Word, Meaning & Example Section */}
       <SwipeCardItemMeaningExampleSentenceSection
         item={item}
-        word={item.word}
+        word={word}
         pronunciation={pronunciation}
-        meaning={item.meaning}
-        example={item.example}
-        translation={item.translation}
+        localizedPronunciation={localizedPronunciation}
+        pronunciationRoman={pronunciationRoman}
+        meaning={meaning}
+        example={example}
+        translation={translation}
         isDark={isDark}
         initialIsSaved={initialIsSaved}
         day={day}

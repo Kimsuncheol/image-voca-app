@@ -1,11 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import {
-  collection,
   doc,
   getDoc,
-  getDocs,
-  query,
   setDoc,
   updateDoc,
 } from "firebase/firestore";
@@ -42,8 +39,10 @@ import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
 import { db } from "../../../src/services/firebase";
+import { prefetchVocabularyCards } from "../../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../../src/stores";
-import { COURSES, CourseType } from "../../../src/types/vocabulary";
+import { CourseType, findRuntimeCourse } from "../../../src/types/vocabulary";
+import { resolveVocabularyContent } from "../../../src/utils/localizedVocabulary";
 
 const shuffleArray = <T,>(items: T[]): T[] => {
   const copy = [...items];
@@ -54,39 +53,11 @@ const shuffleArray = <T,>(items: T[]): T[] => {
   return copy;
 };
 
-// Helper to get Firestore path for a course
-const getCourseConfig = (courseId: CourseType) => {
-  switch (courseId) {
-    case "수능":
-      return {
-        path: process.env.EXPO_PUBLIC_COURSE_PATH_CSAT,
-        prefix: "CSAT",
-      };
-    case "TOEIC":
-      return {
-        path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC,
-        prefix: "TOEIC",
-      };
-    case "TOEFL_IELTS":
-      return {
-        path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL_IELTS,
-        prefix: "TOEFL_IELTS",
-      };
-    case "COLLOCATION":
-      return {
-        path: process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION,
-        prefix: "COLLOCATION",
-      };
-    default:
-      return { path: "", prefix: "" };
-  }
-};
-
 export default function QuizPlayScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const {
     bufferQuizAnswer,
     flushQuizStats,
@@ -102,7 +73,7 @@ export default function QuizPlayScreen() {
   }>();
   const sanitizedQuizType = sanitizeRequestedQuizType(courseId, quizType);
   const resolvedQuizType = resolveRuntimeQuizType(sanitizedQuizType);
-  const course = COURSES.find((candidate) => candidate.id === courseId);
+  const course = findRuntimeCourse(courseId);
   const dayNumber = parseInt(day || "1", 10);
 
   const [loading, setLoading] = useState(true);
@@ -138,42 +109,24 @@ export default function QuizPlayScreen() {
     const fetchVocabulary = async () => {
       setLoading(true);
       try {
-        const config = getCourseConfig(courseId as CourseType);
-
-        if (!config.path) {
-          console.error("No path configuration for course:", courseId);
-          setLoading(false);
-          return;
-        }
-
-        const subCollectionName = `Day${dayNumber}`;
-        const targetCollection = collection(db, config.path, subCollectionName);
-
-        const q = query(targetCollection);
-        const querySnapshot = await getDocs(q);
-
-        const fetchedVocab: QuizVocabData[] = querySnapshot.docs.map((doc) => {
-          const data = doc.data();
-          if (courseId === "COLLOCATION") {
-            return {
-              word: data.collocation,
-              meaning: data.meaning,
-              pronunciation: data.explanation,
-              example: data.example,
-              translation: data.translation,
-            };
-          }
+        const fetchedCards = await prefetchVocabularyCards(
+          courseId as CourseType,
+          dayNumber,
+        );
+        const fetchedVocab: QuizVocabData[] = fetchedCards.map((card) => {
+          const resolved = resolveVocabularyContent(card, i18n.language);
           return {
-            word: data.word,
-            meaning: data.meaning,
-            pronunciation: data.pronunciation,
-            example: data.example,
-            translation: data.translation,
+            word: card.word,
+            meaning: resolved.meaning,
+            pronunciation: resolved.sharedPronunciation,
+            localizedPronunciation: resolved.localizedPronunciation,
+            example: card.example,
+            translation: resolved.translation,
           };
         });
 
         console.log(
-          `Fetched ${fetchedVocab.length} words from ${subCollectionName} for quiz`,
+          `Fetched ${fetchedVocab.length} words from Day${dayNumber} for quiz`,
         );
 
         if (fetchedVocab.length < 4) {
@@ -201,7 +154,7 @@ export default function QuizPlayScreen() {
     };
 
     fetchVocabulary();
-  }, [courseId, dayNumber, resolvedQuizType]);
+  }, [courseId, dayNumber, i18n.language, resolvedQuizType]);
 
   const currentQuestion = questions[currentIndex];
   const isMatching = resolvedQuizType === "matching";

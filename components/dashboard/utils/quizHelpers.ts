@@ -30,6 +30,10 @@ export function getDynamicFontSize(text: string): number {
  * @returns Firestore collection path from environment variables
  */
 export function getCoursePath(courseId: string): string {
+  if (courseId.startsWith("JLPT_N")) {
+    return process.env[`EXPO_PUBLIC_COURSE_PATH_${courseId}`] || "";
+  }
+
   switch (courseId) {
     case "수능":
       return process.env.EXPO_PUBLIC_COURSE_PATH_CSAT || "";

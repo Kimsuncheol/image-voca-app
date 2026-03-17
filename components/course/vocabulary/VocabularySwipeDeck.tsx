@@ -3,10 +3,11 @@ import {
   TinderSwipe,
   TinderSwipeRef,
 } from "../../../src/components/tinder-swipe/TinderSwipe";
-import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
+import { CourseType, VocabularyCard, isJlptLevelCourseId } from "../../../src/types/vocabulary";
 import { CollocationSwipeable } from "../../CollocationFlipCard/CollocationSwipeable";
 import { SwipeCardItem } from "../../swipe/SwipeCardItem";
 import { CarouselSwipeDeck } from "./CarouselSwipeDeck";
+import { JlptSwipeDeck } from "./JlptSwipeDeck";
 
 const CAROUSEL_COURSES: CourseType[] = ["수능", "TOEIC", "TOEFL_IELTS"];
 
@@ -53,6 +54,21 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         savedWordIds={savedWordIds}
         onSavedWordChange={onSavedWordChange}
         isStudyCompleted={isStudyCompleted}
+      />
+    );
+  }
+
+  if (isJlptLevelCourseId(courseId)) {
+    return (
+      <JlptSwipeDeck
+        cards={cards}
+        dayNumber={dayNumber}
+        savedWordIds={savedWordIds}
+        onSavedWordChange={onSavedWordChange}
+        onSwipeRight={onSwipeRight}
+        onSwipeLeft={onSwipeLeft}
+        onIndexChange={onIndexChange}
+        onFinish={onFinish}
       />
     );
   }

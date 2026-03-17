@@ -72,6 +72,22 @@ const ko = {
       },
     },
   },
+  notifications: {
+    word: {
+      title: "오늘의 단어",
+      header: "단어 알림",
+    },
+    collocation: {
+      title: "오늘의 연어",
+      header: "연어 알림",
+    },
+    labels: {
+      example: "예문",
+      translation: "번역",
+      pronunciation: "발음",
+      pronunciationRoman: "로마자",
+    },
+  },
   dashboard: {
     greeting: {
       morning: "좋은 아침이에요",
@@ -167,6 +183,35 @@ const ko = {
       title: "OPIc",
       description: "영어 말하기 시험",
     },
+    jlpt: {
+      title: "JLPT",
+      description: "일본어 능력 시험",
+      levels: {
+        title: "JLPT 레벨 선택",
+        subtitle: "학습할 레벨을 선택하세요.",
+        levelDays: "{{count}}일",
+        n1: {
+          title: "N1",
+          description: "고급",
+        },
+        n2: {
+          title: "N2",
+          description: "중상급",
+        },
+        n3: {
+          title: "N3",
+          description: "중급",
+        },
+        n4: {
+          title: "N4",
+          description: "초중급",
+        },
+        n5: {
+          title: "N5",
+          description: "초급",
+        },
+      },
+    },
   },
   subscription: {
     unlimited: {
@@ -196,6 +241,14 @@ const ko = {
       adding: "추가 중...",
       added: "추가됨",
       addToWordBank: "단어장에 추가",
+    },
+    jlpt: {
+      labels: {
+        meaningEnglish: "영어 뜻",
+        meaningKorean: "한국어 뜻",
+        translationEnglish: "영어 번역",
+        translationKorean: "한국어 번역",
+      },
     },
     hints: {
       flipFirst: "계속하려면 먼저 카드를 뒤집어 주세요.",
@@ -432,6 +485,15 @@ const ko = {
     katakana: "가타카나",
   },
 
+  ad: {
+    label: "광고",
+    placeholder: "광고가 재생됩니다",
+    rewardTitle: "무료 잠금 해제",
+    rewardSubtitle: "광고를 시청하면 {{day}}일차를 무료로 열 수 있습니다",
+    rewardSubtitleGeneric: "광고를 시청하면 해당 일차를 무료로 열 수 있습니다",
+    watching: "광고 시청 중... ({{seconds}}초)",
+    claimButton: "무료 열기",
+  },
   course: {
     days: "일차",
     selectDay: "학습할 일차를 선택하세요",
@@ -513,6 +575,11 @@ const ko = {
     title: "준비 중",
     description:
       "일본어 학습 콘텐츠는 현재 개발 중입니다. 업데이트를 기대해 주세요!",
+    links: {
+      jlptVocabulary: "JLPT 단어",
+      wordBank: "단어장",
+      notificationCard: "오늘의 단어",
+    },
   },
   student: {
     classes: {

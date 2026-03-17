@@ -16,6 +16,7 @@ interface QuizQuestion {
   correctAnswer: string;
   clozeSentence?: string;
   translation?: string;
+  localizedPronunciation?: string;
   correctForms?: string[];
   prompt?: string;
   highlightText?: string;
@@ -105,6 +106,7 @@ export function GameBoard({
           word={currentQuestion.word}
           clozeSentence={currentQuestion.clozeSentence || ""}
           translation={currentQuestion.translation}
+          localizedPronunciation={currentQuestion.localizedPronunciation}
           options={currentQuestion.options || []}
           correctAnswer={currentQuestion.correctAnswer}
           userAnswer={userAnswer}
@@ -117,6 +119,7 @@ export function GameBoard({
           word={currentQuestion.word}
           clozeSentence={currentQuestion.clozeSentence || ""}
           translation={currentQuestion.translation}
+          localizedPronunciation={currentQuestion.localizedPronunciation}
           options={currentQuestion.options || []}
           correctAnswer={currentQuestion.correctAnswer}
           userAnswer={userAnswer}

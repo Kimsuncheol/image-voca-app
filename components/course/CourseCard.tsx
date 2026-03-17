@@ -3,11 +3,11 @@ import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../../src/context/ThemeContext";
-import { Course } from "../../src/types/vocabulary";
+import { RuntimeCourse } from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
 
 interface CourseCardProps {
-  course: Course;
+  course: RuntimeCourse;
   onPress: () => void;
   isRecent?: boolean;
 }

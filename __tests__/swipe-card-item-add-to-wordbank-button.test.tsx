@@ -43,8 +43,21 @@ function buildItem(overrides: Partial<VocabularyCard> = {}): VocabularyCard {
     meaning: "to leave behind",
     translation: "버리다",
     pronunciation: "/əˈbændən/",
+    pronunciationRoman: "eo-baen-deon",
     example: "They abandoned the plan.",
     course: "TOEIC",
+    localized: {
+      en: {
+        meaning: "to leave behind",
+        pronunciation: "uh-BAN-duhn",
+        translation: "to give up",
+      },
+      ko: {
+        meaning: "버리다",
+        pronunciation: "어밴던",
+        translation: "포기하다",
+      },
+    },
     ...overrides,
   };
 }
@@ -100,6 +113,26 @@ describe("SwipeCardItemAddToWordBankButton", () => {
       expect(mockOnSavedWordChange).toHaveBeenCalledWith("1", true);
       expect(screen.getByText("bookmark")).toBeTruthy();
     });
+
+    expect(transaction.set).toHaveBeenCalledWith(
+      "word-ref",
+      {
+        words: [
+          expect.objectContaining({
+            pronunciationRoman: "eo-baen-deon",
+            localized: {
+              en: expect.objectContaining({
+                meaning: "to leave behind",
+              }),
+              ko: expect.objectContaining({
+                meaning: "버리다",
+              }),
+            },
+          }),
+        ],
+      },
+      { merge: true },
+    );
 
     expect(Alert.alert).not.toHaveBeenCalled();
   });

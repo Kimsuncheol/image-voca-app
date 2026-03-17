@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 interface NotificationHeaderProps {
   /** Dynamic title derived from the card kind ("Word Notification" / "Collocation Notification") */
   title: string;
+  backLabel?: string;
   isDark: boolean;
   onBack: () => void;
 }
@@ -15,6 +16,7 @@ interface NotificationHeaderProps {
  */
 export default function NotificationHeader({
   title,
+  backLabel = "Dashboard",
   isDark,
   onBack,
 }: NotificationHeaderProps) {
@@ -41,7 +43,7 @@ export default function NotificationHeader({
             { color: isDark ? "#FFFFFF" : "#111827" },
           ]}
         >
-          Dashboard
+          {backLabel}
         </Text>
       </Pressable>
 

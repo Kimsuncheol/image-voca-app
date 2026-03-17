@@ -7,6 +7,8 @@ interface SwipeCardItemMeaningExampleSentenceSectionProps {
   item: VocabularyCard;
   word: string;
   pronunciation?: string;
+  localizedPronunciation?: string;
+  pronunciationRoman?: string;
   meaning: string;
   example: string;
   translation?: string;
@@ -20,6 +22,8 @@ export function SwipeCardItemMeaningExampleSentenceSection({
   item,
   word,
   pronunciation,
+  localizedPronunciation,
+  pronunciationRoman,
   meaning,
   example,
   translation,
@@ -43,6 +47,8 @@ export function SwipeCardItemMeaningExampleSentenceSection({
       <SwipeCardItemExampleSentenceSection
         example={example}
         translation={translation}
+        pronunciation={localizedPronunciation}
+        pronunciationRoman={pronunciationRoman}
         isDark={isDark}
       />
     </>

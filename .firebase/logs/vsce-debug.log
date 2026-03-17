@@ -9228,3 +9228,37 @@ E0316 12:03:53.046489   84833 watch.go:40] Failed to load config from "/Users/gi
  {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0316 12:05:13.046152   84833 watch.go:40] Failed to load config from \"/Users/gimseoncheol/Desktop/image-voca-app/dataconnect\": could not find dataconnect.yaml in `/Users/gimseoncheol/Desktop/image-voca-app/dataconnect`\n"}}
 [info] [Firebase Plugin] Stopping Data Connect toolkit
 [warn] ⚠  Data Connect Emulator has exited upon receiving signal: SIGINT 
+[debug] [2026-03-16T05:56:05.445Z] [Firebase Plugin] Activating Firebase extension.
+[debug] [2026-03-16T05:56:10.813Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2026-03-16T05:56:10.814Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-03-16T05:56:10.815Z] > authorizing via signed-in user (curetail144@gmail.com)
+[debug] [2026-03-16T05:56:10.817Z] Checked if tokens are valid: false, expires at: 1773632392002
+[debug] [2026-03-16T05:56:10.818Z] Checked if tokens are valid: false, expires at: 1773632392002
+[debug] [2026-03-16T05:56:10.818Z] > refreshing access token with scopes: []
+[debug] [2026-03-16T05:56:10.819Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-03-16T05:56:10.819Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-03-16T05:56:10.826Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[debug] [2026-03-16T05:56:11.119Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-03-16T05:56:11.119Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-03-16T05:56:11.149Z] [Firebase Plugin] User found:  curetail144@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2026-03-16T05:56:11.149Z] Checked if tokens are valid: true, expires at: 1773644170120
+[debug] [2026-03-16T05:56:11.150Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 3.2.1) on port 50001
+[debug] [2026-03-16T05:56:12.508Z] 'fdc build' failed with error: Unable to build your Data Connect schema and connectors (exit code 1): E0316 14:56:12.506578   39939 cmd.go:43] Error loading data connect config: could not find dataconnect.yaml in `/Users/gimseoncheol/Desktop/image-voca-app/dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"'fdc build' failed with error: Unable to build your Data Connect schema and connectors (exit code 1): E0316 14:56:12.506578   39939 cmd.go:43] Error loading data connect config: could not find dataconnect.yaml in `/Users/gimseoncheol/Desktop/image-voca-app/dataconnect`\n"}}
+[debug] [2026-03-16T05:56:12.509Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2026-03-16T05:56:12.509Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2026-03-16T05:56:12.509Z] Starting Data Connect Emulator with command {"binary":"/Users/gimseoncheol/.cache/firebase/emulators/dataconnect-emulator-3.2.1","args":["--logtostderr","-v=2","dev","--listen=localhost:50001","--config_dir=/Users/gimseoncheol/Desktop/image-voca-app/dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting Data Connect Emulator with command {\"binary\":\"/Users/gimseoncheol/.cache/firebase/emulators/dataconnect-emulator-3.2.1\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50001\",\"--config_dir=/Users/gimseoncheol/Desktop/image-voca-app/dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: Data Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"Data Connect Emulator logging to dataconnect-debug.log"}}
+[debug] [2026-03-16T05:56:12.618Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2026-03-16T05:56:12.618Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2026-03-16T05:56:12.668Z] E0316 14:56:12.667980   39970 dev.go:83] Failed to load initial config from "/Users/gimseoncheol/Desktop/image-voca-app/dataconnect": could not find dataconnect.yaml in `/Users/gimseoncheol/Desktop/image-voca-app/dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0316 14:56:12.667980   39970 dev.go:83] Failed to load initial config from \"/Users/gimseoncheol/Desktop/image-voca-app/dataconnect\": could not find dataconnect.yaml in `/Users/gimseoncheol/Desktop/image-voca-app/dataconnect`\n"}}
+[debug] [2026-03-16T05:56:12.670Z] E0316 14:56:12.670237   39970 watch.go:116] watchAllDir unable to walk dir `/Users/gimseoncheol/Desktop/image-voca-app/dataconnect`: lstat /Users/gimseoncheol/Desktop/image-voca-app/dataconnect: no such file or directory
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0316 14:56:12.670237   39970 watch.go:116] watchAllDir unable to walk dir `/Users/gimseoncheol/Desktop/image-voca-app/dataconnect`: lstat /Users/gimseoncheol/Desktop/image-voca-app/dataconnect: no such file or directory\n"}}
+[debug] [2026-03-16T05:56:12.675Z] I0316 14:56:12.675258   39970 dev.go:104] Listening on address (HTTP + gRPC): 127.0.0.1:50001
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0316 14:56:12.675258   39970 dev.go:104] Listening on address (HTTP + gRPC): 127.0.0.1:50001\n"}}
+[error] [Firebase Plugin] error:  {}
+[info] [Firebase Plugin] Stopping Data Connect toolkit
+[warn] ⚠  Data Connect Emulator has exited upon receiving signal: SIGINT 

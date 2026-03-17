@@ -7,6 +7,7 @@ interface FillInTheBlankGameProps {
   word: string;
   clozeSentence: string;
   translation?: string;
+  localizedPronunciation?: string;
   options: string[];
   correctAnswer: string;
   userAnswer: string;
@@ -19,6 +20,7 @@ export function FillInTheBlankGame({
   word,
   clozeSentence,
   translation,
+  localizedPronunciation,
   options,
   correctAnswer,
   userAnswer,
@@ -34,6 +36,7 @@ export function FillInTheBlankGame({
       <FillInTheBlankGameClozeSentenceCard
         clozeSentence={clozeSentence}
         translation={translation}
+        localizedPronunciation={localizedPronunciation}
         userAnswer={userAnswer}
         showResult={showResult}
         isCorrect={isCorrect}

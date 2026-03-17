@@ -39,6 +39,12 @@ interface CarouselSwipeDeckProps {
   onSwipeLeft: (item: VocabularyCard) => void;
   onIndexChange: (index: number) => void;
   onFinish: () => void;
+  renderCard?: (params: {
+    item: VocabularyCard;
+    isSaved: boolean;
+    dayNumber: number;
+    onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
+  }) => React.ReactNode;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -53,6 +59,7 @@ interface CardItemProps {
   dayNumber: number;
   isActiveWindow: boolean;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
+  renderCard?: CarouselSwipeDeckProps["renderCard"];
 }
 
 const CardItem = React.memo(function CardItem({
@@ -63,6 +70,7 @@ const CardItem = React.memo(function CardItem({
   dayNumber,
   isActiveWindow,
   onSavedWordChange,
+  renderCard,
 }: CardItemProps) {
   const animatedStyle = useAnimatedStyle(() => {
     const scrollPos = -translateX.value;
@@ -76,12 +84,21 @@ const CardItem = React.memo(function CardItem({
   return (
     <Animated.View style={[styles.cardSlot, animatedStyle]}>
       {isActiveWindow ? (
-        <SwipeCardItem
-          item={item}
-          initialIsSaved={isSaved}
-          day={dayNumber}
-          onSavedWordChange={onSavedWordChange}
-        />
+        renderCard ? (
+          renderCard({
+            item,
+            isSaved,
+            dayNumber,
+            onSavedWordChange,
+          })
+        ) : (
+          <SwipeCardItem
+            item={item}
+            initialIsSaved={isSaved}
+            day={dayNumber}
+            onSavedWordChange={onSavedWordChange}
+          />
+        )
       ) : (
         <View style={styles.virtualizedCard} />
       )}
@@ -102,6 +119,7 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
   onSwipeLeft,
   onIndexChange,
   onFinish,
+  renderCard,
 }) => {
   const translateX = useSharedValue(0);
   // Use shared value instead of ref so it's readable inside worklets
@@ -220,6 +238,7 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
               dayNumber={dayNumber}
               isActiveWindow={Math.abs(index - activeIndex) <= 1}
               onSavedWordChange={onSavedWordChange}
+              renderCard={renderCard}
             />
           ))}
         </Animated.View>

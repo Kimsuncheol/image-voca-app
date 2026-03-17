@@ -13,7 +13,13 @@ import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
 import { useSubscriptionStore } from "../../src/stores";
-import { Course, COURSES, CourseType } from "../../src/types/vocabulary";
+import {
+  Course,
+  COURSES,
+  CourseType,
+  findRuntimeCourse,
+  isJlptParentCourseId,
+} from "../../src/types/vocabulary";
 
 export default function CourseSelectionScreen() {
   const { isDark } = useTheme();
@@ -49,10 +55,15 @@ export default function CourseSelectionScreen() {
 
   const handleCourseSelect = async (course: Course) => {
     try {
+      if (isJlptParentCourseId(course.id)) {
+        router.push("/course/jlpt-levels");
+        return;
+      }
+
       if (user) {
-        updateDoc(doc(db, "users", user.uid), {
+        await updateDoc(doc(db, "users", user.uid), {
           recentCourse: course.id,
-        }).catch((err) => console.error("Error syncing recent course:", err));
+        });
       }
 
       await AsyncStorage.setItem("recentCourse", course.id);
@@ -67,7 +78,7 @@ export default function CourseSelectionScreen() {
     }
   };
 
-  const recentCourseData = COURSES.find((c) => c.id === recentCourse);
+  const recentCourseData = findRuntimeCourse(recentCourse ?? undefined);
   const otherCourses = COURSES.filter((c) => c.id !== recentCourse);
 
   return (
@@ -82,7 +93,12 @@ export default function CourseSelectionScreen() {
         {recentCourseData && (
           <RecentCourseSection
             course={recentCourseData}
-            onPress={() => handleCourseSelect(recentCourseData)}
+            onPress={() =>
+              router.push({
+                pathname: "/course/[courseId]/days",
+                params: { courseId: recentCourseData.id },
+              })
+            }
           />
         )}
         <AllCoursesSection

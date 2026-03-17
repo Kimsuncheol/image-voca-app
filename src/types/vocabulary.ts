@@ -1,13 +1,26 @@
 import type { PartOfSpeech, WordForms } from "../services/linguisticDataService";
 
+export interface LocalizedVocabularyContent {
+  meaning?: string;
+  pronunciation?: string;
+  translation?: string;
+}
+
+export interface VocabularyLocalizationMap {
+  en?: LocalizedVocabularyContent;
+  ko?: LocalizedVocabularyContent;
+}
+
 export interface VocabularyCard {
   id: string;
   word: string;
   meaning: string;
   translation?: string;
   pronunciation?: string;
+  pronunciationRoman?: string;
   example: string;
   imageUrl?: string;
+  localized?: VocabularyLocalizationMap;
   course: CourseType;
   // Linguistic data fields
   partOfSpeech?: PartOfSpeech;
@@ -19,14 +32,24 @@ export interface VocabularyCard {
 
 export type { PartOfSpeech, WordForms };
 
-export type CourseType =
+export type JLPTLevelId =
+  | "JLPT_N1"
+  | "JLPT_N2"
+  | "JLPT_N3"
+  | "JLPT_N4"
+  | "JLPT_N5";
+
+export type TopLevelCourseType =
   | "수능"
   | "TOEIC"
   | "TOEFL_IELTS"
-  | "COLLOCATION";
+  | "COLLOCATION"
+  | "JLPT";
+
+export type CourseType = TopLevelCourseType | JLPTLevelId;
 
 export interface Course {
-  id: CourseType;
+  id: TopLevelCourseType;
   title: string;
   titleKey: string;
   description: string;
@@ -35,6 +58,20 @@ export interface Course {
   color: string;
   wordCount: number;
 }
+
+export interface JLPTLevelCourse {
+  id: JLPTLevelId;
+  parentId: "JLPT";
+  title: string;
+  titleKey: string;
+  description: string;
+  descriptionKey: string;
+  icon: string;
+  color: string;
+  wordCount: number;
+}
+
+export type RuntimeCourse = Course | JLPTLevelCourse;
 
 export const COURSES: Course[] = [
   {
@@ -77,4 +114,102 @@ export const COURSES: Course[] = [
     color: "#4A90E2",
     wordCount: 50,
   },
+  {
+    id: "JLPT",
+    title: "JLPT",
+    titleKey: "courses.jlpt.title",
+    description: "Japanese Language Proficiency Test",
+    descriptionKey: "courses.jlpt.description",
+    icon: "language",
+    color: "#FF8A65",
+    wordCount: 5000,
+  },
 ];
+
+export const JLPT_LEVELS: JLPTLevelCourse[] = [
+  {
+    id: "JLPT_N1",
+    parentId: "JLPT",
+    title: "N1",
+    titleKey: "courses.jlpt.levels.n1.title",
+    description: "Advanced",
+    descriptionKey: "courses.jlpt.levels.n1.description",
+    icon: "ribbon",
+    color: "#D9485F",
+    wordCount: 1200,
+  },
+  {
+    id: "JLPT_N2",
+    parentId: "JLPT",
+    title: "N2",
+    titleKey: "courses.jlpt.levels.n2.title",
+    description: "Upper Intermediate",
+    descriptionKey: "courses.jlpt.levels.n2.description",
+    icon: "ribbon",
+    color: "#F28C38",
+    wordCount: 1100,
+  },
+  {
+    id: "JLPT_N3",
+    parentId: "JLPT",
+    title: "N3",
+    titleKey: "courses.jlpt.levels.n3.title",
+    description: "Intermediate",
+    descriptionKey: "courses.jlpt.levels.n3.description",
+    icon: "ribbon",
+    color: "#F6C445",
+    wordCount: 1000,
+  },
+  {
+    id: "JLPT_N4",
+    parentId: "JLPT",
+    title: "N4",
+    titleKey: "courses.jlpt.levels.n4.title",
+    description: "Elementary",
+    descriptionKey: "courses.jlpt.levels.n4.description",
+    icon: "ribbon",
+    color: "#62B46E",
+    wordCount: 900,
+  },
+  {
+    id: "JLPT_N5",
+    parentId: "JLPT",
+    title: "N5",
+    titleKey: "courses.jlpt.levels.n5.title",
+    description: "Beginner",
+    descriptionKey: "courses.jlpt.levels.n5.description",
+    icon: "ribbon",
+    color: "#4A90E2",
+    wordCount: 800,
+  },
+];
+
+const JLPT_LEVEL_IDS = new Set<JLPTLevelId>(JLPT_LEVELS.map((level) => level.id));
+
+export const isJlptLevelCourseId = (courseId?: string): courseId is JLPTLevelId =>
+  !!courseId && JLPT_LEVEL_IDS.has(courseId as JLPTLevelId);
+
+export const isJlptParentCourseId = (
+  courseId?: string,
+): courseId is "JLPT" => courseId === "JLPT";
+
+export const isJlptCourseId = (courseId?: string) =>
+  isJlptParentCourseId(courseId) || isJlptLevelCourseId(courseId);
+
+export const findRuntimeCourse = (
+  courseId?: string,
+): RuntimeCourse | undefined => {
+  if (!courseId) return undefined;
+  return (
+    COURSES.find((course) => course.id === courseId) ??
+    JLPT_LEVELS.find((level) => level.id === courseId)
+  );
+};
+
+export const getTopLevelCourseId = (
+  courseId?: CourseType | string,
+): TopLevelCourseType | undefined => {
+  if (!courseId) return undefined;
+  if (isJlptLevelCourseId(courseId)) return "JLPT";
+  return courseId as TopLevelCourseType;
+};

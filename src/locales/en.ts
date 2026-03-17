@@ -72,6 +72,22 @@ const en = {
       },
     },
   },
+  notifications: {
+    word: {
+      title: "Word of the Day",
+      header: "Word Notification",
+    },
+    collocation: {
+      title: "Collocation of the Day",
+      header: "Collocation Notification",
+    },
+    labels: {
+      example: "Example",
+      translation: "Translation",
+      pronunciation: "Pronunciation",
+      pronunciationRoman: "Roman",
+    },
+  },
   dashboard: {
     greeting: {
       morning: "Good morning",
@@ -164,6 +180,35 @@ const en = {
       title: "OPIc",
       description: "Oral Proficiency Interview",
     },
+    jlpt: {
+      title: "JLPT",
+      description: "Japanese Language Proficiency Test",
+      levels: {
+        title: "Choose Your JLPT Level",
+        subtitle: "Select a level to open its day list.",
+        levelDays: "{{count}} days",
+        n1: {
+          title: "N1",
+          description: "Advanced",
+        },
+        n2: {
+          title: "N2",
+          description: "Upper Intermediate",
+        },
+        n3: {
+          title: "N3",
+          description: "Intermediate",
+        },
+        n4: {
+          title: "N4",
+          description: "Elementary",
+        },
+        n5: {
+          title: "N5",
+          description: "Beginner",
+        },
+      },
+    },
   },
   subscription: {
     unlimited: {
@@ -193,6 +238,14 @@ const en = {
       adding: "Adding...",
       added: "Added",
       addToWordBank: "Add to Word Bank",
+    },
+    jlpt: {
+      labels: {
+        meaningEnglish: "English Meaning",
+        meaningKorean: "Korean Meaning",
+        translationEnglish: "English Translation",
+        translationKorean: "Korean Translation",
+      },
     },
     hints: {
       flipFirst: "Flip this card first to continue.",
@@ -435,6 +488,15 @@ const en = {
     katakana: "Katakana",
   },
 
+  ad: {
+    label: "Advertisement",
+    placeholder: "Ad content plays here",
+    rewardTitle: "Free Day Unlock",
+    rewardSubtitle: "Watch to unlock Day {{day}} for free",
+    rewardSubtitleGeneric: "Watch to unlock this day for free",
+    watching: "Watch ad to continue ({{seconds}}s)",
+    claimButton: "Claim Free Access",
+  },
   course: {
     days: "Days",
     selectDay: "Select a day to start learning",
@@ -516,6 +578,11 @@ const en = {
     title: "Coming Soon",
     description:
       "Japanese learning content is currently under development. Stay tuned for updates!",
+    links: {
+      jlptVocabulary: "JLPT Vocabulary",
+      wordBank: "Word Bank",
+      notificationCard: "Word of the Day",
+    },
   },
   student: {
     classes: {

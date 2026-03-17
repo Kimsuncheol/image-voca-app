@@ -7,6 +7,10 @@ export default function WordBankLayout() {
   return (
     <Stack>
       <Stack.Screen
+        name="jlpt-levels"
+        options={{ title: t("courses.jlpt.levels.title") }}
+      />
+      <Stack.Screen
         name="[course]"
         options={{
           title: t("wordBank.wordsTitle"),

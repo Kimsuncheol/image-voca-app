@@ -42,6 +42,7 @@ describe("quizModes", () => {
     expect(sanitizeRequestedQuizType("TOEIC", "fill-in-blank")).toBe(
       "fill-in-blank",
     );
+    expect(sanitizeRequestedQuizType("JLPT_N3", "matching")).toBe("matching");
     expect(sanitizeRequestedQuizType("COLLOCATION", "collocation-matching")).toBe(
       "collocation-matching",
     );

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { ThemedText } from "../themed-text";
@@ -6,14 +7,22 @@ import { ThemedText } from "../themed-text";
 interface WordCardExampleProps {
   example: string;
   translation?: string;
+  pronunciation?: string;
+  pronunciationRoman?: string;
 }
 
 /**
  * Example section of the word card
  * Displays example sentences and translations with TTS support
  */
-export function WordCardExample({ example, translation }: WordCardExampleProps) {
+export function WordCardExample({
+  example,
+  translation,
+  pronunciation,
+  pronunciationRoman,
+}: WordCardExampleProps) {
   const { speak } = useSpeech();
+  const { t } = useTranslation();
 
   const examples = example
     ? example
@@ -38,6 +47,20 @@ export function WordCardExample({ example, translation }: WordCardExampleProps) 
 
   return (
     <View testID="word-card-example-content" style={styles.container}>
+      {pronunciation ? (
+        <ThemedText style={styles.metaText}>
+          {`${t("notifications.labels.pronunciation", {
+            defaultValue: "Pronunciation",
+          })}: ${pronunciation}`}
+        </ThemedText>
+      ) : null}
+      {pronunciationRoman ? (
+        <ThemedText style={styles.metaText}>
+          {`${t("notifications.labels.pronunciationRoman", {
+            defaultValue: "Roman",
+          })}: ${pronunciationRoman}`}
+        </ThemedText>
+      ) : null}
       {examples.map((exampleText, index) => (
         <View key={index} style={styles.exampleGroup}>
           <TouchableOpacity
@@ -66,6 +89,12 @@ const styles = StyleSheet.create({
   },
   exampleGroup: {
     marginTop: 8,
+  },
+  metaText: {
+    fontSize: 14,
+    lineHeight: 18,
+    opacity: 0.72,
+    marginTop: 6,
   },
   example: {
     fontSize: 16,

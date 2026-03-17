@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CollocationCardSection from "../components/notification/CollocationCardSection";
@@ -13,6 +14,7 @@ export default function NotificationCardScreen() {
   const router = useRouter();
   const { isDark } = useTheme();
   const { payload } = useNotificationCard();
+  const { t } = useTranslation();
 
   const handleGoDashboard = () => {
     router.replace("/(tabs)");
@@ -20,8 +22,12 @@ export default function NotificationCardScreen() {
 
   const title =
     payload?.cardKind === "collocation"
-      ? "Collocation Notification"
-      : "Word Notification";
+      ? t("notifications.collocation.header", {
+          defaultValue: "Collocation Notification",
+        })
+      : t("notifications.word.header", {
+          defaultValue: "Word Notification",
+        });
 
   return (
     <SafeAreaView
@@ -34,6 +40,7 @@ export default function NotificationCardScreen() {
       {/* Header: back button + card kind title */}
       <NotificationHeader
         title={title}
+        backLabel={t("tabs.dashboard", { defaultValue: "Dashboard" })}
         isDark={isDark}
         onBack={handleGoDashboard}
       />

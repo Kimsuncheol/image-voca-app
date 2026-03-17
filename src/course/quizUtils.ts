@@ -8,6 +8,7 @@ export interface QuizQuestion {
   correctAnswer: string;
   clozeSentence?: string;
   translation?: string;
+  localizedPronunciation?: string;
   correctForms?: string[];
   prompt?: string;
   highlightText?: string;
@@ -17,6 +18,7 @@ export interface QuizVocabData {
   word: string;
   meaning: string;
   pronunciation?: string;
+  localizedPronunciation?: string;
   example?: string;
   translation?: string;
 }
@@ -112,6 +114,7 @@ export const generateQuizQuestions = (
       correctAnswer: isWordAnswer ? vocab.word : vocab.meaning,
       clozeSentence,
       translation,
+      localizedPronunciation: vocab.localizedPronunciation,
       correctForms,
     };
   });

@@ -1,6 +1,8 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import type { NotificationCollocationCardPayload } from "../../src/types/notificationCard";
+import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
 import CollocationFlipCard from "../CollocationFlipCard";
 
 interface CollocationCardSectionProps {
@@ -16,17 +18,23 @@ export default function CollocationCardSection({
   payload,
   isDark,
 }: CollocationCardSectionProps) {
+  const { i18n } = useTranslation();
+  const resolved = React.useMemo(
+    () => resolveVocabularyContent(payload, i18n.language),
+    [i18n.language, payload],
+  );
+
   return (
     <View style={styles.container}>
       <CollocationFlipCard
         isDark={isDark}
         isActive={true}
         data={{
-          collocation: payload.word,
-          meaning: payload.meaning,
-          explanation: payload.pronunciation ?? "",
-          example: payload.example ?? "",
-          translation: payload.translation ?? "",
+          collocation: resolved.word,
+          meaning: resolved.meaning,
+          explanation: resolved.localizedPronunciation ?? "",
+          example: resolved.example,
+          translation: resolved.translation ?? "",
         }}
       />
     </View>

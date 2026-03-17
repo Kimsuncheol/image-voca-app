@@ -1,16 +1,25 @@
 import { Image } from "expo-image";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { Card, Divider, Text } from "react-native-paper";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { SpeakerButton } from "../CollocationFlipCard/SpeakerButton";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import type { NotificationWordCardPayload } from "../../src/types/notificationCard";
+import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
 
 interface WordCardProps {
   data: Pick<
     NotificationWordCardPayload,
-    "word" | "meaning" | "pronunciation" | "example" | "translation" | "imageUrl"
+    | "word"
+    | "meaning"
+    | "pronunciation"
+    | "pronunciationRoman"
+    | "example"
+    | "translation"
+    | "imageUrl"
+    | "localized"
   >;
   isDark?: boolean;
 }
@@ -56,6 +65,12 @@ export default function WordCard({
   data,
   isDark = false,
 }: WordCardProps) {
+  const { t, i18n } = useTranslation();
+  const resolved = React.useMemo(
+    () => resolveVocabularyContent(data, i18n.language),
+    [data, i18n.language],
+  );
+
   return (
     <Card
       mode="elevated"
@@ -74,12 +89,23 @@ export default function WordCard({
                 variant="headlineMedium"
                 style={[styles.word, { color: isDark ? "#FFFFFF" : "#0F172A" }]}
               >
-                {data.word}
+                {resolved.word}
               </Text>
-              <SpeakerButton text={data.word} isDark={isDark ?? false} />
+              <SpeakerButton text={resolved.word} isDark={isDark ?? false} />
             </View>
+            {resolved.sharedPronunciation ? (
+              <Text
+                variant="bodyMedium"
+                style={[
+                  styles.sharedPronunciation,
+                  { color: isDark ? "#9CA3AF" : "#6B7280" },
+                ]}
+              >
+                {resolved.sharedPronunciation}
+              </Text>
+            ) : null}
             <InlineMeaningWithChips
-              meaning={data.meaning}
+              meaning={resolved.meaning}
               isDark={isDark}
               textStyle={[
                 styles.meaning,
@@ -91,9 +117,9 @@ export default function WordCard({
             />
           </View>
 
-          {data.imageUrl ? (
+          {resolved.imageUrl ? (
             <Image
-              source={{ uri: data.imageUrl }}
+              source={{ uri: resolved.imageUrl }}
               style={styles.cardImage}
               contentFit="cover"
               cachePolicy="memory-disk"
@@ -106,16 +132,36 @@ export default function WordCard({
         <Divider style={styles.divider} />
 
         <SectionRow
-          label="Example"
-          value={data.example}
+          label={t("notifications.labels.example", { defaultValue: "Example" })}
+          value={resolved.example}
           isDark={isDark}
           multiline={true}
         />
         <SectionRow
-          label="Translation"
-          value={data.translation}
+          label={t("notifications.labels.translation", {
+            defaultValue: "Translation",
+          })}
+          value={resolved.translation}
           isDark={isDark}
           multiline={true}
+        />
+        <SectionRow
+          label={t("notifications.labels.pronunciation", {
+            defaultValue: "Pronunciation",
+          })}
+          value={
+            resolved.localizedPronunciation !== resolved.sharedPronunciation
+              ? resolved.localizedPronunciation
+              : undefined
+          }
+          isDark={isDark}
+        />
+        <SectionRow
+          label={t("notifications.labels.pronunciationRoman", {
+            defaultValue: "Roman",
+          })}
+          value={resolved.pronunciationRoman}
+          isDark={isDark}
         />
       </Card.Content>
     </Card>
@@ -164,6 +210,10 @@ const styles = StyleSheet.create({
   meaning: {
     fontWeight: "700",
     lineHeight: 24,
+  },
+  sharedPronunciation: {
+    marginTop: 2,
+    fontStyle: "italic",
   },
   divider: {
     marginVertical: 16,

@@ -3,12 +3,12 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
-import { Course } from "../../src/types/vocabulary";
+import { RuntimeCourse } from "../../src/types/vocabulary";
 import { CourseCard } from "../course";
 import { ThemedText } from "../themed-text";
 
 interface RecentCourseSectionProps {
-  course: Course;
+  course: RuntimeCourse;
   onPress: () => void;
 }
 

@@ -72,6 +72,22 @@ const ja = {
       },
     },
   },
+  notifications: {
+    word: {
+      title: "今日の単語",
+      header: "単語通知",
+    },
+    collocation: {
+      title: "今日のコロケーション",
+      header: "コロケーション通知",
+    },
+    labels: {
+      example: "例文",
+      translation: "翻訳",
+      pronunciation: "発音",
+      pronunciationRoman: "ローマ字",
+    },
+  },
   dashboard: {
     greeting: {
       morning: "おはようございます",
@@ -162,6 +178,35 @@ const ja = {
       title: "OPIc",
       description: "英語スピーキングテスト",
     },
+    jlpt: {
+      title: "JLPT",
+      description: "日本語能力試験",
+      levels: {
+        title: "JLPTレベルを選択",
+        subtitle: "学習するレベルを選んでください。",
+        levelDays: "{{count}}日",
+        n1: {
+          title: "N1",
+          description: "上級",
+        },
+        n2: {
+          title: "N2",
+          description: "中上級",
+        },
+        n3: {
+          title: "N3",
+          description: "中級",
+        },
+        n4: {
+          title: "N4",
+          description: "初中級",
+        },
+        n5: {
+          title: "N5",
+          description: "初級",
+        },
+      },
+    },
   },
   subscription: {
     unlimited: {
@@ -191,6 +236,14 @@ const ja = {
       adding: "追加中...",
       added: "追加済み",
       addToWordBank: "単語帳に追加",
+    },
+    jlpt: {
+      labels: {
+        meaningEnglish: "英語の意味",
+        meaningKorean: "韓国語の意味",
+        translationEnglish: "英語訳",
+        translationKorean: "韓国語訳",
+      },
     },
     hints: {
       flipFirst: "続けるにはまずカードをめくってください。",
@@ -423,6 +476,15 @@ const ja = {
     katakana: "カタカナ",
   },
 
+  ad: {
+    label: "広告",
+    placeholder: "広告が再生されます",
+    rewardTitle: "無料アンロック",
+    rewardSubtitle: "広告を視聴すると{{day}}日目が無料で解放されます",
+    rewardSubtitleGeneric: "広告を視聴するとこの日が無料で解放されます",
+    watching: "広告を視聴中... ({{seconds}}秒)",
+    claimButton: "無料でアクセスする",
+  },
   course: {
     days: "日",
     selectDay: "学習する日を選択してください",
@@ -547,6 +609,11 @@ const ja = {
     title: "準備中",
     description:
       "日本語学習コンテンツは現在開発中です。アップデートをお楽しみに！",
+    links: {
+      jlptVocabulary: "JLPT 単語",
+      wordBank: "単語帳",
+      notificationCard: "今日の単語",
+    },
   },
 };
 

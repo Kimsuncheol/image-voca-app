@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import type * as NotificationsType from "expo-notifications";
 import { collection, getDocs } from "firebase/firestore";
 import { Platform } from "react-native";
+import i18n, { getCurrentLanguage } from "../i18n";
 import { db } from "../services/firebase";
 import {
     getTotalDaysForCourse,
@@ -10,6 +11,7 @@ import {
 import { vocaService } from "../services/vocaService";
 import type { NotificationCardPayload } from "../types/notificationCard";
 import { CourseType } from "../types/vocabulary";
+import { resolveVocabularyContent } from "./localizedVocabulary";
 
 type NotificationsModule = typeof import("expo-notifications");
 type NotificationPermissions = NotificationsType.NotificationPermissionsStatus;
@@ -140,8 +142,11 @@ type NotificationCardSelection = {
   word?: string;
   meaning?: string;
   pronunciation?: string;
+  pronunciationRoman?: string;
   example?: string;
   translation?: string;
+  imageUrl?: string;
+  localized?: NotificationCardPayload["localized"];
   course?: CourseType | string;
 };
 
@@ -158,9 +163,56 @@ const buildPopWordNotificationData = (
     word: selection.word ?? "",
     meaning: selection.meaning ?? "",
     pronunciation: selection.pronunciation ?? "",
+    pronunciationRoman: selection.pronunciationRoman ?? "",
     example: selection.example ?? "",
     translation: selection.translation ?? "",
+    imageUrl: selection.imageUrl ?? "",
+    localized: selection.localized,
   };
+};
+
+export const buildPopWordNotificationContent = async (
+  selection: NotificationCardSelection,
+) => {
+  const language = await getCurrentLanguage();
+  const t = i18n.getFixedT(language);
+  const resolved = resolveVocabularyContent(
+    {
+      word: selection.word ?? "",
+      meaning: selection.meaning ?? "",
+      translation: selection.translation,
+      pronunciation: selection.pronunciation,
+      pronunciationRoman: selection.pronunciationRoman,
+      example: selection.example,
+      imageUrl: selection.imageUrl,
+      localized: selection.localized,
+    },
+    language,
+  );
+
+  let title = t("notifications.word.title", { defaultValue: "Word of the Day" });
+  let body = `${resolved.word} - ${resolved.meaning}`;
+
+  if (selection.course === "COLLOCATION") {
+    title = t("notifications.collocation.title", {
+      defaultValue: "Collocation of the Day",
+    });
+    if (resolved.localizedPronunciation) {
+      body += `\n\n${t("notifications.labels.pronunciation", {
+        defaultValue: "Pronunciation",
+      })}: ${resolved.localizedPronunciation}`;
+    } else if (resolved.example) {
+      body += `\n\n${t("notifications.labels.example", {
+        defaultValue: "Example",
+      })}: ${resolved.example}`;
+    }
+  } else if (resolved.example) {
+    body += `\n\n${t("notifications.labels.example", {
+      defaultValue: "Example",
+    })}: ${resolved.example}`;
+  }
+
+  return { title, body };
 };
 
 const fetchSavedWords = async (userId: string) => {
@@ -351,29 +403,12 @@ export const schedulePopWordNotifications = async (
   for (let i = 0; i < dates.length; i++) {
     const date = dates[i];
     const selection = shuffledCards[i % shuffledCards.length];
-
-    let title = "Word of the Day";
-    let bodyText = "";
-
-    if (selection.course === "COLLOCATION") {
-      title = "Collocation of the Day";
-      bodyText = `${selection.word} - ${selection.meaning}`;
-      if (selection.pronunciation) {
-        bodyText += `\n\nExplanation: ${selection.pronunciation}`;
-      }
-    } else if (selection.course) {
-      bodyText = `${selection.word} - ${selection.meaning}`;
-      if (selection.example) {
-        bodyText += `\n\nExample: ${selection.example}`;
-      }
-    } else {
-      bodyText = `${selection.word} - ${selection.meaning || "Open the app to see the meaning."}`;
-    }
+    const { title, body } = await buildPopWordNotificationContent(selection);
 
     const id = await Notifications.scheduleNotificationAsync({
       content: {
         title,
-        body: bodyText,
+        body,
         data: { ...buildPopWordNotificationData(selection) },
       },
       trigger: buildDateTrigger(date),
