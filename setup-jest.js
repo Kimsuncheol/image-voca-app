@@ -98,6 +98,18 @@ jest.mock("expo-crypto", () => ({
   digestStringAsync: jest.fn(async (_algorithm, value) => `hash:${value}`),
 }));
 
+jest.mock("expo-speech", () => ({
+  speak: jest.fn(),
+  stop: jest.fn(async () => undefined),
+  pause: jest.fn(async () => undefined),
+  resume: jest.fn(async () => undefined),
+  getAvailableVoicesAsync: jest.fn(async () => [
+    { identifier: "en-us-voice", language: "en-US" },
+    { identifier: "ko-kr-voice", language: "ko-KR" },
+    { identifier: "ja-jp-voice", language: "ja-JP" },
+  ]),
+}));
+
 jest.mock('firebase/app', () => {
   return {
     initializeApp: jest.fn(),

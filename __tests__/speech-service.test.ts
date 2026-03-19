@@ -1,6 +1,7 @@
 import { Audio } from "expo-av";
 import * as Crypto from "expo-crypto";
 import * as FileSystem from "expo-file-system/legacy";
+import * as Speech from "expo-speech";
 import {
   __resetSpeechServiceForTests,
   buildSpeechCacheKey,
@@ -20,6 +21,11 @@ describe("speechService", () => {
   const getInfoAsyncMock = FileSystem.getInfoAsync as jest.Mock;
   const makeDirectoryAsyncMock = FileSystem.makeDirectoryAsync as jest.Mock;
   const writeAsStringAsyncMock = FileSystem.writeAsStringAsync as jest.Mock;
+  const speechSpeakMock = Speech.speak as jest.Mock;
+  const speechStopMock = Speech.stop as jest.Mock;
+  const speechPauseMock = Speech.pause as jest.Mock;
+  const speechResumeMock = Speech.resume as jest.Mock;
+  const speechGetAvailableVoicesAsyncMock = Speech.getAvailableVoicesAsync as jest.Mock;
 
   let existingUris: Set<string>;
   let playbackStatusHandler: ((status: any) => void) | null;
@@ -37,6 +43,18 @@ describe("speechService", () => {
     playbackStatusHandler = null;
     process.env.EXPO_PUBLIC_OPENAI_TTS_ENDPOINT = "https://example.com/openai-tts";
     process.env.EXPO_PUBLIC_QWEN_TTS_ENDPOINT = "https://example.com/qwen-tts";
+
+    speechSpeakMock.mockImplementation((_text, options) => {
+      options?.onStart?.();
+    });
+    speechStopMock.mockResolvedValue(undefined);
+    speechPauseMock.mockResolvedValue(undefined);
+    speechResumeMock.mockResolvedValue(undefined);
+    speechGetAvailableVoicesAsyncMock.mockResolvedValue([
+      { identifier: "en-us-voice", language: "en-US" },
+      { identifier: "ko-kr-voice", language: "ko-KR" },
+      { identifier: "ja-jp-voice", language: "ja-JP" },
+    ]);
 
     soundMock = {
       setOnPlaybackStatusUpdate: jest.fn(),
@@ -121,6 +139,7 @@ describe("speechService", () => {
     expect(digestStringAsyncMock).toHaveBeenCalledWith(
       "SHA256",
       JSON.stringify({
+        backend: "openai",
         text: "안녕 하세요",
         language: "ko-KR",
         voice: "Sohee",
@@ -248,5 +267,53 @@ describe("speechService", () => {
       "https://example.com/qwen-tts",
       expect.any(Object)
     );
+  });
+
+  it("falls back to local device speech when no remote endpoint is configured", async () => {
+    delete process.env.EXPO_PUBLIC_OPENAI_TTS_ENDPOINT;
+    delete process.env.EXPO_PUBLIC_QWEN_TTS_ENDPOINT;
+
+    await speak("Local fallback", {
+      language: "en-US",
+      rate: 0.9,
+    });
+
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(speechGetAvailableVoicesAsyncMock).toHaveBeenCalledTimes(1);
+    expect(speechSpeakMock).toHaveBeenCalledWith(
+      "Local fallback",
+      expect.objectContaining({
+        language: "en-US",
+        rate: 0.9,
+        voice: "en-us-voice",
+      })
+    );
+  });
+
+  it("uses expo-speech pause, resume, and stop for local fallback", async () => {
+    delete process.env.EXPO_PUBLIC_OPENAI_TTS_ENDPOINT;
+    delete process.env.EXPO_PUBLIC_QWEN_TTS_ENDPOINT;
+
+    await speak("Pause me", {
+      language: "en-US",
+      rate: 0.9,
+    });
+
+    expect(await isSpeaking()).toBe(true);
+
+    await pauseSpeech();
+    expect(speechPauseMock).toHaveBeenCalledTimes(1);
+    expect(await isSpeaking()).toBe(false);
+    expect(await isPaused()).toBe(true);
+
+    await resumeSpeech();
+    expect(speechResumeMock).toHaveBeenCalledTimes(1);
+    expect(await isSpeaking()).toBe(true);
+    expect(await isPaused()).toBe(false);
+
+    await stopSpeech();
+    expect(speechStopMock).toHaveBeenCalledTimes(1);
+    expect(await isSpeaking()).toBe(false);
+    expect(await isPaused()).toBe(false);
   });
 });
