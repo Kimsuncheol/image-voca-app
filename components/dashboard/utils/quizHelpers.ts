@@ -76,9 +76,7 @@ export function normalizeWordData(data: any, courseId: string): any {
  */
 export function createClozeSentence(example: string, word: string): string {
   if (!example || !word) return "";
-  // Simple replacement - replace the word with ___
-  const regex = new RegExp(`\\b${word}\\w*\\b`, "gi");
-  return example.replace(regex, "___");
+  return example.split(word).join("___");
 }
 
 /**

@@ -6,7 +6,8 @@
  * Orchestrator component for the pop quiz feature on the dashboard.
  * Features:
  * - Fetches random vocabulary words from various courses
- * - Supports multiple-choice quiz type only
+ * - JLPT: rotates through multiple-choice, matching, and fill-in-blank
+ * - English courses: multiple-choice only
  * - Manages batching and prefetching for infinite play
  * - Tracks user answers and updates statistics
  *
@@ -14,7 +15,9 @@
  * - hooks/useQuizBatchFetcher.ts: Data fetching and caching logic
  * - utils/quizHelpers.ts: Helper functions
  * - constants/quizConfig.ts: Configuration constants
- * - quiz-types/MultipleChoiceQuiz.tsx: Quiz type renderer
+ * - quiz-types/MultipleChoiceQuiz.tsx: Multiple choice renderer
+ * - quiz-types/MatchingQuiz.tsx: Matching quiz renderer (JLPT only)
+ * - quiz-types/FillInBlankQuiz.tsx: Fill-in-blank renderer (JLPT only)
  * - QuizHeader.tsx, QuizStoppedState.tsx: Shared UI components
  */
 
@@ -34,17 +37,29 @@ import {
 } from "./constants/quizConfig";
 import { useQuizBatchFetcher } from "./hooks/useQuizBatchFetcher";
 import { PopQuizSkeleton } from "./PopQuizSkeleton";
+import { FillInBlankQuiz } from "./quiz-types/FillInBlankQuiz";
+import { MatchingPair, MatchingQuiz } from "./quiz-types/MatchingQuiz";
 import { MultipleChoiceQuiz } from "./quiz-types/MultipleChoiceQuiz";
 import { QuizHeader } from "./QuizHeader";
 import { QuizStoppedState } from "./QuizStoppedState";
+import { createClozeSentence } from "./utils/quizHelpers";
 
 // ============================================================================
 // TYPE DEFINITIONS
 // ============================================================================
+type QuizType = "multiple-choice" | "matching" | "fill-in-blank";
+
 interface QuizItem {
   word: string;
   meaning: string;
+  example?: string; // cloze sentence for fill-in-blank
 }
+
+const JLPT_QUIZ_TYPES: QuizType[] = [
+  "multiple-choice",
+  "matching",
+  "fill-in-blank",
+];
 
 // ============================================================================
 // MAIN COMPONENT
@@ -54,7 +69,7 @@ export function DashboardPopQuiz() {
   // HOOKS & CONTEXT
   // ==========================================================================
   const { isDark } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { learningLanguage } = useLearningLanguage();
   const { bufferQuizAnswer, flushQuizStats } = useUserStatsStore();
@@ -83,8 +98,10 @@ export function DashboardPopQuiz() {
   const [turnNumber, setTurnNumber] = useState(1);
 
   // Quiz state
+  const [quizType, setQuizType] = useState<QuizType>("multiple-choice");
   const [quizItem, setQuizItem] = useState<QuizItem | null>(null);
   const [options, setOptions] = useState<string[]>([]);
+  const [matchingPairs, setMatchingPairs] = useState<MatchingPair[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -98,42 +115,104 @@ export function DashboardPopQuiz() {
   // ==========================================================================
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const batchLoadVersionRef = useRef(0);
+  const quizTypeIndexRef = useRef(0);
 
   // Derived state
   const quizKey = `${turnNumber}-${currentIndex}`;
 
   // ==========================================================================
+  // MEANING RESOLUTION
+  // ==========================================================================
+  /**
+   * Resolves the correct localized meaning from raw Firestore word data.
+   * JLPT words have meaningEnglish / meaningKorean flat fields.
+   * Other courses have a single meaning field.
+   */
+  const resolveMeaning = useCallback(
+    (wordData: any): string => {
+      if (wordData.meaningEnglish !== undefined) {
+        return i18n.language === "ko"
+          ? (wordData.meaningKorean ?? wordData.meaningEnglish)
+          : wordData.meaningEnglish;
+      }
+      return wordData.meaning ?? "";
+    },
+    [i18n.language],
+  );
+
+  // ==========================================================================
   // QUIZ GENERATION
   // ==========================================================================
   /**
-   * Generates a single multiple-choice quiz item from the current batch.
-   * Creates distractors from other words in the same batch.
+   * Generates a quiz item from the current word.
+   * For JLPT (learningLanguage === "ja"): rotates between multiple-choice,
+   * matching, and fill-in-blank.
+   * For other courses: always multiple-choice.
    */
-  const generateQuiz = useCallback((wordData: any, batch: any[]) => {
-    if (batch.length < 4) return;
+  const generateQuiz = useCallback(
+    (wordData: any, batch: any[]) => {
+      if (batch.length < 4) return;
 
-    const targetWord = wordData;
-    const availableWords = batch.filter((w) => w.word !== targetWord.word);
+      const targetWord = wordData;
+      const availableWords = batch.filter((w) => w.word !== targetWord.word);
+      const shuffledAvailable = [...availableWords].sort(
+        () => Math.random() - 0.5,
+      );
+      const targetMeaning = resolveMeaning(targetWord);
 
-    // Multiple choice: Show word, pick meaning from 4 options
-    const distractors: string[] = [];
-    const shuffledAvailable = [...availableWords].sort(
-      () => Math.random() - 0.5,
-    );
+      // Determine quiz type
+      let nextQuizType: QuizType;
+      if (learningLanguage === "ja") {
+        nextQuizType =
+          JLPT_QUIZ_TYPES[quizTypeIndexRef.current % JLPT_QUIZ_TYPES.length];
+        quizTypeIndexRef.current += 1;
+      } else {
+        nextQuizType = "multiple-choice";
+      }
+      setQuizType(nextQuizType);
 
-    while (distractors.length < 3 && shuffledAvailable.length > 0) {
-      distractors.push(shuffledAvailable.shift()!.meaning);
-    }
-
-    const allOptions = [...distractors, targetWord.meaning];
-    for (let i = allOptions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
-    }
-
-    setQuizItem({ word: targetWord.word, meaning: targetWord.meaning });
-    setOptions(allOptions);
-  }, []);
+      if (nextQuizType === "matching") {
+        const otherPairs: MatchingPair[] = shuffledAvailable
+          .slice(0, 3)
+          .map((w) => ({ word: w.word, meaning: resolveMeaning(w) }));
+        const allPairs: MatchingPair[] = [
+          { word: targetWord.word, meaning: targetMeaning },
+          ...otherPairs,
+        ].sort(() => Math.random() - 0.5);
+        setMatchingPairs(allPairs);
+        setQuizItem({ word: targetWord.word, meaning: targetMeaning });
+        setOptions([]);
+      } else if (nextQuizType === "fill-in-blank") {
+        const cloze = createClozeSentence(
+          targetWord.example ?? "",
+          targetWord.word,
+        );
+        const distractors = shuffledAvailable.slice(0, 3).map((w) => w.word);
+        const wordOptions = [...distractors, targetWord.word].sort(
+          () => Math.random() - 0.5,
+        );
+        setQuizItem({ word: targetWord.word, meaning: targetMeaning, example: cloze });
+        setOptions(wordOptions);
+        setMatchingPairs([]);
+      } else {
+        // Multiple choice: show word, pick meaning
+        const distractors: string[] = [];
+        const remaining = [...shuffledAvailable];
+        while (distractors.length < 3 && remaining.length > 0) {
+          distractors.push(resolveMeaning(remaining.shift()!));
+        }
+        const allOptions = [...distractors, targetMeaning];
+        for (let i = allOptions.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
+        }
+        setQuizItem({ word: targetWord.word, meaning: targetMeaning });
+        setOptions(allOptions);
+        setMatchingPairs([]);
+      }
+    },
+    [learningLanguage, resolveMeaning],
+  );
 
   // ==========================================================================
   // NAVIGATION
@@ -156,6 +235,7 @@ export function DashboardPopQuiz() {
         setCurrentIndex(0);
         setTurnNumber((prev) => prev + 1);
         setWrongCount(0);
+        quizTypeIndexRef.current = 0;
         generateQuiz(nextBatch[0], nextBatch);
       } else {
         setLoading(true);
@@ -175,7 +255,11 @@ export function DashboardPopQuiz() {
     (option: string) => {
       if (isCorrect === true || !quizItem || isStopped) return;
 
-      const isAnswerCorrect = option === quizItem.meaning;
+      const isAnswerCorrect =
+        quizType === "fill-in-blank"
+          ? option === quizItem.word
+          : option === quizItem.meaning;
+
       setSelectedOption(option);
 
       if (user) {
@@ -200,6 +284,7 @@ export function DashboardPopQuiz() {
     [
       isCorrect,
       quizItem,
+      quizType,
       user,
       bufferQuizAnswer,
       loadNextQuiz,
@@ -207,6 +292,28 @@ export function DashboardPopQuiz() {
       isStopped,
     ],
   );
+
+  const handleMatchingComplete = useCallback(() => {
+    if (user) {
+      bufferQuizAnswer(user.uid, true);
+    }
+    setTimeout(() => {
+      setSelectedOption(null);
+      setIsCorrect(null);
+      loadNextQuiz();
+    }, 200);
+  }, [user, bufferQuizAnswer, loadNextQuiz]);
+
+  const handleMatchingWrong = useCallback(() => {
+    if (user) {
+      bufferQuizAnswer(user.uid, false);
+    }
+    const newWrongCount = wrongCount + 1;
+    setWrongCount(newWrongCount);
+    if (newWrongCount >= 3) {
+      setIsStopped(true);
+    }
+  }, [user, bufferQuizAnswer, wrongCount]);
 
   const handleTimeUp = useCallback(() => {
     if (isCorrect === true || !quizItem || isStopped) return;
@@ -290,10 +397,12 @@ export function DashboardPopQuiz() {
       setTurnNumber(1);
       setQuizItem(null);
       setOptions([]);
+      setMatchingPairs([]);
       setSelectedOption(null);
       setIsCorrect(null);
       setWrongCount(0);
       setIsStopped(false);
+      quizTypeIndexRef.current = 0;
 
       const batch = await fetchBatch();
       if (batchLoadVersionRef.current !== loadVersion) {
@@ -381,7 +490,12 @@ export function DashboardPopQuiz() {
           title={t("dashboard.popQuiz.headline")}
           subtitle={t("dashboard.popQuiz.subtitle")}
           timerDuration={15}
-          isTimerRunning={isCorrect === null && !loading && !isStopped}
+          isTimerRunning={
+            quizType !== "matching" &&
+            isCorrect === null &&
+            !loading &&
+            !isStopped
+          }
           quizKey={quizKey}
           onTimeUp={handleTimeUp}
         />
@@ -402,14 +516,35 @@ export function DashboardPopQuiz() {
           />
         ) : (
           <Animated.View style={{ opacity: fadeAnim }}>
-            <MultipleChoiceQuiz
-              quizItem={quizItem}
-              options={options}
-              selectedOption={selectedOption}
-              isCorrect={isCorrect}
-              isDark={isDark}
-              onOptionPress={handleOptionPress}
-            />
+            {quizType === "matching" && (
+              <MatchingQuiz
+                pairs={matchingPairs}
+                isDark={isDark}
+                onComplete={handleMatchingComplete}
+                onWrong={handleMatchingWrong}
+              />
+            )}
+            {quizType === "fill-in-blank" && quizItem.example !== undefined && (
+              <FillInBlankQuiz
+                clozeSentence={quizItem.example}
+                options={options}
+                correctWord={quizItem.word}
+                selectedOption={selectedOption}
+                isCorrect={isCorrect}
+                isDark={isDark}
+                onOptionPress={handleOptionPress}
+              />
+            )}
+            {quizType === "multiple-choice" && (
+              <MultipleChoiceQuiz
+                quizItem={quizItem}
+                options={options}
+                selectedOption={selectedOption}
+                isCorrect={isCorrect}
+                isDark={isDark}
+                onOptionPress={handleOptionPress}
+              />
+            )}
           </Animated.View>
         )}
       </View>
