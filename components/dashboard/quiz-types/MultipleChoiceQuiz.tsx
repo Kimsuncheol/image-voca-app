@@ -16,6 +16,8 @@ import { PopQuizOption } from "./PopQuizOption";
 interface QuizItem {
   word: string;
   meaning: string;
+  pronunciation?: string;
+  pronunciationRoman?: string;
 }
 
 interface MultipleChoiceQuizProps {
@@ -51,6 +53,22 @@ export function MultipleChoiceQuiz({
         >
           {quizItem.word}
         </ThemedText>
+        {/* pronunciation={quizItem.pronunciation}  */}
+        {
+          quizItem.pronunciation && (
+            <ThemedText style={[styles.questionLabel]}>
+              {quizItem.pronunciation}
+            </ThemedText>
+          )
+        }
+        {/* pronunciationRoman={quizItem.pronunciationRoman} */}
+        {
+          quizItem.pronunciationRoman && (
+            <ThemedText style={[styles.questionLabel]}>
+              {quizItem.pronunciationRoman}
+            </ThemedText>
+          )
+        }
       </View>
 
       <View style={styles.options}>
@@ -78,7 +96,6 @@ const styles = StyleSheet.create({
   questionLabel: {
     fontSize: 12,
     opacity: 0.6,
-    textTransform: "uppercase",
   },
   questionText: {
     fontSize: 24,

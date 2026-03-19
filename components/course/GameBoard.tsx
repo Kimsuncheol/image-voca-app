@@ -1,4 +1,5 @@
 import React from "react";
+import type { QuizWordOption } from "../../src/course/quizUtils";
 import { View } from "react-native";
 import { CollocationGapFillSentenceGame } from "./CollocationGapFillSentenceGame";
 import { CollocationMatchingGame } from "./CollocationMatchingGame";
@@ -12,7 +13,9 @@ interface QuizQuestion {
   id: string;
   word: string;
   meaning: string;
-  options?: string[];
+  pronunciation?: string;
+  pronunciationRoman?: string;
+  options?: string[] | QuizWordOption[];
   correctAnswer: string;
   clozeSentence?: string;
   translation?: string;
@@ -30,6 +33,7 @@ interface GameBoardProps {
   progressCurrent: number;
   courseColor?: string;
   isDark: boolean;
+  showPronunciationDetails?: boolean;
 
   matchingMeanings: string[];
   selectedWord: string | null;
@@ -62,6 +66,7 @@ export function GameBoard({
   showResult,
   isCorrect,
   onAnswer,
+  showPronunciationDetails = false,
 }: GameBoardProps) {
   const isCollocationGapFill = quizType === "gap-fill-sentence";
   const isCollocationMatching = quizType === "collocation-matching";
@@ -100,6 +105,7 @@ export function GameBoard({
           onSelectMeaning={onSelectMeaning}
           courseColor={courseColor}
           isDark={isDark}
+          showPronunciationDetails={showPronunciationDetails}
         />
       ) : isCollocationGapFill ? (
         <CollocationGapFillSentenceGame
@@ -107,7 +113,7 @@ export function GameBoard({
           clozeSentence={currentQuestion.clozeSentence || ""}
           translation={currentQuestion.translation}
           localizedPronunciation={currentQuestion.localizedPronunciation}
-          options={currentQuestion.options || []}
+          options={(currentQuestion.options as string[]) || []}
           correctAnswer={currentQuestion.correctAnswer}
           userAnswer={userAnswer}
           showResult={showResult}
@@ -120,16 +126,17 @@ export function GameBoard({
           clozeSentence={currentQuestion.clozeSentence || ""}
           translation={currentQuestion.translation}
           localizedPronunciation={currentQuestion.localizedPronunciation}
-          options={currentQuestion.options || []}
+          options={(currentQuestion.options as QuizWordOption[]) || []}
           correctAnswer={currentQuestion.correctAnswer}
           userAnswer={userAnswer}
           showResult={showResult}
           onAnswer={onAnswer}
           correctForms={currentQuestion.correctForms}
+          showPronunciationDetails={showPronunciationDetails}
         />
       ) : (
         <MultipleChoiceGame
-          options={currentQuestion.options || []}
+          options={(currentQuestion.options as string[]) || []}
           correctAnswer={currentQuestion.correctAnswer}
           userAnswer={userAnswer}
           showResult={showResult}

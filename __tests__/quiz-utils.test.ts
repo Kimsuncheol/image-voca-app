@@ -9,24 +9,32 @@ describe("quizUtils", () => {
     {
       word: "alpha",
       meaning: "first",
+      pronunciation: "AL-fa",
+      pronunciationRoman: "alpha",
       example: "Alpha example",
       translation: "첫 번째",
     },
     {
       word: "beta",
       meaning: "second",
+      pronunciation: "BAY-ta",
+      pronunciationRoman: "beta",
       example: "Beta example",
       translation: "두 번째",
     },
     {
       word: "gamma",
       meaning: "third",
+      pronunciation: "GAM-ma",
+      pronunciationRoman: "gamma",
       example: "Gamma example",
       translation: "세 번째",
     },
     {
       word: "delta",
       meaning: "fourth",
+      pronunciation: "DEL-ta",
+      pronunciationRoman: "delta",
       example: "Delta example",
       translation: "네 번째",
     },
@@ -37,6 +45,54 @@ describe("quizUtils", () => {
 
     expect(questions).toHaveLength(4);
     expect(new Set(questions.map((question) => question.word)).size).toBe(4);
+  });
+
+  it("preserves pronunciation fields on matching questions", () => {
+    const questions = generateQuizQuestions(buildVocab(), "matching");
+    const alphaQuestion = questions.find((question) => question.word === "alpha");
+
+    expect(alphaQuestion).toMatchObject({
+      word: "alpha",
+      meaning: "first",
+      pronunciation: "AL-fa",
+      pronunciationRoman: "alpha",
+      correctAnswer: "first",
+    });
+  });
+
+  it("preserves pronunciation fields on fill-in-the-blank questions", () => {
+    const questions = generateQuizQuestions(buildVocab(), "fill-in-blank");
+    const alphaQuestion = questions.find((question) => question.word === "alpha");
+
+    expect(alphaQuestion).toMatchObject({
+      word: "alpha",
+      meaning: "first",
+      pronunciation: "AL-fa",
+      pronunciationRoman: "alpha",
+      correctAnswer: "alpha",
+      translation: "첫 번째",
+    });
+    expect(alphaQuestion?.options).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          word: "alpha",
+          pronunciation: "AL-fa",
+          pronunciationRoman: "alpha",
+        }),
+      ]),
+    );
+    expect(alphaQuestion?.clozeSentence).toContain("___");
+  });
+
+  it("keeps multiple-choice question behavior unchanged while carrying quiz fields", () => {
+    const questions = generateQuizQuestions(buildVocab(), "multiple-choice");
+    const alphaQuestion = questions.find((question) => question.word === "alpha");
+
+    expect(alphaQuestion?.correctAnswer).toBe("first");
+    expect(alphaQuestion?.options).toEqual(expect.arrayContaining(["first"]));
+    expect(alphaQuestion?.clozeSentence).toBeUndefined();
+    expect(alphaQuestion?.pronunciation).toBe("AL-fa");
+    expect(alphaQuestion?.pronunciationRoman).toBe("alpha");
   });
 
   it("uses total question count as the completion threshold", () => {

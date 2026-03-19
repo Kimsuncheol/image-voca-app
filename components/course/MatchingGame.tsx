@@ -10,6 +10,8 @@ interface QuizQuestion {
   id: string;
   word: string;
   meaning: string;
+  pronunciation?: string;
+  pronunciationRoman?: string;
 }
 
 interface MatchingGameProps {
@@ -22,6 +24,7 @@ interface MatchingGameProps {
   onSelectMeaning: (meaning: string) => void;
   courseColor?: string;
   isDark: boolean;
+  showPronunciationDetails?: boolean;
 }
 
 export function MatchingGame({
@@ -34,6 +37,7 @@ export function MatchingGame({
   onSelectMeaning,
   courseColor,
   isDark,
+  showPronunciationDetails = false,
 }: MatchingGameProps) {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
@@ -71,36 +75,43 @@ export function MatchingGame({
         {t("quiz.matching.instructions")}
       </ThemedText>
 
-      <View style={styles.matchingColumns}>
-        <View style={styles.matchingColumn}>
-          {currentQuestions.map((question) => (
-            <MatchingCard
-              key={question.word}
-              text={question.word}
+      <View style={styles.matchingRows}>
+        {currentQuestions.map((question, index) => {
+          const meaning = shuffledMeanings[index];
+          return (
+            <View key={question.word} style={styles.matchingRow}>
+              <View style={styles.matchingCell}>
+                <MatchingCard
+                  text={question.word}
+                  pronunciation={
+                    showPronunciationDetails ? question.pronunciation : undefined
+                  }
+                  pronunciationRoman={
+                    showPronunciationDetails ? question.pronunciationRoman : undefined
+                  }
+                  variant="word"
+                  isMatched={Boolean(matchedPairs[question.word])}
+                  isSelected={selectedWord === question.word}
+                  onPress={() => onSelectWord(question.word)}
+                  courseColor={courseColor}
+                  isDark={isDark}
+                />
+              </View>
 
-              isMatched={Boolean(matchedPairs[question.word])}
-              isSelected={selectedWord === question.word}
-              onPress={() => onSelectWord(question.word)}
-              courseColor={courseColor}
-              isDark={isDark}
-            />
-          ))}
-        </View>
-
-        <View style={styles.matchingColumn}>
-          {shuffledMeanings.map((meaning) => (
-            <MatchingCard
-              key={meaning}
-              text={meaning}
-
-              isMatched={Object.values(matchedPairs).includes(meaning)}
-              isSelected={selectedMeaning === meaning}
-              onPress={() => onSelectMeaning(meaning)}
-              courseColor={courseColor}
-              isDark={isDark}
-            />
-          ))}
-        </View>
+              <View style={styles.matchingCell}>
+                <MatchingCard
+                  text={meaning}
+                  variant="meaning"
+                  isMatched={Object.values(matchedPairs).includes(meaning)}
+                  isSelected={selectedMeaning === meaning}
+                  onPress={() => onSelectMeaning(meaning)}
+                  courseColor={courseColor}
+                  isDark={isDark}
+                />
+              </View>
+            </View>
+          );
+        })}
       </View>
 
     </View>
@@ -120,13 +131,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     fontWeight: "500",
   },
-  matchingColumns: {
+  matchingRows: {
+    gap: 12,
+  },
+  matchingRow: {
     flexDirection: "row",
     gap: 16,
   },
-  matchingColumn: {
+  matchingCell: {
     flex: 1,
-    gap: 12,
   },
 
 });

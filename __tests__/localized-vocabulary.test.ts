@@ -1,5 +1,6 @@
 import {
   normalizeVocabularyLocalizationMap,
+  resolveQuizVocabulary,
   resolveVocabularyContent,
 } from "../src/utils/localizedVocabulary";
 
@@ -61,6 +62,60 @@ describe("localizedVocabulary", () => {
     expect(resolved.meaning).toBe("adjust");
     expect(resolved.translation).toBe("to change");
     expect(resolved.localizedPronunciation).toBe("uh-DAPT");
+  });
+
+  it("resolves Korean JLPT flat fields for quiz vocabulary", () => {
+    const resolved = resolveQuizVocabulary(
+      {
+        word: "間",
+        meaningEnglish: "between",
+        meaningKorean: "사이",
+        pronunciation: "あいだ",
+        pronunciationRoman: "aida",
+      },
+      "ko",
+    );
+
+    expect(resolved.language).toBe("ko");
+    expect(resolved.meaning).toBe("사이");
+    expect(resolved.pronunciation).toBe("あいだ");
+    expect(resolved.pronunciationRoman).toBe("aida");
+  });
+
+  it("resolves English JLPT flat fields for quiz vocabulary", () => {
+    const resolved = resolveQuizVocabulary(
+      {
+        word: "間",
+        meaningEnglish: "between",
+        meaningKorean: "사이",
+        pronunciation: "あいだ",
+        pronunciationRoman: "aida",
+      },
+      "en",
+    );
+
+    expect(resolved.language).toBe("en");
+    expect(resolved.meaning).toBe("between");
+    expect(resolved.pronunciation).toBe("あいだ");
+    expect(resolved.pronunciationRoman).toBe("aida");
+  });
+
+  it("falls back Japanese quiz requests to English flat fields", () => {
+    const resolved = resolveQuizVocabulary(
+      {
+        word: "間",
+        meaningEnglish: "between",
+        meaningKorean: "사이",
+        pronunciation: "あいだ",
+        pronunciationRoman: "aida",
+      },
+      "ja",
+    );
+
+    expect(resolved.language).toBe("en");
+    expect(resolved.meaning).toBe("between");
+    expect(resolved.pronunciation).toBe("あいだ");
+    expect(resolved.pronunciationRoman).toBe("aida");
   });
 
   it("falls back to legacy flat fields when localized content is missing", () => {

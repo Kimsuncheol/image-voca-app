@@ -18,6 +18,14 @@ export interface LocalizedVocabularySource {
   localized?: VocabularyLocalizationMap;
 }
 
+export interface QuizVocabularySource extends Partial<LocalizedVocabularySource> {
+  word: string;
+  meaningEnglish?: string;
+  meaningKorean?: string;
+  translationEnglish?: string;
+  translationKorean?: string;
+}
+
 export interface ResolvedVocabularyContent {
   language: LocalizedContentLanguage;
   word: string;
@@ -29,6 +37,18 @@ export interface ResolvedVocabularyContent {
   exampleRoman?: string;
   imageUrl?: string;
   sharedPronunciation?: string;
+  localizedPronunciation?: string;
+}
+
+export interface ResolvedQuizVocabulary {
+  language: LocalizedContentLanguage;
+  word: string;
+  meaning: string;
+  pronunciation?: string;
+  pronunciationRoman?: string;
+  example?: string;
+  exampleRoman?: string;
+  translation?: string;
   localizedPronunciation?: string;
 }
 
@@ -87,6 +107,20 @@ const getLocalizedValue = (
   return localizedValue ?? normalizeTrimmedString(fallback);
 };
 
+const buildLocalizedQuizContent = (
+  source: QuizVocabularySource,
+): VocabularyLocalizationMap | undefined =>
+  normalizeVocabularyLocalizationMap({
+    en: {
+      meaning: source.meaningEnglish,
+      translation: source.translationEnglish,
+    },
+    ko: {
+      meaning: source.meaningKorean,
+      translation: source.translationKorean,
+    },
+  });
+
 export const resolveVocabularyContent = (
   source: LocalizedVocabularySource,
   language?: SupportedLanguage | string,
@@ -112,5 +146,43 @@ export const resolveVocabularyContent = (
     imageUrl: normalizeTrimmedString(source.imageUrl),
     sharedPronunciation,
     localizedPronunciation,
+  };
+};
+
+export const resolveQuizVocabulary = (
+  source: QuizVocabularySource,
+  language?: SupportedLanguage | string,
+): ResolvedQuizVocabulary => {
+  const localized =
+    normalizeVocabularyLocalizationMap(source.localized) ??
+    buildLocalizedQuizContent(source);
+  const resolved = resolveVocabularyContent(
+    {
+      word: normalizeTrimmedString(source.word) ?? "",
+      meaning:
+        normalizeTrimmedString(source.meaning) ??
+        normalizeTrimmedString(source.meaningEnglish) ??
+        "",
+      translation: normalizeTrimmedString(source.translation),
+      pronunciation: normalizeTrimmedString(source.pronunciation),
+      pronunciationRoman: normalizeTrimmedString(source.pronunciationRoman),
+      example: normalizeTrimmedString(source.example),
+      exampleRoman: normalizeTrimmedString(source.exampleRoman),
+      imageUrl: normalizeTrimmedString(source.imageUrl),
+      localized,
+    },
+    language,
+  );
+
+  return {
+    language: resolved.language,
+    word: resolved.word,
+    meaning: resolved.meaning,
+    pronunciation: resolved.sharedPronunciation,
+    pronunciationRoman: resolved.pronunciationRoman,
+    example: normalizeTrimmedString(resolved.example),
+    exampleRoman: resolved.exampleRoman,
+    translation: resolved.translation,
+    localizedPronunciation: resolved.localizedPronunciation,
   };
 };

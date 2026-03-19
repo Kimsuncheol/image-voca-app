@@ -1,10 +1,13 @@
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { ThemedText } from "../themed-text";
 
 interface MatchingCardProps {
   text: string;
-
+  pronunciation?: string;
+  pronunciationRoman?: string;
+  variant?: "word" | "meaning";
   isMatched: boolean;
   isSelected: boolean;
   onPress: () => void;
@@ -14,7 +17,9 @@ interface MatchingCardProps {
 
 export function MatchingCard({
   text,
-
+  pronunciation,
+  pronunciationRoman,
+  variant = "word",
   isMatched,
   isSelected,
   onPress,
@@ -37,15 +42,62 @@ export function MatchingCard({
       disabled={isMatched}
     >
       <View style={styles.content}>
-        <ThemedText
-          style={[
-            styles.matchingItemText,
-            isMatched && styles.matchingItemTextMatched,
-            isSelected && { color: courseColor || "#007AFF" },
-          ]}
-        >
-          {text}
-        </ThemedText>
+        {variant === "meaning" ? (
+          <InlineMeaningWithChips
+            meaning={text}
+            isDark={isDark}
+            textStyle={[
+              styles.matchingItemText,
+              styles.meaningText,
+              isMatched && styles.matchingItemTextMatched,
+              isSelected && { color: courseColor || "#007AFF" },
+            ]}
+            prefixStyle={[
+              styles.matchingItemText,
+              styles.meaningText,
+              isMatched && styles.matchingItemTextMatched,
+              isSelected && { color: courseColor || "#007AFF" },
+            ]}
+            containerStyle={styles.meaningContainer}
+            lineStyle={styles.meaningLine}
+            testID="matching-meaning"
+          />
+        ) : (
+          <View style={styles.wordStack}>
+            <ThemedText
+              style={[
+                styles.matchingItemText,
+                styles.wordText,
+                isMatched && styles.matchingItemTextMatched,
+                isSelected && { color: courseColor || "#007AFF" },
+              ]}
+            >
+              {text}
+            </ThemedText>
+            {pronunciation ? (
+              <ThemedText
+                style={[
+                  styles.secondaryText,
+                  isMatched && styles.matchingItemTextMatched,
+                  isSelected && { color: courseColor || "#007AFF" },
+                ]}
+              >
+                {pronunciation}
+              </ThemedText>
+            ) : null}
+            {pronunciationRoman ? (
+              <ThemedText
+                style={[
+                  styles.tertiaryText,
+                  isMatched && styles.matchingItemTextMatched,
+                  isSelected && { color: courseColor || "#007AFF" },
+                ]}
+              >
+                {pronunciationRoman}
+              </ThemedText>
+            ) : null}
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -74,7 +126,6 @@ const styles = StyleSheet.create({
   content: {
     width: "100%",
   },
-
   matchingItemMatched: {
     borderColor: "#28a745",
     backgroundColor: "transparent",
@@ -98,5 +149,36 @@ const styles = StyleSheet.create({
     color: "#28a745",
     fontWeight: "700",
     opacity: 0.8,
+  },
+  wordStack: {
+    alignItems: "center",
+    gap: 2,
+  },
+  wordText: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  meaningContainer: {
+    gap: 2,
+  },
+  meaningLine: {
+    justifyContent: "center",
+  },
+  meaningText: {
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: "center",
+  },
+  secondaryText: {
+    textAlign: "center",
+    fontSize: 12,
+    opacity: 0.8,
+    lineHeight: 18,
+  },
+  tertiaryText: {
+    textAlign: "center",
+    fontSize: 11,
+    opacity: 0.55,
+    lineHeight: 16,
   },
 });

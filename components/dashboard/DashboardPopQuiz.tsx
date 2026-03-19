@@ -30,6 +30,10 @@ import { useTheme } from "../../src/context/ThemeContext";
 import { getTotalDaysForCourse } from "../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../src/stores";
 import { CourseType } from "../../src/types/vocabulary";
+import {
+  ResolvedQuizVocabulary,
+  resolveQuizVocabulary,
+} from "../../src/utils/localizedVocabulary";
 import { ThemedText } from "../themed-text";
 import {
   getDebugTotalDaysCourses,
@@ -37,24 +41,20 @@ import {
 } from "./constants/quizConfig";
 import { useQuizBatchFetcher } from "./hooks/useQuizBatchFetcher";
 import { PopQuizSkeleton } from "./PopQuizSkeleton";
-import { FillInBlankQuiz } from "./quiz-types/FillInBlankQuiz";
+import { FillInBlankQuiz, WordOption } from "./quiz-types/FillInBlankQuiz";
 import { MatchingPair, MatchingQuiz } from "./quiz-types/MatchingQuiz";
 import { MultipleChoiceQuiz } from "./quiz-types/MultipleChoiceQuiz";
 import { QuizHeader } from "./QuizHeader";
 import { QuizStoppedState } from "./QuizStoppedState";
-import { createClozeSentence } from "./utils/quizHelpers";
+import {
+  buildDashboardQuizPayload,
+  DashboardQuizItem as QuizItem,
+  DashboardQuizType as QuizType,
+} from "./utils/quizHelpers";
 
 // ============================================================================
 // TYPE DEFINITIONS
 // ============================================================================
-type QuizType = "multiple-choice" | "matching" | "fill-in-blank";
-
-interface QuizItem {
-  word: string;
-  meaning: string;
-  example?: string; // cloze sentence for fill-in-blank
-}
-
 const JLPT_QUIZ_TYPES: QuizType[] = [
   "multiple-choice",
   "matching",
@@ -92,8 +92,8 @@ export function DashboardPopQuiz() {
   // STATE MANAGEMENT
   // ==========================================================================
   // Batch state
-  const [currentBatch, setCurrentBatch] = useState<any[]>([]);
-  const [nextBatch, setNextBatch] = useState<any[]>([]);
+  const [currentBatch, setCurrentBatch] = useState<ResolvedQuizVocabulary[]>([]);
+  const [nextBatch, setNextBatch] = useState<ResolvedQuizVocabulary[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [turnNumber, setTurnNumber] = useState(1);
 
@@ -101,6 +101,7 @@ export function DashboardPopQuiz() {
   const [quizType, setQuizType] = useState<QuizType>("multiple-choice");
   const [quizItem, setQuizItem] = useState<QuizItem | null>(null);
   const [options, setOptions] = useState<string[]>([]);
+  const [wordOptions, setWordOptions] = useState<WordOption[]>([]);
   const [matchingPairs, setMatchingPairs] = useState<MatchingPair[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -121,22 +122,11 @@ export function DashboardPopQuiz() {
   const quizKey = `${turnNumber}-${currentIndex}`;
 
   // ==========================================================================
-  // MEANING RESOLUTION
+  // VOCABULARY RESOLUTION
   // ==========================================================================
-  /**
-   * Resolves the correct localized meaning from raw Firestore word data.
-   * JLPT words have meaningEnglish / meaningKorean flat fields.
-   * Other courses have a single meaning field.
-   */
-  const resolveMeaning = useCallback(
-    (wordData: any): string => {
-      if (wordData.meaningEnglish !== undefined) {
-        return i18n.language === "ko"
-          ? (wordData.meaningKorean ?? wordData.meaningEnglish)
-          : wordData.meaningEnglish;
-      }
-      return wordData.meaning ?? "";
-    },
+  const resolveBatch = useCallback(
+    (batch: any[]): ResolvedQuizVocabulary[] =>
+      batch.map((word) => resolveQuizVocabulary(word, i18n.language)),
     [i18n.language],
   );
 
@@ -150,16 +140,7 @@ export function DashboardPopQuiz() {
    * For other courses: always multiple-choice.
    */
   const generateQuiz = useCallback(
-    (wordData: any, batch: any[]) => {
-      if (batch.length < 4) return;
-
-      const targetWord = wordData;
-      const availableWords = batch.filter((w) => w.word !== targetWord.word);
-      const shuffledAvailable = [...availableWords].sort(
-        () => Math.random() - 0.5,
-      );
-      const targetMeaning = resolveMeaning(targetWord);
-
+    (wordData: ResolvedQuizVocabulary, batch: ResolvedQuizVocabulary[]) => {
       // Determine quiz type
       let nextQuizType: QuizType;
       if (learningLanguage === "ja") {
@@ -171,47 +152,15 @@ export function DashboardPopQuiz() {
       }
       setQuizType(nextQuizType);
 
-      if (nextQuizType === "matching") {
-        const otherPairs: MatchingPair[] = shuffledAvailable
-          .slice(0, 3)
-          .map((w) => ({ word: w.word, meaning: resolveMeaning(w) }));
-        const allPairs: MatchingPair[] = [
-          { word: targetWord.word, meaning: targetMeaning },
-          ...otherPairs,
-        ].sort(() => Math.random() - 0.5);
-        setMatchingPairs(allPairs);
-        setQuizItem({ word: targetWord.word, meaning: targetMeaning });
-        setOptions([]);
-      } else if (nextQuizType === "fill-in-blank") {
-        const cloze = createClozeSentence(
-          targetWord.example ?? "",
-          targetWord.word,
-        );
-        const distractors = shuffledAvailable.slice(0, 3).map((w) => w.word);
-        const wordOptions = [...distractors, targetWord.word].sort(
-          () => Math.random() - 0.5,
-        );
-        setQuizItem({ word: targetWord.word, meaning: targetMeaning, example: cloze });
-        setOptions(wordOptions);
-        setMatchingPairs([]);
-      } else {
-        // Multiple choice: show word, pick meaning
-        const distractors: string[] = [];
-        const remaining = [...shuffledAvailable];
-        while (distractors.length < 3 && remaining.length > 0) {
-          distractors.push(resolveMeaning(remaining.shift()!));
-        }
-        const allOptions = [...distractors, targetMeaning];
-        for (let i = allOptions.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
-        }
-        setQuizItem({ word: targetWord.word, meaning: targetMeaning });
-        setOptions(allOptions);
-        setMatchingPairs([]);
-      }
+      const payload = buildDashboardQuizPayload(wordData, batch, nextQuizType);
+      if (!payload) return;
+
+      setQuizItem(payload.quizItem);
+      setOptions(payload.options);
+      setWordOptions(payload.wordOptions);
+      setMatchingPairs(payload.matchingPairs);
     },
-    [learningLanguage, resolveMeaning],
+    [learningLanguage],
   );
 
   // ==========================================================================
@@ -294,6 +243,7 @@ export function DashboardPopQuiz() {
   );
 
   const handleMatchingComplete = useCallback(() => {
+    setIsCorrect(true);
     if (user) {
       bufferQuizAnswer(user.uid, true);
     }
@@ -397,6 +347,7 @@ export function DashboardPopQuiz() {
       setTurnNumber(1);
       setQuizItem(null);
       setOptions([]);
+      setWordOptions([]);
       setMatchingPairs([]);
       setSelectedOption(null);
       setIsCorrect(null);
@@ -408,17 +359,18 @@ export function DashboardPopQuiz() {
       if (batchLoadVersionRef.current !== loadVersion) {
         return;
       }
+      const resolvedBatch = resolveBatch(batch);
 
-      if (batch.length > 0) {
-        setCurrentBatch(batch);
+      if (resolvedBatch.length > 0) {
+        setCurrentBatch(resolvedBatch);
         setCurrentIndex(0);
         setTurnNumber(1);
-        generateQuiz(batch[0], batch);
+        generateQuiz(resolvedBatch[0], resolvedBatch);
       }
       setLoading(false);
     };
     void init();
-  }, [fetchBatch, generateQuiz, learningLanguage]);
+  }, [fetchBatch, generateQuiz, learningLanguage, resolveBatch]);
 
   // Prefetch next batch when reaching 70% of current batch
   useEffect(() => {
@@ -435,8 +387,9 @@ export function DashboardPopQuiz() {
         if (batchLoadVersionRef.current !== loadVersion) {
           return;
         }
-        if (batch.length > 0) {
-          setNextBatch(batch);
+        const resolvedBatch = resolveBatch(batch);
+        if (resolvedBatch.length > 0) {
+          setNextBatch(resolvedBatch);
         }
       });
     }
@@ -447,6 +400,7 @@ export function DashboardPopQuiz() {
     currentIndex,
     nextBatch.length,
     prefetchNextBatch,
+    resolveBatch,
   ]);
 
   // Animate transition when quiz item changes
@@ -491,7 +445,6 @@ export function DashboardPopQuiz() {
           subtitle={t("dashboard.popQuiz.subtitle")}
           timerDuration={15}
           isTimerRunning={
-            quizType !== "matching" &&
             isCorrect === null &&
             !loading &&
             !isStopped
@@ -527,7 +480,7 @@ export function DashboardPopQuiz() {
             {quizType === "fill-in-blank" && quizItem.example !== undefined && (
               <FillInBlankQuiz
                 clozeSentence={quizItem.example}
-                options={options}
+                options={wordOptions}
                 correctWord={quizItem.word}
                 selectedOption={selectedOption}
                 isCorrect={isCorrect}

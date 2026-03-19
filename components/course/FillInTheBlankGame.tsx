@@ -1,4 +1,5 @@
 import React from "react";
+import type { QuizWordOption } from "../../src/course/quizUtils";
 import { StyleSheet, View } from "react-native";
 import { FillInTheBlankGameClozeSentenceCard } from "./FillInTheBlankGameClozeSentenceCard";
 import { FillInTheBlankGameOptions } from "./FillInTheBlankGameOptions";
@@ -8,12 +9,13 @@ interface FillInTheBlankGameProps {
   clozeSentence: string;
   translation?: string;
   localizedPronunciation?: string;
-  options: string[];
+  options: Array<QuizWordOption | string>;
   correctAnswer: string;
   userAnswer: string;
   showResult: boolean;
   onAnswer: (answer: string) => void;
   correctForms?: string[];
+  showPronunciationDetails?: boolean;
 }
 
 export function FillInTheBlankGame({
@@ -27,6 +29,7 @@ export function FillInTheBlankGame({
   showResult,
   onAnswer,
   correctForms,
+  showPronunciationDetails = false,
 }: FillInTheBlankGameProps) {
   const isCorrect =
     userAnswer.toLowerCase().trim() === correctAnswer.toLowerCase().trim();
@@ -49,6 +52,7 @@ export function FillInTheBlankGame({
         userAnswer={userAnswer}
         showResult={showResult}
         onAnswer={onAnswer}
+        showPronunciationDetails={showPronunciationDetails}
       />
     </View>
   );

@@ -11,10 +11,13 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../../themed-text";
 import { PopQuizOption } from "./PopQuizOption";
+import type { DashboardWordOption as WordOption } from "../utils/quizHelpers";
+
+export type { DashboardWordOption as WordOption } from "../utils/quizHelpers";
 
 interface FillInBlankQuizProps {
   clozeSentence: string;
-  options: string[];
+  options: WordOption[];
   correctWord: string;
   selectedOption: string | null;
   isCorrect: boolean | null;
@@ -38,12 +41,14 @@ export function FillInBlankQuiz({
       </View>
 
       <View style={styles.options}>
-        {options.map((option, index) => (
+        {options.map(({ word, pronunciation, pronunciationRoman }, index) => (
           <PopQuizOption
-            key={`${option}-${index}`}
-            option={option}
-            isSelected={selectedOption === option}
-            isCorrect={option === correctWord}
+            key={`${word}-${index}`}
+            option={word}
+            subtitle={pronunciation}
+            secondarySubtitle={pronunciationRoman}
+            isSelected={selectedOption === word}
+            isCorrect={word === correctWord}
             isAnswered={isCorrect === true}
             isDark={isDark}
             onPress={onOptionPress}

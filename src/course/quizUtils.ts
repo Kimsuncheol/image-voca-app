@@ -1,10 +1,18 @@
 import nlp from "compromise";
 
+export interface QuizWordOption {
+  word: string;
+  pronunciation?: string;
+  pronunciationRoman?: string;
+}
+
 export interface QuizQuestion {
   id: string;
   word: string;
   meaning: string;
-  options?: string[];
+  pronunciation?: string;
+  pronunciationRoman?: string;
+  options?: string[] | QuizWordOption[];
   correctAnswer: string;
   clozeSentence?: string;
   translation?: string;
@@ -18,6 +26,7 @@ export interface QuizVocabData {
   word: string;
   meaning: string;
   pronunciation?: string;
+  pronunciationRoman?: string;
   localizedPronunciation?: string;
   example?: string;
   translation?: string;
@@ -44,7 +53,7 @@ export const generateQuizQuestions = (
   return selectedWords.map((vocab, index) => {
     const isWordAnswer = quizType === "fill-in-blank";
 
-    let options: string[] | undefined;
+    let options: string[] | QuizWordOption[] | undefined;
     if (quizType === "multiple-choice") {
       const otherMeanings = vocabData
         .filter((v) => v.word !== vocab.word)
@@ -99,17 +108,30 @@ export const generateQuizQuestions = (
 
       const otherWords = vocabData
         .filter((v) => v.word !== vocab.word)
-        .map((v) => v.word);
+        .map((v) => ({
+          word: v.word,
+          pronunciation: v.pronunciation,
+          pronunciationRoman: v.pronunciationRoman,
+        }));
       const shuffledOthers = shuffleArray(otherWords);
       const wrongAnswers = shuffledOthers.slice(0, 3);
 
-      options = shuffleArray([vocab.word, ...wrongAnswers]);
+      options = shuffleArray([
+        {
+          word: vocab.word,
+          pronunciation: vocab.pronunciation,
+          pronunciationRoman: vocab.pronunciationRoman,
+        },
+        ...wrongAnswers,
+      ]);
     }
 
     return {
       id: `q${index}`,
       word: vocab.word,
       meaning: vocab.meaning,
+      pronunciation: vocab.pronunciation,
+      pronunciationRoman: vocab.pronunciationRoman,
       options,
       correctAnswer: isWordAnswer ? vocab.word : vocab.meaning,
       clozeSentence,

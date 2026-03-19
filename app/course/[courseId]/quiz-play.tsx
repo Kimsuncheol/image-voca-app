@@ -41,8 +41,12 @@ import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
 import { db } from "../../../src/services/firebase";
 import { prefetchVocabularyCards } from "../../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../../src/stores";
-import { CourseType, findRuntimeCourse } from "../../../src/types/vocabulary";
-import { resolveVocabularyContent } from "../../../src/utils/localizedVocabulary";
+import {
+  CourseType,
+  findRuntimeCourse,
+  isJlptLevelCourseId,
+} from "../../../src/types/vocabulary";
+import { resolveQuizVocabulary } from "../../../src/utils/localizedVocabulary";
 
 const shuffleArray = <T,>(items: T[]): T[] => {
   const copy = [...items];
@@ -75,6 +79,7 @@ export default function QuizPlayScreen() {
   const resolvedQuizType = resolveRuntimeQuizType(sanitizedQuizType);
   const course = findRuntimeCourse(courseId);
   const dayNumber = parseInt(day || "1", 10);
+  const showJlptPronunciationDetails = isJlptLevelCourseId(courseId);
 
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -114,13 +119,14 @@ export default function QuizPlayScreen() {
           dayNumber,
         );
         const fetchedVocab: QuizVocabData[] = fetchedCards.map((card) => {
-          const resolved = resolveVocabularyContent(card, i18n.language);
+          const resolved = resolveQuizVocabulary(card, i18n.language);
           return {
-            word: card.word,
+            word: resolved.word,
             meaning: resolved.meaning,
-            pronunciation: resolved.sharedPronunciation,
+            pronunciation: resolved.pronunciation,
+            pronunciationRoman: resolved.pronunciationRoman,
             localizedPronunciation: resolved.localizedPronunciation,
-            example: card.example,
+            example: resolved.example,
             translation: resolved.translation,
           };
         });
@@ -511,6 +517,7 @@ export default function QuizPlayScreen() {
               userAnswer={userAnswer}
               showResult={showResult}
               isCorrect={isCorrect}
+              showPronunciationDetails={showJlptPronunciationDetails}
               onAnswer={(answer) => {
                 setUserAnswer(answer);
                 handleAnswer(answer);
@@ -538,6 +545,7 @@ export default function QuizPlayScreen() {
               userAnswer={userAnswer}
               showResult={showResult}
               isCorrect={isCorrect}
+              showPronunciationDetails={showJlptPronunciationDetails}
               onAnswer={(answer) => {
                 setUserAnswer(answer);
                 handleAnswer(answer);

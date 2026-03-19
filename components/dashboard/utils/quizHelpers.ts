@@ -6,6 +6,8 @@
  * Utility functions for quiz generation and data processing.
  */
 
+import type { ResolvedQuizVocabulary } from "../../../src/utils/localizedVocabulary";
+
 /**
  * Get dynamic font size based on text length.
  * Longer collocations/words get smaller fonts to fit properly.
@@ -77,6 +79,133 @@ export function normalizeWordData(data: any, courseId: string): any {
 export function createClozeSentence(example: string, word: string): string {
   if (!example || !word) return "";
   return example.split(word).join("___");
+}
+
+const shuffleArray = <T,>(items: T[]): T[] => {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+};
+
+export type DashboardQuizType =
+  | "multiple-choice"
+  | "matching"
+  | "fill-in-blank";
+
+export interface DashboardQuizItem {
+  word: string;
+  meaning: string;
+  pronunciation?: string;
+  pronunciationRoman?: string;
+  example?: string;
+}
+
+export interface DashboardWordOption {
+  word: string;
+  pronunciation?: string;
+  pronunciationRoman?: string;
+}
+
+export interface DashboardMatchingPair {
+  word: string;
+  meaning: string;
+  pronunciation?: string;
+  pronunciationRoman?: string;
+}
+
+export interface DashboardQuizPayload {
+  quizItem: DashboardQuizItem;
+  options: string[];
+  wordOptions: DashboardWordOption[];
+  matchingPairs: DashboardMatchingPair[];
+}
+
+const toDashboardQuizItem = (
+  word: ResolvedQuizVocabulary,
+  example?: string,
+): DashboardQuizItem => ({
+  word: word.word,
+  meaning: word.meaning,
+  pronunciation: word.pronunciation,
+  pronunciationRoman: word.pronunciationRoman,
+  example,
+});
+
+export function buildDashboardQuizPayload(
+  targetWord: ResolvedQuizVocabulary,
+  batch: ResolvedQuizVocabulary[],
+  quizType: DashboardQuizType,
+): DashboardQuizPayload | null {
+  if (batch.length < 4) return null;
+
+  const availableWords = batch.filter((word) => word.word !== targetWord.word);
+  const shuffledAvailable = shuffleArray(availableWords);
+
+  if (quizType === "matching") {
+    const otherPairs: DashboardMatchingPair[] = shuffledAvailable
+      .slice(0, 3)
+      .map((word) => ({
+        word: word.word,
+        meaning: word.meaning,
+        pronunciation: word.pronunciation,
+        pronunciationRoman: word.pronunciationRoman,
+      }));
+
+    return {
+      quizItem: toDashboardQuizItem(targetWord),
+      options: [],
+      wordOptions: [],
+      matchingPairs: shuffleArray([
+        {
+          word: targetWord.word,
+          meaning: targetWord.meaning,
+          pronunciation: targetWord.pronunciation,
+          pronunciationRoman: targetWord.pronunciationRoman,
+        },
+        ...otherPairs,
+      ]),
+    };
+  }
+
+  if (quizType === "fill-in-blank") {
+    const wordOptions: DashboardWordOption[] = shuffleArray([
+      ...shuffledAvailable.slice(0, 3).map((word) => ({
+        word: word.word,
+        pronunciation: word.pronunciation,
+        pronunciationRoman: word.pronunciationRoman,
+      })),
+      {
+        word: targetWord.word,
+        pronunciation: targetWord.pronunciation,
+        pronunciationRoman: targetWord.pronunciationRoman,
+      },
+    ]);
+
+    return {
+      quizItem: toDashboardQuizItem(
+        targetWord,
+        createClozeSentence(targetWord.example ?? "", targetWord.word),
+      ),
+      options: [],
+      wordOptions,
+      matchingPairs: [],
+    };
+  }
+
+  const distractors = shuffledAvailable
+    .slice(0, 3)
+    .map((word) => word.meaning);
+  const options = shuffleArray([...distractors, targetWord.meaning]);
+
+  return {
+    quizItem: toDashboardQuizItem(targetWord),
+    options,
+    wordOptions: [],
+    matchingPairs: [],
+  };
 }
 
 /**

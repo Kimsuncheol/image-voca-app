@@ -11,11 +11,9 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "../../themed-text";
+import type { DashboardMatchingPair as MatchingPair } from "../utils/quizHelpers";
 
-export interface MatchingPair {
-  word: string;
-  meaning: string;
-}
+export type { DashboardMatchingPair as MatchingPair } from "../utils/quizHelpers";
 
 interface MatchingQuizProps {
   pairs: MatchingPair[];
@@ -101,27 +99,33 @@ export function MatchingQuiz({
 
   return (
     <View style={styles.container}>
-      <View style={styles.columns}>
-        {/* Words column */}
-        <View style={styles.column}>
-          {pairs.map(({ word }) => (
+      {pairs.map((pair, index) => {
+        const { word, pronunciation, pronunciationRoman } = pair;
+        const { meaning } = shuffledMeanings[index];
+        return (
+          <View key={index} style={styles.row}>
+            {/* Word cell */}
             <TouchableOpacity
-              key={word}
               style={[styles.cell, cellBg, getWordStyle(word)]}
               onPress={() => handleWordPress(word)}
               activeOpacity={0.8}
               disabled={matchedWords.has(word) || !!wrongWord}
             >
               <ThemedText style={styles.wordText}>{word}</ThemedText>
+              {pronunciation ? (
+                <ThemedText style={styles.pronunciationText}>
+                  {pronunciation}
+                </ThemedText>
+              ) : null}
+              {pronunciationRoman ? (
+                <ThemedText style={styles.romanText}>
+                  {pronunciationRoman}
+                </ThemedText>
+              ) : null}
             </TouchableOpacity>
-          ))}
-        </View>
 
-        {/* Meanings column */}
-        <View style={styles.column}>
-          {shuffledMeanings.map(({ meaning }) => (
+            {/* Meaning cell */}
             <TouchableOpacity
-              key={meaning}
               style={[styles.cell, cellBg, getMeaningStyle(meaning)]}
               onPress={() => handleMeaningPress(meaning)}
               activeOpacity={0.8}
@@ -133,9 +137,9 @@ export function MatchingQuiz({
             >
               <ThemedText style={styles.meaningText}>{meaning}</ThemedText>
             </TouchableOpacity>
-          ))}
-        </View>
-      </View>
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -144,15 +148,12 @@ const styles = StyleSheet.create({
   container: {
     gap: 8,
   },
-  columns: {
+  row: {
     flexDirection: "row",
     gap: 8,
   },
-  column: {
-    flex: 1,
-    gap: 8,
-  },
   cell: {
+    flex: 1,
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderRadius: 12,
@@ -165,6 +166,18 @@ const styles = StyleSheet.create({
   wordText: {
     fontSize: 18,
     fontWeight: "700",
+    textAlign: "center",
+  },
+  pronunciationText: {
+    fontSize: 12,
+    opacity: 0.8,
+    marginTop: 4,
+    textAlign: "center",
+  },
+  romanText: {
+    fontSize: 11,
+    opacity: 0.55,
+    marginTop: 2,
     textAlign: "center",
   },
   meaningText: {

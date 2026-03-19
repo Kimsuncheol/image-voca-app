@@ -13,6 +13,8 @@ import { ThemedText } from "../../themed-text";
 
 export interface PopQuizOptionProps {
   option: string;
+  subtitle?: string;
+  secondarySubtitle?: string;
   isSelected: boolean;
   isCorrect: boolean;
   isAnswered: boolean;
@@ -23,6 +25,8 @@ export interface PopQuizOptionProps {
 export const PopQuizOption = React.memo(
   ({
     option,
+    subtitle,
+    secondarySubtitle,
     isSelected,
     isCorrect,
     isAnswered,
@@ -42,6 +46,14 @@ export const PopQuizOption = React.memo(
         disabled={isAnswered}
       >
         <ThemedText style={styles.optionText}>{option}</ThemedText>
+        {subtitle ? (
+          <ThemedText style={styles.subtitleText}>{subtitle}</ThemedText>
+        ) : null}
+        {secondarySubtitle ? (
+          <ThemedText style={styles.secondarySubtitleText}>
+            {secondarySubtitle}
+          </ThemedText>
+        ) : null}
       </TouchableOpacity>
     );
   },
@@ -59,6 +71,19 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 14,
+    textAlign: "center",
+  },
+  subtitleText: {
+    fontSize: 12,
+    opacity: 0.8,
+    marginTop: 4,
+    textAlign: "center",
+  },
+  secondarySubtitleText: {
+    fontSize: 11,
+    opacity: 0.55,
+    marginTop: 2,
+    textAlign: "center",
   },
   optionCorrect: {
     borderColor: "#28a745",
