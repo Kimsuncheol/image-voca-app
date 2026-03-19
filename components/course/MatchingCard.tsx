@@ -134,7 +134,6 @@ const styles = StyleSheet.create({
   },
   matchingItemSelected: {
     borderWidth: 2,
-    transform: [{ scale: 1.02 }],
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,

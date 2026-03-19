@@ -74,7 +74,7 @@ export function GameBoard({
   const isFillInBlank = quizType === "fill-in-blank";
 
   return (
-    <View>
+    <View style={(isMatching || isCollocationMatching) ? { flex: 1 } : undefined}>
       <GameScore
         current={progressCurrent}
         total={questions.length}
