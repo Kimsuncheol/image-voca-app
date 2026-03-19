@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { defineSecret } from "firebase-functions/params";
 import { onRequest } from "firebase-functions/v2/https";
 
-const qwenApiKey = defineSecret("QWEN_TTS_API_KEY");
+const openAiApiKey = defineSecret("OPENAI_API_KEY");
 const tossSecretKey = defineSecret("TOSS_SECRET_KEY");
 
 if (!getApps().length) {
@@ -56,7 +56,7 @@ const STORE_FRONT_PRICES: Record<
   },
 };
 
-interface QwenTtsRequestBody {
+interface TtsRequestBody {
   text?: string;
   language?: string;
   rate?: number;
@@ -71,15 +71,15 @@ interface VoiceDefinition {
 const VOICE_MAP: Record<string, VoiceDefinition> = {
   Aiden: {
     alias: "Aiden",
-    providerVoice: "Aiden",
+    providerVoice: "alloy",
   },
   Sohee: {
     alias: "Sohee",
-    providerVoice: "Sohee",
+    providerVoice: "nova",
   },
   Ono_Anna: {
     alias: "Ono_Anna",
-    providerVoice: "Ono Anna",
+    providerVoice: "shimmer",
   },
 };
 
@@ -140,13 +140,13 @@ const buildCacheKey = (
     )
     .digest("hex");
 
-const parseBody = (body: unknown): QwenTtsRequestBody => {
+const parseBody = (body: unknown): TtsRequestBody => {
   if (typeof body === "string") {
-    return JSON.parse(body) as QwenTtsRequestBody;
+    return JSON.parse(body) as TtsRequestBody;
   }
 
   if (body && typeof body === "object") {
-    return body as QwenTtsRequestBody;
+    return body as TtsRequestBody;
   }
 
   return {};
@@ -190,7 +190,7 @@ export const qwenTtsSynthesize = onRequest(
   {
     cors: true,
     region: "asia-northeast3",
-    secrets: [qwenApiKey],
+    secrets: [openAiApiKey],
   },
   async (req, res) => {
     if (req.method !== "POST") {
@@ -232,68 +232,57 @@ export const qwenTtsSynthesize = onRequest(
       );
 
       const response = await fetch(
-        "https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
+        "https://api.openai.com/v1/audio/speech",
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${qwenApiKey.value()}`,
+            Authorization: `Bearer ${openAiApiKey.value()}`,
             "Content-Type": "application/json",
-            "X-DashScope-Async": "disable",
           },
           body: JSON.stringify({
-            model: "qwen-tts",
-            input: {
-              text: normalizedText,
-              voice: voiceConfig.providerVoice,
-            },
-            parameters: {
-              format: "mp3",
-            },
+            model: "gpt-4o-mini-tts",
+            input: normalizedText,
+            voice: voiceConfig.providerVoice,
           }),
         }
       );
 
-      const payload = (await response.json()) as {
-        message?: string;
-        output?: {
-          audio?: {
-            url?: string;
-          };
-        };
-      };
-
       if (!response.ok) {
+        let message = "OpenAI TTS request failed.";
+        try {
+          const payload = (await response.json()) as {
+            error?: {
+              message?: string;
+            };
+            message?: string;
+          };
+          message = payload.error?.message || payload.message || message;
+        } catch {
+          const fallbackMessage = await response.text();
+          if (fallbackMessage) {
+            message = fallbackMessage;
+          }
+        }
+
         res.status(response.status).json({
-          message: payload.message || "Qwen TTS request failed.",
+          message,
         });
         return;
       }
 
-      const audioUrl = payload.output?.audio?.url;
-      if (!audioUrl) {
-        res.status(502).json({ message: "Qwen TTS returned no audio URL." });
-        return;
-      }
-
-      const audioResponse = await fetch(audioUrl);
-      if (!audioResponse.ok) {
-        res.status(502).json({ message: "Failed to download synthesized audio." });
-        return;
-      }
-
-      const audioBuffer = Buffer.from(await audioResponse.arrayBuffer());
+      const audioBuffer = Buffer.from(await response.arrayBuffer());
       res.status(200).json({
         audioBase64: audioBuffer.toString("base64"),
         mimeType: "audio/mpeg",
         cacheKey,
       });
     } catch (error) {
-      console.error("Qwen TTS synthesis failed:", error);
+      console.error("Speech synthesis failed:", error);
       res.status(500).json({
         message:
           error instanceof Error
             ? error.message
-            : "Unexpected Qwen TTS synthesis error.",
+            : "Unexpected speech synthesis error.",
       });
     }
   }

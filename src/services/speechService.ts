@@ -1,7 +1,7 @@
 /**
  * Speech Service
  *
- * Centralized Text-to-Speech functionality backed by Qwen3-TTS.
+ * Centralized Text-to-Speech functionality backed by a remote provider endpoint.
  * Audio is synthesized remotely, cached locally, and played with expo-av.
  */
 
@@ -14,9 +14,9 @@ export interface SpeechOptions {
   language?: string;
   /** Speech rate (0.5 - 2.0, default: 1.0) */
   rate?: number;
-  /** Pitch (reserved for future Qwen support) */
+  /** Pitch is unused by the remote provider and reserved for future support */
   pitch?: number;
-  /** App-supported Qwen voice identifier */
+  /** App-supported voice identifier */
   voice?: string;
   /** Callback when speech starts */
   onStart?: () => void;
@@ -38,7 +38,7 @@ interface SpeechState {
   isPaused: boolean;
 }
 
-interface QwenSpeechResponse {
+interface SpeechResponse {
   audioBase64: string;
   mimeType: string;
   cacheKey: string;
@@ -50,24 +50,24 @@ const DEFAULT_CONFIG: SpeechOptions = {
   pitch: 1.0,
 };
 
-const TTS_CACHE_DIRECTORY = `${FileSystem.cacheDirectory ?? ""}qwen-tts/`;
+const TTS_CACHE_DIRECTORY = `${FileSystem.cacheDirectory ?? ""}openai-tts/`;
 
 export const SUPPORTED_VOICES: SpeechVoiceOption[] = [
   {
     id: "Aiden",
-    providerVoice: "Aiden",
+    providerVoice: "alloy",
     label: "Aiden",
     languages: ["en", "es", "fr", "de", "it", "pt", "ru", "ja", "ko", "zh"],
   },
   {
     id: "Sohee",
-    providerVoice: "Sohee",
+    providerVoice: "nova",
     label: "Sohee",
     languages: ["ko", "en", "ja", "zh"],
   },
   {
     id: "Ono_Anna",
-    providerVoice: "Ono Anna",
+    providerVoice: "shimmer",
     label: "Ono Anna",
     languages: ["ja", "en", "ko", "zh"],
   },
@@ -162,9 +162,13 @@ const resolveVoiceId = (languageCode?: string, voice?: string): string => {
 };
 
 const getEndpoint = (): string => {
-  const endpoint = process.env.EXPO_PUBLIC_QWEN_TTS_ENDPOINT?.trim();
+  const endpoint =
+    process.env.EXPO_PUBLIC_OPENAI_TTS_ENDPOINT?.trim() ||
+    process.env.EXPO_PUBLIC_QWEN_TTS_ENDPOINT?.trim();
   if (!endpoint) {
-    throw new Error("EXPO_PUBLIC_QWEN_TTS_ENDPOINT is not configured.");
+    throw new Error(
+      "EXPO_PUBLIC_OPENAI_TTS_ENDPOINT or EXPO_PUBLIC_QWEN_TTS_ENDPOINT must be configured."
+    );
   }
   return endpoint;
 };
@@ -301,7 +305,7 @@ export const buildSpeechCacheKey = async (
 const fetchSpeechAudio = async (
   text: string,
   options?: SpeechOptions
-): Promise<QwenSpeechResponse> => {
+): Promise<SpeechResponse> => {
   const normalizedText = normalizeSpeechText(text);
   const response = await fetch(getEndpoint(), {
     method: "POST",
@@ -320,9 +324,9 @@ const fetchSpeechAudio = async (
     throw new Error(await normalizeResponseError(response));
   }
 
-  const payload = (await response.json()) as Partial<QwenSpeechResponse>;
+  const payload = (await response.json()) as Partial<SpeechResponse>;
   if (!payload.audioBase64 || !payload.cacheKey) {
-    throw new Error("Qwen TTS response is missing audio data.");
+    throw new Error("Speech endpoint response is missing audio data.");
   }
 
   return {

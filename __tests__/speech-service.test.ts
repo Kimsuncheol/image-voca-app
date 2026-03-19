@@ -35,6 +35,8 @@ describe("speechService", () => {
     jest.clearAllMocks();
     existingUris = new Set();
     playbackStatusHandler = null;
+    process.env.EXPO_PUBLIC_OPENAI_TTS_ENDPOINT = "https://example.com/openai-tts";
+    process.env.EXPO_PUBLIC_QWEN_TTS_ENDPOINT = "https://example.com/qwen-tts";
 
     soundMock = {
       setOnPlaybackStatusUpdate: jest.fn(),
@@ -149,6 +151,10 @@ describe("speechService", () => {
     });
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://example.com/openai-tts",
+      expect.any(Object)
+    );
     expect(writeAsStringAsyncMock).toHaveBeenCalledWith(
       expect.stringContaining(`${cacheKey}.mp3`),
       "ZmFrZS1hdWRpbw==",
@@ -214,5 +220,33 @@ describe("speechService", () => {
     expect(await isSpeaking()).toBe(false);
     expect(await isPaused()).toBe(false);
     expect(soundMock.unloadAsync).toHaveBeenCalled();
+  });
+
+  it("falls back to the legacy TTS endpoint env var when the preferred one is absent", async () => {
+    delete process.env.EXPO_PUBLIC_OPENAI_TTS_ENDPOINT;
+
+    const cacheKey = await buildSpeechCacheKey("Fallback", {
+      language: "en-US",
+      rate: 0.9,
+    });
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        audioBase64: "ZmFrZS1hdWRpbw==",
+        mimeType: "audio/mpeg",
+        cacheKey,
+      }),
+    });
+
+    await speak("Fallback", {
+      language: "en-US",
+      rate: 0.9,
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://example.com/qwen-tts",
+      expect.any(Object)
+    );
   });
 });

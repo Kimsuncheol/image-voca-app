@@ -17,6 +17,7 @@ process.env.EXPO_PUBLIC_COURSE_PATH_JLPT_N2 = "courses/jlpt/n2";
 process.env.EXPO_PUBLIC_COURSE_PATH_JLPT_N3 = "courses/jlpt/n3";
 process.env.EXPO_PUBLIC_COURSE_PATH_JLPT_N4 = "courses/jlpt/n4";
 process.env.EXPO_PUBLIC_COURSE_PATH_JLPT_N5 = "courses/jlpt/n5";
+process.env.EXPO_PUBLIC_OPENAI_TTS_ENDPOINT = "https://example.com/openai-tts";
 process.env.EXPO_PUBLIC_QWEN_TTS_ENDPOINT = "https://example.com/qwen-tts";
 process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID = "demo-project";
 
