@@ -20,9 +20,9 @@ import { useUserStatsStore } from "../../../src/stores";
 import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
 
 // Components
+import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
 import { VocabularyEmptyState } from "../../../components/course/vocabulary/VocabularyEmptyState";
 import { VocabularyFinishView } from "../../../components/course/vocabulary/VocabularyFinishView";
-import { VocabularyLoadingSkeleton } from "../../../components/course/vocabulary/VocabularyLoadingSkeleton";
 import { VocabularySwipeDeck } from "../../../components/course/vocabulary/VocabularySwipeDeck";
 
 const { width, height } = Dimensions.get("window");
@@ -81,6 +81,9 @@ export default function VocabularyScreen() {
 
   // Loading state for asynchronous data fetching
   const [loading, setLoading] = useState(true);
+
+  // Tracks whether the splash screen is still mounted (unmounted after fade-out)
+  const [splashVisible, setSplashVisible] = useState(true);
 
   const dayNumber = parseInt(day || "1", 10);
 
@@ -360,25 +363,6 @@ export default function VocabularyScreen() {
     />
   );
 
-  if (loading) {
-    return (
-      <SafeAreaView
-        style={[
-          styles.container,
-          { backgroundColor: isDark ? "#000" : "#fff" },
-        ]}
-      >
-        <Stack.Screen
-          options={{
-            title: t("course.dayTitle", { day: dayNumber }),
-            headerBackTitle: t("common.back"),
-          }}
-        />
-        <VocabularyLoadingSkeleton courseId={courseId as CourseType} />
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
@@ -428,6 +412,12 @@ export default function VocabularyScreen() {
         {/* Show finish view for all courses except COLLOCATION (handles it internally). */}
         {isFinished && courseId !== "COLLOCATION" && renderFinishedView()}
       </View>
+      {splashVisible && (
+        <AppSplashScreen
+          visible={loading}
+          onHidden={() => setSplashVisible(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }

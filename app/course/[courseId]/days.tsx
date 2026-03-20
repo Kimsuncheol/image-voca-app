@@ -19,7 +19,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DayGrid } from "../../../components/course";
-import { VocabularyPrefetchLoadingScreen } from "../../../components/course/vocabulary/VocabularyPrefetchLoadingScreen";
+import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import {
@@ -369,11 +369,7 @@ export default function DayPickerScreen() {
       </ScrollView>
 
       {loadingDay !== null && (
-        <VocabularyPrefetchLoadingScreen
-          day={loadingDay}
-          isDark={isDark}
-          courseColor={course?.color}
-        />
+        <AppSplashScreen visible={true} onHidden={() => {}} />
       )}
     </SafeAreaView>
   );

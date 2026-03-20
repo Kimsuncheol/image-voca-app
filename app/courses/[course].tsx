@@ -1,5 +1,6 @@
 // React and React Native imports
 import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { Image } from "expo-image";
 import { doc, getDoc, setDoc } from "firebase/firestore"; // Firestore database operations
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next"; // Internationalization
@@ -7,10 +8,10 @@ import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Custom components
+import { AppSplashScreen } from "../../components/common/AppSplashScreen";
 import { FilterChips } from "../../components/common/FilterChips";
 import {
   EmptyWordBankView,
-  SkeletonList,
   WordList,
 } from "../../components/course-wordbank";
 import { SavedWord } from "../../components/wordbank/WordCard";
@@ -50,7 +51,8 @@ export default function CourseWordBankScreen() {
   // === State Management ===
 
   const [words, setWords] = useState<SavedWord[]>([]); // Array of saved words for this course
-  const [loading, setLoading] = useState(true); // Loading state while fetching data
+  const [loading, setLoading] = useState(true); // Loading state while fetching data + images
+  const [splashMounted, setSplashMounted] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState("all");
 
   // Generate filter options dynamically based on available days
@@ -113,6 +115,7 @@ export default function CourseWordBankScreen() {
   const fetchWords = useCallback(async () => {
     if (!user || !course) return;
 
+    setSplashMounted(true);
     setLoading(true);
     try {
       // Fetch the course document from Firestore
@@ -120,11 +123,21 @@ export default function CourseWordBankScreen() {
         doc(db, "vocabank", user.uid, "course", course),
       );
 
+      let fetchedWords: SavedWord[] = [];
       // If document exists, set words; otherwise, set empty array
       if (courseDoc.exists()) {
-        setWords(courseDoc.data().words || []);
+        fetchedWords = courseDoc.data().words || [];
+        setWords(fetchedWords);
       } else {
         setWords([]);
+      }
+
+      // Prefetch images so loading screen stays until images are ready
+      const imageUrls = fetchedWords
+        .map((w) => w.imageUrl)
+        .filter(Boolean) as string[];
+      if (imageUrls.length > 0) {
+        await Promise.allSettled(imageUrls.map((url) => Image.prefetch(url)));
       }
     } catch (error) {
       console.error("Error fetching words:", error);
@@ -198,16 +211,13 @@ export default function CourseWordBankScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Conditional rendering based on loading and data state */}
-        {loading ? (
-          <SkeletonList courseId={course} isDark={isDark} count={3} />
-        ) : filteredWords.length === 0 ? (
+        {!loading && filteredWords.length === 0 ? (
           <EmptyWordBankView
             courseId={course}
             courseColor={courseData?.color}
             isDark={isDark}
           />
-        ) : (
+        ) : !loading ? (
           <WordList
             words={filteredWords}
             courseId={course}
@@ -215,8 +225,15 @@ export default function CourseWordBankScreen() {
             isDark={isDark}
             onDeleteWord={handleDeleteWord}
           />
-        )}
+        ) : null}
       </ScrollView>
+
+      {splashMounted && (
+        <AppSplashScreen
+          visible={loading}
+          onHidden={() => setSplashMounted(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }
