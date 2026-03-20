@@ -1,19 +1,26 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
+import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
+import { LearningLanguage } from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
 
-const CACHE_KEY = "@famous_quote_cache";
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+const LANGUAGE_MAP: Record<LearningLanguage, "English" | "Japanese"> = {
+  en: "English",
+  ja: "Japanese",
+};
 
 interface FamousQuote {
   id: string;
   quote: string;
   translation: string;
   author: string;
+  language: "English" | "Japanese";
 }
 
 interface CachedQuote {
@@ -21,9 +28,13 @@ interface CachedQuote {
   fetchedAt: number;
 }
 
-async function loadQuote(): Promise<FamousQuote | null> {
+async function loadQuote(
+  language: LearningLanguage,
+): Promise<FamousQuote | null> {
+  const cacheKey = `@famous_quote_cache_${language}`;
+
   try {
-    const raw = await AsyncStorage.getItem(CACHE_KEY);
+    const raw = await AsyncStorage.getItem(cacheKey);
     if (raw) {
       const cached: CachedQuote = JSON.parse(raw);
       if (Date.now() - cached.fetchedAt < ONE_DAY_MS) {
@@ -35,7 +46,11 @@ async function loadQuote(): Promise<FamousQuote | null> {
   }
 
   try {
-    const snapshot = await getDocs(collection(db, "famous_quote"));
+    const q = query(
+      collection(db, "famous_quote"),
+      where("language", "==", LANGUAGE_MAP[language]),
+    );
+    const snapshot = await getDocs(q);
     if (snapshot.empty) return null;
 
     const docs = snapshot.docs;
@@ -46,7 +61,7 @@ async function loadQuote(): Promise<FamousQuote | null> {
     };
 
     await AsyncStorage.setItem(
-      CACHE_KEY,
+      cacheKey,
       JSON.stringify({ quote, fetchedAt: Date.now() }),
     );
     return quote;
@@ -192,14 +207,16 @@ const skeletonStyles = StyleSheet.create({
 
 export function DashboardPopFamousQuote() {
   const { isDark } = useTheme();
+  const { learningLanguage } = useLearningLanguage();
   const [quote, setQuote] = useState<FamousQuote | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadQuote()
+    setLoading(true);
+    loadQuote(learningLanguage)
       .then(setQuote)
       .finally(() => setLoading(false));
-  }, []);
+  }, [learningLanguage]);
 
   if (loading) {
     return <FamousQuoteSkeleton />;
@@ -222,9 +239,11 @@ export function DashboardPopFamousQuote() {
       <ThemedText style={[styles.translation, { color: mutedColor }]}>
         {quote.translation}
       </ThemedText>
-      <ThemedText style={[styles.author, { color: mutedColor }]}>
-        — {quote.author}
-      </ThemedText>
+      {quote.author.length > 0 && (
+        <ThemedText style={[styles.author, { color: mutedColor }]}>
+          — {quote.author}
+        </ThemedText>
+      )}
     </View>
   );
 }
