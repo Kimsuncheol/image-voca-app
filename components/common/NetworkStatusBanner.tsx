@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -26,9 +26,8 @@ export function NetworkStatusBanner() {
     });
   }, [visible]);
 
-  const wrapperStyle = useAnimatedStyle(() => ({
-    height: height.value,
-    overflow: "hidden",
+  const bannerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: height.value - BANNER_HEIGHT }],
   }));
 
   const isOffline = status === "offline";
@@ -39,22 +38,25 @@ export function NetworkStatusBanner() {
     : t("network.reconnectedBanner");
 
   return (
-    <Animated.View style={wrapperStyle}>
-      <View style={[styles.banner, { backgroundColor }]}>
-        <Ionicons name={iconName} size={15} color="#fff" />
-        <Text style={styles.text}>{text}</Text>
-      </View>
+    <Animated.View style={[styles.banner, { backgroundColor }, bannerStyle]}>
+      <Ionicons name={iconName} size={15} color="#fff" />
+      <Text style={styles.text}>{text}</Text>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   banner: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
     height: BANNER_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
+    zIndex: 1000,
   },
   text: {
     color: "#fff",
