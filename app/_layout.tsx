@@ -35,6 +35,7 @@ import {
   hydrateVocabularyCache,
   isVocabularyCacheFresh,
 } from "../src/services/vocabularyPrefetch";
+import { AppSplashScreen } from "../components/common/AppSplashScreen";
 import { NetworkOfflineBanner } from "../components/common/NetworkOfflineBanner";
 import { useSubscriptionStore } from "../src/stores";
 import { CourseType, isCourseAvailableForLanguage } from "../src/types/vocabulary";
@@ -153,6 +154,7 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
     recentCourseByLanguage,
   } = useLearningLanguage();
   const [ready, setReady] = useState(false);
+  const [splashHidden, setSplashHidden] = useState(false);
   const hasBootstrapped = useRef(false);
 
   useEffect(() => {
@@ -221,11 +223,17 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
     prepare();
   }, [learningLanguage, learningLanguageReady, loading, recentCourseByLanguage]);
 
-  if (!ready) {
-    return null;
-  }
-
-  return <>{children}</>;
+  return (
+    <>
+      {ready && children}
+      {!splashHidden && (
+        <AppSplashScreen
+          visible={!ready}
+          onHidden={() => setSplashHidden(true)}
+        />
+      )}
+    </>
+  );
 }
 
 export default function RootLayout() {
