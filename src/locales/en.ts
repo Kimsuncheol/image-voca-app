@@ -629,6 +629,10 @@ const en = {
       },
     },
   },
+  network: {
+    offlineBanner: "No internet connection",
+    offlinePayment: "An internet connection is required to complete payment.",
+  },
 };
 
 export default en;

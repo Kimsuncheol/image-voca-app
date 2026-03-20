@@ -26,6 +26,7 @@ import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { confirmTossPayment } from "../../src/services/tossBillingService";
 import { PLANS, PlanType, useSubscriptionStore } from "../../src/stores";
+import { useNetworkStatus } from "../../src/hooks/useNetworkStatus";
 
 const TOSS_CLIENT_KEY =
   process.env.EXPO_PUBLIC_TOSS_CLIENT_KEY ||
@@ -50,6 +51,7 @@ function CheckoutContent() {
   const { applyConfirmedSubscription } = useSubscriptionStore();
   const storefrontPrice = getDeviceBillingPrice();
 
+  const { isConnected } = useNetworkStatus();
   const paymentWidgetControl = usePaymentWidget();
   const [, setPaymentMethodWidgetControl] =
     useState<PaymentMethodWidgetControl | null>(null);
@@ -79,6 +81,11 @@ function CheckoutContent() {
   };
 
   const handlePayment = async () => {
+    if (!isConnected) {
+      Alert.alert(t("common.error"), t("network.offlinePayment"));
+      return;
+    }
+
     if (!user) {
       Alert.alert(t("common.error"), t("billing.checkout.loginRequired"));
       return;

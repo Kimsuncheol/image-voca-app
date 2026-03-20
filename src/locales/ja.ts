@@ -616,6 +616,10 @@ const ja = {
       notificationCard: "今日の単語",
     },
   },
+  network: {
+    offlineBanner: "インターネット接続なし",
+    offlinePayment: "お支払いを完了するにはインターネット接続が必要です。",
+  },
 };
 
 export default ja;
