@@ -618,6 +618,7 @@ const ja = {
   },
   network: {
     offlineBanner: "インターネット接続なし",
+    reconnectedBanner: "オンラインに戻りました",
     offlinePayment: "お支払いを完了するにはインターネット接続が必要です。",
   },
 };

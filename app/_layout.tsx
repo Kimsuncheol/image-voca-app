@@ -36,7 +36,7 @@ import {
   isVocabularyCacheFresh,
 } from "../src/services/vocabularyPrefetch";
 import { AppSplashScreen } from "../components/common/AppSplashScreen";
-import { NetworkOfflineBanner } from "../components/common/NetworkOfflineBanner";
+import { NetworkStatusBanner } from "../components/common/NetworkStatusBanner";
 import { useSubscriptionStore } from "../src/stores";
 import { CourseType, isCourseAvailableForLanguage } from "../src/types/vocabulary";
 
@@ -110,7 +110,7 @@ function RootLayoutNav() {
         <NavigationThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
-          <NetworkOfflineBanner />
+          <NetworkStatusBanner />
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />

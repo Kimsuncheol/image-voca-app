@@ -631,6 +631,7 @@ const en = {
   },
   network: {
     offlineBanner: "No internet connection",
+    reconnectedBanner: "Back online",
     offlinePayment: "An internet connection is required to complete payment.",
   },
 };

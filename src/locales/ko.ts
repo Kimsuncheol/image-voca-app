@@ -627,6 +627,7 @@ const ko = {
   },
   network: {
     offlineBanner: "인터넷 연결 없음",
+    reconnectedBanner: "인터넷에 연결되었습니다",
     offlinePayment: "결제를 완료하려면 인터넷 연결이 필요합니다.",
   },
 };
