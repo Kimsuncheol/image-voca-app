@@ -8,13 +8,13 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import { db } from "./firebase";
 import {
   CourseType,
   VocabularyCard,
   isJlptLevelCourseId,
 } from "../types/vocabulary";
 import { normalizeVocabularyLocalizationMap } from "../utils/localizedVocabulary";
+import { db } from "./firebase";
 
 type CourseConfig = {
   path?: string;
@@ -36,8 +36,15 @@ const vocabularyCacheUpdatedAt = new Map<string, number>();
  */
 export const getCourseConfig = (courseId: CourseType): CourseConfig => {
   if (isJlptLevelCourseId(courseId)) {
+    const jlptPaths: Record<string, string | undefined> = {
+      JLPT_N1: process.env.EXPO_PUBLIC_COURSE_PATH_JLPT_N1,
+      JLPT_N2: process.env.EXPO_PUBLIC_COURSE_PATH_JLPT_N2,
+      JLPT_N3: process.env.EXPO_PUBLIC_COURSE_PATH_JLPT_N3,
+      JLPT_N4: process.env.EXPO_PUBLIC_COURSE_PATH_JLPT_N4,
+      JLPT_N5: process.env.EXPO_PUBLIC_COURSE_PATH_JLPT_N5,
+    };
     return {
-      path: process.env[`EXPO_PUBLIC_COURSE_PATH_${courseId}`],
+      path: jlptPaths[courseId],
       prefix: courseId,
     };
   }
@@ -121,20 +128,38 @@ export const mapVocabularyDocToCard = (
     return {
       id: docId,
       word: typeof data.word === "string" ? data.word : "",
-      meaning: typeof data.meaningEnglish === "string" ? data.meaningEnglish : "",
-      pronunciation: typeof data.pronunciation === "string" ? data.pronunciation : undefined,
-      pronunciationRoman: typeof data.pronunciationRoman === "string" ? data.pronunciationRoman : undefined,
+      meaning:
+        typeof data.meaningEnglish === "string" ? data.meaningEnglish : "",
+      pronunciation:
+        typeof data.pronunciation === "string" ? data.pronunciation : undefined,
+      pronunciationRoman:
+        typeof data.pronunciationRoman === "string"
+          ? data.pronunciationRoman
+          : undefined,
       example: typeof data.example === "string" ? data.example : "",
-      exampleRoman: typeof data.exampleRoman === "string" ? data.exampleRoman : undefined,
+      exampleRoman:
+        typeof data.exampleRoman === "string" ? data.exampleRoman : undefined,
       imageUrl,
       localized: {
         en: {
-          meaning: typeof data.meaningEnglish === "string" ? data.meaningEnglish : undefined,
-          translation: typeof data.translationEnglish === "string" ? data.translationEnglish : undefined,
+          meaning:
+            typeof data.meaningEnglish === "string"
+              ? data.meaningEnglish
+              : undefined,
+          translation:
+            typeof data.translationEnglish === "string"
+              ? data.translationEnglish
+              : undefined,
         },
         ko: {
-          meaning: typeof data.meaningKorean === "string" ? data.meaningKorean : undefined,
-          translation: typeof data.translationKorean === "string" ? data.translationKorean : undefined,
+          meaning:
+            typeof data.meaningKorean === "string"
+              ? data.meaningKorean
+              : undefined,
+          translation:
+            typeof data.translationKorean === "string"
+              ? data.translationKorean
+              : undefined,
         },
       },
       course: courseId,
@@ -168,9 +193,7 @@ export const mapVocabularyDocToCard = (
     translation:
       typeof data.translation === "string" ? data.translation : undefined,
     pronunciation:
-      typeof data.pronunciation === "string"
-        ? data.pronunciation
-        : undefined,
+      typeof data.pronunciation === "string" ? data.pronunciation : undefined,
     pronunciationRoman:
       typeof data.pronunciationRoman === "string"
         ? data.pronunciationRoman
@@ -180,12 +203,8 @@ export const mapVocabularyDocToCard = (
     localized: normalizeVocabularyLocalizationMap(data.localized),
     course: courseId,
     partOfSpeech: data.partOfSpeech as VocabularyCard["partOfSpeech"],
-    synonyms: Array.isArray(data.synonyms)
-      ? (data.synonyms as string[])
-      : [],
-    antonyms: Array.isArray(data.antonyms)
-      ? (data.antonyms as string[])
-      : [],
+    synonyms: Array.isArray(data.synonyms) ? (data.synonyms as string[]) : [],
+    antonyms: Array.isArray(data.antonyms) ? (data.antonyms as string[]) : [],
     relatedWords: Array.isArray(data.relatedWords)
       ? (data.relatedWords as string[])
       : [],
@@ -378,7 +397,9 @@ export const updateCourseMetadata = async (
       }
 
       await updateDoc(courseDocRef, updateData);
-      console.log(`Updated ${courseId} metadata: lastUploadedDayId = ${dayId}${dayNumber > currentMaxDay ? `, totalDays = ${dayNumber}` : ''}`);
+      console.log(
+        `Updated ${courseId} metadata: lastUploadedDayId = ${dayId}${dayNumber > currentMaxDay ? `, totalDays = ${dayNumber}` : ""}`,
+      );
     } else {
       // Create document with metadata if it doesn't exist
       await setDoc(courseDocRef, {
@@ -386,7 +407,9 @@ export const updateCourseMetadata = async (
         lastUpdated: new Date().toISOString(),
         lastUploadedDayId: dayId,
       });
-      console.log(`Created ${courseId} metadata: totalDays = ${dayNumber}, lastUploadedDayId = ${dayId}`);
+      console.log(
+        `Created ${courseId} metadata: totalDays = ${dayNumber}, lastUploadedDayId = ${dayId}`,
+      );
     }
   } catch (error) {
     console.error(`Error updating metadata for ${courseId}:`, error);

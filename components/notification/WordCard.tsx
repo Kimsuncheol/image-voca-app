@@ -22,6 +22,7 @@ interface WordCardProps {
     | "localized"
   >;
   isDark?: boolean;
+  onReady?: () => void;
 }
 
 interface SectionRowProps {
@@ -64,12 +65,17 @@ function SectionRow({
 export default function WordCard({
   data,
   isDark = false,
+  onReady,
 }: WordCardProps) {
   const { t, i18n } = useTranslation();
   const resolved = React.useMemo(
     () => resolveVocabularyContent(data, i18n.language),
     [data, i18n.language],
   );
+
+  React.useEffect(() => {
+    if (!resolved.imageUrl) onReady?.();
+  }, [resolved.imageUrl, onReady]);
 
   return (
     <Card
@@ -123,6 +129,8 @@ export default function WordCard({
               style={styles.cardImage}
               contentFit="cover"
               cachePolicy="memory-disk"
+              onLoad={onReady}
+              onError={onReady}
             />
           ) : (
             <ImagePlaceholder isDark={isDark} style={styles.cardImage} />

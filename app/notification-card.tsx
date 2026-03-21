@@ -3,6 +3,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppSplashScreen } from "../components/common/AppSplashScreen";
 import CollocationCardSection from "../components/notification/CollocationCardSection";
 import EmptyState from "../components/notification/EmptyState";
 import NotificationHeader from "../components/notification/NotificationHeader";
@@ -15,6 +16,17 @@ export default function NotificationCardScreen() {
   const { isDark } = useTheme();
   const { payload } = useNotificationCard();
   const { t } = useTranslation();
+
+  const [splashVisible, setSplashVisible] = React.useState(true);
+  const [splashMounted, setSplashMounted] = React.useState(true);
+
+  const handleReady = React.useCallback(() => {
+    setSplashVisible(false);
+  }, []);
+
+  React.useEffect(() => {
+    if (payload === null) handleReady();
+  }, [payload, handleReady]);
 
   const handleGoDashboard = () => {
     router.replace("/(tabs)");
@@ -45,6 +57,13 @@ export default function NotificationCardScreen() {
         onBack={handleGoDashboard}
       />
 
+      {splashMounted && (
+        <AppSplashScreen
+          visible={splashVisible}
+          onHidden={() => setSplashMounted(false)}
+        />
+      )}
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -55,12 +74,12 @@ export default function NotificationCardScreen() {
         ) : payload.cardKind === "collocation" ? (
           /* Collocation flip-card */
           <View style={styles.cardContainer}>
-            <CollocationCardSection payload={payload} isDark={isDark} />
+            <CollocationCardSection payload={payload} isDark={isDark} onReady={handleReady} />
           </View>
         ) : (
           /* Word card */
           <View style={styles.cardContainer}>
-            <WordCard data={payload} isDark={isDark} />
+            <WordCard data={payload} isDark={isDark} onReady={handleReady} />
           </View>
         )}
       </ScrollView>

@@ -21,6 +21,8 @@ interface Props {
   onFirstFlipToBack?: () => void;
   // Indicates whether the card is the active one in a paginated/swipable view
   isActive?: boolean;
+  // Called when the card image finishes loading (or errors, or there is no image)
+  onImageLoad?: () => void;
 }
 
 /**
@@ -41,6 +43,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
     wordBankConfig,
     onFirstFlipToBack,
     isActive = true,
+    onImageLoad,
   }) => {
     // ============================================================================
     // State Management
@@ -119,6 +122,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
           isDark={isDark}
           wordBankConfig={wordBankConfig}
           onFlip={wordBankConfig?.isDeleteMode ? undefined : handleFlipToBack}
+          onImageLoad={onImageLoad}
         />
 
         {/* ============================================================ */}

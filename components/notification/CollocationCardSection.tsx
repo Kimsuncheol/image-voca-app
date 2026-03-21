@@ -8,6 +8,7 @@ import CollocationFlipCard from "../CollocationFlipCard";
 interface CollocationCardSectionProps {
   payload: NotificationCollocationCardPayload;
   isDark: boolean;
+  onReady?: () => void;
 }
 
 /**
@@ -17,6 +18,7 @@ interface CollocationCardSectionProps {
 export default function CollocationCardSection({
   payload,
   isDark,
+  onReady,
 }: CollocationCardSectionProps) {
   const { i18n } = useTranslation();
   const resolved = React.useMemo(
@@ -29,6 +31,7 @@ export default function CollocationCardSection({
       <CollocationFlipCard
         isDark={isDark}
         isActive={true}
+        onImageLoad={onReady}
         data={{
           collocation: resolved.word,
           meaning: resolved.meaning,

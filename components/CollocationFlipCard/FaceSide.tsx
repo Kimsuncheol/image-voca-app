@@ -27,6 +27,7 @@ interface FaceSideProps {
   isDark: boolean;
   wordBankConfig?: CollocationWordBankConfig;
   onFlip?: () => void;
+  onImageLoad?: () => void;
 }
 
 /**
@@ -82,6 +83,7 @@ export default React.memo(function FaceSide({
   isDark,
   wordBankConfig,
   onFlip,
+  onImageLoad,
 }: FaceSideProps) {
   // ============================================================================
   // Contexts & State
@@ -90,6 +92,10 @@ export default React.memo(function FaceSide({
   const { recordWordLearned } = useUserStatsStore();
   const { t } = useTranslation();
   const { speak: speakText } = useSpeech();
+
+  React.useEffect(() => {
+    if (!data.imageUrl) onImageLoad?.();
+  }, [data.imageUrl, onImageLoad]);
 
   // Local state for 'Add to Word Bank' operation
   const [isAdding, setIsAdding] = React.useState(false);
@@ -380,6 +386,8 @@ export default React.memo(function FaceSide({
             style={styles.cardImage}
             contentFit="cover"
             cachePolicy="memory-disk"
+            onLoad={onImageLoad}
+            onError={onImageLoad}
           />
         ) : (
           <ImagePlaceholder isDark={isDark} style={styles.cardImage} />
