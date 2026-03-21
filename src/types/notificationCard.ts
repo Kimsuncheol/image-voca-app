@@ -56,11 +56,18 @@ export const isNotificationCardPayload = (
   if (!isStringOrUndefined(data.example)) return false;
   if (!isStringOrUndefined(data.translation)) return false;
   if (!isStringOrUndefined(data.imageUrl)) return false;
-  if (
-    data.localized !== undefined &&
-    (typeof data.localized !== "object" || data.localized === null)
-  ) {
-    return false;
+  if (data.localized !== undefined) {
+    if (typeof data.localized === "string") {
+      try {
+        data.localized = JSON.parse(data.localized);
+      } catch {
+        return false;
+      }
+    }
+    
+    if (typeof data.localized !== "object" || data.localized === null) {
+      return false;
+    }
   }
 
   return true;
