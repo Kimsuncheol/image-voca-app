@@ -21,7 +21,7 @@ export function LearningLanguageSection({ styles, isDark }: Props) {
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>The language you wish to learn</Text>
+      <Text style={styles.sectionTitle}>{t("settings.language.wishToLearn")}</Text>
       <View style={styles.card}>
         {(["en", "ja"] as LearningLanguage[]).map((language, index) => (
           <React.Fragment key={language}>

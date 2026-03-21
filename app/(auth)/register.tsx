@@ -404,7 +404,7 @@ export default function RegisterScreen() {
             ----------------------------------------------------------------- */}
             <View style={styles.learningSection}>
               <Text style={styles.learningSectionLabel}>
-                The language you wish to learn
+                {t("settings.language.wishToLearn")}
               </Text>
               <View style={styles.learningOptionsCard}>
                 {(

@@ -58,6 +58,7 @@ const en = {
       english: "English",
       korean: "Korean",
       japanese: "Japanese",
+      wishToLearn: "The language you wish to learn",
     },
     dashboard: {
       title: "Dashboard",

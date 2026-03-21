@@ -58,6 +58,7 @@ const ja = {
       english: "英語",
       korean: "韓国語",
       japanese: "日本語",
+      wishToLearn: "学習したい言語",
     },
     dashboard: {
       title: "ダッシュボード",
