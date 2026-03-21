@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
@@ -21,6 +22,7 @@ import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
 
 // Components
 import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
+import { StreakMilestoneModal } from "../../../components/common/StreakMilestoneModal";
 import { VocabularyEmptyState } from "../../../components/course/vocabulary/VocabularyEmptyState";
 import { VocabularyFinishView } from "../../../components/course/vocabulary/VocabularyFinishView";
 import { VocabularySwipeDeck } from "../../../components/course/vocabulary/VocabularySwipeDeck";
@@ -72,6 +74,13 @@ export default function VocabularyScreen() {
 
   // Tracks if the user has completed swiping through all cards
   const [isFinished, setIsFinished] = useState(false);
+
+  // Streak milestone modal
+  const [streakModalVisible, setStreakModalVisible] = useState(false);
+  const [streakToShow, setStreakToShow] = useState(0);
+
+  const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100];
+  const STREAK_MILESTONE_KEY = "voca_streak_milestone_shown";
 
   // The list of vocabulary words to display
   const [cards, setCards] = useState<VocabularyCard[]>([]);
@@ -271,6 +280,19 @@ export default function VocabularyScreen() {
       // Flush buffered words to database
       await flushWordStats(user.uid);
 
+      // Check for streak milestone
+      const newStreak =
+        useUserStatsStore.getState().stats?.currentStreak ?? 0;
+      if (STREAK_MILESTONES.includes(newStreak)) {
+        const raw = await AsyncStorage.getItem(STREAK_MILESTONE_KEY);
+        const lastShown = raw ? parseInt(raw, 10) : 0;
+        if (newStreak > lastShown) {
+          await AsyncStorage.setItem(STREAK_MILESTONE_KEY, String(newStreak));
+          setStreakToShow(newStreak);
+          setStreakModalVisible(true);
+        }
+      }
+
       try {
         // Update user's progress for this specific course and day
         await updateDoc(doc(db, "users", user.uid), {
@@ -418,6 +440,11 @@ export default function VocabularyScreen() {
           onHidden={() => setSplashVisible(false)}
         />
       )}
+      <StreakMilestoneModal
+        visible={streakModalVisible}
+        streak={streakToShow}
+        onClose={() => setStreakModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }

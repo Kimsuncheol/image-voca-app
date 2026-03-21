@@ -69,6 +69,10 @@ interface UserStatsState {
   bufferWordLearned: (userId: string, wordId: string) => void;
   flushWordStats: (userId: string) => Promise<void>;
   pendingWordStats: string[];
+
+  // Streak break re-engagement
+  streakBrokenAt: number | null;
+  clearStreakBroken: () => void;
 }
 
 const getToday = () => new Date().toISOString().split("T")[0];
@@ -189,6 +193,9 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
   courseProgress: {},
   pendingQuizStats: { total: 0, correct: 0 },
   pendingWordStats: [],
+  streakBrokenAt: null,
+
+  clearStreakBroken: () => set({ streakBrokenAt: null }),
 
   fetchStats: async (userId: string) => {
     set({ loading: true, error: null });
@@ -225,7 +232,11 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
           stats.lastActiveDate !== yesterday
         ) {
           // Streak broken
+          const brokenStreak = stats.currentStreak;
           stats.currentStreak = 0;
+          if (brokenStreak > 1) {
+            set({ streakBrokenAt: brokenStreak });
+          }
         }
 
         set({ stats, loading: false });

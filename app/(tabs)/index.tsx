@@ -1,6 +1,9 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import React, { useCallback } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { ThemedText } from "../../components/themed-text";
 
 import {
   DashboardHeader,
@@ -17,12 +20,16 @@ export default function DashboardScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
 
+  const { t } = useTranslation();
+
   const {
     stats,
     fetchStats,
     getWordsLearnedForPeriod,
     getAccuracyForPeriod,
     getTimeSpentForPeriod,
+    streakBrokenAt,
+    clearStreakBroken,
   } = useUserStatsStore();
 
   const { quizEnabled, famousQuoteEnabled, elementOrder, loadSettings } =
@@ -68,6 +75,18 @@ export default function DashboardScreen() {
         showsVerticalScrollIndicator={false}
       >
         <DashboardHeader userName={userName} userPhoto={user?.photoURL} />
+        {streakBrokenAt !== null && (
+          <TouchableOpacity
+            style={styles.streakBrokenBanner}
+            onPress={clearStreakBroken}
+            activeOpacity={0.8}
+          >
+            <ThemedText style={styles.streakBrokenText}>
+              {t("streak.broken.banner", { streak: streakBrokenAt })}
+            </ThemedText>
+            <Ionicons name="close" size={18} color="#fff" />
+          </TouchableOpacity>
+        )}
         {elementOrder.map((id) => elementMap[id])}
       </ScrollView>
     </View>
@@ -81,5 +100,22 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
     paddingBottom: 40,
+  },
+  streakBrokenBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#FF3B30",
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    gap: 12,
+  },
+  streakBrokenText: {
+    flex: 1,
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });

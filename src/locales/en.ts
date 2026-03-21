@@ -137,6 +137,17 @@ const en = {
     },
   },
 
+  streak: {
+    milestone: {
+      title: "🔥 {{streak}}-Day Streak!",
+      message: "You've studied {{streak}} days in a row. Keep going!",
+      cta: "Keep it up!",
+    },
+    broken: {
+      banner: "Your {{streak}}-day streak ended. Start a new one today!",
+      dismiss: "Got it",
+    },
+  },
   alerts: {
     premiumFeature: {
       title: "Premium feature",

@@ -340,8 +340,41 @@ export const setStudyReminderEnabledPreference = async (enabled: boolean) => {
   );
 };
 
+export const cancelTodayStudyReminder = async (): Promise<void> => {
+  const Notifications = getNotificationsModule();
+  if (!Notifications) return;
+
+  const storedIds = await getStoredIds(STUDY_REMINDER_NOTIFICATION_IDS_KEY);
+  if (storedIds.length === 0) return;
+
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  const todayKey = formatDateKey(new Date());
+
+  const todayIds = storedIds.filter((id) => {
+    const notif = scheduled.find((n) => n.identifier === id);
+    if (!notif) return false;
+    const trigger = notif.trigger as any;
+    const triggerDate: Date | null = trigger?.date
+      ? new Date(trigger.date)
+      : trigger?.value
+        ? new Date(trigger.value)
+        : null;
+    return triggerDate ? formatDateKey(triggerDate) === todayKey : false;
+  });
+
+  if (todayIds.length === 0) return;
+
+  await Promise.all(
+    todayIds.map((id) => Notifications.cancelScheduledNotificationAsync(id)),
+  );
+
+  const remaining = storedIds.filter((id) => !todayIds.includes(id));
+  await storeIds(STUDY_REMINDER_NOTIFICATION_IDS_KEY, remaining);
+};
+
 export const markStudyDate = async (date = new Date()) => {
   await AsyncStorage.setItem(LAST_STUDY_DATE_KEY, formatDateKey(date));
+  cancelTodayStudyReminder().catch(() => {});
 };
 
 export const getLastStudyDate = async () => {

@@ -141,6 +141,17 @@ const ko = {
     },
   },
 
+  streak: {
+    milestone: {
+      title: "🔥 {{streak}}일 연속 학습!",
+      message: "{{streak}}일 연속으로 학습했어요. 계속 유지하세요!",
+      cta: "계속 해봐요!",
+    },
+    broken: {
+      banner: "{{streak}}일 연속 학습이 끊어졌어요. 오늘부터 다시 시작해요!",
+      dismiss: "확인",
+    },
+  },
   alerts: {
     premiumFeature: {
       title: "프리미엄 기능",

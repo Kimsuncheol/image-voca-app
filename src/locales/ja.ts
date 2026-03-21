@@ -136,6 +136,17 @@ const ja = {
       timeSpent: "学習時間",
     },
   },
+  streak: {
+    milestone: {
+      title: "🔥 {{streak}}日連続学習!",
+      message: "{{streak}}日連続で学習しました。続けましょう！",
+      cta: "続けよう！",
+    },
+    broken: {
+      banner: "{{streak}}日連続学習が途切れました。今日から新たに始めましょう！",
+      dismiss: "わかった",
+    },
+  },
   alerts: {
     premiumFeature: {
       title: "プレミアム機能",
