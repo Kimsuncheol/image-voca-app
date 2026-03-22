@@ -7,6 +7,7 @@ import {
   MAX_REGISTERED_DEVICES,
   removeUserDeviceRegistration,
 } from "../../src/services/deviceRegistrationService";
+import type { ManageableDeviceRecord } from "../../src/types/deviceRegistration";
 
 const mockT = (key: string, options?: Record<string, string | number>) =>
   (
@@ -69,11 +70,80 @@ jest.mock("react-native-safe-area-context", () => {
   };
 });
 
+jest.mock("react-native-reanimated", () => {
+  const ReactModule = jest.requireActual<typeof import("react")>("react");
+  const { View } = jest.requireActual("react-native");
+  const Reanimated = jest.requireActual("react-native-reanimated/mock");
+
+  Reanimated.default = Reanimated;
+  Reanimated.View = View;
+  Reanimated.useAnimatedStyle = (updater: () => object) => updater();
+  Reanimated.useSharedValue = (value: number) =>
+    ReactModule.useRef({ value }).current;
+  Reanimated.runOnJS = (fn: (...args: unknown[]) => unknown) => fn;
+  Reanimated.withTiming = jest.fn(
+    (
+      toValue: number,
+      _config?: object,
+      callback?: (finished?: boolean) => void,
+    ) => {
+      callback?.(true);
+      return toValue;
+    },
+  );
+  Reanimated.LinearTransition = {
+    duration: jest.fn(() => ({
+      easing: jest.fn(() => ({})),
+    })),
+  };
+  Reanimated.Easing = {
+    ease: jest.fn(),
+    inOut: jest.fn(() => "inOut"),
+    out: jest.fn(() => "out"),
+  };
+
+  return Reanimated;
+});
+
 jest.mock("../../src/services/deviceRegistrationService", () => ({
   MAX_REGISTERED_DEVICES: 3,
   listUserDeviceRegistrations: jest.fn(),
   removeUserDeviceRegistration: jest.fn(),
 }));
+
+const buildDevice = (
+  overrides: Partial<ManageableDeviceRecord>,
+): ManageableDeviceRecord => ({
+  deviceId: "device-default",
+  modelName: "Device",
+  platform: "ios",
+  osVersion: "18",
+  appVersion: "1.0.0",
+  authProvider: "google.com",
+  createdAt: "2026-03-01T00:00:00.000Z",
+  updatedAt: "2026-03-01T00:00:00.000Z",
+  lastSeenAt: "2026-03-05T00:00:00.000Z",
+  brand: "Apple",
+  manufacturer: "Apple",
+  deviceType: "phone",
+  osName: "iOS",
+  notificationPermissionStatus: "granted",
+  expoPushToken: null,
+  isCurrentDevice: false,
+  ...overrides,
+});
+
+const createDeferred = <T,>() => {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+
+  return { promise, resolve, reject };
+};
 
 describe("ManageDevicesScreen", () => {
   beforeEach(() => {
@@ -87,42 +157,22 @@ describe("ManageDevicesScreen", () => {
 
   it("renders the device count summary and hides remove for the current device", async () => {
     (listUserDeviceRegistrations as jest.Mock).mockResolvedValue([
-      {
+      buildDevice({
         deviceId: "device-current",
         modelName: "iPhone 15",
-        platform: "ios",
-        osVersion: "18",
-        appVersion: "1.0.0",
-        authProvider: "google.com",
-        createdAt: "2026-03-01T00:00:00.000Z",
-        updatedAt: "2026-03-01T00:00:00.000Z",
-        lastSeenAt: "2026-03-05T00:00:00.000Z",
-        brand: "Apple",
-        manufacturer: "Apple",
-        deviceType: "phone",
-        osName: "iOS",
-        notificationPermissionStatus: "granted",
-        expoPushToken: null,
         isCurrentDevice: true,
-      },
-      {
+      }),
+      buildDevice({
         deviceId: "device-old",
         modelName: "Galaxy",
         platform: "android",
         osVersion: "15",
-        appVersion: "1.0.0",
         authProvider: "password",
-        createdAt: "2026-03-01T00:00:00.000Z",
-        updatedAt: "2026-03-01T00:00:00.000Z",
         lastSeenAt: "2026-03-04T00:00:00.000Z",
         brand: "Samsung",
         manufacturer: "Samsung",
-        deviceType: "phone",
         osName: "Android",
-        notificationPermissionStatus: "granted",
-        expoPushToken: null,
-        isCurrentDevice: false,
-      },
+      }),
     ]);
 
     const { getByText, queryAllByText } = render(<ManageDevicesScreen />);
@@ -161,66 +211,37 @@ describe("ManageDevicesScreen", () => {
   });
 
   it("confirms and removes a non-current device, then refreshes the list", async () => {
+    const removal = createDeferred<void>();
+
     (listUserDeviceRegistrations as jest.Mock)
       .mockResolvedValueOnce([
-        {
+        buildDevice({
           deviceId: "device-current",
           modelName: "iPhone 15",
-          platform: "ios",
-          osVersion: "18",
-          appVersion: "1.0.0",
-          authProvider: "google.com",
-          createdAt: "2026-03-01T00:00:00.000Z",
-          updatedAt: "2026-03-01T00:00:00.000Z",
-          lastSeenAt: "2026-03-05T00:00:00.000Z",
-          brand: "Apple",
-          manufacturer: "Apple",
-          deviceType: "phone",
-          osName: "iOS",
-          notificationPermissionStatus: "granted",
-          expoPushToken: null,
           isCurrentDevice: true,
-        },
-        {
+        }),
+        buildDevice({
           deviceId: "device-old",
           modelName: "Galaxy",
           platform: "android",
           osVersion: "15",
-          appVersion: "1.0.0",
           authProvider: "password",
-          createdAt: "2026-03-01T00:00:00.000Z",
-          updatedAt: "2026-03-01T00:00:00.000Z",
           lastSeenAt: "2026-03-04T00:00:00.000Z",
           brand: "Samsung",
           manufacturer: "Samsung",
-          deviceType: "phone",
           osName: "Android",
-          notificationPermissionStatus: "granted",
-          expoPushToken: null,
-          isCurrentDevice: false,
-        },
+        }),
       ])
       .mockResolvedValueOnce([
-        {
+        buildDevice({
           deviceId: "device-current",
           modelName: "iPhone 15",
-          platform: "ios",
-          osVersion: "18",
-          appVersion: "1.0.0",
-          authProvider: "google.com",
-          createdAt: "2026-03-01T00:00:00.000Z",
-          updatedAt: "2026-03-01T00:00:00.000Z",
-          lastSeenAt: "2026-03-05T00:00:00.000Z",
-          brand: "Apple",
-          manufacturer: "Apple",
-          deviceType: "phone",
-          osName: "iOS",
-          notificationPermissionStatus: "granted",
-          expoPushToken: null,
           isCurrentDevice: true,
-        },
+        }),
       ]);
-    (removeUserDeviceRegistration as jest.Mock).mockResolvedValue(undefined);
+    (removeUserDeviceRegistration as jest.Mock).mockImplementation(
+      () => removal.promise,
+    );
 
     const { getByText, queryByText } = render(<ManageDevicesScreen />);
 
@@ -238,7 +259,16 @@ describe("ManageDevicesScreen", () => {
 
     const buttons = (Alert.alert as jest.Mock).mock.calls[0][2];
     await act(async () => {
-      await buttons[1].onPress();
+      buttons[1].onPress();
+    });
+
+    await waitFor(() => {
+      expect(getByText("Removing...")).toBeTruthy();
+    });
+
+    await act(async () => {
+      removal.resolve(undefined);
+      await removal.promise;
     });
 
     await waitFor(() => {
@@ -252,5 +282,61 @@ describe("ManageDevicesScreen", () => {
     await waitFor(() => {
       expect(queryByText("Galaxy")).toBeNull();
     });
+  });
+
+  it("keeps the device visible and shows an error alert when removal fails", async () => {
+    const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+    (listUserDeviceRegistrations as jest.Mock).mockResolvedValue([
+      buildDevice({
+        deviceId: "device-current",
+        modelName: "iPhone 15",
+        isCurrentDevice: true,
+      }),
+      buildDevice({
+        deviceId: "device-old",
+        modelName: "Galaxy",
+        platform: "android",
+        osVersion: "15",
+        authProvider: "password",
+        lastSeenAt: "2026-03-04T00:00:00.000Z",
+        brand: "Samsung",
+        manufacturer: "Samsung",
+        osName: "Android",
+      }),
+    ]);
+    (removeUserDeviceRegistration as jest.Mock).mockRejectedValue(
+      new Error("remove failed"),
+    );
+
+    const { getByText } = render(<ManageDevicesScreen />);
+
+    await waitFor(() => {
+      expect(getByText("Remove")).toBeTruthy();
+    });
+
+    fireEvent.press(getByText("Remove"));
+
+    const buttons = (Alert.alert as jest.Mock).mock.calls[0][2];
+    await act(async () => {
+      await buttons[1].onPress();
+    });
+
+    await waitFor(() => {
+      expect(removeUserDeviceRegistration).toHaveBeenCalledWith(
+        "user-1",
+        "device-old",
+      );
+      expect(getByText("Galaxy")).toBeTruthy();
+    });
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Error",
+        "Failed to remove the device. Please try again.",
+      );
+    });
+
+    consoleWarnSpy.mockRestore();
   });
 });

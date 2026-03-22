@@ -9,6 +9,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, {
+  Easing,
+  LinearTransition,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../src/context/AuthContext";
@@ -19,6 +27,26 @@ import {
   removeUserDeviceRegistration,
 } from "../src/services/deviceRegistrationService";
 import type { ManageableDeviceRecord } from "../src/types/deviceRegistration";
+
+const REMOVE_EXIT_DURATION_MS = 200;
+const LIST_LAYOUT_DURATION_MS = 220;
+const REMOVE_EXIT_TRANSLATE_X = -16;
+const REMOVE_EXIT_SCALE = 0.98;
+
+const rowLayoutTransition = LinearTransition.duration(LIST_LAYOUT_DURATION_MS).easing(
+  Easing.inOut(Easing.ease),
+);
+
+type DeviceRowProps = {
+  device: ManageableDeviceRecord;
+  index: number;
+  isRemoving: boolean;
+  isExiting: boolean;
+  onExitComplete: (deviceId: string) => void;
+  onRemove: (device: ManageableDeviceRecord) => void;
+  styles: ReturnType<typeof getStyles>;
+  t: ReturnType<typeof useTranslation>["t"];
+};
 
 const formatDateLabel = (value?: string | null) => {
   if (!value) return "-";
@@ -42,6 +70,98 @@ const getProviderLabel = (
   return t("manageDevices.authProvider.unknown");
 };
 
+function DeviceRow({
+  device,
+  index,
+  isRemoving,
+  isExiting,
+  onExitComplete,
+  onRemove,
+  styles,
+  t,
+}: DeviceRowProps) {
+  const exitProgress = useSharedValue(0);
+
+  useEffect(() => {
+    if (!isExiting) {
+      return;
+    }
+
+    exitProgress.value = withTiming(
+      1,
+      {
+        duration: REMOVE_EXIT_DURATION_MS,
+        easing: Easing.out(Easing.ease),
+      },
+      (finished) => {
+        if (finished) {
+          runOnJS(onExitComplete)(device.deviceId);
+        }
+      },
+    );
+  }, [device.deviceId, exitProgress, isExiting, onExitComplete]);
+
+  const animatedRowStyle = useAnimatedStyle(() => ({
+    opacity: 1 - exitProgress.value,
+    transform: [
+      { translateX: REMOVE_EXIT_TRANSLATE_X * exitProgress.value },
+      { scale: 1 - (1 - REMOVE_EXIT_SCALE) * exitProgress.value },
+    ],
+  }));
+
+  return (
+    <Animated.View layout={rowLayoutTransition} style={animatedRowStyle}>
+      {index > 0 && <View style={styles.separator} />}
+      <View style={styles.deviceRow}>
+        <View style={styles.deviceContent}>
+          <View style={styles.deviceTitleRow}>
+            <Text style={styles.deviceTitle}>
+              {device.modelName || t("manageDevices.unknownDevice")}
+            </Text>
+            {device.isCurrentDevice && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {t("manageDevices.currentBadge")}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <Text style={styles.deviceMeta}>
+            {device.platform.toUpperCase()} {device.osVersion || ""}
+          </Text>
+          <Text style={styles.deviceMeta}>
+            {getProviderLabel(device.authProvider, t)}
+          </Text>
+          <Text style={styles.deviceMeta}>
+            {t("manageDevices.lastSeen", {
+              date: formatDateLabel(device.lastSeenAt),
+            })}
+          </Text>
+          <Text style={styles.deviceMeta}>
+            {t("manageDevices.registeredOn", {
+              date: formatDateLabel(device.createdAt),
+            })}
+          </Text>
+        </View>
+
+        {!device.isCurrentDevice && (
+          <TouchableOpacity
+            style={styles.removeButton}
+            onPress={() => onRemove(device)}
+            disabled={isRemoving || isExiting}
+          >
+            <Ionicons name="trash-outline" size={18} color="#fff" />
+            <Text style={styles.removeButtonText}>
+              {isRemoving ? t("manageDevices.removing") : t("manageDevices.remove")}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </Animated.View>
+  );
+}
+
 export default function ManageDevicesScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
@@ -51,30 +171,75 @@ export default function ManageDevicesScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [removingDeviceId, setRemovingDeviceId] = useState<string | null>(null);
+  const [exitingDeviceIds, setExitingDeviceIds] = useState<Record<string, true>>({});
 
-  const loadDevices = useCallback(async () => {
-    if (!user?.uid) {
-      setDevices([]);
-      setLoading(false);
-      return;
-    }
+  const loadDevices = useCallback(
+    async ({
+      excludeDeviceIds = [],
+      showLoading = true,
+      showErrorState = true,
+    }: {
+      excludeDeviceIds?: string[];
+      showLoading?: boolean;
+      showErrorState?: boolean;
+    } = {}) => {
+      if (!user?.uid) {
+        setDevices([]);
+        setLoading(false);
+        return;
+      }
 
-    try {
-      setLoading(true);
-      setError(null);
-      const nextDevices = await listUserDeviceRegistrations(user.uid);
-      setDevices(nextDevices);
-    } catch (loadError) {
-      console.warn("Failed to load registered devices", loadError);
-      setError(t("manageDevices.error"));
-    } finally {
-      setLoading(false);
-    }
-  }, [t, user?.uid]);
+      try {
+        if (showLoading) {
+          setLoading(true);
+          setError(null);
+        }
+        const nextDevices = await listUserDeviceRegistrations(user.uid);
+        setDevices(
+          nextDevices.filter(
+            (device) => !excludeDeviceIds.includes(device.deviceId),
+          ),
+        );
+      } catch (loadError) {
+        console.warn("Failed to load registered devices", loadError);
+        if (showErrorState) {
+          setError(t("manageDevices.error"));
+        }
+      } finally {
+        if (showLoading) {
+          setLoading(false);
+        }
+      }
+    },
+    [t, user?.uid],
+  );
 
   useEffect(() => {
     void loadDevices();
   }, [loadDevices]);
+
+  const handleExitComplete = useCallback(
+    (deviceId: string) => {
+      setDevices((currentDevices) =>
+        currentDevices.filter((device) => device.deviceId !== deviceId),
+      );
+      setExitingDeviceIds((currentIds) => {
+        const nextIds = { ...currentIds };
+        delete nextIds[deviceId];
+        return nextIds;
+      });
+      setRemovingDeviceId((currentId) =>
+        currentId === deviceId ? null : currentId,
+      );
+      void loadDevices({
+        excludeDeviceIds: [deviceId],
+        showLoading: false,
+        showErrorState: false,
+      });
+      Alert.alert(t("common.success"), t("manageDevices.removeSuccess"));
+    },
+    [loadDevices, t],
+  );
 
   const handleRemoveDevice = (device: ManageableDeviceRecord) => {
     Alert.alert(
@@ -91,13 +256,16 @@ export default function ManageDevicesScreen() {
               try {
                 setRemovingDeviceId(device.deviceId);
                 await removeUserDeviceRegistration(user.uid, device.deviceId);
-                await loadDevices();
-                Alert.alert(t("common.success"), t("manageDevices.removeSuccess"));
+                setExitingDeviceIds((currentIds) => ({
+                  ...currentIds,
+                  [device.deviceId]: true,
+                }));
               } catch (removeError) {
                 console.warn("Failed to remove device registration", removeError);
+                setRemovingDeviceId((currentId) =>
+                  currentId === device.deviceId ? null : currentId,
+                );
                 Alert.alert(t("common.error"), t("manageDevices.removeError"));
-              } finally {
-                setRemovingDeviceId(null);
               }
             })();
           },
@@ -136,57 +304,17 @@ export default function ManageDevicesScreen() {
         ) : (
           <View style={styles.listCard}>
             {devices.map((device, index) => (
-              <View key={device.deviceId}>
-                {index > 0 && <View style={styles.separator} />}
-                <View style={styles.deviceRow}>
-                  <View style={styles.deviceContent}>
-                    <View style={styles.deviceTitleRow}>
-                      <Text style={styles.deviceTitle}>
-                        {device.modelName || t("manageDevices.unknownDevice")}
-                      </Text>
-                      {device.isCurrentDevice && (
-                        <View style={styles.badge}>
-                          <Text style={styles.badgeText}>
-                            {t("manageDevices.currentBadge")}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-
-                    <Text style={styles.deviceMeta}>
-                      {device.platform.toUpperCase()} {device.osVersion || ""}
-                    </Text>
-                    <Text style={styles.deviceMeta}>
-                      {getProviderLabel(device.authProvider, t)}
-                    </Text>
-                    <Text style={styles.deviceMeta}>
-                      {t("manageDevices.lastSeen", {
-                        date: formatDateLabel(device.lastSeenAt),
-                      })}
-                    </Text>
-                    <Text style={styles.deviceMeta}>
-                      {t("manageDevices.registeredOn", {
-                        date: formatDateLabel(device.createdAt),
-                      })}
-                    </Text>
-                  </View>
-
-                  {!device.isCurrentDevice && (
-                    <TouchableOpacity
-                      style={styles.removeButton}
-                      onPress={() => handleRemoveDevice(device)}
-                      disabled={removingDeviceId === device.deviceId}
-                    >
-                      <Ionicons name="trash-outline" size={18} color="#fff" />
-                      <Text style={styles.removeButtonText}>
-                        {removingDeviceId === device.deviceId
-                          ? t("manageDevices.removing")
-                          : t("manageDevices.remove")}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
+              <DeviceRow
+                key={device.deviceId}
+                device={device}
+                index={index}
+                isRemoving={removingDeviceId === device.deviceId}
+                isExiting={Boolean(exitingDeviceIds[device.deviceId])}
+                onExitComplete={handleExitComplete}
+                onRemove={handleRemoveDevice}
+                styles={styles}
+                t={t}
+              />
             ))}
           </View>
         )}
