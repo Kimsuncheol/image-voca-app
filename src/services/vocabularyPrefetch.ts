@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { FirebaseError } from "firebase/app";
 import {
   collection,
   doc,
@@ -8,6 +9,7 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
+import { useNetworkStore } from "../stores/networkStore";
 import {
   CourseType,
   VocabularyCard,
@@ -453,6 +455,9 @@ export const getTotalDaysForCourse = async (
     console.log(`No metadata found for ${courseId}, returning 0`);
     return 0;
   } catch (error) {
+    if (error instanceof FirebaseError) {
+      useNetworkStore.getState().setFirebaseOffline(true);
+    }
     console.error(`Error fetching metadata for ${courseId}:`, error);
     return 0;
   }
@@ -496,6 +501,9 @@ export const getCourseMetadata = async (
 
     return null;
   } catch (error) {
+    if (error instanceof FirebaseError) {
+      useNetworkStore.getState().setFirebaseOffline(true);
+    }
     console.error(`Error fetching metadata for ${courseId}:`, error);
     return null;
   }

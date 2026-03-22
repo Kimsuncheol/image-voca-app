@@ -450,6 +450,7 @@ const ja = {
     currentPlanButton: "現在のプラン",
     freePlanButton: "無料プラン",
     purchaseButton: "購入する",
+    connectionError: "サブスクリプション情報を読み込めませんでした。接続状況をご確認ください。",
     info: "一回払いで永久利用できます。対応している場合、デバイスの地域に応じた通貨で表示されます。返金は購入後7日以内のみ可能です。",
     checkout: {
       title: "チェックアウト",
@@ -637,6 +638,7 @@ const ja = {
     offlineBanner: "インターネット接続なし",
     reconnectedBanner: "オンラインに戻りました",
     offlinePayment: "お支払いを完了するにはインターネット接続が必要です。",
+    serverOfflineBanner: "サーバーに接続できません",
   },
 };
 

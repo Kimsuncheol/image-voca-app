@@ -9,15 +9,24 @@ import Animated, {
 } from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
 import { useNetworkStatus } from "../../src/hooks/useNetworkStatus";
+import { useNetworkStore } from "../../src/stores/networkStore";
 
 const BANNER_HEIGHT = 38;
 
 export function NetworkStatusBanner() {
   const { status } = useNetworkStatus();
+  const { firebaseOffline, setFirebaseOffline } = useNetworkStore();
   const { t } = useTranslation();
   const height = useSharedValue(0);
 
-  const visible = status !== "idle";
+  // Clear Firebase offline flag when network reconnects
+  useEffect(() => {
+    if (status === "reconnected" || status === "idle") {
+      setFirebaseOffline(false);
+    }
+  }, [status]);
+
+  const visible = status !== "idle" || firebaseOffline;
 
   useEffect(() => {
     height.value = withTiming(visible ? BANNER_HEIGHT : 0, {
@@ -30,11 +39,13 @@ export function NetworkStatusBanner() {
     transform: [{ translateY: height.value - BANNER_HEIGHT }],
   }));
 
-  const isOffline = status === "offline";
+  const isOffline = status === "offline" || firebaseOffline;
   const backgroundColor = isOffline ? "#cc3300" : "#28a745";
   const iconName = isOffline ? "wifi-outline" : "checkmark-circle-outline";
   const text = isOffline
-    ? t("network.offlineBanner")
+    ? status === "offline"
+      ? t("network.offlineBanner")
+      : t("network.serverOfflineBanner")
     : t("network.reconnectedBanner");
 
   return (

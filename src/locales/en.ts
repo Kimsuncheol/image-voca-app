@@ -461,6 +461,7 @@ const en = {
     currentPlanButton: "Current Plan",
     freePlanButton: "Free Plan",
     purchaseButton: "Purchase",
+    connectionError: "Failed to load subscription data. Please check your connection.",
     info: "One-time payment for lifetime access. Checkout currency follows your device region when supported. Refunds are available only within 7 days of purchase.",
     checkout: {
       title: "Checkout",
@@ -650,6 +651,7 @@ const en = {
     offlineBanner: "No internet connection",
     reconnectedBanner: "Back online",
     offlinePayment: "An internet connection is required to complete payment.",
+    serverOfflineBanner: "Cannot connect to server",
   },
 };
 

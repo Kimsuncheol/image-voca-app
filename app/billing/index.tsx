@@ -15,7 +15,7 @@ export default function BillingScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
-  const { currentPlan, fetchSubscription } = useSubscriptionStore();
+  const { currentPlan, fetchSubscription, error } = useSubscriptionStore();
   const { t } = useTranslation();
   const storefrontPrice = getDeviceBillingPrice();
 
@@ -49,6 +49,18 @@ export default function BillingScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {error && (
+          <View style={styles.errorBanner}>
+            <Ionicons name="cloud-offline-outline" size={18} color="#fff" />
+            <ThemedText style={styles.errorText}>
+              {t("billing.connectionError")}
+            </ThemedText>
+            <TouchableOpacity onPress={() => user && fetchSubscription(user.uid)}>
+              <ThemedText style={styles.retryText}>{t("common.retry")}</ThemedText>
+            </TouchableOpacity>
+          </View>
+        )}
+
         <View style={styles.header}>
           <ThemedText type="title">{t("billing.selectTitle")}</ThemedText>
           <ThemedText style={styles.subtitle}>
@@ -318,6 +330,26 @@ const styles = StyleSheet.create({
   },
   currentButtonText: {
     color: "#fff",
+  },
+  errorBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#c0392b",
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: "#fff",
+    fontSize: 13,
+    flex: 1,
+  },
+  retryText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "600" as const,
+    textDecorationLine: "underline" as const,
   },
   infoContainer: {
     flexDirection: "row",

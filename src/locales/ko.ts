@@ -458,6 +458,7 @@ const ko = {
     currentPlanButton: "현재 요금제",
     freePlanButton: "기본 요금제",
     purchaseButton: "구매하기",
+    connectionError: "구독 정보를 불러오지 못했습니다. 연결 상태를 확인해 주세요.",
     info: "일회성 결제로 평생 이용 가능합니다. 지원되는 경우 기기 지역에 따라 결제 통화가 표시됩니다. 환불은 구매 후 7일 이내에만 가능합니다.",
     checkout: {
       title: "결제",
@@ -646,6 +647,7 @@ const ko = {
     offlineBanner: "인터넷 연결 없음",
     reconnectedBanner: "인터넷에 연결되었습니다",
     offlinePayment: "결제를 완료하려면 인터넷 연결이 필요합니다.",
+    serverOfflineBanner: "서버에 연결할 수 없습니다",
   },
 };
 
