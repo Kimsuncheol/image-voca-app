@@ -24,6 +24,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Animated, StyleSheet, View } from "react-native";
+import { QuizGenerationAnimation } from "../common/QuizGenerationAnimation";
 import { useAuth } from "../../src/context/AuthContext";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
@@ -31,7 +32,6 @@ import { getTotalDaysForCourse } from "../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../src/stores";
 import { CourseType } from "../../src/types/vocabulary";
 import {
-  ResolvedQuizVocabulary,
   resolveQuizVocabulary,
 } from "../../src/utils/localizedVocabulary";
 import { ThemedText } from "../themed-text";
@@ -40,7 +40,6 @@ import {
   getQuizCoursesForLanguage,
 } from "./constants/quizConfig";
 import { useQuizBatchFetcher } from "./hooks/useQuizBatchFetcher";
-import { PopQuizSkeleton } from "./PopQuizSkeleton";
 import { FillInBlankQuiz, WordOption } from "./quiz-types/FillInBlankQuiz";
 import { MatchingPair, MatchingQuiz } from "./quiz-types/MatchingQuiz";
 import { MultipleChoiceQuiz } from "./quiz-types/MultipleChoiceQuiz";
@@ -48,6 +47,7 @@ import { QuizHeader } from "./QuizHeader";
 import { QuizStoppedState } from "./QuizStoppedState";
 import {
   buildDashboardQuizPayload,
+  type ResolvedDashboardQuizVocabulary,
   DashboardQuizItem as QuizItem,
   DashboardQuizType as QuizType,
 } from "./utils/quizHelpers";
@@ -60,6 +60,14 @@ const JLPT_QUIZ_TYPES: QuizType[] = [
   "matching",
   "fill-in-blank",
 ];
+const INITIAL_LOADING_MIN_MS = 500;
+const ROLLOVER_LOADING_DELAY_MS = 150;
+const ROLLOVER_LOADING_MIN_MS = 500;
+
+const sleep = (ms: number) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
 // ============================================================================
 // MAIN COMPONENT
@@ -92,8 +100,8 @@ export function DashboardPopQuiz() {
   // STATE MANAGEMENT
   // ==========================================================================
   // Batch state
-  const [currentBatch, setCurrentBatch] = useState<ResolvedQuizVocabulary[]>([]);
-  const [nextBatch, setNextBatch] = useState<ResolvedQuizVocabulary[]>([]);
+  const [currentBatch, setCurrentBatch] = useState<ResolvedDashboardQuizVocabulary[]>([]);
+  const [nextBatch, setNextBatch] = useState<ResolvedDashboardQuizVocabulary[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [turnNumber, setTurnNumber] = useState(1);
 
@@ -110,6 +118,8 @@ export function DashboardPopQuiz() {
   // Wrong answer tracking
   const [wrongCount, setWrongCount] = useState(0);
   const [isStopped, setIsStopped] = useState(false);
+  const [waitingForNextBatch, setWaitingForNextBatch] = useState(false);
+  const [rolloverLoadingVisible, setRolloverLoadingVisible] = useState(false);
 
   // ==========================================================================
   // REFS
@@ -117,6 +127,8 @@ export function DashboardPopQuiz() {
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const batchLoadVersionRef = useRef(0);
   const quizTypeIndexRef = useRef(0);
+  const rolloverDelayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rolloverLoadingStartedAtRef = useRef<number | null>(null);
 
   // Derived state
   const quizKey = `${turnNumber}-${currentIndex}`;
@@ -125,8 +137,11 @@ export function DashboardPopQuiz() {
   // VOCABULARY RESOLUTION
   // ==========================================================================
   const resolveBatch = useCallback(
-    (batch: any[]): ResolvedQuizVocabulary[] =>
-      batch.map((word) => resolveQuizVocabulary(word, i18n.language)),
+    (batch: any[]): ResolvedDashboardQuizVocabulary[] =>
+      batch.map((word) => ({
+        ...resolveQuizVocabulary(word, i18n.language),
+        course: word.course,
+      })),
     [i18n.language],
   );
 
@@ -140,7 +155,10 @@ export function DashboardPopQuiz() {
    * For other courses: always multiple-choice.
    */
   const generateQuiz = useCallback(
-    (wordData: ResolvedQuizVocabulary, batch: ResolvedQuizVocabulary[]) => {
+    (
+      wordData: ResolvedDashboardQuizVocabulary,
+      batch: ResolvedDashboardQuizVocabulary[],
+    ) => {
       // Determine quiz type
       let nextQuizType: QuizType;
       if (learningLanguage === "ja") {
@@ -163,6 +181,29 @@ export function DashboardPopQuiz() {
     [learningLanguage],
   );
 
+  const clearRolloverDelayTimer = useCallback(() => {
+    if (!rolloverDelayTimerRef.current) return;
+    clearTimeout(rolloverDelayTimerRef.current);
+    rolloverDelayTimerRef.current = null;
+  }, []);
+
+  const applyNextBatch = useCallback(
+    (resolvedBatch: ResolvedDashboardQuizVocabulary[]) => {
+      clearRolloverDelayTimer();
+      rolloverLoadingStartedAtRef.current = null;
+      setWaitingForNextBatch(false);
+      setRolloverLoadingVisible(false);
+      setCurrentBatch(resolvedBatch);
+      setNextBatch([]);
+      setCurrentIndex(0);
+      setTurnNumber((prev) => prev + 1);
+      setWrongCount(0);
+      quizTypeIndexRef.current = 0;
+      generateQuiz(resolvedBatch[0], resolvedBatch);
+    },
+    [clearRolloverDelayTimer, generateQuiz],
+  );
+
   // ==========================================================================
   // NAVIGATION
   // ==========================================================================
@@ -179,15 +220,27 @@ export function DashboardPopQuiz() {
     if (newIndex >= currentBatch.length) {
       if (nextBatch.length > 0) {
         console.log(`Switching to next batch (turn ${turnNumber + 1})`);
-        setCurrentBatch(nextBatch);
-        setNextBatch([]);
-        setCurrentIndex(0);
-        setTurnNumber((prev) => prev + 1);
-        setWrongCount(0);
-        quizTypeIndexRef.current = 0;
-        generateQuiz(nextBatch[0], nextBatch);
+        applyNextBatch(nextBatch);
       } else {
-        setLoading(true);
+        setWaitingForNextBatch(true);
+        clearRolloverDelayTimer();
+        rolloverDelayTimerRef.current = setTimeout(() => {
+          rolloverLoadingStartedAtRef.current = Date.now();
+          setRolloverLoadingVisible(true);
+        }, ROLLOVER_LOADING_DELAY_MS);
+
+        if (!isPrefetching) {
+          const loadVersion = batchLoadVersionRef.current;
+          void prefetchNextBatch().then((batch) => {
+            if (batchLoadVersionRef.current !== loadVersion) {
+              return;
+            }
+            const resolvedBatch = resolveBatch(batch);
+            if (resolvedBatch.length > 0) {
+              setNextBatch(resolvedBatch);
+            }
+          });
+        }
       }
       return;
     }
@@ -195,14 +248,27 @@ export function DashboardPopQuiz() {
     setCurrentIndex(newIndex);
     generateQuiz(currentBatch[newIndex], currentBatch);
     setWrongCount(0);
-  }, [currentBatch, currentIndex, nextBatch, turnNumber, generateQuiz]);
+  }, [
+    applyNextBatch,
+    clearRolloverDelayTimer,
+    currentBatch,
+    currentIndex,
+    generateQuiz,
+    isPrefetching,
+    nextBatch,
+    prefetchNextBatch,
+    resolveBatch,
+    turnNumber,
+  ]);
 
   // ==========================================================================
   // EVENT HANDLERS
   // ==========================================================================
   const handleOptionPress = useCallback(
     (option: string) => {
-      if (isCorrect === true || !quizItem || isStopped) return;
+      if (isCorrect === true || !quizItem || isStopped || waitingForNextBatch) {
+        return;
+      }
 
       const isAnswerCorrect =
         quizType === "fill-in-blank"
@@ -239,10 +305,14 @@ export function DashboardPopQuiz() {
       loadNextQuiz,
       wrongCount,
       isStopped,
+      waitingForNextBatch,
     ],
   );
 
   const handleMatchingComplete = useCallback(() => {
+    if (waitingForNextBatch) {
+      return;
+    }
     setIsCorrect(true);
     if (user) {
       bufferQuizAnswer(user.uid, true);
@@ -252,9 +322,12 @@ export function DashboardPopQuiz() {
       setIsCorrect(null);
       loadNextQuiz();
     }, 200);
-  }, [user, bufferQuizAnswer, loadNextQuiz]);
+  }, [bufferQuizAnswer, loadNextQuiz, user, waitingForNextBatch]);
 
   const handleMatchingWrong = useCallback(() => {
+    if (waitingForNextBatch) {
+      return;
+    }
     if (user) {
       bufferQuizAnswer(user.uid, false);
     }
@@ -263,10 +336,12 @@ export function DashboardPopQuiz() {
     if (newWrongCount >= 3) {
       setIsStopped(true);
     }
-  }, [user, bufferQuizAnswer, wrongCount]);
+  }, [bufferQuizAnswer, user, waitingForNextBatch, wrongCount]);
 
   const handleTimeUp = useCallback(() => {
-    if (isCorrect === true || !quizItem || isStopped) return;
+    if (isCorrect === true || !quizItem || isStopped || waitingForNextBatch) {
+      return;
+    }
 
     if (user) {
       bufferQuizAnswer(user.uid, false);
@@ -290,6 +365,7 @@ export function DashboardPopQuiz() {
     loadNextQuiz,
     wrongCount,
     isStopped,
+    waitingForNextBatch,
   ]);
 
   const handleRestart = useCallback(() => {
@@ -340,6 +416,7 @@ export function DashboardPopQuiz() {
     batchLoadVersionRef.current = loadVersion;
 
     const init = async () => {
+      const loadingStartedAt = Date.now();
       setLoading(true);
       setCurrentBatch([]);
       setNextBatch([]);
@@ -353,6 +430,10 @@ export function DashboardPopQuiz() {
       setIsCorrect(null);
       setWrongCount(0);
       setIsStopped(false);
+      setWaitingForNextBatch(false);
+      setRolloverLoadingVisible(false);
+      rolloverLoadingStartedAtRef.current = null;
+      clearRolloverDelayTimer();
       quizTypeIndexRef.current = 0;
 
       const batch = await fetchBatch();
@@ -367,10 +448,59 @@ export function DashboardPopQuiz() {
         setTurnNumber(1);
         generateQuiz(resolvedBatch[0], resolvedBatch);
       }
+
+      const remainingDelay = Math.max(
+        0,
+        INITIAL_LOADING_MIN_MS - (Date.now() - loadingStartedAt),
+      );
+      if (remainingDelay > 0) {
+        await sleep(remainingDelay);
+      }
+      if (batchLoadVersionRef.current !== loadVersion) {
+        return;
+      }
       setLoading(false);
     };
     void init();
-  }, [fetchBatch, generateQuiz, learningLanguage, resolveBatch]);
+  }, [clearRolloverDelayTimer, fetchBatch, generateQuiz, learningLanguage, resolveBatch]);
+
+  useEffect(() => {
+    if (!waitingForNextBatch || nextBatch.length === 0) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const finishRollover = async () => {
+      clearRolloverDelayTimer();
+      const startedAt = rolloverLoadingStartedAtRef.current;
+      if (rolloverLoadingVisible && startedAt) {
+        const remainingDelay = Math.max(
+          0,
+          ROLLOVER_LOADING_MIN_MS - (Date.now() - startedAt),
+        );
+        if (remainingDelay > 0) {
+          await sleep(remainingDelay);
+        }
+      }
+
+      if (!cancelled) {
+        applyNextBatch(nextBatch);
+      }
+    };
+
+    void finishRollover();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    applyNextBatch,
+    clearRolloverDelayTimer,
+    nextBatch,
+    rolloverLoadingVisible,
+    waitingForNextBatch,
+  ]);
 
   // Prefetch next batch when reaching 70% of current batch
   useEffect(() => {
@@ -384,11 +514,11 @@ export function DashboardPopQuiz() {
     if (shouldPrefetch) {
       const loadVersion = batchLoadVersionRef.current;
       prefetchNextBatch().then((batch) => {
-        if (batchLoadVersionRef.current !== loadVersion) {
-          return;
-        }
-        const resolvedBatch = resolveBatch(batch);
-        if (resolvedBatch.length > 0) {
+      if (batchLoadVersionRef.current !== loadVersion) {
+        return;
+      }
+      const resolvedBatch = resolveBatch(batch);
+      if (resolvedBatch.length > 0) {
           setNextBatch(resolvedBatch);
         }
       });
@@ -424,10 +554,32 @@ export function DashboardPopQuiz() {
     };
   }, [user, flushQuizStats]);
 
+  useEffect(() => {
+    return () => {
+      clearRolloverDelayTimer();
+    };
+  }, [clearRolloverDelayTimer]);
+
   // ==========================================================================
   // RENDER
   // ==========================================================================
-  if (loading || !quizItem) return <PopQuizSkeleton />;
+  if (loading || !quizItem || rolloverLoadingVisible) {
+    return (
+      <View style={styles.section}>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>
+          {t("dashboard.popQuiz.title")}
+        </ThemedText>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
+          ]}
+        >
+          <QuizGenerationAnimation isDark={isDark} mode="card" />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.section}>
@@ -447,7 +599,8 @@ export function DashboardPopQuiz() {
           isTimerRunning={
             isCorrect === null &&
             !loading &&
-            !isStopped
+            !isStopped &&
+            !waitingForNextBatch
           }
           quizKey={quizKey}
           onTimeUp={handleTimeUp}

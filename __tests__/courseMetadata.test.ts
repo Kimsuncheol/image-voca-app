@@ -4,6 +4,7 @@ import {
   getTotalDaysForCourse,
   getCourseMetadata,
   getCourseConfig,
+  __resetVocabularyPrefetchStateForTests,
 } from '../src/services/vocabularyPrefetch';
 import { CourseType } from '../src/types/vocabulary';
 
@@ -27,6 +28,7 @@ describe('Course Metadata Management', () => {
   // Clear all mocks before each test
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetVocabularyPrefetchStateForTests();
     (doc as jest.Mock).mockReturnValue({});
   });
 
@@ -43,16 +45,10 @@ describe('Course Metadata Management', () => {
       expect(config.path).toBe('courses/csat');
     });
 
-    test('should return correct config for TOEFL', () => {
-      const config = getCourseConfig('TOEFL');
-      expect(config.prefix).toBe('TOEFL');
+    test('should return correct config for TOEFL / IELTS', () => {
+      const config = getCourseConfig('TOEFL_IELTS');
+      expect(config.prefix).toBe('TOEFL_IELTS');
       expect(config.path).toBe('courses/toefl');
-    });
-
-    test('should return correct config for IELTS', () => {
-      const config = getCourseConfig('IELTS');
-      expect(config.prefix).toBe('IELTS');
-      expect(config.path).toBe('courses/ielts');
     });
 
     test('should return correct config for COLLOCATION', () => {
@@ -232,6 +228,28 @@ describe('Course Metadata Management', () => {
 
       consoleErrorSpy.mockRestore();
     });
+
+    test('should dedupe concurrent metadata reads for the same course', async () => {
+      let resolveDoc: ((value: unknown) => void) | undefined;
+      const pendingDoc = new Promise((resolve) => {
+        resolveDoc = resolve;
+      });
+      (getDoc as jest.Mock).mockReturnValue(pendingDoc);
+
+      const firstRequest = getTotalDaysForCourse('TOEIC');
+      const secondRequest = getTotalDaysForCourse('TOEIC');
+
+      expect(getDoc).toHaveBeenCalledTimes(1);
+
+      resolveDoc?.({
+        exists: () => true,
+        data: () => ({ totalDays: 12 }),
+      });
+
+      await expect(firstRequest).resolves.toBe(12);
+      await expect(secondRequest).resolves.toBe(12);
+      expect(getDoc).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('getCourseMetadata', () => {
@@ -332,7 +350,7 @@ describe('Course Metadata Management', () => {
     });
 
     test('should work with all course types', async () => {
-      const courses: CourseType[] = ['TOEIC', 'TOEFL', 'IELTS', '수능', 'COLLOCATION'];
+      const courses: CourseType[] = ['TOEIC', 'TOEFL_IELTS', '수능', 'COLLOCATION'];
 
       for (const courseId of courses) {
         // Mock metadata exists

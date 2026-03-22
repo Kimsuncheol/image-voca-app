@@ -5,6 +5,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
   query,
   setDoc,
   updateDoc,
@@ -27,9 +28,23 @@ type CourseConfig = {
 // like `exampleRoman` do not mask fresh JLPT payloads from Firestore.
 const STORAGE_PREFIX = "vocab_cache_v3";
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
+const METADATA_TTL_MS = 1000 * 60 * 10;
 
 const vocabularyCache = new Map<string, VocabularyCard[]>();
 const vocabularyCacheUpdatedAt = new Map<string, number>();
+const inFlightVocabularyFetches = new Map<string, Promise<VocabularyCard[]>>();
+const totalDaysCache = new Map<CourseType, { totalDays: number; updatedAt: number }>();
+const inFlightTotalDaysRequests = new Map<CourseType, Promise<number>>();
+
+type PrefetchVocabularyOptions = {
+  allowStale?: boolean;
+  revalidateIfStale?: boolean;
+  preferCache?: boolean;
+};
+
+type FirestoreVocabularyFetchOptions = {
+  limitCount?: number;
+};
 
 /**
  * Get course configuration including Firestore path and prefix
@@ -64,7 +79,10 @@ export const getCourseConfig = (courseId: CourseType): CourseConfig => {
       };
     case "TOEFL_IELTS":
       return {
-        path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL_IELTS,
+        path:
+          process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL_IELTS ??
+          process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL ??
+          process.env.EXPO_PUBLIC_COURSE_PATH_IELTS,
         prefix: "TOEFL_IELTS",
       };
     case "COLLOCATION":
@@ -87,6 +105,22 @@ const makeCacheKey = (courseId: CourseType, dayNumber: number) =>
 
 const makeStorageKey = (courseId: CourseType, dayNumber: number) =>
   `${STORAGE_PREFIX}:${makeCacheKey(courseId, dayNumber)}`;
+
+const isCacheEntryFresh = (updatedAt?: number) =>
+  typeof updatedAt === "number" && Date.now() - updatedAt < CACHE_TTL_MS;
+
+const isMetadataEntryFresh = (updatedAt?: number) =>
+  typeof updatedAt === "number" && Date.now() - updatedAt < METADATA_TTL_MS;
+
+const markFirebaseReadSuccess = () => {
+  useNetworkStore.getState().setFirebaseOnline();
+};
+
+const markFirebaseReadFailure = (error: unknown) => {
+  if (error instanceof FirebaseError) {
+    useNetworkStore.getState().setFirebaseOffline(true);
+  }
+};
 
 export const normalizeVocabularyImageUrl = (value: unknown) => {
   if (typeof value !== "string") return undefined;
@@ -241,8 +275,7 @@ export const isVocabularyCacheFresh = (
   dayNumber: number,
 ) => {
   const updatedAt = getCachedVocabularyUpdatedAt(courseId, dayNumber);
-  if (!updatedAt) return false;
-  return Date.now() - updatedAt < CACHE_TTL_MS;
+  return isCacheEntryFresh(updatedAt);
 };
 
 const persistVocabularyCache = async (
@@ -279,7 +312,7 @@ export const hydrateVocabularyCache = async (
     if (!parsed?.cards || !Array.isArray(parsed.cards)) return null;
     if (typeof parsed.updatedAt !== "number") return null;
 
-    const isFresh = Date.now() - parsed.updatedAt < CACHE_TTL_MS;
+    const isFresh = isCacheEntryFresh(parsed.updatedAt);
     if (!isFresh && options?.allowStale === false) {
       return null;
     }
@@ -300,9 +333,10 @@ export const hydrateVocabularyCache = async (
   }
 };
 
-export const fetchVocabularyCards = async (
+export const fetchVocabularyCardsFromFirestore = async (
   courseId: CourseType,
   dayNumber: number,
+  options?: FirestoreVocabularyFetchOptions,
 ) => {
   const config = getCourseConfig(courseId);
 
@@ -311,40 +345,110 @@ export const fetchVocabularyCards = async (
     return [];
   }
 
-  const subCollectionName = `Day${dayNumber}`;
-  const targetCollection = collection(db, config.path, subCollectionName);
-  const querySnapshot = await getDocs(query(targetCollection));
+  try {
+    const subCollectionName = `Day${dayNumber}`;
+    const targetCollection = collection(db, config.path, subCollectionName);
+    const querySnapshot = await getDocs(
+      query(
+        targetCollection,
+        ...(options?.limitCount ? [limit(options.limitCount)] : []),
+      ),
+    );
+    const cards: VocabularyCard[] = querySnapshot.docs.map((snapshot) =>
+      mapVocabularyDocToCard(
+        snapshot.id,
+        snapshot.data() as Record<string, unknown>,
+        courseId,
+      ),
+    );
+    markFirebaseReadSuccess();
+    return cards;
+  } catch (error) {
+    markFirebaseReadFailure(error);
+    throw error;
+  }
+};
 
-  const cards: VocabularyCard[] = querySnapshot.docs.map((snapshot) =>
-    mapVocabularyDocToCard(
-      snapshot.id,
-      snapshot.data() as Record<string, unknown>,
-      courseId,
-    ),
-  );
+export const fetchVocabularyCards = async (
+  courseId: CourseType,
+  dayNumber: number,
+) => {
+  const cacheKey = makeCacheKey(courseId, dayNumber);
+  const existingRequest = inFlightVocabularyFetches.get(cacheKey);
+  if (existingRequest) {
+    return existingRequest;
+  }
 
-  console.log(`Fetched ${cards.length} words from ${subCollectionName}`);
-  const updatedAt = Date.now();
-  setCachedVocabularyCards(courseId, dayNumber, cards, updatedAt);
-  void persistVocabularyCache(courseId, dayNumber, cards, updatedAt);
+  const request = (async () => {
+    try {
+      const cards = await fetchVocabularyCardsFromFirestore(courseId, dayNumber);
+      console.log(`Fetched ${cards.length} words from Day${dayNumber}`);
+      const updatedAt = Date.now();
+      setCachedVocabularyCards(courseId, dayNumber, cards, updatedAt);
+      void persistVocabularyCache(courseId, dayNumber, cards, updatedAt);
+      return cards;
+    } catch (error) {
+      markFirebaseReadFailure(error);
+      throw error;
+    }
+  })();
 
-  return cards;
+  inFlightVocabularyFetches.set(cacheKey, request);
+  return request.finally(() => {
+    inFlightVocabularyFetches.delete(cacheKey);
+  });
+};
+
+const revalidateVocabularyCards = (
+  courseId: CourseType,
+  dayNumber: number,
+) => {
+  void fetchVocabularyCards(courseId, dayNumber).catch((error) => {
+    console.warn("Vocabulary revalidation failed:", error);
+  });
 };
 
 export const prefetchVocabularyCards = async (
   courseId: CourseType,
   dayNumber: number,
+  options?: PrefetchVocabularyOptions,
 ) => {
-  const cached = getCachedVocabularyCards(courseId, dayNumber);
-  if (cached && cached.length > 0) {
-    return cached;
+  const allowStale = options?.allowStale ?? true;
+  const preferCache = options?.preferCache ?? true;
+  const revalidateIfStale = options?.revalidateIfStale ?? true;
+
+  if (preferCache) {
+    const cached = getCachedVocabularyCards(courseId, dayNumber);
+    if (cached && cached.length > 0) {
+      const fresh = isVocabularyCacheFresh(courseId, dayNumber);
+      if (fresh) {
+        return cached;
+      }
+      if (allowStale) {
+        if (revalidateIfStale) {
+          revalidateVocabularyCards(courseId, dayNumber);
+        }
+        return cached;
+      }
+    }
+
+    const hydrated = await hydrateVocabularyCache(courseId, dayNumber, {
+      allowStale,
+    });
+    if (hydrated && hydrated.length > 0) {
+      const fresh = isVocabularyCacheFresh(courseId, dayNumber);
+      if (fresh) {
+        return hydrated;
+      }
+      if (allowStale) {
+        if (revalidateIfStale) {
+          revalidateVocabularyCards(courseId, dayNumber);
+        }
+        return hydrated;
+      }
+    }
   }
-  const hydrated = await hydrateVocabularyCache(courseId, dayNumber, {
-    allowStale: true,
-  });
-  if (hydrated && hydrated.length > 0) {
-    return hydrated;
-  }
+
   return fetchVocabularyCards(courseId, dayNumber);
 };
 
@@ -399,6 +503,10 @@ export const updateCourseMetadata = async (
       }
 
       await updateDoc(courseDocRef, updateData);
+      totalDaysCache.set(courseId, {
+        totalDays: updateData.totalDays ?? currentMaxDay,
+        updatedAt: Date.now(),
+      });
       console.log(
         `Updated ${courseId} metadata: lastUploadedDayId = ${dayId}${dayNumber > currentMaxDay ? `, totalDays = ${dayNumber}` : ""}`,
       );
@@ -408,6 +516,10 @@ export const updateCourseMetadata = async (
         totalDays: dayNumber,
         lastUpdated: new Date().toISOString(),
         lastUploadedDayId: dayId,
+      });
+      totalDaysCache.set(courseId, {
+        totalDays: dayNumber,
+        updatedAt: Date.now(),
       });
       console.log(
         `Created ${courseId} metadata: totalDays = ${dayNumber}, lastUploadedDayId = ${dayId}`,
@@ -441,28 +553,46 @@ export const getTotalDaysForCourse = async (
     return 0;
   }
 
-  try {
-    // Read metadata fields from the course document
-    const courseDocRef = doc(db, config.path);
-    const courseDoc = await getDoc(courseDocRef);
-
-    useNetworkStore.getState().setFirebaseOnline();
-
-    if (courseDoc.exists()) {
-      const totalDays = courseDoc.data().totalDays || 0;
-      console.log(`${courseId} has ${totalDays} days`);
-      return totalDays;
-    }
-
-    console.log(`No metadata found for ${courseId}, returning 0`);
-    return 0;
-  } catch (error) {
-    if (error instanceof FirebaseError) {
-      useNetworkStore.getState().setFirebaseOffline(true);
-    }
-    console.error(`Error fetching metadata for ${courseId}:`, error);
-    return 0;
+  const cached = totalDaysCache.get(courseId);
+  if (cached && isMetadataEntryFresh(cached.updatedAt)) {
+    return cached.totalDays;
   }
+
+  const existingRequest = inFlightTotalDaysRequests.get(courseId);
+  if (existingRequest) {
+    return existingRequest;
+  }
+
+  const request = (async () => {
+    try {
+      // Read metadata fields from the course document
+      const courseDocRef = doc(db, config.path);
+      const courseDoc = await getDoc(courseDocRef);
+
+      markFirebaseReadSuccess();
+
+      const totalDays =
+        courseDoc.exists() ? (courseDoc.data().totalDays || 0) : 0;
+      totalDaysCache.set(courseId, { totalDays, updatedAt: Date.now() });
+
+      if (courseDoc.exists()) {
+        console.log(`${courseId} has ${totalDays} days`);
+      } else {
+        console.log(`No metadata found for ${courseId}, returning 0`);
+      }
+
+      return totalDays;
+    } catch (error) {
+      markFirebaseReadFailure(error);
+      console.error(`Error fetching metadata for ${courseId}:`, error);
+      return 0;
+    }
+  })();
+
+  inFlightTotalDaysRequests.set(courseId, request);
+  return request.finally(() => {
+    inFlightTotalDaysRequests.delete(courseId);
+  });
 };
 
 /**
@@ -492,10 +622,14 @@ export const getCourseMetadata = async (
     const courseDocRef = doc(db, config.path);
     const courseDoc = await getDoc(courseDocRef);
 
-    useNetworkStore.getState().setFirebaseOnline();
+    markFirebaseReadSuccess();
 
     if (courseDoc.exists()) {
       const data = courseDoc.data();
+      totalDaysCache.set(courseId, {
+        totalDays: data.totalDays || 0,
+        updatedAt: Date.now(),
+      });
       return {
         totalDays: data.totalDays || 0,
         lastUpdated: data.lastUpdated || "",
@@ -505,10 +639,16 @@ export const getCourseMetadata = async (
 
     return null;
   } catch (error) {
-    if (error instanceof FirebaseError) {
-      useNetworkStore.getState().setFirebaseOffline(true);
-    }
+    markFirebaseReadFailure(error);
     console.error(`Error fetching metadata for ${courseId}:`, error);
     return null;
   }
+};
+
+export const __resetVocabularyPrefetchStateForTests = () => {
+  vocabularyCache.clear();
+  vocabularyCacheUpdatedAt.clear();
+  inFlightVocabularyFetches.clear();
+  totalDaysCache.clear();
+  inFlightTotalDaysRequests.clear();
 };

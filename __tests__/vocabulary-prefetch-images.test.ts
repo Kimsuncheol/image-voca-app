@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
+  __resetVocabularyPrefetchStateForTests,
   getCourseConfig,
   hydrateVocabularyCache,
   mapVocabularyDocToCard,
@@ -25,6 +26,7 @@ jest.mock("../src/services/firebase", () => ({
 describe("vocabulary image normalization", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
+    __resetVocabularyPrefetchStateForTests();
     await AsyncStorage.clear();
   });
 

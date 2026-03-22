@@ -21,10 +21,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   GameBoard,
-  LoadingView,
   QuizFinishView,
   QuizTimer,
 } from "../../../components/course";
+import { QuizGenerationAnimation } from "../../../components/common/QuizGenerationAnimation";
 import {
   resolveRuntimeQuizType,
   sanitizeRequestedQuizType,
@@ -56,6 +56,13 @@ const shuffleArray = <T,>(items: T[]): T[] => {
   }
   return copy;
 };
+
+const INITIAL_LOADING_MIN_MS = 500;
+
+const sleep = (ms: number) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
 export default function QuizPlayScreen() {
   const { isDark } = useTheme();
@@ -111,8 +118,13 @@ export default function QuizPlayScreen() {
   }, [courseProgress, courseId, dayNumber]);
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchVocabulary = async () => {
+      const loadingStartedAt = Date.now();
       setLoading(true);
+      setQuestions([]);
+      setMatchingMeanings([]);
       try {
         const fetchedCards = await prefetchVocabularyCards(
           courseId as CourseType,
@@ -143,6 +155,9 @@ export default function QuizPlayScreen() {
           fetchedVocab,
           resolvedQuizType,
         );
+        if (cancelled) {
+          return;
+        }
         setQuestions(generatedQuestions);
 
         if (resolvedQuizType === "matching") {
@@ -155,11 +170,23 @@ export default function QuizPlayScreen() {
       } catch (error) {
         console.error("Error fetching vocabulary for quiz:", error);
       } finally {
-        setLoading(false);
+        const remainingDelay = Math.max(
+          0,
+          INITIAL_LOADING_MIN_MS - (Date.now() - loadingStartedAt),
+        );
+        if (remainingDelay > 0) {
+          await sleep(remainingDelay);
+        }
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchVocabulary();
+    void fetchVocabulary();
+    return () => {
+      cancelled = true;
+    };
   }, [courseId, dayNumber, i18n.language, resolvedQuizType]);
 
   const currentQuestion = questions[currentIndex];
@@ -429,7 +456,7 @@ export default function QuizPlayScreen() {
             headerBackTitle: t("common.back"),
           }}
         />
-        <LoadingView isDark={isDark} />
+        <QuizGenerationAnimation isDark={isDark} mode="fullscreen" />
       </SafeAreaView>
     );
   }
@@ -445,7 +472,7 @@ export default function QuizPlayScreen() {
         <Stack.Screen
           options={{
             title: t("quiz.results.title"),
-            headerBackTitle: t("common.back"),
+            headerLeft: () => null,
           }}
         />
         <QuizFinishView

@@ -37,6 +37,37 @@ describe("dashboard quiz payloads", () => {
     },
   ].map((word) => resolveQuizVocabulary(word, "ko"));
 
+  const collocationBatch = [
+    {
+      word: "take place",
+      meaning: "happen",
+      pronunciation: "used to describe an event happening",
+      example: "The meeting will take place tomorrow.",
+      course: "COLLOCATION" as const,
+    },
+    {
+      word: "make progress",
+      meaning: "advance",
+      pronunciation: "used when improving over time",
+      example: "She made progress quickly.",
+      course: "COLLOCATION" as const,
+    },
+    {
+      word: "pay attention",
+      meaning: "focus carefully",
+      pronunciation: "used to ask for focus",
+      example: "Please pay attention in class.",
+      course: "COLLOCATION" as const,
+    },
+    {
+      word: "raise questions",
+      meaning: "cause doubt",
+      pronunciation: "used when something seems doubtful",
+      example: "The results raised questions.",
+      course: "COLLOCATION" as const,
+    },
+  ];
+
   it("builds matching payloads with localized meaning and pronunciation fields", () => {
     const payload = buildDashboardQuizPayload(batch[0], batch, "matching");
 
@@ -78,6 +109,30 @@ describe("dashboard quiz payloads", () => {
           pronunciation: "あいだ",
           pronunciationRoman: "aida",
         }),
+      ]),
+    );
+  });
+
+  it("omits collocation explanation from multiple-choice payload subtitles", () => {
+    const payload = buildDashboardQuizPayload(
+      collocationBatch[0],
+      collocationBatch,
+      "multiple-choice",
+    );
+
+    expect(payload).not.toBeNull();
+    expect(payload?.quizItem).toMatchObject({
+      word: "take place",
+      meaning: "happen",
+    });
+    expect(payload?.quizItem.pronunciation).toBeUndefined();
+    expect(payload?.quizItem.pronunciationRoman).toBeUndefined();
+    expect(payload?.options).toEqual(
+      expect.arrayContaining([
+        "happen",
+        "advance",
+        "focus carefully",
+        "cause doubt",
       ]),
     );
   });

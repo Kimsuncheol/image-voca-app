@@ -6,6 +6,7 @@
  * Utility functions for quiz generation and data processing.
  */
 
+import type { CourseType } from "../../../src/types/vocabulary";
 import type { ResolvedQuizVocabulary } from "../../../src/utils/localizedVocabulary";
 
 /**
@@ -95,6 +96,10 @@ export type DashboardQuizType =
   | "matching"
   | "fill-in-blank";
 
+export type ResolvedDashboardQuizVocabulary = ResolvedQuizVocabulary & {
+  course?: CourseType;
+};
+
 export interface DashboardQuizItem {
   word: string;
   meaning: string;
@@ -124,19 +129,20 @@ export interface DashboardQuizPayload {
 }
 
 const toDashboardQuizItem = (
-  word: ResolvedQuizVocabulary,
+  word: ResolvedDashboardQuizVocabulary,
   example?: string,
 ): DashboardQuizItem => ({
   word: word.word,
   meaning: word.meaning,
-  pronunciation: word.pronunciation,
-  pronunciationRoman: word.pronunciationRoman,
+  pronunciation: word.course === "COLLOCATION" ? undefined : word.pronunciation,
+  pronunciationRoman:
+    word.course === "COLLOCATION" ? undefined : word.pronunciationRoman,
   example,
 });
 
 export function buildDashboardQuizPayload(
-  targetWord: ResolvedQuizVocabulary,
-  batch: ResolvedQuizVocabulary[],
+  targetWord: ResolvedDashboardQuizVocabulary,
+  batch: ResolvedDashboardQuizVocabulary[],
   quizType: DashboardQuizType,
 ): DashboardQuizPayload | null {
   if (batch.length < 4) return null;
