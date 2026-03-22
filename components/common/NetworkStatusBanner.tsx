@@ -13,20 +13,31 @@ import { useNetworkStore } from "../../src/stores/networkStore";
 
 const BANNER_HEIGHT = 38;
 
+const RECONNECTED_DISMISS_MS = 2500;
+
 export function NetworkStatusBanner() {
   const { status } = useNetworkStatus();
-  const { firebaseOffline, setFirebaseOffline } = useNetworkStore();
+  const { firebaseOffline, firebaseReconnected, setFirebaseOffline, clearFirebaseReconnected } = useNetworkStore();
   const { t } = useTranslation();
   const height = useSharedValue(0);
 
-  // Clear Firebase offline flag when network reconnects
+  // Clear Firebase flags when OS network reconnects
   useEffect(() => {
     if (status === "reconnected" || status === "idle") {
       setFirebaseOffline(false);
     }
   }, [status]);
 
-  const visible = status !== "idle" || firebaseOffline;
+  // Auto-dismiss Firebase reconnected banner after 2.5s (only when OS is still idle)
+  useEffect(() => {
+    if (firebaseReconnected && status === "idle") {
+      const timer = setTimeout(clearFirebaseReconnected, RECONNECTED_DISMISS_MS);
+      return () => clearTimeout(timer);
+    }
+  }, [firebaseReconnected, status]);
+
+  const showFirebaseReconnected = firebaseReconnected && status === "idle";
+  const visible = status !== "idle" || firebaseOffline || showFirebaseReconnected;
 
   useEffect(() => {
     height.value = withTiming(visible ? BANNER_HEIGHT : 0, {

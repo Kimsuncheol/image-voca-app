@@ -446,6 +446,8 @@ export const getTotalDaysForCourse = async (
     const courseDocRef = doc(db, config.path);
     const courseDoc = await getDoc(courseDocRef);
 
+    useNetworkStore.getState().setFirebaseOnline();
+
     if (courseDoc.exists()) {
       const totalDays = courseDoc.data().totalDays || 0;
       console.log(`${courseId} has ${totalDays} days`);
@@ -489,6 +491,8 @@ export const getCourseMetadata = async (
     // Read metadata fields from the course document
     const courseDocRef = doc(db, config.path);
     const courseDoc = await getDoc(courseDocRef);
+
+    useNetworkStore.getState().setFirebaseOnline();
 
     if (courseDoc.exists()) {
       const data = courseDoc.data();
