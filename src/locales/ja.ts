@@ -44,6 +44,7 @@ const ja = {
       permissionTitle: "許可が必要",
       permissionMessage: "システム設定で通知を有効にしてください。",
       openSettings: "設定を開く",
+      permissionRequired: "通知がブロックされています。タップして設定を開いてください。",
     },
     account: {
       title: "アカウント",
@@ -81,6 +82,10 @@ const ja = {
     collocation: {
       title: "今日のコロケーション",
       header: "コロケーション通知",
+    },
+    reminder: {
+      title: "学習リマインダー",
+      body: "語彙習慣を作りましょう！アプリを開いて、単語やコロケーションを学習してください。",
     },
     labels: {
       meaning: "意味",

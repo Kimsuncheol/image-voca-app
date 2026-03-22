@@ -44,6 +44,7 @@ const ko = {
       permissionTitle: "권한 필요",
       permissionMessage: "시스템 설정에서 알림을 허용해주세요.",
       openSettings: "설정 열기",
+      permissionRequired: "알림이 차단되어 있습니다. 탭하여 설정을 여세요.",
     },
     account: {
       title: "계정",
@@ -81,6 +82,10 @@ const ko = {
     collocation: {
       title: "오늘의 연어",
       header: "연어 알림",
+    },
+    reminder: {
+      title: "학습 알림",
+      body: "오늘도 어휘 학습 습관을 만들어보세요! 앱을 열고 단어나 연어를 공부해보세요.",
     },
     labels: {
       meaning: "뜻",

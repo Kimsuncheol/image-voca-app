@@ -468,13 +468,23 @@ export const scheduleStudyReminderNotifications = async (
     lastStudyDate === today,
   );
 
+  const language = await getCurrentLanguage();
+  const t = i18n.getFixedT(language);
+  const reminderTitle = t("notifications.reminder.title", {
+    defaultValue: "Study Reminder",
+  });
+  const reminderBody = t("notifications.reminder.body", {
+    defaultValue:
+      "Time to build your vocabulary habit! Open the app and study your words or collocations today.",
+  });
+
   const scheduledIds: string[] = [];
 
   for (const date of dates) {
     const id = await Notifications.scheduleNotificationAsync({
       content: {
-        title: "Study Reminder",
-        body: "Time to build your vocabulary habit! Open the app and study your words or collocations today.",
+        title: reminderTitle,
+        body: reminderBody,
         data: { type: "study_reminder" },
       },
       trigger: buildDateTrigger(date),

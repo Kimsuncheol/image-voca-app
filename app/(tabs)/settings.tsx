@@ -87,6 +87,7 @@ export default function SettingsScreen() {
   // Manages the state of various notification preferences
   // These are local state variables that sync with AsyncStorage preferences
   const [pushEnabled, setPushEnabled] = useState(false); // Master notification toggle
+  const [notificationPermissionDenied, setNotificationPermissionDenied] = useState(false); // True when user wants notifications but system permission is denied
   const [studyReminderEnabled, setStudyReminderEnabled] = useState(true); // Daily study reminder notifications
   const [popWordEnabled, setPopWordEnabled] = useState(true); // Pop word quiz notifications
 
@@ -152,6 +153,9 @@ export default function SettingsScreen() {
 
       // Check if system permissions are granted
       const hasPermission = isPermissionGranted(permissions);
+
+      // Show warning when user wants notifications but system permission is denied
+      setNotificationPermissionDenied(preferencesEnabled && !hasPermission);
 
       // Master toggle is only enabled if both preference AND permission are true
       setPushEnabled(preferencesEnabled && hasPermission);
@@ -486,11 +490,13 @@ export default function SettingsScreen() {
           styles={styles}
           isDark={isDark}
           pushEnabled={pushEnabled}
+          notificationPermissionDenied={notificationPermissionDenied}
           studyReminderEnabled={studyReminderEnabled}
           popWordEnabled={popWordEnabled}
           onTogglePush={togglePushNotifications}
           onToggleStudyReminder={toggleStudyReminder}
           onTogglePopWord={togglePopWord}
+          onOpenPermissionSettings={() => Linking.openSettings()}
           t={t}
         />
 

@@ -44,6 +44,7 @@ const en = {
       permissionTitle: "Permission Required",
       permissionMessage: "Please enable notifications in your system settings.",
       openSettings: "Open Settings",
+      permissionRequired: "Notifications are blocked. Tap to open Settings.",
     },
     account: {
       title: "Account",
@@ -81,6 +82,10 @@ const en = {
     collocation: {
       title: "Collocation of the Day",
       header: "Collocation Notification",
+    },
+    reminder: {
+      title: "Study Reminder",
+      body: "Time to build your vocabulary habit! Open the app and study your words or collocations today.",
     },
     labels: {
       meaning: "Meaning",

@@ -1,17 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { ToggleSwitch } from "../common/ToggleSwitch";
 
 interface NotificationsSectionProps {
   styles: Record<string, any>;
   isDark: boolean;
   pushEnabled: boolean;
+  notificationPermissionDenied: boolean;
   studyReminderEnabled: boolean;
   popWordEnabled: boolean;
   onTogglePush: (value: boolean) => void;
   onToggleStudyReminder: (value: boolean) => void;
   onTogglePopWord: (value: boolean) => void;
+  onOpenPermissionSettings: () => void;
   t: (key: string) => string;
 }
 
@@ -19,11 +21,13 @@ export function NotificationsSection({
   styles,
   isDark,
   pushEnabled,
+  notificationPermissionDenied,
   studyReminderEnabled,
   popWordEnabled,
   onTogglePush,
   onToggleStudyReminder,
   onTogglePopWord,
+  onOpenPermissionSettings,
   t,
 }: NotificationsSectionProps) {
   return (
@@ -49,6 +53,16 @@ export function NotificationsSection({
             trackColor={{ false: "#767577", true: "#34C759" }}
           />
         </View>
+        {notificationPermissionDenied && (
+          <TouchableOpacity onPress={onOpenPermissionSettings}>
+            <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 8, gap: 6 }}>
+              <Ionicons name="warning-outline" size={14} color="#FF9500" />
+              <Text style={{ fontSize: 12, color: "#FF9500", flexShrink: 1 }}>
+                {t("settings.notifications.permissionRequired")}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
         <View style={styles.separator} />
         <View style={[styles.option, styles.subOption]}>
           <View style={styles.optionLeft}>
