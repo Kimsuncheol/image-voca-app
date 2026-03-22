@@ -334,6 +334,24 @@ const ko = {
       hasAccount: "이미 계정이 있나요? ",
       signIn: "로그인",
     },
+    verifyEmail: {
+      title: "이메일 인증",
+      subtitle: "앱을 사용하기 전에 받은편지함에서 인증 링크를 열어주세요.",
+      emailLabel: "로그인한 이메일",
+      emailMissing: "이메일 주소를 확인할 수 없습니다.",
+      verifiedAction: "이메일 인증을 완료했어요",
+      checking: "인증 상태 확인 중...",
+      resendAction: "인증 이메일 다시 보내기",
+      resending: "이메일 전송 중...",
+      resendCooldown: "{{seconds}}초 후 다시 보내기",
+      useAnotherAccount: "다른 계정 사용",
+      emailSent: "{{email}}로 인증 이메일을 보냈습니다.",
+      sendFailed:
+        "인증 이메일 전송에 실패했습니다. 이 화면에서 다시 시도해주세요.",
+      stillPending:
+        "아직 이메일 인증이 완료되지 않았습니다. 받은편지함의 링크를 열고 다시 시도해주세요.",
+      refreshFailed: "인증 상태를 새로고침하지 못했습니다. 다시 시도해주세요.",
+    },
     passwordReset: {
       forgotTitle: "비밀번호 찾기",
       forgotSubtitle: "이메일 인증 후 비밀번호를 재설정하세요.",

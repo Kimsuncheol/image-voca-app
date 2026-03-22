@@ -10,12 +10,12 @@ import { auth } from "../services/firebase";
 import { ensureUserProfileDocument } from "../services/userProfileService";
 
 export const useAuthenticatedDeviceRegistration = () => {
-  const { user, setAuthError } = useAuth();
+  const { user, authStatus, setAuthError } = useAuth();
   const { t } = useTranslation();
   const syncedUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!user?.uid) {
+    if (!user?.uid || authStatus !== "signed_in") {
       syncedUserIdRef.current = null;
       return;
     }
@@ -49,5 +49,5 @@ export const useAuthenticatedDeviceRegistration = () => {
         console.warn("Failed to register authenticated device", error);
       }
     })();
-  }, [setAuthError, t, user]);
+  }, [authStatus, setAuthError, t, user]);
 };

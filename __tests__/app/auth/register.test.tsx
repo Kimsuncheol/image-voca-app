@@ -1,6 +1,10 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { useRouter } from "expo-router";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  updateProfile,
+} from "firebase/auth";
 import React from "react";
 import RegisterScreen from "../../../app/(auth)/register";
 import { ensureUserProfileDocument } from "../../../src/services/userProfileService";
@@ -11,6 +15,8 @@ import { ensureUserProfileDocument } from "../../../src/services/userProfileServ
 
 const mockReplace = jest.fn();
 const mockPromptAsync = jest.fn();
+const mockSetAuthError = jest.fn();
+const mockClearAuthError = jest.fn();
 
 const translations: Record<string, string> = {
   "auth.errors.missingFields": "Please fill in all fields.",
@@ -39,6 +45,8 @@ const translations: Record<string, string> = {
   "auth.register.googleSigningIn": "Signing in...",
   "auth.register.hasAccount": "Already have an account? ",
   "auth.register.signIn": "Sign In",
+  "auth.verifyEmail.sendFailed":
+    "Failed to send verification email. Try again from this screen.",
   "common.or": "OR",
 };
 
@@ -64,6 +72,7 @@ jest.mock("expo-image-picker", () => ({
 
 jest.mock("firebase/auth", () => ({
   createUserWithEmailAndPassword: jest.fn(),
+  sendEmailVerification: jest.fn(),
   updateProfile: jest.fn(),
 }));
 
@@ -84,6 +93,20 @@ jest.mock("react-native-safe-area-context", () => {
 
 jest.mock("../../../src/context/ThemeContext", () => ({
   useTheme: () => ({ isDark: false }),
+}));
+
+jest.mock("../../../src/context/LearningLanguageContext", () => ({
+  useLearningLanguage: () => ({
+    learningLanguage: "en",
+    setLearningLanguage: jest.fn(),
+  }),
+}));
+
+jest.mock("../../../src/context/AuthContext", () => ({
+  useAuth: () => ({
+    setAuthError: mockSetAuthError,
+    clearAuthError: mockClearAuthError,
+  }),
 }));
 
 jest.mock("../../../src/hooks/useGoogleAuth", () => ({
@@ -151,8 +174,9 @@ describe("RegisterScreen", () => {
     (useRouter as jest.Mock).mockReturnValue({ replace: mockReplace });
     // Default: Firebase succeeds
     (createUserWithEmailAndPassword as jest.Mock).mockResolvedValue({
-      user: { uid: "uid-123" },
+      user: { uid: "uid-123", email: "test@example.com" },
     });
+    (sendEmailVerification as jest.Mock).mockResolvedValue(undefined);
     (updateProfile as jest.Mock).mockResolvedValue(undefined);
     (ensureUserProfileDocument as jest.Mock).mockResolvedValue(undefined);
   });
@@ -262,23 +286,27 @@ describe("RegisterScreen", () => {
   // Happy path
   // -------------------------------------------------------------------------
 
-  it("navigates to tabs and shows no error on successful registration", async () => {
+  it("sends verification email and navigates to verify-email on successful registration", async () => {
     const utils = render(<RegisterScreen />);
     fillForm(utils);
     fireEvent.press(utils.getByText("Register"));
 
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith("/(tabs)");
+      expect(mockReplace).toHaveBeenCalledWith("/(auth)/verify-email");
     });
 
     expect(ensureUserProfileDocument).toHaveBeenCalledWith(
-      { uid: "uid-123" },
-      {
+      expect.objectContaining({ uid: "uid-123" }),
+      expect.objectContaining({
         displayName: "Test User",
         email: "test@example.com",
         photoURL: null,
-      },
+      }),
     );
+    expect(sendEmailVerification).toHaveBeenCalledWith(
+      expect.objectContaining({ uid: "uid-123" }),
+    );
+    expect(mockSetAuthError).not.toHaveBeenCalled();
 
     expect(utils.queryByText("Registration Error")).toBeNull();
     expect(
@@ -286,5 +314,23 @@ describe("RegisterScreen", () => {
         "An account with this email already exists. Please sign in instead.",
       ),
     ).toBeNull();
+  });
+
+  it("routes to verify-email and stores an auth error when sending verification fails", async () => {
+    (sendEmailVerification as jest.Mock).mockRejectedValueOnce(
+      new Error("smtp unavailable"),
+    );
+
+    const utils = render(<RegisterScreen />);
+    fillForm(utils);
+    fireEvent.press(utils.getByText("Register"));
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("/(auth)/verify-email");
+    });
+
+    expect(mockSetAuthError).toHaveBeenCalledWith(
+      "Failed to send verification email. Try again from this screen.",
+    );
   });
 });

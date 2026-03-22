@@ -50,10 +50,10 @@ const sleep = (ms: number) =>
     setTimeout(resolve, ms);
   });
 
-function RootLayoutNav() {
+export function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { isDark } = useAppTheme();
-  const { user, loading } = useAuth();
+  const { user, loading, authStatus } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const { t } = useTranslation();
@@ -80,13 +80,13 @@ function RootLayoutNav() {
 
   // Fetch user subscription (including admin role) when user is loaded
   useEffect(() => {
-    if (user && !loading) {
+    if (user && authStatus === "signed_in" && !loading) {
       useSubscriptionStore.getState().fetchSubscription(user.uid);
-    } else if (!user && !loading) {
-      // Reset subscription when user logs out
+    } else if (!loading) {
+      // Reset subscription when user logs out or is blocked on verification
       useSubscriptionStore.getState().resetSubscription();
     }
-  }, [user, loading]);
+  }, [authStatus, loading, user]);
 
   useEffect(() => {
     if (loading) return;
@@ -94,15 +94,31 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === "(auth)";
     const isPasswordResetRoute =
       inAuthGroup && segments[1] === "reset-password";
+    const isVerifyEmailRoute =
+      inAuthGroup && segments[1] === "verify-email";
 
-    if (!user && !inAuthGroup) {
+    if (authStatus === "signed_out") {
+      if (!inAuthGroup || isVerifyEmailRoute) {
+        router.replace("/(auth)/login");
+      }
+      return;
+    }
+
+    if (authStatus === "pending_verification") {
+      if (!isVerifyEmailRoute && !isPasswordResetRoute) {
+        router.replace("/(auth)/verify-email");
+      }
+      return;
+    }
+
+    if (authStatus === "signed_in" && inAuthGroup && !isPasswordResetRoute) {
+      // Redirect to the home page if they are fully signed in.
+      router.replace("/(tabs)");
+    } else if (!user && !inAuthGroup) {
       // Redirect to the login page if they are not logged in.
       router.replace("/(auth)/login");
-    } else if (user && inAuthGroup && !isPasswordResetRoute) {
-      // Redirect to the home page if they are logged in.
-      router.replace("/(tabs)");
     }
-  }, [user, loading, segments, router]);
+  }, [authStatus, loading, router, segments, user]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

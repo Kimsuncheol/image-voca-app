@@ -1,7 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  updateProfile,
+} from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -15,6 +19,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
+import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
 import { LearningLanguage } from "../../src/types/vocabulary";
@@ -63,6 +68,7 @@ export default function RegisterScreen() {
   const [isValidEmail, setIsValidEmail] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
   const { learningLanguage, setLearningLanguage } = useLearningLanguage();
+  const { clearAuthError, setAuthError } = useAuth();
 
   const router = useRouter();
   const { t } = useTranslation();
@@ -167,6 +173,7 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     // Clear previous errors
     clearError();
+    clearAuthError();
 
     // --- Step 1: Validate required fields ---
     if (!displayName || !email || !password || !confirmPassword) {
@@ -240,8 +247,14 @@ export default function RegisterScreen() {
         recentCourseByLanguage: {},
       });
 
-      // Navigate to main app (tabs) on successful registration
-      router.replace("/(tabs)");
+      try {
+        await sendEmailVerification(userCredential.user);
+      } catch (verificationError) {
+        console.warn("Failed to send email verification after sign-up", verificationError);
+        setAuthError(t("auth.verifyEmail.sendFailed"));
+      }
+
+      router.replace("/(auth)/verify-email");
     } catch (error: any) {
       // Map Firebase error codes to user-friendly messages
       let message = t("auth.errors.registerTitle");

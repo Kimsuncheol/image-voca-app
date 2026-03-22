@@ -12,16 +12,21 @@ import {
 } from "../utils/notifications";
 
 export const usePushNotifications = () => {
-  const { user } = useAuth();
+  const { user, authStatus } = useAuth();
   const syncedUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!user?.uid) {
+    if (!user?.uid || authStatus !== "signed_in") {
       syncedUserIdRef.current = null;
     }
-  }, [user]);
+  }, [authStatus, user]);
 
   const setupNotifications = useCallback(async () => {
+    if (authStatus !== "signed_in") {
+      syncedUserIdRef.current = null;
+      return;
+    }
+
     try {
       const enabled = await getNotificationsEnabledPreference();
       if (!enabled) {
@@ -46,7 +51,7 @@ export const usePushNotifications = () => {
     } catch (error) {
       console.warn("Failed to configure notifications", error);
     }
-  }, [user]);
+  }, [authStatus, user]);
 
   useEffect(() => {
     setupNotifications();

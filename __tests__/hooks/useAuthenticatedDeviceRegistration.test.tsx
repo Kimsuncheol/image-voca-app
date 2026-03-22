@@ -56,6 +56,7 @@ describe("useAuthenticatedDeviceRegistration", () => {
     (signOut as jest.Mock).mockResolvedValue(undefined);
     mockUseAuth.mockReturnValue({
       user: { uid: "user-1", providerData: [], email: "test@example.com" },
+      authStatus: "signed_in",
       setAuthError: mockSetAuthError,
     });
   });
@@ -90,6 +91,7 @@ describe("useAuthenticatedDeviceRegistration", () => {
   it("starts a new sync when a different user signs in", async () => {
     mockUseAuth.mockReturnValue({
       user: { uid: "user-1", providerData: [], email: "one@example.com" },
+      authStatus: "signed_in",
       setAuthError: mockSetAuthError,
     });
 
@@ -101,6 +103,7 @@ describe("useAuthenticatedDeviceRegistration", () => {
 
     mockUseAuth.mockReturnValue({
       user: { uid: "user-2", providerData: [], email: "two@example.com" },
+      authStatus: "signed_in",
       setAuthError: mockSetAuthError,
     });
     view.rerender(<TestComponent />);
@@ -140,5 +143,20 @@ describe("useAuthenticatedDeviceRegistration", () => {
     });
 
     consoleWarnSpy.mockRestore();
+  });
+
+  it("does not sync while the user is pending email verification", async () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1", providerData: [], email: "test@example.com" },
+      authStatus: "pending_verification",
+      setAuthError: mockSetAuthError,
+    });
+
+    render(<TestComponent />);
+
+    await waitFor(() => {
+      expect(ensureUserProfileDocument).not.toHaveBeenCalled();
+      expect(upsertCurrentDeviceRegistration).not.toHaveBeenCalled();
+    });
   });
 });

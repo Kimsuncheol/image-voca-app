@@ -328,6 +328,25 @@ const ja = {
       hasAccount: "すでにアカウントをお持ちですか？ ",
       signIn: "サインイン",
     },
+    verifyEmail: {
+      title: "メール認証",
+      subtitle:
+        "アプリを利用する前に、受信トレイの認証リンクを開いてください。",
+      emailLabel: "サインイン中のメール",
+      emailMissing: "メールアドレスを確認できません。",
+      verifiedAction: "メール認証を完了しました",
+      checking: "認証状態を確認中...",
+      resendAction: "認証メールを再送信",
+      resending: "メール送信中...",
+      resendCooldown: "{{seconds}}秒後に再送信",
+      useAnotherAccount: "別のアカウントを使う",
+      emailSent: "{{email}}に認証メールを送信しました。",
+      sendFailed:
+        "認証メールの送信に失敗しました。この画面から再試行してください。",
+      stillPending:
+        "このメールはまだ未認証です。受信トレイのリンクを開いて再試行してください。",
+      refreshFailed: "認証状態を更新できませんでした。再試行してください。",
+    },
     passwordReset: {
       forgotTitle: "パスワードを忘れた",
       forgotSubtitle: "メール認証後にパスワードをリセットしてください。",

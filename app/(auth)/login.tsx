@@ -139,7 +139,6 @@ export default function LoginScreen() {
 
       await signInWithEmailAndPassword(auth, email, password);
       clearAuthError();
-      router.replace("/(tabs)");
     } catch (error) {
       setAuthError(getLoginAuthErrorMessage(error));
     } finally {

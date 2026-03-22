@@ -333,6 +333,24 @@ const en = {
       hasAccount: "Already have an account? ",
       signIn: "Sign In",
     },
+    verifyEmail: {
+      title: "Verify Your Email",
+      subtitle:
+        "Check your inbox and tap the verification link before using the app.",
+      emailLabel: "Signed in as",
+      emailMissing: "No email address found",
+      verifiedAction: "I verified my email",
+      checking: "Checking verification...",
+      resendAction: "Resend verification email",
+      resending: "Sending email...",
+      resendCooldown: "Resend in {{seconds}}s",
+      useAnotherAccount: "Use another account",
+      emailSent: "Verification email sent to {{email}}.",
+      sendFailed: "Failed to send verification email. Try again from this screen.",
+      stillPending:
+        "This email is still unverified. Open the link in your inbox and try again.",
+      refreshFailed: "Failed to refresh verification status. Please try again.",
+    },
     passwordReset: {
       forgotTitle: "Forgot Password",
       forgotSubtitle: "Verify your email to reset your password.",

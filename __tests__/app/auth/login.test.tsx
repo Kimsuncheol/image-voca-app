@@ -170,7 +170,7 @@ describe("LoginScreen", () => {
     });
   });
 
-  it("navigates to tabs and keeps error banner hidden on successful login", async () => {
+  it("keeps the error banner hidden on successful login and lets auth routing continue", async () => {
     (signInWithEmailAndPassword as jest.Mock).mockResolvedValueOnce({});
     const { getByPlaceholderText, getByText, queryByText } = render(
       <LoginScreen />,
@@ -181,9 +181,10 @@ describe("LoginScreen", () => {
     fireEvent.press(getByText("Sign In"));
 
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith("/(tabs)");
+      expect(signInWithEmailAndPassword).toHaveBeenCalled();
     });
 
+    expect(mockReplace).not.toHaveBeenCalled();
     expect(queryByText("Login Error")).toBeNull();
     expect(queryByText("Unable to sign in. Please try again.")).toBeNull();
   });

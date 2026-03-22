@@ -26,8 +26,6 @@ export default function DashboardScreen() {
     stats,
     fetchStats,
     getWordsLearnedForPeriod,
-    getAccuracyForPeriod,
-    getTimeSpentForPeriod,
     streakBrokenAt,
     clearStreakBroken,
   } = useUserStatsStore();
@@ -45,8 +43,6 @@ export default function DashboardScreen() {
   );
 
   const wordsThisWeek = getWordsLearnedForPeriod(7);
-  const accuracyThisWeek = getAccuracyForPeriod(7);
-  const timeThisWeek = getTimeSpentForPeriod(7);
 
   const userName = user?.displayName || user?.email?.split("@")[0] || undefined;
 
@@ -55,8 +51,6 @@ export default function DashboardScreen() {
       key="stats"
       wordsLearned={wordsThisWeek}
       streak={stats?.currentStreak || 0}
-      accuracy={accuracyThisWeek}
-      timeSpent={timeThisWeek}
     />
   );
 
