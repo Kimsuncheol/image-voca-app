@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import {
   Alert,
   Dimensions,
-  FlatList,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -12,30 +12,21 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "../components/themed-text";
 import { useTheme } from "../src/context/ThemeContext";
+import {
+  KanaSection,
+  KanaSectionId,
+  HIRAGANA_SECTIONS,
+  KATAKANA_SECTIONS,
+  CharCell,
+} from "../src/data/kana";
 import { useSpeech } from "../src/hooks/useSpeech";
 import { SPEECH_OFFLINE_ERROR } from "../src/services/speechService";
-import { Char, CharCell, HIRAGANA, KATAKANA } from "../src/data/kana";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const H_PAD = 16;
 const COL_GAP = 8;
 const CARD_WIDTH = (SCREEN_WIDTH - H_PAD * 2 - COL_GAP * 4) / 5;
 const CARD_HEIGHT = CARD_WIDTH * 1.15;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Data
-// ─────────────────────────────────────────────────────────────────────────────
-
-type GridItem = { key: string; cell: CharCell };
-
-function buildGridData(rows: CharCell[][]): GridItem[] {
-  return rows.flatMap((row, ri) =>
-    row.map((cell, ci) => ({ key: `${ri}-${ci}`, cell })),
-  );
-}
-
-const HIRAGANA_DATA = buildGridData(HIRAGANA);
-const KATAKANA_DATA = buildGridData(KATAKANA);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CharCard
@@ -102,7 +93,7 @@ export default function JapaneseCharactersScreen() {
   const [tab, setTab] = useState<Tab>("hiragana");
   const [speakingKana, setSpeakingKana] = useState<string | null>(null);
 
-  const data = tab === "hiragana" ? HIRAGANA_DATA : KATAKANA_DATA;
+  const sections = tab === "hiragana" ? HIRAGANA_SECTIONS : KATAKANA_SECTIONS;
 
   const handlePress = useCallback(
     async (kana: string) => {
@@ -125,21 +116,69 @@ export default function JapaneseCharactersScreen() {
     [speech, t],
   );
 
-  const renderItem = useCallback(
-    ({ item }: { item: GridItem }) => (
-      <CharCard
-        item={item.cell}
-        isDark={isDark}
-        isActive={item.cell !== null && speakingKana === item.cell.kana}
-        onPress={handlePress}
-      />
-    ),
-    [isDark, speakingKana, handlePress],
-  );
-
   const bg = isDark ? "#000" : "#fff";
   const tabInactiveBorder = isDark ? "#333" : "#e5e5e5";
   const tabInactiveBg = isDark ? "#1c1c1e" : "#f5f5f5";
+  const sectionDivider = isDark ? "rgba(255,255,255,0.12)" : "rgba(17,24,39,0.1)";
+  const sectionSubtitleColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(17,24,39,0.55)";
+  const sectionAccent = isDark ? "#8ab4ff" : "#2563eb";
+
+  const renderSectionHeader = useCallback(
+    (sectionId: KanaSectionId) => {
+      const title = t(`kana.sections.${sectionId}.title`);
+      const subtitle = t(`kana.sections.${sectionId}.subtitle`);
+
+      return (
+        <View style={styles.sectionHeader}>
+          <View
+            style={[
+              styles.sectionDivider,
+              { backgroundColor: sectionDivider },
+            ]}
+          />
+          <View style={styles.sectionHeadingRow}>
+            <ThemedText style={styles.sectionTitle}>{title}</ThemedText>
+            <View
+              style={[
+                styles.sectionAccent,
+                { backgroundColor: sectionAccent },
+              ]}
+            />
+          </View>
+          <ThemedText
+            style={[styles.sectionSubtitle, { color: sectionSubtitleColor }]}
+          >
+            {subtitle}
+          </ThemedText>
+        </View>
+      );
+    },
+    [sectionAccent, sectionDivider, sectionSubtitleColor, t],
+  );
+
+  const renderSection = useCallback(
+    (section: KanaSection) => (
+      <View key={`${tab}-${section.id}`} style={styles.section}>
+        {renderSectionHeader(section.id)}
+        <View style={styles.sectionRows}>
+          {section.rows.map((row, rowIndex) => (
+            <View key={`${tab}-${section.id}-row-${rowIndex}`} style={styles.row}>
+              {row.map((cell, cellIndex) => (
+                <CharCard
+                  key={`${tab}-${section.id}-${rowIndex}-${cellIndex}`}
+                  item={cell}
+                  isDark={isDark}
+                  isActive={cell !== null && speakingKana === cell.kana}
+                  onPress={handlePress}
+                />
+              ))}
+            </View>
+          ))}
+        </View>
+      </View>
+    ),
+    [handlePress, isDark, renderSectionHeader, speakingKana, tab],
+  );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]} edges={["bottom"]}>
@@ -200,17 +239,13 @@ export default function JapaneseCharactersScreen() {
         })}
       </View>
 
-      {/* Grid */}
-      <FlatList
+      <ScrollView
         key={tab}
-        data={data}
-        keyExtractor={(item) => item.key}
-        numColumns={5}
-        renderItem={renderItem}
-        columnWrapperStyle={styles.row}
         contentContainerStyle={styles.grid}
         showsVerticalScrollIndicator={false}
-      />
+      >
+        {sections.map(renderSection)}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -241,9 +276,40 @@ const styles = StyleSheet.create({
   grid: {
     paddingHorizontal: H_PAD,
     paddingBottom: 32,
+    gap: 20,
+  },
+  section: {
+    gap: 12,
+  },
+  sectionHeader: {
+    gap: 8,
+  },
+  sectionDivider: {
+    height: StyleSheet.hairlineWidth,
+    width: "100%",
+  },
+  sectionHeadingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+  },
+  sectionSubtitle: {
+    fontSize: 13,
+  },
+  sectionAccent: {
+    width: 10,
+    height: 10,
+    borderRadius: 999,
+  },
+  sectionRows: {
     gap: COL_GAP,
   },
   row: {
+    flexDirection: "row",
     gap: COL_GAP,
   },
   cardSlot: {

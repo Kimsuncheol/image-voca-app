@@ -531,6 +531,20 @@ const en = {
     title: "Japanese Characters",
     hiragana: "Hiragana",
     katakana: "Katakana",
+    sections: {
+      basic: {
+        title: "Basic Kana",
+        subtitle: "Core sounds to learn first",
+      },
+      voiced: {
+        title: "Voiced (Dakuten)",
+        subtitle: "Characters marked with ゛",
+      },
+      semiVoiced: {
+        title: "Semi-voiced (Handakuten)",
+        subtitle: "Characters marked with ゜",
+      },
+    },
     offlineSpeech: {
       title: "No Internet Connection",
       message: "Connect to the internet to play audio.",

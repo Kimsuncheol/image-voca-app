@@ -520,6 +520,20 @@ const ja = {
     title: "日本語文字",
     hiragana: "ひらがな",
     katakana: "カタカナ",
+    sections: {
+      basic: {
+        title: "基本かな",
+        subtitle: "最初に覚える基本の音",
+      },
+      voiced: {
+        title: "濁音 (Dakuten)",
+        subtitle: "゛が付く文字",
+      },
+      semiVoiced: {
+        title: "半濁音 (Handakuten)",
+        subtitle: "゜が付く文字",
+      },
+    },
     offlineSpeech: {
       title: "インターネット接続なし",
       message: "音声を再生するにはインターネット接続が必要です。",

@@ -528,6 +528,20 @@ const ko = {
     title: "일본어 문자",
     hiragana: "히라가나",
     katakana: "가타카나",
+    sections: {
+      basic: {
+        title: "기본 가나",
+        subtitle: "먼저 익혀야 하는 기본 소리",
+      },
+      voiced: {
+        title: "탁음 (Dakuten)",
+        subtitle: "゛가 붙는 문자",
+      },
+      semiVoiced: {
+        title: "반탁음 (Handakuten)",
+        subtitle: "゜가 붙는 문자",
+      },
+    },
     offlineSpeech: {
       title: "인터넷 연결 없음",
       message: "오디오를 재생하려면 인터넷에 연결해 주세요.",
