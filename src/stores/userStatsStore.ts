@@ -75,7 +75,13 @@ interface UserStatsState {
   clearStreakBroken: () => void;
 }
 
-const getToday = () => new Date().toISOString().split("T")[0];
+const getToday = () => formatLocalDate(new Date());
+
+const getYesterday = () => {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return formatLocalDate(d);
+};
 
 const WEEKLY_WORDS_STORAGE_KEY = "voca_weekly_words_state";
 
@@ -223,9 +229,7 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
 
         // Update streak if needed
         const today = getToday();
-        const yesterday = new Date(Date.now() - 86400000)
-          .toISOString()
-          .split("T")[0];
+        const yesterday = getYesterday();
 
         if (
           stats.lastActiveDate !== today &&
@@ -343,9 +347,7 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
 
     // Update streak
     let currentStreak = stats.currentStreak;
-    const yesterday = new Date(Date.now() - 86400000)
-      .toISOString()
-      .split("T")[0];
+    const yesterday = getYesterday();
 
     if (stats.lastActiveDate !== today) {
       if (stats.lastActiveDate === yesterday) {
@@ -428,9 +430,7 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
 
     // Update streak logic
     let currentStreak = stats.currentStreak;
-    const yesterday = new Date(Date.now() - 86400000)
-      .toISOString()
-      .split("T")[0];
+    const yesterday = getYesterday();
 
     if (stats.lastActiveDate !== today) {
       if (stats.lastActiveDate === yesterday) {

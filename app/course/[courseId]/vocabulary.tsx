@@ -75,6 +75,9 @@ export default function VocabularyScreen() {
   // Tracks if the user has completed swiping through all cards
   const [isFinished, setIsFinished] = useState(false);
 
+  // Tracks how many cards were swiped right (learned)
+  const [learnedCount, setLearnedCount] = useState(0);
+
   // Streak milestone modal
   const [streakModalVisible, setStreakModalVisible] = useState(false);
   const [streakToShow, setStreakToShow] = useState(0);
@@ -245,25 +248,18 @@ export default function VocabularyScreen() {
    * Records the word as learned in the local buffer.
    */
   const onSwipeRight = (item: VocabularyCard) => {
-    console.log("Learned:", item.word);
     if (user) {
       const wordId = `${courseId}-${item.id}`;
       bufferWordLearned(user.uid, wordId);
+      setLearnedCount((prev) => prev + 1);
     }
   };
 
   /**
    * Handler: Swipe Left (Review/Skipped)
-   * Currently treats skipped words as 'viewed' for progress tracking.
-   * Logic could be updated to differentiate 'Review Later' vs 'Learned'.
+   * Skipped words are not counted as learned.
    */
-  const onSwipeLeft = (item: VocabularyCard) => {
-    console.log("Learned:", item.word);
-    if (user) {
-      const wordId = `${courseId}-${item.id}`;
-      bufferWordLearned(user.uid, wordId);
-    }
-  };
+  const onSwipeLeft = (_item: VocabularyCard) => {};
 
   /**
    * Handler: Deck Finished
@@ -298,15 +294,14 @@ export default function VocabularyScreen() {
         await updateDoc(doc(db, "users", user.uid), {
           [`courseProgress.${courseId}.${dayNumber}.completed`]: true,
           [`courseProgress.${courseId}.${dayNumber}.totalWords`]: cards.length,
-          [`courseProgress.${courseId}.${dayNumber}.wordsLearned`]:
-            cards.length,
+          [`courseProgress.${courseId}.${dayNumber}.wordsLearned`]: learnedCount,
         });
 
         // Update local store state for immediate UI reflection
         updateCourseDayProgress(courseId, dayNumber, {
           completed: true,
           totalWords: cards.length,
-          wordsLearned: cards.length,
+          wordsLearned: learnedCount,
         });
       } catch (error) {
         console.error("Error marking day as completed:", error);
