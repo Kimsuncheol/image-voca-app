@@ -540,6 +540,7 @@ const ko = {
       correct: "정답!",
       incorrect: "오답",
       correctAnswer: "정답: {{answer}}",
+      timeUp: "시간 초과!  ·  {{answer}}",
       results: {
         title: "퀴즈 완료",
         score: "{{total}}문제 중 {{correct}}개 정답",

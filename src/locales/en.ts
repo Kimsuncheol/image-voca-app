@@ -543,6 +543,7 @@ const en = {
       correct: "Correct!",
       incorrect: "Incorrect",
       correctAnswer: "Answer: {{answer}}",
+      timeUp: "Time's up!  ·  {{answer}}",
       results: {
         title: "Quiz Complete",
         score: "{{correct}} / {{total}} correct",

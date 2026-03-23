@@ -11,6 +11,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { QuizTimer } from "../components/course";
 import { ThemedText } from "../components/themed-text";
 import { useTheme } from "../src/context/ThemeContext";
 import { useSpeech } from "../src/hooks/useSpeech";
@@ -21,10 +22,10 @@ import { Char, CharCell, HIRAGANA, HIRAGANA_FLAT, KATAKANA, KATAKANA_FLAT } from
 // ─────────────────────────────────────────────────────────────────────────────
 
 const NUM_OPTIONS = 4;
-// Correct answer: short delay — user already saw result immediately
-// Wrong answer: longer delay — user needs time to read the correct answer
 const AUTO_ADVANCE_CORRECT_MS = 800;
 const AUTO_ADVANCE_WRONG_MS = 1600;
+const QUESTION_TIMER_SEC = 8;
+const TIMEOUT_ADVANCE_MS = 600;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -243,12 +244,69 @@ export default function KanaQuizScreen() {
   const isAnswered = selectedIndex !== null;
   const isCorrectAnswer = selectedIndex === current.correctIndex;
 
+  // ── Callbacks ──────────────────────────────────────────────────────────────
+
   const stopCountdown = useCallback(() => {
     if (autoAdvanceTimer.current) {
       clearTimeout(autoAdvanceTimer.current);
       autoAdvanceTimer.current = null;
     }
   }, []);
+
+  const advanceQuestion = useCallback(() => {
+    stopCountdown();
+    if (currentIndex + 1 >= questions.length) {
+      setFinished(true);
+    } else {
+      setCurrentIndex((i) => i + 1);
+      setSelectedIndex(null);
+    }
+  }, [currentIndex, questions.length, stopCountdown]);
+
+  // Called by QuizTimer when the animated bar reaches zero
+  const handleTimeUp = useCallback(() => {
+    setWrongChars((prev) => [...prev, current.char]);
+    setSelectedIndex(-1);
+    autoAdvanceTimer.current = setTimeout(advanceQuestion, TIMEOUT_ADVANCE_MS);
+  }, [current, advanceQuestion]);
+
+  const handleOption = useCallback(
+    (index: number) => {
+      if (selectedIndex !== null) return;
+      setSelectedIndex(index);
+
+      const correct = index === current.correctIndex;
+      if (correct) {
+        setCorrectCount((c) => c + 1);
+      } else {
+        setWrongChars((prev) => [...prev, current.char]);
+      }
+
+      speech.speak(current.char.kana, { language: "ja-JP", rate: 0.75 });
+
+      const delay = correct ? AUTO_ADVANCE_CORRECT_MS : AUTO_ADVANCE_WRONG_MS;
+      autoAdvanceTimer.current = setTimeout(advanceQuestion, delay);
+    },
+    [selectedIndex, current, speech, advanceQuestion],
+  );
+
+  // Tap the kana card after answering to skip the remaining delay
+  const handleSkip = useCallback(() => {
+    if (!isAnswered) return;
+    advanceQuestion();
+  }, [isAnswered, advanceQuestion]);
+
+  const handleRetry = useCallback(() => {
+    stopCountdown();
+    setQuestions(buildQuestions(sourceChars, sourceGrid));
+    setCurrentIndex(0);
+    setSelectedIndex(null);
+    setCorrectCount(0);
+    setWrongChars([]);
+    setFinished(false);
+  }, [sourceChars, sourceGrid, stopCountdown]);
+
+  // ── Effects ────────────────────────────────────────────────────────────────
 
   // Quit confirmation on hardware back (Android)
   useEffect(() => {
@@ -267,57 +325,12 @@ export default function KanaQuizScreen() {
     return () => sub.remove();
   }, [finished, t, router]);
 
-  // Cancel timer and animation on unmount
+  // Cancel auto-advance timer on unmount
   useEffect(() => {
     return () => stopCountdown();
   }, [stopCountdown]);
 
-  const advanceQuestion = useCallback(() => {
-    stopCountdown();
-    if (currentIndex + 1 >= questions.length) {
-      setFinished(true);
-    } else {
-      setCurrentIndex((i) => i + 1);
-      setSelectedIndex(null);
-    }
-  }, [currentIndex, questions.length, stopCountdown]);
-
-  const handleOption = useCallback(
-    (index: number) => {
-      if (selectedIndex !== null) return;
-      setSelectedIndex(index);
-
-      const correct = index === current.correctIndex;
-      if (correct) {
-        setCorrectCount((c) => c + 1);
-      } else {
-        setWrongChars((prev) => [...prev, current.char]);
-      }
-
-      speech.speak(current.char.kana, { language: "ja-JP", rate: 0.75 });
-
-      // Correct gets a shorter delay; wrong gets more time to read the answer.
-      const delay = correct ? AUTO_ADVANCE_CORRECT_MS : AUTO_ADVANCE_WRONG_MS;
-      autoAdvanceTimer.current = setTimeout(advanceQuestion, delay);
-    },
-    [selectedIndex, current, speech, countdownAnim, advanceQuestion],
-  );
-
-  // Tap the kana card after answering to skip the remaining countdown
-  const handleSkip = useCallback(() => {
-    if (!isAnswered) return;
-    advanceQuestion();
-  }, [isAnswered, advanceQuestion]);
-
-  const handleRetry = useCallback(() => {
-    stopCountdown();
-    setQuestions(buildQuestions(sourceChars, sourceGrid));
-    setCurrentIndex(0);
-    setSelectedIndex(null);
-    setCorrectCount(0);
-    setWrongChars([]);
-    setFinished(false);
-  }, [sourceChars, sourceGrid, stopCountdown]);
+  // ── Render helpers ─────────────────────────────────────────────────────────
 
   const typeLabel = t(
     type === "katakana" ? "kana.katakana" : "kana.hiragana",
@@ -363,20 +376,15 @@ export default function KanaQuizScreen() {
             {t("kana.quiz.question", { current: currentIndex + 1, total: questions.length })}
           </ThemedText>
 
-          {/* Progress bar */}
-          <View style={[styles.progressBar, { backgroundColor: isDark ? "#1c1c1e" : "#e5e5e5" }]}>
-            <View
-              style={[
-                styles.progressFill,
-                {
-                  width: `${((currentIndex + (isAnswered ? 1 : 0)) / questions.length) * 100}%`,
-                  backgroundColor: "#007AFF",
-                },
-              ]}
-            />
-          </View>
+          {/* Animated countdown bar — resets each question via quizKey */}
+          <QuizTimer
+            duration={QUESTION_TIMER_SEC}
+            isRunning={selectedIndex === null && !finished}
+            quizKey={currentIndex.toString()}
+            onTimeUp={handleTimeUp}
+          />
 
-          {/* Kana card — tap to skip countdown */}
+          {/* Kana card — tap to skip post-answer delay */}
           <TouchableOpacity
             style={[styles.kanaCard, { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" }]}
             onPress={handleSkip}
@@ -397,7 +405,9 @@ export default function KanaQuizScreen() {
               >
                 {isCorrectAnswer
                   ? t("kana.quiz.correct")
-                  : t("kana.quiz.correctAnswer", { answer: current.char.romaji })}
+                  : selectedIndex === -1
+                    ? t("kana.quiz.timeUp", { answer: current.char.romaji, defaultValue: "Time's up! · {{answer}}" })
+                    : t("kana.quiz.correctAnswer", { answer: current.char.romaji })}
               </ThemedText>
             )}
           </View>
@@ -443,20 +453,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 8,
   },
-  progressBar: {
-    height: 4,
-    borderRadius: 2,
-    marginBottom: 28,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: 4,
-    borderRadius: 2,
-  },
   kanaCard: {
     borderRadius: 20,
     paddingVertical: 36,
     alignItems: "center",
+    marginTop: 28,
   },
   kanaChar: {
     fontSize: 80,

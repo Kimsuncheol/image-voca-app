@@ -532,6 +532,7 @@ const ja = {
       correct: "正解！",
       incorrect: "不正解",
       correctAnswer: "答え: {{answer}}",
+      timeUp: "時間切れ！· {{answer}}",
       results: {
         title: "クイズ完了",
         score: "{{total}}問中{{correct}}問正解",
