@@ -535,6 +535,25 @@ const en = {
       title: "No Internet Connection",
       message: "Connect to the internet to play audio.",
     },
+    quiz: {
+      title: "Kana Quiz",
+      startButton: "Start Quiz",
+      question: "{{current}} / {{total}}",
+      prompt: "What is the romaji for this character?",
+      correct: "Correct!",
+      incorrect: "Incorrect",
+      correctAnswer: "Answer: {{answer}}",
+      results: {
+        title: "Quiz Complete",
+        score: "{{correct}} / {{total}} correct",
+        excellent: "Excellent!",
+        goodJob: "Good job!",
+        keepPracticing: "Keep practicing!",
+        reviewTitle: "Review These",
+        retry: "Try Again",
+        done: "Done",
+      },
+    },
   },
 
   ad: {

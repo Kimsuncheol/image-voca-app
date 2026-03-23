@@ -524,6 +524,25 @@ const ja = {
       title: "インターネット接続なし",
       message: "音声を再生するにはインターネット接続が必要です。",
     },
+    quiz: {
+      title: "かなクイズ",
+      startButton: "クイズを始める",
+      question: "{{current}} / {{total}}",
+      prompt: "この文字のローマ字は何ですか？",
+      correct: "正解！",
+      incorrect: "不正解",
+      correctAnswer: "答え: {{answer}}",
+      results: {
+        title: "クイズ完了",
+        score: "{{total}}問中{{correct}}問正解",
+        excellent: "素晴らしい！",
+        goodJob: "よくできました！",
+        keepPracticing: "練習を続けましょう！",
+        reviewTitle: "復習する文字",
+        retry: "もう一度",
+        done: "完了",
+      },
+    },
   },
 
   ad: {

@@ -532,6 +532,25 @@ const ko = {
       title: "인터넷 연결 없음",
       message: "오디오를 재생하려면 인터넷에 연결해 주세요.",
     },
+    quiz: {
+      title: "가나 퀴즈",
+      startButton: "퀴즈 시작",
+      question: "{{current}} / {{total}}",
+      prompt: "이 문자의 로마자 표기는 무엇인가요?",
+      correct: "정답!",
+      incorrect: "오답",
+      correctAnswer: "정답: {{answer}}",
+      results: {
+        title: "퀴즈 완료",
+        score: "{{total}}문제 중 {{correct}}개 정답",
+        excellent: "훌륭해요!",
+        goodJob: "잘했어요!",
+        keepPracticing: "계속 연습해보세요!",
+        reviewTitle: "복습할 문자",
+        retry: "다시 도전",
+        done: "완료",
+      },
+    },
   },
 
   ad: {
