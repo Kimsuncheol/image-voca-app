@@ -93,7 +93,8 @@ export default function CourseSelectionScreen() {
             />
           </TouchableOpacity>
         )}
-        {recentCourseData && (
+        {/* RecentCourseSection hidden for Japanese — only one course (JLPT) exists */}
+        {learningLanguage !== "ja" && recentCourseData && (
           <RecentCourseSection
             course={recentCourseData}
             onPress={() =>
@@ -107,7 +108,7 @@ export default function CourseSelectionScreen() {
           />
         )}
         <AllCoursesSection
-          courses={recentCourse ? otherCourses : allCourses}
+          courses={learningLanguage === "ja" ? allCourses : recentCourse ? otherCourses : allCourses}
           onCoursePress={handleCourseSelect}
         />
       </ScrollView>
