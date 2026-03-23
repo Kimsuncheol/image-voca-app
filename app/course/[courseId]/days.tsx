@@ -21,6 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { DayGrid } from "../../../components/course";
 import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
 import { useAuth } from "../../../src/context/AuthContext";
+import { useLearningLanguage } from "../../../src/context/LearningLanguageContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import {
   getTotalDaysForCourse,
@@ -34,6 +35,7 @@ import {
 import {
   CourseType,
   findRuntimeCourse,
+  getLearningLanguageForCourse,
 } from "../../../src/types/vocabulary";
 
 // -----------------------------------------------------------------------------
@@ -62,6 +64,8 @@ export default function DayPickerScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const { t } = useTranslation();
+  const { recentCourseByLanguage, setRecentCourseForLanguage } =
+    useLearningLanguage();
 
   // Route params: Identify which course we are viewing
   const { courseId } = useLocalSearchParams<{ courseId: CourseType }>();
@@ -86,6 +90,10 @@ export default function DayPickerScreen() {
   // ---------------------------------------------------------------------------
   const course = useMemo(
     () => findRuntimeCourse(courseId),
+    [courseId],
+  );
+  const courseLanguage = useMemo(
+    () => getLearningLanguageForCourse(courseId),
     [courseId],
   );
   const [totalDays, setTotalDays] = useState(MIN_TOTAL_DAYS);
@@ -113,6 +121,29 @@ export default function DayPickerScreen() {
    * Refetch subscription and progress whenever the screen gains focus.
    * This ensures that if a user buys a sub or watches an ad, the UI updates immediately.
    */
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        !course ||
+        !courseId ||
+        !courseLanguage ||
+        recentCourseByLanguage[courseLanguage] === courseId
+      ) {
+        return;
+      }
+
+      void setRecentCourseForLanguage(courseLanguage, courseId).catch((error) => {
+        console.error("Failed to persist recent course:", error);
+      });
+    }, [
+      course,
+      courseId,
+      courseLanguage,
+      recentCourseByLanguage,
+      setRecentCourseForLanguage,
+    ]),
+  );
+
   useFocusEffect(
     useCallback(() => {
       if (!user || !courseId) return;

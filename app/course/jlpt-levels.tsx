@@ -5,7 +5,6 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { JlptLevelList } from "../../components/course/JlptLevelList";
 import { ThemedText } from "../../components/themed-text";
-import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { getTotalDaysForCourse } from "../../src/services/vocabularyPrefetch";
 import { JLPT_LEVELS, JLPTLevelCourse } from "../../src/types/vocabulary";
@@ -14,7 +13,6 @@ export default function JlptLevelsScreen() {
   const { isDark } = useTheme();
   const router = useRouter();
   const { t } = useTranslation();
-  const { setRecentCourseForLanguage } = useLearningLanguage();
   const [totalDaysByLevel, setTotalDaysByLevel] = useState<
     Partial<Record<JLPTLevelCourse["id"], number>>
   >({});
@@ -50,10 +48,8 @@ export default function JlptLevelsScreen() {
     };
   }, []);
 
-  const handleLevelPress = async (level: JLPTLevelCourse) => {
+  const handleLevelPress = (level: JLPTLevelCourse) => {
     try {
-      await setRecentCourseForLanguage("ja", level.id);
-
       router.push({
         pathname: "/course/[courseId]/days",
         params: { courseId: level.id },

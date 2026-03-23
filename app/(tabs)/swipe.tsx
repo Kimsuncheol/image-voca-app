@@ -22,11 +22,7 @@ export default function CourseSelectionScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
-  const {
-    learningLanguage,
-    recentCourseByLanguage,
-    setRecentCourseForLanguage,
-  } = useLearningLanguage();
+  const { learningLanguage, recentCourseByLanguage } = useLearningLanguage();
   const { fetchSubscription } = useSubscriptionStore();
 
   useFocusEffect(
@@ -37,21 +33,19 @@ export default function CourseSelectionScreen() {
     }, [fetchSubscription, user])
   );
 
-  const handleCourseSelect = async (course: Course) => {
+  const handleCourseSelect = (course: Course) => {
     try {
       if (isJlptParentCourseId(course.id)) {
         router.push("/course/jlpt-levels");
         return;
       }
 
-      await setRecentCourseForLanguage(learningLanguage, course.id);
-
       router.push({
         pathname: "/course/[courseId]/days",
         params: { courseId: course.id },
       });
     } catch (error) {
-      console.error("Error updating recent course:", error);
+      console.error("Error navigating to course:", error);
     }
   };
 
