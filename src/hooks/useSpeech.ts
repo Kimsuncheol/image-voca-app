@@ -95,7 +95,6 @@ export const useSpeech = (): UseSpeechReturn => {
         setError(err as Error);
         setIsSpeaking(false);
         setIsPaused(false);
-        throw err;
       }
     },
     []

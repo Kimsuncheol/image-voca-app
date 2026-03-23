@@ -4,6 +4,7 @@
  * Centralized Text-to-Speech functionality backed by remote provider endpoints.
  */
 
+import NetInfo from "@react-native-community/netinfo";
 import { Audio, type AVPlaybackStatus, type AVPlaybackStatusSuccess } from "expo-av";
 import * as Crypto from "expo-crypto";
 import * as FileSystem from "expo-file-system/legacy";
@@ -54,6 +55,8 @@ type SpeechBackend =
       endpoint: string;
       cacheNamespace: "qwen";
     };
+
+export const SPEECH_OFFLINE_ERROR = "SPEECH_OFFLINE";
 
 const DEFAULT_CONFIG: SpeechOptions = {
   language: "en-US",
@@ -421,6 +424,10 @@ export const speak = async (
 
     const cacheInfo = await FileSystem.getInfoAsync(fileUri);
     if (!cacheInfo.exists) {
+      const netState = await NetInfo.fetch();
+      if (!netState.isConnected) {
+        throw new Error(SPEECH_OFFLINE_ERROR);
+      }
       const synthesizedAudio = await fetchSpeechAudio(normalizedText, backend, config);
       await FileSystem.writeAsStringAsync(fileUri, synthesizedAudio.audioBase64, {
         encoding: FileSystem.EncodingType.Base64,

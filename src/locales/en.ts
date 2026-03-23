@@ -523,6 +523,10 @@ const en = {
     title: "Japanese Characters",
     hiragana: "Hiragana",
     katakana: "Katakana",
+    offlineSpeech: {
+      title: "No Internet Connection",
+      message: "Connect to the internet to play audio.",
+    },
   },
 
   ad: {

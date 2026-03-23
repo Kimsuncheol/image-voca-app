@@ -512,6 +512,10 @@ const ja = {
     title: "日本語文字",
     hiragana: "ひらがな",
     katakana: "カタカナ",
+    offlineSpeech: {
+      title: "インターネット接続なし",
+      message: "音声を再生するにはインターネット接続が必要です。",
+    },
   },
 
   ad: {
