@@ -17,6 +17,7 @@ const en = {
     next: "Next",
     retry: "Retry",
     loading: "Loading...",
+    delete: "Delete",
   },
   tabs: {
     dashboard: "Dashboard",
@@ -163,6 +164,13 @@ const en = {
     title: "Word Bank",
     subtitle: "Your saved vocabulary by course",
     wordsTitle: "Words",
+    searchPlaceholder: "Search words...",
+    wordsCount: "{{count}} words",
+    deleteConfirm: {
+      title: "Delete Word",
+      message: "Remove this word from your word bank?",
+      confirm: "Delete",
+    },
     empty: {
       title: "No words saved yet",
       subtitle:

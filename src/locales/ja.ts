@@ -17,6 +17,7 @@ const ja = {
     next: "次へ",
     retry: "再試行",
     loading: "読み込み中...",
+    delete: "削除",
   },
   tabs: {
     dashboard: "ダッシュボード",
@@ -162,6 +163,13 @@ const ja = {
     title: "単語帳",
     subtitle: "コース別保存単語",
     wordsTitle: "単語",
+    searchPlaceholder: "単語を検索...",
+    wordsCount: "{{count}}語",
+    deleteConfirm: {
+      title: "単語を削除",
+      message: "この単語を単語帳から削除しますか？",
+      confirm: "削除",
+    },
     empty: {
       title: "保存された単語はありません",
       subtitle: '単語カードをスワイプして「単語帳に追加」をタップして保存してください。',

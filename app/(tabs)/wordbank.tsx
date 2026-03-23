@@ -1,5 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import React, { useCallback, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 import { WordBankCourseGrid, WordBankHeader } from "../../components/wordbank";
@@ -7,6 +8,7 @@ import { useAuth } from "../../src/context/AuthContext";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useTimeTracking } from "../../src/hooks/useTimeTracking";
+import { db } from "../../src/services/firebase";
 import { useSubscriptionStore } from "../../src/stores";
 import { CourseType, getTopLevelCoursesForLanguage } from "../../src/types/vocabulary";
 
@@ -18,10 +20,19 @@ export default function WordBankScreen() {
   const { fetchSubscription } = useSubscriptionStore();
   useTimeTracking(); // Track time spent on this screen
 
+  const [wordCounts, setWordCounts] = useState<Record<string, number>>({});
+
   useFocusEffect(
     useCallback(() => {
       if (user) {
         fetchSubscription(user.uid);
+        getDocs(collection(db, "vocabank", user.uid, "course")).then((snap) => {
+          const counts: Record<string, number> = {};
+          snap.forEach((doc) => {
+            counts[doc.id] = (doc.data().words ?? []).length;
+          });
+          setWordCounts(counts);
+        });
       }
     }, [fetchSubscription, user])
   );
@@ -51,6 +62,7 @@ export default function WordBankScreen() {
         <WordBankCourseGrid
           courses={courses}
           onCoursePress={handleCoursePress}
+          wordCounts={wordCounts}
         />
       </ScrollView>
     </View>

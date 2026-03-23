@@ -4,6 +4,7 @@ import { StyleSheet, View } from "react-native";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { useTranslation } from "react-i18next";
+import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { speakWordVariants } from "../../src/utils/wordVariants";
 import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
 import type { VocabularyLocalizationMap } from "../../src/types/vocabulary";
@@ -49,6 +50,8 @@ export function WordCard({
 }: WordCardProps) {
   const { speak } = useSpeech();
   const { i18n } = useTranslation();
+  const { learningLanguage } = useLearningLanguage();
+  const speakLanguage = learningLanguage === "ja" ? "ja-JP" : "en-US";
   const resolved = React.useMemo(
     () => resolveVocabularyContent(word, i18n.language),
     [i18n.language, word],
@@ -110,6 +113,7 @@ export function WordCard({
             : undefined
         }
         pronunciationRoman={resolved.pronunciationRoman}
+        speakLanguage={speakLanguage}
       />
     </View>
   );

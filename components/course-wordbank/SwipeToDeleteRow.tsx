@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
@@ -28,6 +29,7 @@ export function SwipeToDeleteRow({
   onDelete,
   children,
 }: SwipeToDeleteRowProps) {
+  const { t } = useTranslation();
   const translateX = useSharedValue(0);
   const isOpen = useSharedValue(false);
 
@@ -40,6 +42,28 @@ export function SwipeToDeleteRow({
       if (done) runOnJS(handleDelete)();
     });
   }, [translateX, handleDelete]);
+
+  const handleDeletePress = useCallback(() => {
+    Alert.alert(
+      t("wordBank.deleteConfirm.title"),
+      t("wordBank.deleteConfirm.message"),
+      [
+        {
+          text: t("common.cancel"),
+          style: "cancel",
+          onPress: () => {
+            translateX.value = withSpring(0, { damping: 20, stiffness: 200 });
+            isOpen.value = false;
+          },
+        },
+        {
+          text: t("wordBank.deleteConfirm.confirm"),
+          style: "destructive",
+          onPress: animateAndDelete,
+        },
+      ],
+    );
+  }, [t, translateX, isOpen, animateAndDelete]);
 
   const panGesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
@@ -91,11 +115,11 @@ export function SwipeToDeleteRow({
       >
         <Pressable
           testID={`delete-action-${itemId}`}
-          onPress={animateAndDelete}
+          onPress={handleDeletePress}
           style={styles.deleteButton}
         >
           <Ionicons name="trash-outline" size={20} color="#fff" />
-          <Text style={styles.deleteText}>Delete</Text>
+          <Text style={styles.deleteText}>{t("common.delete")}</Text>
         </Pressable>
       </Animated.View>
 

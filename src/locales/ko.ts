@@ -17,6 +17,7 @@ const ko = {
     next: "다음",
     retry: "다시하기",
     loading: "로딩중...",
+    delete: "삭제",
   },
   tabs: {
     dashboard: "대시보드",
@@ -167,6 +168,13 @@ const ko = {
     title: "단어장",
     subtitle: "코스별 저장한 단어",
     wordsTitle: "단어",
+    searchPlaceholder: "단어 검색...",
+    wordsCount: "{{count}}개 단어",
+    deleteConfirm: {
+      title: "단어 삭제",
+      message: "이 단어를 단어장에서 삭제할까요?",
+      confirm: "삭제",
+    },
     empty: {
       title: "저장된 단어가 없습니다",
       subtitle: '단어 카드를 넘기며 "단어장에 추가"를 눌러 저장하세요.',

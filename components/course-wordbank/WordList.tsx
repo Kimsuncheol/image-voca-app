@@ -24,7 +24,7 @@ export function WordList({
     <View>
       {words.map((word, index) => (
         <SwipeToDeleteRow
-          key={word.id + index}
+          key={word.id}
           itemId={word.id}
           isDark={isDark}
           onDelete={onDeleteWord}

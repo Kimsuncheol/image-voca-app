@@ -9,6 +9,7 @@ interface WordCardExampleProps {
   translation?: string;
   pronunciation?: string;
   pronunciationRoman?: string;
+  speakLanguage?: string;
 }
 
 /**
@@ -20,6 +21,7 @@ export function WordCardExample({
   translation,
   pronunciation,
   pronunciationRoman,
+  speakLanguage = "en-US",
 }: WordCardExampleProps) {
   const { speak } = useSpeech();
   const { t } = useTranslation();
@@ -39,7 +41,7 @@ export function WordCardExample({
 
   const handleSpeak = async (text: string) => {
     try {
-      await speak(text, { language: "en-US", pitch: 1.0, rate: 0.9 });
+      await speak(text, { language: speakLanguage, pitch: 1.0, rate: 0.9 });
     } catch (error) {
       console.error("TTS error:", error);
     }

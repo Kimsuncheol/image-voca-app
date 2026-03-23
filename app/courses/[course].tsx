@@ -4,7 +4,7 @@ import { Image } from "expo-image";
 import { doc, getDoc, setDoc } from "firebase/firestore"; // Firestore database operations
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next"; // Internationalization
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, FlatList, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Custom components
@@ -12,9 +12,9 @@ import { AppSplashScreen } from "../../components/common/AppSplashScreen";
 import { FilterChips } from "../../components/common/FilterChips";
 import {
   EmptyWordBankView,
-  WordList,
+  SwipeToDeleteRow,
 } from "../../components/course-wordbank";
-import { SavedWord } from "../../components/wordbank/WordCard";
+import { SavedWord, WordCard } from "../../components/wordbank/WordCard";
 
 // Context, services, and types
 import { useAuth } from "../../src/context/AuthContext";
@@ -54,6 +54,9 @@ export default function CourseWordBankScreen() {
   const [loading, setLoading] = useState(true); // Loading state while fetching data + images
   const [splashMounted, setSplashMounted] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const showPronunciation = course !== "COLLOCATION";
 
   // Generate filter options dynamically based on available days
   const filterOptions = useMemo(() => {
@@ -76,18 +79,27 @@ export default function CourseWordBankScreen() {
     return options;
   }, [words, t]);
 
-  // Filter words based on selection, sorted by day ascending
+  // Filter words based on day selection + search query, sorted by day ascending
   const filteredWords = useMemo(() => {
     const sortByDay = (arr: SavedWord[]) =>
       [...arr].sort((a, b) => (a.day ?? Infinity) - (b.day ?? Infinity));
 
-    if (selectedFilter === "all") return sortByDay(words);
+    let result = words;
     if (selectedFilter.startsWith("day-")) {
       const day = parseInt(selectedFilter.replace("day-", ""), 10);
-      return sortByDay(words.filter((w) => w.day === day));
+      result = result.filter((w) => w.day === day);
     }
-    return sortByDay(words);
-  }, [words, selectedFilter]);
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(
+        (w) =>
+          w.word.toLowerCase().includes(q) ||
+          w.meaning.toLowerCase().includes(q) ||
+          w.example?.toLowerCase().includes(q),
+      );
+    }
+    return sortByDay(result);
+  }, [words, selectedFilter, searchQuery]);
 
   // Find course metadata (color, title, etc.) from course configuration
   const courseData = findRuntimeCourse(course);
@@ -180,6 +192,31 @@ export default function CourseWordBankScreen() {
 
   // === Render ===
 
+  const listHeader = words.length > 0 ? (
+    <View>
+      <TextInput
+        style={[
+          styles.searchInput,
+          {
+            backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5",
+            color: isDark ? "#fff" : "#111827",
+          },
+        ]}
+        placeholder={t("wordBank.searchPlaceholder")}
+        placeholderTextColor={isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.35)"}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        returnKeyType="search"
+        clearButtonMode="while-editing"
+      />
+      <FilterChips
+        options={filterOptions}
+        selectedId={selectedFilter}
+        onSelect={setSelectedFilter}
+      />
+    </View>
+  ) : null;
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
@@ -196,37 +233,36 @@ export default function CourseWordBankScreen() {
         }}
       />
 
-      {/* Filter Chips */}
-      {words.length > 0 && (
-        <View style={styles.filterContainer}>
-          <FilterChips
-            options={filterOptions}
-            selectedId={selectedFilter}
-            onSelect={setSelectedFilter}
-          />
-        </View>
+      {!loading && (
+        <FlatList
+          data={filteredWords}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <SwipeToDeleteRow
+              itemId={item.id}
+              isDark={isDark}
+              onDelete={handleDeleteWord}
+            >
+              <WordCard
+                word={item}
+                courseColor={courseData?.color}
+                isDark={isDark}
+                showPronunciation={showPronunciation}
+              />
+            </SwipeToDeleteRow>
+          )}
+          ListHeaderComponent={listHeader}
+          ListEmptyComponent={
+            <EmptyWordBankView
+              courseId={course}
+              courseColor={courseData?.color}
+              isDark={isDark}
+            />
+          }
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
       )}
-
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {!loading && filteredWords.length === 0 ? (
-          <EmptyWordBankView
-            courseId={course}
-            courseColor={courseData?.color}
-            isDark={isDark}
-          />
-        ) : !loading ? (
-          <WordList
-            words={filteredWords}
-            courseId={course}
-            courseColor={courseData?.color}
-            isDark={isDark}
-            onDeleteWord={handleDeleteWord}
-          />
-        ) : null}
-      </ScrollView>
 
       {splashMounted && (
         <AppSplashScreen
@@ -244,11 +280,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollContent: {
+  listContent: {
     padding: 20,
     paddingBottom: 40,
   },
-  filterContainer: {
-    paddingVertical: 12,
+  searchInput: {
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 15,
+    marginBottom: 12,
   },
 });
