@@ -44,7 +44,7 @@ export function MatchingQuiz({
 
   useEffect(() => {
     if (isComplete) {
-      const timer = setTimeout(onComplete, 600);
+      const timer = setTimeout(onComplete, 150);
       return () => clearTimeout(timer);
     }
   }, [isComplete, onComplete]);

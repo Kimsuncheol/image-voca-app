@@ -320,11 +320,9 @@ export function DashboardPopQuiz() {
     if (user) {
       bufferQuizAnswer(user.uid, true);
     }
-    setTimeout(() => {
-      setSelectedOption(null);
-      setIsCorrect(null);
-      loadNextQuiz();
-    }, 200);
+    setSelectedOption(null);
+    setIsCorrect(null);
+    loadNextQuiz();
   }, [bufferQuizAnswer, loadNextQuiz, user, waitingForNextBatch]);
 
   const handlePairMatched = useCallback(() => {
