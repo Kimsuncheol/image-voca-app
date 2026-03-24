@@ -130,8 +130,11 @@ export function DashboardPopQuiz() {
   const rolloverDelayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rolloverLoadingStartedAtRef = useRef<number | null>(null);
 
+  // Incremented on each correct pair match to reset the timer mid-question
+  const [matchCount, setMatchCount] = useState(0);
+
   // Derived state
-  const quizKey = `${turnNumber}-${currentIndex}`;
+  const quizKey = `${turnNumber}-${currentIndex}-${matchCount}`;
 
   // ==========================================================================
   // VOCABULARY RESOLUTION
@@ -323,6 +326,10 @@ export function DashboardPopQuiz() {
       loadNextQuiz();
     }, 200);
   }, [bufferQuizAnswer, loadNextQuiz, user, waitingForNextBatch]);
+
+  const handlePairMatched = useCallback(() => {
+    setMatchCount((c) => c + 1);
+  }, []);
 
   const handleMatchingWrong = useCallback(() => {
     if (waitingForNextBatch) {
@@ -628,6 +635,7 @@ export function DashboardPopQuiz() {
                 isDark={isDark}
                 onComplete={handleMatchingComplete}
                 onWrong={handleMatchingWrong}
+                onPairMatched={handlePairMatched}
               />
             )}
             {quizType === "fill-in-blank" && quizItem.example !== undefined && (

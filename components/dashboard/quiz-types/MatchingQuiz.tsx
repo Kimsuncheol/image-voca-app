@@ -20,6 +20,7 @@ interface MatchingQuizProps {
   isDark: boolean;
   onComplete: () => void;
   onWrong: () => void;
+  onPairMatched?: () => void;
 }
 
 export function MatchingQuiz({
@@ -27,6 +28,7 @@ export function MatchingQuiz({
   isDark,
   onComplete,
   onWrong,
+  onPairMatched,
 }: MatchingQuizProps) {
   // Shuffle meanings independently from words on mount
   const shuffledMeanings = useRef(
@@ -64,6 +66,7 @@ export function MatchingQuiz({
         // Correct match
         setMatchedWords((prev) => new Set(prev).add(selectedWord));
         setSelectedWord(null);
+        onPairMatched?.();
       } else {
         // Wrong match — flash red, then reset
         setWrongWord(selectedWord);
@@ -76,7 +79,7 @@ export function MatchingQuiz({
         }, 600);
       }
     },
-    [selectedWord, wrongWord, pairs, onWrong],
+    [selectedWord, wrongWord, pairs, onWrong, onPairMatched],
   );
 
   const getWordStyle = (word: string) => {
