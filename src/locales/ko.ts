@@ -713,6 +713,18 @@ const ko = {
     offlinePayment: "결제를 완료하려면 인터넷 연결이 필요합니다.",
     serverOfflineBanner: "서버에 연결할 수 없습니다",
   },
+  prefixPostfix: {
+    title: "접두사 & 접미사",
+    headerButton: "접사",
+    tabPrefix: "접두사",
+    tabPostfix: "접미사",
+    searchPlaceholder: "접두사·접미사 검색...",
+    colPrefix: "접두사",
+    colPostfix: "접미사",
+    colMeaning: "의미",
+    colPronun: "발음",
+    colExample: "예시",
+  },
 };
 
 export default ko;

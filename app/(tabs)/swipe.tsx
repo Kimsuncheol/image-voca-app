@@ -93,6 +93,32 @@ export default function CourseSelectionScreen() {
             />
           </TouchableOpacity>
         )}
+        {learningLanguage === "ja" && (
+          <TouchableOpacity
+            style={[
+              styles.kanaButton,
+              { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
+            ]}
+            onPress={() => router.push("/prefix-postfix" as any)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.kanaButtonLeft}>
+              <Ionicons
+                name="text-outline"
+                size={22}
+                color={isDark ? "#fff" : "#111827"}
+              />
+              <ThemedText style={styles.kanaButtonText}>
+                {t("prefixPostfix.title", { defaultValue: "Prefix & Postfix" })}
+              </ThemedText>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={18}
+              color={isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.3)"}
+            />
+          </TouchableOpacity>
+        )}
         {/* RecentCourseSection hidden for Japanese — only one course (JLPT) exists */}
         {learningLanguage !== "ja" && recentCourseData && (
           <RecentCourseSection

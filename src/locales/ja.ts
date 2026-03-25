@@ -705,6 +705,18 @@ const ja = {
     offlinePayment: "お支払いを完了するにはインターネット接続が必要です。",
     serverOfflineBanner: "サーバーに接続できません",
   },
+  prefixPostfix: {
+    title: "接頭辞・接尾辞",
+    headerButton: "接辞",
+    tabPrefix: "接頭辞",
+    tabPostfix: "接尾辞",
+    searchPlaceholder: "接頭辞・接尾辞を検索...",
+    colPrefix: "接頭辞",
+    colPostfix: "接尾辞",
+    colMeaning: "意味",
+    colPronun: "発音",
+    colExample: "例文",
+  },
 };
 
 export default ja;

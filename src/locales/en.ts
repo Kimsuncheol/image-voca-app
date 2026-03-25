@@ -717,6 +717,18 @@ const en = {
     offlinePayment: "An internet connection is required to complete payment.",
     serverOfflineBanner: "Cannot connect to server",
   },
+  prefixPostfix: {
+    title: "Prefix & Postfix",
+    headerButton: "Affix",
+    tabPrefix: "Prefix",
+    tabPostfix: "Postfix",
+    searchPlaceholder: "Search prefixes & postfixes...",
+    colPrefix: "PREFIX",
+    colPostfix: "POSTFIX",
+    colMeaning: "MEANING",
+    colPronun: "PRONUN.",
+    colExample: "EXAMPLE",
+  },
 };
 
 export default en;
