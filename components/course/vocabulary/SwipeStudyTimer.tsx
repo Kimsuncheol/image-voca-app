@@ -51,15 +51,7 @@ export function SwipeStudyTimer({
     LOOP_DURATION_SECONDS;
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: isDark ? "#111214" : "#F5F7FA",
-        },
-      ]}
-      testID="swipe-study-timer"
-    >
+    <View style={styles.container} testID="swipe-study-timer">
       <View style={styles.header}>
         <Text
           style={[

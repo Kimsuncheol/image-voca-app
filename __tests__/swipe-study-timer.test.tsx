@@ -18,6 +18,9 @@ describe("SwipeStudyTimer", () => {
       StyleSheet.flatten(screen.getByTestId("swipe-study-timer").props.style).borderWidth,
     ).toBeUndefined();
     expect(
+      StyleSheet.flatten(screen.getByTestId("swipe-study-timer").props.style).backgroundColor,
+    ).toBeUndefined();
+    expect(
       StyleSheet.flatten(screen.getByTestId("swipe-study-timer").props.style).marginTop,
     ).toBe(-(Dimensions.get("window").height / 30));
   });
