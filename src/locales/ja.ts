@@ -263,6 +263,9 @@ const ja = {
       added: "追加済み",
       addToWordBank: "単語帳に追加",
     },
+    timer: {
+      label: "学習時間",
+    },
     jlpt: {
       labels: {
         meaningEnglish: "英語の意味",

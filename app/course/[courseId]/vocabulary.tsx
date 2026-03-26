@@ -25,6 +25,7 @@ import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
 import { StreakMilestoneModal } from "../../../components/common/StreakMilestoneModal";
 import { VocabularyEmptyState } from "../../../components/course/vocabulary/VocabularyEmptyState";
 import { VocabularyFinishView } from "../../../components/course/vocabulary/VocabularyFinishView";
+import { SwipeStudyTimer } from "../../../components/course/vocabulary/SwipeStudyTimer";
 import { VocabularySwipeDeck } from "../../../components/course/vocabulary/VocabularySwipeDeck";
 
 const { width, height } = Dimensions.get("window");
@@ -96,6 +97,7 @@ export default function VocabularyScreen() {
 
   // Tracks whether the splash screen is still mounted (unmounted after fade-out)
   const [splashVisible, setSplashVisible] = useState(true);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   const dayNumber = parseInt(day || "1", 10);
 
@@ -238,6 +240,16 @@ export default function VocabularyScreen() {
       void fetchCourseProgress(user.uid, courseId as string);
     }
   }, [user, courseId, fetchCourseProgress]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsedSeconds((previous) => previous + 1);
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
   // ============================================================================
   // Section 4: Event Handlers (Swipe & Progress)
@@ -392,42 +404,39 @@ export default function VocabularyScreen() {
         }}
       />
       <View style={styles.swipeContainer}>
-        {cards.length > 0 ? (
-          <View
-            style={{
-              flex: 1,
-              width: "100%",
-              // COLLOCATION handles its finish page internally (PagerView).
-              // All other courses hide the deck on finish.
-              display:
-                isFinished && courseId !== "COLLOCATION" ? "none" : "flex",
-            }}
-          >
-            {/* The core deck component that handles either swiping or paging */}
-            <VocabularySwipeDeck
-              cards={cards}
-              courseId={courseId as CourseType}
-              isDark={isDark}
-              dayNumber={dayNumber}
-              savedWordIds={savedWordIds}
-              onSavedWordChange={handleSavedWordChange}
-              onSwipeRight={onSwipeRight}
-              onSwipeLeft={onSwipeLeft}
-              onIndexChange={handlePageChange}
-              onFinish={handleRunOutOfCards}
-              renderFinishView={renderFinishedView}
-              isStudyCompleted={
-                courseProgress[courseId as string]?.[dayNumber]?.completed ||
-                false
-              }
-            />
-          </View>
-        ) : (
-          <VocabularyEmptyState isDark={isDark} />
-        )}
+        <SwipeStudyTimer
+          elapsedSeconds={elapsedSeconds}
+          label={t("swipe.timer.label")}
+          isDark={isDark}
+        />
 
-        {/* Show finish view for all courses except COLLOCATION (handles it internally). */}
-        {isFinished && courseId !== "COLLOCATION" && renderFinishedView()}
+        <View style={styles.deckContainer}>
+          {cards.length > 0 ? (
+            isFinished && courseId !== "COLLOCATION" ? (
+              renderFinishedView()
+            ) : (
+              <VocabularySwipeDeck
+                cards={cards}
+                courseId={courseId as CourseType}
+                isDark={isDark}
+                dayNumber={dayNumber}
+                savedWordIds={savedWordIds}
+                onSavedWordChange={handleSavedWordChange}
+                onSwipeRight={onSwipeRight}
+                onSwipeLeft={onSwipeLeft}
+                onIndexChange={handlePageChange}
+                onFinish={handleRunOutOfCards}
+                renderFinishView={renderFinishedView}
+                isStudyCompleted={
+                  courseProgress[courseId as string]?.[dayNumber]?.completed ||
+                  false
+                }
+              />
+            )
+          ) : (
+            <VocabularyEmptyState isDark={isDark} />
+          )}
+        </View>
       </View>
       {splashVisible && (
         <AppSplashScreen
@@ -454,6 +463,10 @@ const styles = StyleSheet.create({
     height: height * 0.76,
     width: width,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
+  },
+  deckContainer: {
+    flex: 1,
+    width: "100%",
   },
 });

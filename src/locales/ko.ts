@@ -268,6 +268,9 @@ const ko = {
       added: "추가됨",
       addToWordBank: "단어장에 추가",
     },
+    timer: {
+      label: "학습 시간",
+    },
     jlpt: {
       labels: {
         meaningEnglish: "영어 뜻",

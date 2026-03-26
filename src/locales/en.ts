@@ -265,6 +265,9 @@ const en = {
       added: "Added",
       addToWordBank: "Add to Word Bank",
     },
+    timer: {
+      label: "Study Time",
+    },
     jlpt: {
       labels: {
         meaningEnglish: "English Meaning",
