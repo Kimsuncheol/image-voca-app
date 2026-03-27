@@ -230,4 +230,96 @@ describe("JlptVocabularyCard", () => {
     expect(getByText("[aida]")).toBeTruthy();
     expect(queryByTestId("jlpt-card-pronunciation-roman")).toBeNull();
   });
+
+  it("hides kana-only text inside parentheses by default", () => {
+    const { getByText, queryByText } = render(
+      <JlptVocabularyCard
+        item={buildCard({
+          example: "ご飯(ごはん)を食べます",
+        })}
+      />,
+    );
+
+    expect(getByText("ご飯を食べます")).toBeTruthy();
+    expect(queryByText("ご飯(ごはん)を食べます")).toBeNull();
+  });
+
+  it("shows kana-only text inside parentheses when the feature is active", () => {
+    const { getByText, queryByText } = render(
+      <JlptVocabularyCard
+        item={buildCard({
+          example: "ご飯(ごはん)を食べます",
+        })}
+        showKana={true}
+      />,
+    );
+
+    expect(getByText("ご飯(ごはん)を食べます")).toBeTruthy();
+    expect(queryByText("ご飯を食べます")).toBeNull();
+  });
+
+  it("hides inline kana annotations like 赤(あか)ちゃんが泣(な)く。 by default", () => {
+    const { getByText, queryByText } = render(
+      <JlptVocabularyCard
+        item={buildCard({
+          example: "赤(あか)ちゃんが泣(な)く。",
+        })}
+      />,
+    );
+
+    expect(getByText("赤ちゃんが泣く。")).toBeTruthy();
+    expect(queryByText("赤(あか)ちゃんが泣(な)く。")).toBeNull();
+  });
+
+  it("shows inline kana annotations like 赤(あか)ちゃんが泣(な)く。 when active", () => {
+    const { getByText, queryByText } = render(
+      <JlptVocabularyCard
+        item={buildCard({
+          example: "赤(あか)ちゃんが泣(な)く。",
+        })}
+        showKana={true}
+      />,
+    );
+
+    expect(getByText("赤(あか)ちゃんが泣(な)く。")).toBeTruthy();
+    expect(queryByText("赤ちゃんが泣く。")).toBeNull();
+  });
+
+  it("keeps non-parenthetical examples unchanged in both kana modes", () => {
+    const baseExample = "駅で待ちます";
+    const hiddenKana = render(
+      <JlptVocabularyCard
+        item={buildCard({
+          example: baseExample,
+        })}
+        showKana={false}
+      />,
+    );
+    const shownKana = render(
+      <JlptVocabularyCard
+        item={buildCard({
+          example: baseExample,
+        })}
+        showKana={true}
+      />,
+    );
+
+    expect(hiddenKana.getByText(baseExample)).toBeTruthy();
+    expect(shownKana.getByText(baseExample)).toBeTruthy();
+  });
+
+  it("renders the がな footer control below the scrollable card content", () => {
+    const { getByTestId, getByText, toJSON } = render(
+      <JlptVocabularyCard item={buildCard()} />,
+    );
+
+    expect(getByTestId("jlpt-card-kana-toggle-bar")).toBeTruthy();
+    expect(getByTestId("jlpt-card-kana-toggle-switch")).toBeTruthy();
+    expect(getByText("がな")).toBeTruthy();
+
+    const renderedTree = JSON.stringify(toJSON());
+    expect(renderedTree.indexOf("jlpt-card-info-scroll")).toBeLessThan(
+      renderedTree.indexOf("jlpt-card-kana-toggle-bar"),
+    );
+  });
 });

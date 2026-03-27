@@ -15,6 +15,25 @@ interface JlptSwipeDeckProps {
 }
 
 export const JlptSwipeDeck: React.FC<JlptSwipeDeckProps> = (props) => {
+  const [showKanaByCardId, setShowKanaByCardId] = React.useState<
+    Record<string, boolean>
+  >({});
+  const cardIdsKey = React.useMemo(
+    () => props.cards.map((card) => card.id).join("|"),
+    [props.cards],
+  );
+
+  React.useEffect(() => {
+    setShowKanaByCardId({});
+  }, [cardIdsKey]);
+
+  const handleToggleKana = React.useCallback((cardId: string) => {
+    setShowKanaByCardId((current) => ({
+      ...current,
+      [cardId]: !current[cardId],
+    }));
+  }, []);
+
   const renderJlptCard = React.useCallback(
     ({
       item,
@@ -32,9 +51,11 @@ export const JlptSwipeDeck: React.FC<JlptSwipeDeckProps> = (props) => {
         initialIsSaved={isSaved}
         day={dayNumber}
         onSavedWordChange={onSavedWordChange}
+        showKana={Boolean(showKanaByCardId[item.id])}
+        onToggleKana={() => handleToggleKana(item.id)}
       />
     ),
-    [],
+    [handleToggleKana, showKanaByCardId],
   );
 
   return <CarouselSwipeDeck {...props} renderCard={renderJlptCard} />;

@@ -4,6 +4,7 @@ import {
   Dimensions,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -23,11 +24,20 @@ const WORD_TTS_OPTIONS = {
   rate: 0.9,
 } as const;
 
+// Matches hiragana/katakana inside full-width or half-width parentheses
+const KANA_PARENS_REGEX = /[（(][\u3040-\u30FF\u30FC]+[）)]/g;
+
+function stripKanaParens(text: string): string {
+  return text.replace(KANA_PARENS_REGEX, "").replace(/\s{2,}/g, " ").trim();
+}
+
 interface JlptVocabularyCardProps {
   item: VocabularyCard;
   initialIsSaved?: boolean;
   day?: number;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
+  showKana?: boolean;
+  onToggleKana?: () => void;
 }
 
 interface LabeledMeaningRowProps {
@@ -41,6 +51,7 @@ interface ExampleBlockProps {
   exampleRoman?: string;
   translation?: string;
   isDark: boolean;
+  showKana: boolean;
 }
 
 const toDisplayValue = (value?: string) => {
@@ -88,9 +99,14 @@ function ExampleBlock({
   exampleRoman,
   translation,
   isDark,
+  showKana,
 }: ExampleBlockProps) {
   const { speak } = useSpeech();
-  const examples = React.useMemo(() => splitLines(example), [example]);
+  const processedExample = React.useMemo(
+    () => (showKana || !example ? example : stripKanaParens(example)),
+    [example, showKana],
+  );
+  const examples = React.useMemo(() => splitLines(processedExample), [processedExample]);
   const exampleRomans = React.useMemo(
     () => splitLines(exampleRoman),
     [exampleRoman],
@@ -194,6 +210,8 @@ export function JlptVocabularyCard({
   initialIsSaved = false,
   day,
   onSavedWordChange,
+  showKana = false,
+  onToggleKana = () => {},
 }: JlptVocabularyCardProps) {
   const { isDark } = useTheme();
   const { i18n } = useTranslation();
@@ -244,6 +262,7 @@ export function JlptVocabularyCard({
       >
         <ScrollView
           testID="jlpt-card-info-scroll"
+          style={styles.cardInfoScroll}
           showsVerticalScrollIndicator={true}
           nestedScrollEnabled={true}
           contentContainerStyle={styles.cardInfoContent}
@@ -296,8 +315,27 @@ export function JlptVocabularyCard({
             exampleRoman={resolved.exampleRoman}
             translation={resolved.translation}
             isDark={isDark}
+            showKana={showKana}
           />
         </ScrollView>
+
+        <View testID="jlpt-card-kana-toggle-bar" style={styles.kanaToggleBar}>
+          <Text
+            style={[
+              styles.kanaToggleText,
+              { color: isDark ? "#8e8e93" : "#666" },
+            ]}
+          >
+            がな
+          </Text>
+          <Switch
+            testID="jlpt-card-kana-toggle-switch"
+            value={showKana}
+            onValueChange={onToggleKana}
+            trackColor={{ false: isDark ? "#3a3a3c" : "#d1d1d6", true: "#007AFF" }}
+            thumbColor="#fff"
+          />
+        </View>
       </View>
     </View>
   );
@@ -321,10 +359,29 @@ const styles = StyleSheet.create({
   cardInfo: {
     height: "65%",
     backgroundColor: "#fff",
+    flexDirection: "column",
+  },
+  cardInfoScroll: {
+    flex: 1,
   },
   cardInfoContent: {
     padding: 24,
     paddingBottom: 32,
+  },
+  kanaToggleBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "rgba(127,127,127,0.28)",
+    backgroundColor: "rgba(127,127,127,0.05)",
+  },
+  kanaToggleText: {
+    fontSize: 14,
+    fontWeight: "600",
+    letterSpacing: 0.5,
   },
   titleContainer: {
     flexDirection: "row",
