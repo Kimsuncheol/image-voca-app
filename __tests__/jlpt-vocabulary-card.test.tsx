@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react-native";
+import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
 import { JlptVocabularyCard } from "../components/course/vocabulary/JlptVocabularyCard";
 import { VocabularyCard } from "../src/types/vocabulary";
@@ -314,12 +314,49 @@ describe("JlptVocabularyCard", () => {
     );
 
     expect(getByTestId("jlpt-card-kana-toggle-bar")).toBeTruthy();
-    expect(getByTestId("jlpt-card-kana-toggle-switch")).toBeTruthy();
+    expect(getByTestId("jlpt-card-kana-toggle-pill")).toBeTruthy();
     expect(getByText("がな")).toBeTruthy();
 
     const renderedTree = JSON.stringify(toJSON());
     expect(renderedTree.indexOf("jlpt-card-info-scroll")).toBeLessThan(
       renderedTree.indexOf("jlpt-card-kana-toggle-bar"),
     );
+  });
+
+  it("does not render the legacy Switch control for the kana toggle", () => {
+    const { queryByTestId } = render(<JlptVocabularyCard item={buildCard()} />);
+
+    expect(queryByTestId("jlpt-card-kana-toggle-switch")).toBeNull();
+  });
+
+  it("calls onToggleKana when the がな pill is pressed", () => {
+    const onToggleKana = jest.fn();
+    const { getByTestId } = render(
+      <JlptVocabularyCard item={buildCard()} onToggleKana={onToggleKana} />,
+    );
+
+    fireEvent.press(getByTestId("jlpt-card-kana-toggle-pill"));
+
+    expect(onToggleKana).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders the がな pill with a green background when active", () => {
+    const { getByTestId } = render(
+      <JlptVocabularyCard item={buildCard()} showKana={true} />,
+    );
+
+    expect(getByTestId("jlpt-card-kana-toggle-pill")).toHaveStyle({
+      backgroundColor: "#2EA043",
+    });
+  });
+
+  it("renders the がな pill with a transparent background when inactive", () => {
+    const { getByTestId } = render(
+      <JlptVocabularyCard item={buildCard()} showKana={false} />,
+    );
+
+    expect(getByTestId("jlpt-card-kana-toggle-pill")).toHaveStyle({
+      backgroundColor: "transparent",
+    });
   });
 });

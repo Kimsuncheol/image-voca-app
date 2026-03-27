@@ -3,7 +3,8 @@ import React from "react";
 import { JlptSwipeDeck } from "../components/course/vocabulary/JlptSwipeDeck";
 import { VocabularyCard } from "../src/types/vocabulary";
 
-let mockActiveIndex = 0;
+let mockVisibleIndices = [0];
+const mockJlptCardRenders = new Map<string, number>();
 
 jest.mock("../components/course/vocabulary/CarouselSwipeDeck", () => {
   const React = require("react");
@@ -30,11 +31,20 @@ jest.mock("../components/course/vocabulary/CarouselSwipeDeck", () => {
       }) => React.ReactNode;
     }) => (
       <View testID="mock-carousel-swipe-deck">
-        {renderCard?.({
-          item: cards[mockActiveIndex],
-          isSaved: savedWordIds.has(cards[mockActiveIndex].id),
-          dayNumber,
-          onSavedWordChange,
+        {mockVisibleIndices.map((index) => {
+          const item = cards[index];
+          if (!item) return null;
+
+          return (
+            <React.Fragment key={item.id}>
+              {renderCard?.({
+                item,
+                isSaved: savedWordIds.has(item.id),
+                dayNumber,
+                onSavedWordChange,
+              })}
+            </React.Fragment>
+          );
         })}
       </View>
     ),
@@ -55,16 +65,26 @@ jest.mock("../components/course/vocabulary/JlptVocabularyCard", () => {
       item: VocabularyCard;
       showKana?: boolean;
       onToggleKana?: () => void;
-    }) => (
-      <View>
-        <Text testID="mock-jlpt-card-state">
+    }) => {
+      mockJlptCardRenders.set(
+        item.id,
+        (mockJlptCardRenders.get(item.id) ?? 0) + 1,
+      );
+
+      return (
+        <View>
+          <Text testID={`mock-jlpt-card-state-${item.id}`}>
           {`${item.id}:${showKana ? "on" : "off"}`}
-        </Text>
-        <Pressable testID="mock-jlpt-card-toggle" onPress={onToggleKana}>
-          <Text>toggle kana</Text>
-        </Pressable>
-      </View>
-    ),
+          </Text>
+          <Pressable
+            testID={`mock-jlpt-card-toggle-${item.id}`}
+            onPress={onToggleKana}
+          >
+            <Text>toggle kana</Text>
+          </Pressable>
+        </View>
+      );
+    },
   };
 });
 
@@ -91,7 +111,8 @@ function buildCards(): VocabularyCard[] {
 
 describe("JlptSwipeDeck", () => {
   beforeEach(() => {
-    mockActiveIndex = 0;
+    mockVisibleIndices = [0];
+    mockJlptCardRenders.clear();
     jest.clearAllMocks();
   });
 
@@ -109,33 +130,33 @@ describe("JlptSwipeDeck", () => {
 
     const { getByTestId, rerender } = render(<JlptSwipeDeck {...props} />);
 
-    expect(getByTestId("mock-jlpt-card-state").props.children).toBe(
+    expect(getByTestId("mock-jlpt-card-state-N5_Day1_1").props.children).toBe(
       "N5_Day1_1:off",
     );
 
-    fireEvent.press(getByTestId("mock-jlpt-card-toggle"));
+    fireEvent.press(getByTestId("mock-jlpt-card-toggle-N5_Day1_1"));
 
-    expect(getByTestId("mock-jlpt-card-state").props.children).toBe(
+    expect(getByTestId("mock-jlpt-card-state-N5_Day1_1").props.children).toBe(
       "N5_Day1_1:on",
     );
 
-    mockActiveIndex = 1;
+    mockVisibleIndices = [1];
     rerender(<JlptSwipeDeck {...props} />);
 
-    expect(getByTestId("mock-jlpt-card-state").props.children).toBe(
+    expect(getByTestId("mock-jlpt-card-state-N5_Day1_2").props.children).toBe(
       "N5_Day1_2:off",
     );
 
-    fireEvent.press(getByTestId("mock-jlpt-card-toggle"));
+    fireEvent.press(getByTestId("mock-jlpt-card-toggle-N5_Day1_2"));
 
-    expect(getByTestId("mock-jlpt-card-state").props.children).toBe(
+    expect(getByTestId("mock-jlpt-card-state-N5_Day1_2").props.children).toBe(
       "N5_Day1_2:on",
     );
 
-    mockActiveIndex = 0;
+    mockVisibleIndices = [0];
     rerender(<JlptSwipeDeck {...props} />);
 
-    expect(getByTestId("mock-jlpt-card-state").props.children).toBe(
+    expect(getByTestId("mock-jlpt-card-state-N5_Day1_1").props.children).toBe(
       "N5_Day1_1:on",
     );
   });
@@ -154,9 +175,9 @@ describe("JlptSwipeDeck", () => {
 
     const { getByTestId, rerender } = render(<JlptSwipeDeck {...props} />);
 
-    fireEvent.press(getByTestId("mock-jlpt-card-toggle"));
+    fireEvent.press(getByTestId("mock-jlpt-card-toggle-N5_Day1_1"));
 
-    expect(getByTestId("mock-jlpt-card-state").props.children).toBe(
+    expect(getByTestId("mock-jlpt-card-state-N5_Day1_1").props.children).toBe(
       "N5_Day1_1:on",
     );
 
@@ -184,8 +205,50 @@ describe("JlptSwipeDeck", () => {
       />,
     );
 
-    expect(getByTestId("mock-jlpt-card-state").props.children).toBe(
+    expect(getByTestId("mock-jlpt-card-state-N5_Day2_1").props.children).toBe(
       "N5_Day2_1:off",
+    );
+  });
+
+  it("does not re-render sibling visible cards when toggling kana on the current card", () => {
+    mockVisibleIndices = [0, 1];
+
+    const props = {
+      cards: buildCards(),
+      dayNumber: 1,
+      savedWordIds: new Set<string>(),
+      onSavedWordChange: jest.fn(),
+      onSwipeRight: jest.fn(),
+      onSwipeLeft: jest.fn(),
+      onIndexChange: jest.fn(),
+      onFinish: jest.fn(),
+    };
+
+    const { getByTestId } = render(<JlptSwipeDeck {...props} />);
+
+    expect(getByTestId("mock-jlpt-card-state-N5_Day1_1").props.children).toBe(
+      "N5_Day1_1:off",
+    );
+    expect(getByTestId("mock-jlpt-card-state-N5_Day1_2").props.children).toBe(
+      "N5_Day1_2:off",
+    );
+
+    const initialFirstCardRenderCount = mockJlptCardRenders.get("N5_Day1_1") ?? 0;
+    const initialSecondCardRenderCount = mockJlptCardRenders.get("N5_Day1_2") ?? 0;
+
+    fireEvent.press(getByTestId("mock-jlpt-card-toggle-N5_Day1_1"));
+
+    expect(getByTestId("mock-jlpt-card-state-N5_Day1_1").props.children).toBe(
+      "N5_Day1_1:on",
+    );
+    expect(getByTestId("mock-jlpt-card-state-N5_Day1_2").props.children).toBe(
+      "N5_Day1_2:off",
+    );
+    expect(mockJlptCardRenders.get("N5_Day1_1")).toBeGreaterThan(
+      initialFirstCardRenderCount,
+    );
+    expect(mockJlptCardRenders.get("N5_Day1_2")).toBe(
+      initialSecondCardRenderCount,
     );
   });
 });

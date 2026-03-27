@@ -2,9 +2,9 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import {
   Dimensions,
+  Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -94,7 +94,7 @@ function LabeledMeaningRow({
   );
 }
 
-function ExampleBlock({
+const ExampleBlock = React.memo(function ExampleBlock({
   example,
   exampleRoman,
   translation,
@@ -102,10 +102,11 @@ function ExampleBlock({
   showKana,
 }: ExampleBlockProps) {
   const { speak } = useSpeech();
-  const processedExample = React.useMemo(
-    () => (showKana || !example ? example : stripKanaParens(example)),
-    [example, showKana],
+  const hiddenExample = React.useMemo(
+    () => (example ? stripKanaParens(example) : example),
+    [example],
   );
+  const processedExample = showKana ? example : hiddenExample;
   const examples = React.useMemo(() => splitLines(processedExample), [processedExample]);
   const exampleRomans = React.useMemo(
     () => splitLines(exampleRoman),
@@ -203,7 +204,7 @@ function ExampleBlock({
       })}
     </View>
   );
-}
+});
 
 export function JlptVocabularyCard({
   item,
@@ -320,21 +321,30 @@ export function JlptVocabularyCard({
         </ScrollView>
 
         <View testID="jlpt-card-kana-toggle-bar" style={styles.kanaToggleBar}>
-          <Text
+          <Pressable
+            testID="jlpt-card-kana-toggle-pill"
+            onPress={onToggleKana}
             style={[
-              styles.kanaToggleText,
-              { color: isDark ? "#8e8e93" : "#666" },
+              styles.kanaTogglePill,
+              showKana && styles.kanaTogglePillActive,
+              {
+                borderColor: showKana
+                  ? "rgba(46, 160, 67, 0.95)"
+                  : isDark
+                    ? "rgba(255,255,255,0.22)"
+                    : "rgba(17,24,28,0.16)",
+              },
             ]}
           >
-            がな
-          </Text>
-          <Switch
-            testID="jlpt-card-kana-toggle-switch"
-            value={showKana}
-            onValueChange={onToggleKana}
-            trackColor={{ false: isDark ? "#3a3a3c" : "#d1d1d6", true: "#007AFF" }}
-            thumbColor="#fff"
-          />
+            <Text
+              style={[
+                styles.kanaToggleText,
+                { color: showKana ? "#FFFFFF" : isDark ? "#8e8e93" : "#666" },
+              ]}
+            >
+              がな
+            </Text>
+          </Pressable>
         </View>
       </View>
     </View>
@@ -371,12 +381,21 @@ const styles = StyleSheet.create({
   kanaToggleBar: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "rgba(127,127,127,0.28)",
-    backgroundColor: "rgba(127,127,127,0.05)",
+  },
+  kanaTogglePill: {
+    minHeight: 34,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+  },
+  kanaTogglePillActive: {
+    backgroundColor: "#2EA043",
   },
   kanaToggleText: {
     fontSize: 14,
