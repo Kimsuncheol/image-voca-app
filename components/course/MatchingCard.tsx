@@ -6,7 +6,6 @@ import { ThemedText } from "../themed-text";
 interface MatchingCardProps {
   text: string;
   pronunciation?: string;
-  pronunciationRoman?: string;
   variant?: "word" | "meaning";
   isMatched: boolean;
   isSelected: boolean;
@@ -18,7 +17,6 @@ interface MatchingCardProps {
 export function MatchingCard({
   text,
   pronunciation,
-  pronunciationRoman,
   variant = "word",
   isMatched,
   isSelected,
@@ -83,17 +81,6 @@ export function MatchingCard({
                 ]}
               >
                 {pronunciation}
-              </ThemedText>
-            ) : null}
-            {pronunciationRoman ? (
-              <ThemedText
-                style={[
-                  styles.tertiaryText,
-                  isMatched && styles.matchingItemTextMatched,
-                  isSelected && { color: courseColor || "#007AFF" },
-                ]}
-              >
-                {pronunciationRoman}
               </ThemedText>
             ) : null}
           </View>
@@ -173,11 +160,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     opacity: 0.8,
     lineHeight: 18,
-  },
-  tertiaryText: {
-    textAlign: "center",
-    fontSize: 11,
-    opacity: 0.55,
-    lineHeight: 16,
   },
 });

@@ -14,7 +14,6 @@ interface SwipeCardItemExampleSentenceSectionProps {
   example: string;
   translation?: string;
   pronunciation?: string;
-  pronunciationRoman?: string;
   isDark: boolean;
 }
 
@@ -22,7 +21,6 @@ export function SwipeCardItemExampleSentenceSection({
   example,
   translation,
   pronunciation,
-  pronunciationRoman,
   isDark,
 }: SwipeCardItemExampleSentenceSectionProps) {
   const { speak } = useSpeech();
@@ -73,18 +71,6 @@ export function SwipeCardItemExampleSentenceSection({
           {`${t("notifications.labels.pronunciation", {
             defaultValue: "Pronunciation",
           })}: ${pronunciation}`}
-        </Text>
-      ) : null}
-      {pronunciationRoman ? (
-        <Text
-          style={[
-            styles.metaText,
-            { color: isDark ? "#b0b0b0" : "#5c5c5c" },
-          ]}
-        >
-          {`${t("notifications.labels.pronunciationRoman", {
-            defaultValue: "Roman",
-          })}: ${pronunciationRoman}`}
         </Text>
       ) : null}
       <ScrollView

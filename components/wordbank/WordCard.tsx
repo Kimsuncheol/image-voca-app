@@ -112,7 +112,6 @@ export function WordCard({
             ? resolved.localizedPronunciation
             : undefined
         }
-        pronunciationRoman={resolved.pronunciationRoman}
         speakLanguage={speakLanguage}
       />
     </View>

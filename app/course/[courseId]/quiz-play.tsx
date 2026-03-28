@@ -136,7 +136,7 @@ export default function QuizPlayScreen() {
             word: resolved.word,
             meaning: resolved.meaning,
             pronunciation: resolved.pronunciation,
-            pronunciationRoman: resolved.pronunciationRoman,
+
             localizedPronunciation: resolved.localizedPronunciation,
             example: resolved.example,
             translation: resolved.translation,

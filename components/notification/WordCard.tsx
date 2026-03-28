@@ -15,7 +15,6 @@ interface WordCardProps {
     | "word"
     | "meaning"
     | "pronunciation"
-    | "pronunciationRoman"
     | "example"
     | "translation"
     | "imageUrl"
@@ -162,13 +161,6 @@ export default function WordCard({
               ? resolved.localizedPronunciation
               : undefined
           }
-          isDark={isDark}
-        />
-        <SectionRow
-          label={t("notifications.labels.pronunciationRoman", {
-            defaultValue: "Roman",
-          })}
-          value={resolved.pronunciationRoman}
           isDark={isDark}
         />
       </Card.Content>

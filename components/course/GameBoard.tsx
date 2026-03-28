@@ -14,7 +14,7 @@ interface QuizQuestion {
   word: string;
   meaning: string;
   pronunciation?: string;
-  pronunciationRoman?: string;
+
   options?: string[] | QuizWordOption[];
   correctAnswer: string;
   clozeSentence?: string;

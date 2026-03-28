@@ -48,7 +48,6 @@ interface LabeledMeaningRowProps {
 
 interface ExampleBlockProps {
   example?: string;
-  exampleRoman?: string;
   translation?: string;
   isDark: boolean;
   showKana: boolean;
@@ -96,7 +95,6 @@ function LabeledMeaningRow({
 
 const ExampleBlock = React.memo(function ExampleBlock({
   example,
-  exampleRoman,
   translation,
   isDark,
   showKana,
@@ -108,15 +106,10 @@ const ExampleBlock = React.memo(function ExampleBlock({
   );
   const processedExample = showKana ? example : hiddenExample;
   const examples = React.useMemo(() => splitLines(processedExample), [processedExample]);
-  const exampleRomans = React.useMemo(
-    () => splitLines(exampleRoman),
-    [exampleRoman],
-  );
   const translations = React.useMemo(() => splitLines(translation), [translation]);
 
   const rowCount = Math.max(
     examples.length,
-    exampleRomans.length,
     translations.length,
   );
   const rowIndices = React.useMemo(
@@ -147,43 +140,26 @@ const ExampleBlock = React.memo(function ExampleBlock({
     <View style={styles.exampleSection}>
       {rowIndices.map((index) => {
         const exampleText = examples[index];
-        const exampleRomanText = exampleRomans[index];
         const translationText = translations[index];
 
         return (
           <View key={index} style={styles.exampleGroup}>
             {exampleText ? (
-              <>
-                <TouchableOpacity
-                  onPress={() => handleSpeak(exampleText)}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    style={[
-                      styles.cardExample,
-                      { color: isDark ? "#b0b0b0" : "#444" },
-                      { borderLeftColor: isDark ? "#0a84ff" : "#007AFF" },
-                    ]}
-                    numberOfLines={2}
-                  >
-                    {exampleText}
-                  </Text>
-                </TouchableOpacity>
-              </>
-            ) : null}
-
-            {exampleRomanText ? (
-              <Text
-                testID={index === 0 ? "jlpt-card-example-roman" : undefined}
-                style={[
-                  styles.cardExampleRoman,
-                  { color: isDark ? "#8d97a6" : "#6f7785" },
-                  { borderLeftColor: isDark ? "#5f6b7a" : "#aab3c2" },
-                ]}
-                numberOfLines={2}
+              <TouchableOpacity
+                onPress={() => handleSpeak(exampleText)}
+                activeOpacity={0.7}
               >
-                {exampleRomanText}
-              </Text>
+                <Text
+                  style={[
+                    styles.cardExample,
+                    { color: isDark ? "#b0b0b0" : "#444" },
+                    { borderLeftColor: isDark ? "#0a84ff" : "#007AFF" },
+                  ]}
+                  numberOfLines={2}
+                >
+                  {exampleText}
+                </Text>
+              </TouchableOpacity>
             ) : null}
 
             {translationText ? (
@@ -222,19 +198,6 @@ export function JlptVocabularyCard({
     [i18n.language, item],
   );
   const pronunciation = toDisplayValue(resolved.sharedPronunciation);
-  const pronunciationRoman = toDisplayValue(resolved.pronunciationRoman);
-  const combinedPronunciation = React.useMemo(() => {
-    if (pronunciation && pronunciationRoman) {
-      return `${pronunciation} [${pronunciationRoman}]`;
-    }
-    if (pronunciation) {
-      return pronunciation;
-    }
-    if (pronunciationRoman) {
-      return `[${pronunciationRoman}]`;
-    }
-    return undefined;
-  }, [pronunciation, pronunciationRoman]);
 
   const handlePressWord = React.useCallback(() => {
     void speakText(item.word, WORD_TTS_OPTIONS);
@@ -294,12 +257,12 @@ export function JlptVocabularyCard({
             </View>
           </View>
 
-          {combinedPronunciation ? (
+          {pronunciation ? (
             <Text
               testID="jlpt-card-pronunciation"
               style={[styles.cardSubtitle, { color: isDark ? "#999" : "#666" }]}
             >
-              {combinedPronunciation}
+              {pronunciation}
             </Text>
           ) : null}
 
@@ -313,7 +276,6 @@ export function JlptVocabularyCard({
 
           <ExampleBlock
             example={resolved.example}
-            exampleRoman={resolved.exampleRoman}
             translation={resolved.translation}
             isDark={isDark}
             showKana={showKana}
@@ -470,14 +432,6 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: "#007AFF",
     paddingLeft: 12,
-    lineHeight: 20,
-  },
-  cardExampleRoman: {
-    fontSize: 14,
-    fontStyle: "italic",
-    borderLeftWidth: 4,
-    paddingLeft: 12,
-    marginTop: 4,
     lineHeight: 20,
   },
   cardTranslation: {

@@ -49,7 +49,7 @@ export function SwipeCardItem({
             ? resolved.localizedPronunciation
             : undefined
         }
-        pronunciationRoman={resolved.pronunciationRoman}
+
         word={resolved.word}
         meaning={resolved.meaning}
         example={resolved.example}

@@ -25,12 +25,7 @@ export default function WordBankJlptLevelsScreen() {
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
       edges={["left", "right", "bottom"]}
     >
-      <Stack.Screen
-        options={{
-          title: t("courses.jlpt.levels.title"),
-          headerBackTitle: t("common.back"),
-        }}
-      />
+      <Stack.Screen options={{ headerShown: false }} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

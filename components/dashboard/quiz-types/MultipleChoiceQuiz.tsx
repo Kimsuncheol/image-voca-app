@@ -17,7 +17,6 @@ interface QuizItem {
   word: string;
   meaning: string;
   pronunciation?: string;
-  pronunciationRoman?: string;
 }
 
 interface MultipleChoiceQuizProps {
@@ -58,14 +57,6 @@ export function MultipleChoiceQuiz({
           quizItem.pronunciation && (
             <ThemedText style={[styles.questionLabel]}>
               {quizItem.pronunciation}
-            </ThemedText>
-          )
-        }
-        {/* pronunciationRoman={quizItem.pronunciationRoman} */}
-        {
-          quizItem.pronunciationRoman && (
-            <ThemedText style={[styles.questionLabel]}>
-              {quizItem.pronunciationRoman}
             </ThemedText>
           )
         }

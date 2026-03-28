@@ -11,7 +11,6 @@ interface QuizQuestion {
   word: string;
   meaning: string;
   pronunciation?: string;
-  pronunciationRoman?: string;
 }
 
 interface MatchingGameProps {
@@ -85,9 +84,6 @@ export function MatchingGame({
                   text={question.word}
                   pronunciation={
                     showPronunciationDetails ? question.pronunciation : undefined
-                  }
-                  pronunciationRoman={
-                    showPronunciationDetails ? question.pronunciationRoman : undefined
                   }
                   variant="word"
                   isMatched={Boolean(matchedPairs[question.word])}

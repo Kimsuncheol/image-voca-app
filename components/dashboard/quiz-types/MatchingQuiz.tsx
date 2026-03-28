@@ -103,7 +103,7 @@ export function MatchingQuiz({
   return (
     <View style={styles.container}>
       {pairs.map((pair, index) => {
-        const { word, pronunciation, pronunciationRoman } = pair;
+        const { word, pronunciation } = pair;
         const { meaning } = shuffledMeanings[index];
         return (
           <View key={index} style={styles.row}>
@@ -118,11 +118,6 @@ export function MatchingQuiz({
               {pronunciation ? (
                 <ThemedText style={styles.pronunciationText}>
                   {pronunciation}
-                </ThemedText>
-              ) : null}
-              {pronunciationRoman ? (
-                <ThemedText style={styles.romanText}>
-                  {pronunciationRoman}
                 </ThemedText>
               ) : null}
             </TouchableOpacity>
@@ -175,12 +170,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     opacity: 0.8,
     marginTop: 4,
-    textAlign: "center",
-  },
-  romanText: {
-    fontSize: 11,
-    opacity: 0.55,
-    marginTop: 2,
     textAlign: "center",
   },
   meaningText: {

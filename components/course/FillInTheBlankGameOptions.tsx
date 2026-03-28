@@ -69,11 +69,6 @@ export function FillInTheBlankGameOptions({
                 {normalizedOption.pronunciation}
               </ThemedText>
             ) : null}
-            {showPronunciationDetails && normalizedOption.pronunciationRoman ? (
-              <ThemedText style={styles.pronunciationRomanText}>
-                {normalizedOption.pronunciationRoman}
-              </ThemedText>
-            ) : null}
           </TouchableOpacity>
         );
       })}
@@ -105,11 +100,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 4,
     opacity: 0.8,
-  },
-  pronunciationRomanText: {
-    fontSize: 11,
-    textAlign: "center",
-    marginTop: 2,
-    opacity: 0.55,
   },
 });

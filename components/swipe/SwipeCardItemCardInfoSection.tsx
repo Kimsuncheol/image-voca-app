@@ -8,7 +8,6 @@ interface CardInfoSectionProps {
   word: string;
   pronunciation?: string;
   localizedPronunciation?: string;
-  pronunciationRoman?: string;
   meaning: string;
   example: string;
   translation?: string;
@@ -23,7 +22,6 @@ export function SwipeCardItemCardInfoSection({
   word,
   pronunciation,
   localizedPronunciation,
-  pronunciationRoman,
   meaning,
   example,
   translation,
@@ -45,7 +43,7 @@ export function SwipeCardItemCardInfoSection({
         word={word}
         pronunciation={pronunciation}
         localizedPronunciation={localizedPronunciation}
-        pronunciationRoman={pronunciationRoman}
+
         meaning={meaning}
         example={example}
         translation={translation}

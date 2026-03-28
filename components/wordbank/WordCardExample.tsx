@@ -8,7 +8,6 @@ interface WordCardExampleProps {
   example: string;
   translation?: string;
   pronunciation?: string;
-  pronunciationRoman?: string;
   speakLanguage?: string;
 }
 
@@ -20,7 +19,6 @@ export function WordCardExample({
   example,
   translation,
   pronunciation,
-  pronunciationRoman,
   speakLanguage = "en-US",
 }: WordCardExampleProps) {
   const { speak } = useSpeech();
@@ -54,13 +52,6 @@ export function WordCardExample({
           {`${t("notifications.labels.pronunciation", {
             defaultValue: "Pronunciation",
           })}: ${pronunciation}`}
-        </ThemedText>
-      ) : null}
-      {pronunciationRoman ? (
-        <ThemedText style={styles.metaText}>
-          {`${t("notifications.labels.pronunciationRoman", {
-            defaultValue: "Roman",
-          })}: ${pronunciationRoman}`}
         </ThemedText>
       ) : null}
       {examples.map((exampleText, index) => (
