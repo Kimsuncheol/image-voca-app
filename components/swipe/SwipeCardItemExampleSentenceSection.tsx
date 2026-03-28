@@ -10,6 +10,12 @@ import {
 } from "react-native";
 import { useSpeech } from "../../src/hooks/useSpeech";
 
+const KANA_PARENS_REGEX = /[（(][\u3040-\u30FF\u30FC]+[）)]/g;
+
+function stripKanaParens(text: string): string {
+  return text.replace(KANA_PARENS_REGEX, "").replace(/\s{2,}/g, " ").trim();
+}
+
 interface SwipeCardItemExampleSentenceSectionProps {
   example: string;
   translation?: string;
@@ -82,7 +88,7 @@ export function SwipeCardItemExampleSentenceSection({
           <View key={index} style={styles.exampleGroup}>
             {/* Example sentence */}
             <TouchableOpacity
-              onPress={() => handleSpeak(exampleText.trim())}
+              onPress={() => handleSpeak(stripKanaParens(exampleText.trim()))}
               activeOpacity={0.7}
             >
               <Text

@@ -9,8 +9,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import * as Speech from "expo-speech";
 import { useTheme } from "../../../src/context/ThemeContext";
-import { useSpeech } from "../../../src/hooks/useSpeech";
 import { VocabularyCard } from "../../../src/types/vocabulary";
 import { resolveVocabularyContent } from "../../../src/utils/localizedVocabulary";
 import { InlineMeaningWithChips } from "../../common/InlineMeaningWithChips";
@@ -18,11 +18,6 @@ import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddTo
 import { SwipeCardItemImageSection } from "../../swipe/SwipeCardItemImageSection";
 
 const { width } = Dimensions.get("window");
-
-const WORD_TTS_OPTIONS = {
-  language: "en-US",
-  rate: 0.9,
-} as const;
 
 // Matches hiragana/katakana inside full-width or half-width parentheses
 const KANA_PARENS_REGEX = /[（(][\u3040-\u30FF\u30FC]+[）)]/g;
@@ -99,7 +94,6 @@ const ExampleBlock = React.memo(function ExampleBlock({
   isDark,
   showKana,
 }: ExampleBlockProps) {
-  const { speak } = useSpeech();
   const hiddenExample = React.useMemo(
     () => (example ? stripKanaParens(example) : example),
     [example],
@@ -117,20 +111,9 @@ const ExampleBlock = React.memo(function ExampleBlock({
     [rowCount],
   );
 
-  const handleSpeak = React.useCallback(
-    async (text: string) => {
-      try {
-        await speak(text, {
-          language: "en-US",
-          pitch: 1.0,
-          rate: 0.9,
-        });
-      } catch (error) {
-        console.error("TTS error:", error);
-      }
-    },
-    [speak],
-  );
+  const handleSpeak = React.useCallback((text: string) => {
+    Speech.speak(stripKanaParens(text), { language: "ja-JP", rate: 0.85 });
+  }, []);
 
   if (rowCount === 0) {
     return null;
@@ -192,7 +175,6 @@ export function JlptVocabularyCard({
 }: JlptVocabularyCardProps) {
   const { isDark } = useTheme();
   const { i18n } = useTranslation();
-  const { speak: speakText } = useSpeech();
   const resolved = React.useMemo(
     () => resolveVocabularyContent(item, i18n.language),
     [i18n.language, item],
@@ -200,8 +182,8 @@ export function JlptVocabularyCard({
   const pronunciation = toDisplayValue(resolved.sharedPronunciation);
 
   const handlePressWord = React.useCallback(() => {
-    void speakText(item.word, WORD_TTS_OPTIONS);
-  }, [item.word, speakText]);
+    Speech.speak(item.word, { language: "ja-JP", rate: 0.85 });
+  }, [item.word]);
 
   return (
     <View
