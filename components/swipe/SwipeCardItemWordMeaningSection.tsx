@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { useSpeech } from "../../src/hooks/useSpeech";
+import * as Speech from "expo-speech";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { SwipeCardItemAddToWordBankButton } from "./SwipeCardItemAddToWordBankButton";
@@ -15,11 +15,6 @@ interface SwipeCardItemWordMeaningSectionProps {
   day?: number;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
 }
-
-const WORD_TTS_OPTIONS = {
-  language: "en-US",
-  rate: 0.9,
-} as const;
 
 const parseWordVariants = (value: string): string[] =>
   value
@@ -37,33 +32,28 @@ export function SwipeCardItemWordMeaningSection({
   day,
   onSavedWordChange,
 }: SwipeCardItemWordMeaningSectionProps) {
-  const { speak: speakText } = useSpeech();
   const normalizedPronunciation = pronunciation?.trim();
   const wordVariants = React.useMemo(() => parseWordVariants(word), [word]);
   const isMultiVariantWord = wordVariants.length > 1;
 
   const speakVariant = React.useCallback(
     (text: string) =>
-      new Promise<void>((resolve, reject) => {
-        speakText(text, {
-          ...WORD_TTS_OPTIONS,
-          onDone: resolve,
-          onError: reject,
-        }).catch(reject);
+      new Promise<void>((resolve) => {
+        Speech.speak(text, { language: "en-US", rate: 0.9, onDone: resolve });
       }),
-    [speakText],
+    [],
   );
 
   const speak = React.useCallback(async () => {
     if (!isMultiVariantWord) {
-      await speakText(wordVariants[0] ?? word, WORD_TTS_OPTIONS);
+      Speech.speak(wordVariants[0] ?? word, { language: "en-US", rate: 0.9 });
       return;
     }
 
     for (const variant of wordVariants) {
       await speakVariant(variant);
     }
-  }, [isMultiVariantWord, speakText, speakVariant, word, wordVariants]);
+  }, [isMultiVariantWord, speakVariant, word, wordVariants]);
 
   const handlePressWord = React.useCallback(() => {
     void speak();

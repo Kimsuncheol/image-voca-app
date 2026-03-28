@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSpeech } from "../../src/hooks/useSpeech";
+import * as Speech from "expo-speech";
 
 const KANA_PARENS_REGEX = /[（(][\u3040-\u30FF\u30FC]+[）)]/g;
 
@@ -29,7 +29,6 @@ export function SwipeCardItemExampleSentenceSection({
   pronunciation,
   isDark,
 }: SwipeCardItemExampleSentenceSectionProps) {
-  const { speak } = useSpeech();
   const { t } = useTranslation();
 
   // Split examples and translations by newlines
@@ -52,17 +51,8 @@ export function SwipeCardItemExampleSentenceSection({
   const displayedExamples =
     shouldCollapse && !isExpanded ? examples.slice(0, 3) : examples;
 
-  // TTS handler with recycling (stop previous speech before starting new)
-  const handleSpeak = async (text: string) => {
-    try {
-      await speak(text, {
-        language: "en-US",
-        pitch: 1.0,
-        rate: 0.9,
-      });
-    } catch (error) {
-      console.error("TTS error:", error);
-    }
+  const handleSpeak = (text: string) => {
+    Speech.speak(text, { language: "en-US", rate: 0.9 });
   };
 
   return (
