@@ -36,7 +36,7 @@ import {
   isVocabularyCacheFresh,
 } from "../src/services/vocabularyPrefetch";
 import { AppSplashScreen } from "../components/common/AppSplashScreen";
-import { NetworkStatusBanner } from "../components/common/NetworkStatusBanner";
+import { NetworkErrorOverlay } from "../components/common/NetworkErrorOverlay";
 import { useSubscriptionStore } from "../src/stores";
 import { CourseType, isCourseAvailableForLanguage } from "../src/types/vocabulary";
 
@@ -126,7 +126,7 @@ export function RootLayoutNav() {
         <NavigationThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
-          <NetworkStatusBanner />
+          <NetworkErrorOverlay />
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
