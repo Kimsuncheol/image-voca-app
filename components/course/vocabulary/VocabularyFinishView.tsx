@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -5,34 +6,36 @@ interface VocabularyFinishViewProps {
   isDark: boolean;
   onQuiz: () => void;
   onRestart: () => void;
-  // Passing translation strings or function is usually better than relying on hook inside if we want it pure,
-  // but using hook is fine for convenience.
-  t: (key: string) => string;
+  onManga: () => void;
+  t: (key: string, options?: Record<string, unknown>) => string;
 }
 
 export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
   isDark,
   onQuiz,
   onRestart,
+  onManga,
   t,
 }) => {
   return (
-    <View style={styles.finishedContainer}>
-      <Text style={[styles.finishedText, { color: isDark ? "#fff" : "#000" }]}>
+    <View style={styles.container}>
+      <Text style={[styles.checkedLabel, { color: isDark ? "#fff" : "#000" }]}>
         {t("course.checked")}
       </Text>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.button, styles.quizButton]}
-          onPress={onQuiz}
-        >
+      <View style={styles.buttonsContainer}>
+        <TouchableOpacity style={[styles.button, styles.quizButton]} onPress={onQuiz}>
+          <Ionicons name="clipboard-outline" size={22} color="#1a1a1a" />
           <Text style={styles.buttonText}>{t("course.takeQuiz")}</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.restartButton]}
-          onPress={onRestart}
-        >
+
+        <TouchableOpacity style={[styles.button, styles.restartButton]} onPress={onRestart}>
+          <Ionicons name="refresh-circle-outline" size={22} color="#1a1a1a" />
           <Text style={styles.buttonText}>{t("common.restart")}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.button, styles.mangaButton]} onPress={onManga}>
+          <Ionicons name="book-outline" size={22} color="#1a1a1a" />
+          <Text style={styles.buttonText}>{t("course.readManga")}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -40,41 +43,41 @@ export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
 };
 
 const styles = StyleSheet.create({
-  finishedContainer: {
+  container: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    gap: 24,
   },
-  finishedText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 30,
+  checkedLabel: {
+    fontSize: 40,
+    fontWeight: "700",
   },
-  buttonContainer: {
-    flexDirection: "row",
-    gap: 20,
-    marginBottom: 16,
+  buttonsContainer: {
+    width: "100%",
+    paddingHorizontal: 32,
+    gap: 10,
   },
   button: {
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 25,
-    minWidth: 120,
+    flexDirection: "row",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    justifyContent: "center",
+    paddingVertical: 13,
+    borderRadius: 24,
+    gap: 8,
   },
   quizButton: {
-    backgroundColor: "#28a745",
+    backgroundColor: "#6BCB77",
   },
   restartButton: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#5B9CDB",
+  },
+  mangaButton: {
+    backgroundColor: "#C07FD4",
   },
   buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1a1a1a",
   },
 });

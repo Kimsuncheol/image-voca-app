@@ -12,10 +12,10 @@ import { useTheme } from "../../../src/context/ThemeContext";
 import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
 import { db } from "../../../src/services/firebase";
 import {
-  fetchVocabularyCards,
-  getCachedVocabularyCards,
-  hydrateVocabularyCache,
-  isVocabularyCacheFresh,
+    fetchVocabularyCards,
+    getCachedVocabularyCards,
+    hydrateVocabularyCache,
+    isVocabularyCacheFresh,
 } from "../../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../../src/stores";
 import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
@@ -23,9 +23,9 @@ import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
 // Components
 import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
 import { StreakMilestoneModal } from "../../../components/common/StreakMilestoneModal";
+import { SwipeStudyTimer } from "../../../components/course/vocabulary/SwipeStudyTimer";
 import { VocabularyEmptyState } from "../../../components/course/vocabulary/VocabularyEmptyState";
 import { VocabularyFinishView } from "../../../components/course/vocabulary/VocabularyFinishView";
-import { SwipeStudyTimer } from "../../../components/course/vocabulary/SwipeStudyTimer";
 import { VocabularySwipeDeck } from "../../../components/course/vocabulary/VocabularySwipeDeck";
 
 const { width, height } = Dimensions.get("window");
@@ -379,6 +379,17 @@ export default function VocabularyScreen() {
     });
   };
 
+  /**
+   * Action: Read Manga
+   * Navigates to the manga reader for content related to this course and day.
+   */
+  const handleManga = () => {
+    router.push({
+      pathname: "/manga/reader",
+      params: { mangaId: courseId, chapterId: String(dayNumber) },
+    });
+  };
+
   // ============================================================================
   // Section 6: Render Helpers & Main Render
   // ============================================================================
@@ -388,6 +399,7 @@ export default function VocabularyScreen() {
       isDark={isDark}
       onQuiz={handleQuiz}
       onRestart={handleRestart}
+      onManga={handleManga}
       t={t}
     />
   );
@@ -404,11 +416,13 @@ export default function VocabularyScreen() {
         }}
       />
       <View style={styles.swipeContainer}>
-        <SwipeStudyTimer
-          elapsedSeconds={elapsedSeconds}
-          label={t("swipe.timer.label")}
-          isDark={isDark}
-        />
+        {!isFinished && (
+          <SwipeStudyTimer
+            elapsedSeconds={elapsedSeconds}
+            label={t("swipe.timer.label")}
+            isDark={isDark}
+          />
+        )}
 
         <View style={styles.deckContainer}>
           {cards.length > 0 ? (

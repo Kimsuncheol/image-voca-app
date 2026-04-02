@@ -154,6 +154,10 @@ export function RootLayoutNav() {
               name="coming-soon"
               options={{ headerBackTitle: "Back" }}
             />
+            <Stack.Screen
+              name="manga/reader"
+              options={{ presentation: "fullScreenModal", headerShown: false }}
+            />
           </Stack>
           <StatusBar style={isDark ? "light" : "dark"} />
         </NavigationThemeProvider>

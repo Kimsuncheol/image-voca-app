@@ -590,6 +590,7 @@ const en = {
     preparingVocabulary: "Preparing vocabulary...",
     dayCompleted: "Day completed!",
     takeQuiz: "Take Quiz",
+    readManga: "Read Manga",
     progress: "{{learned}}/{{total}} words",
     retake: "Retake",
     quiz: "Quiz",
