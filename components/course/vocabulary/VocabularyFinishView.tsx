@@ -4,6 +4,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface VocabularyFinishViewProps {
   isDark: boolean;
+  day: number;
   onQuiz: () => void;
   onRestart: () => void;
   onManga: () => void;
@@ -12,6 +13,7 @@ interface VocabularyFinishViewProps {
 
 export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
   isDark,
+  day,
   onQuiz,
   onRestart,
   onManga,
@@ -20,7 +22,7 @@ export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
   return (
     <View style={styles.container}>
       <Text style={[styles.checkedLabel, { color: isDark ? "#fff" : "#000" }]}>
-        {t("course.checked")}
+        {t("course.dayTitle", { day })}
       </Text>
       <View style={styles.buttonsContainer}>
         <TouchableOpacity style={[styles.button, styles.quizButton]} onPress={onQuiz}>
@@ -51,7 +53,16 @@ const styles = StyleSheet.create({
   },
   checkedLabel: {
     fontSize: 40,
-    fontWeight: "700",
+    fontWeight: "900",
+    lineHeight: 48,
+    textAlign: "center",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    color: "#1a1a1a",
+    textShadowColor: "#000",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 3.84,
+    elevation: 5,
   },
   buttonsContainer: {
     width: "100%",

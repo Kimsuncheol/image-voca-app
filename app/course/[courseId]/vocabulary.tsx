@@ -397,6 +397,7 @@ export default function VocabularyScreen() {
   const renderFinishedView = () => (
     <VocabularyFinishView
       isDark={isDark}
+      day={dayNumber}
       onQuiz={handleQuiz}
       onRestart={handleRestart}
       onManga={handleManga}
@@ -411,7 +412,7 @@ export default function VocabularyScreen() {
     >
       <Stack.Screen
         options={{
-          title: t("course.dayTitle", { day: dayNumber }),
+          title: "",
           headerBackTitle: t("common.back"),
         }}
       />
