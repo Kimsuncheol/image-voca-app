@@ -143,9 +143,20 @@ jest.mock("../components/course/vocabulary/VocabularyEmptyState", () => ({
 }));
 
 jest.mock("../components/course/vocabulary/VocabularyFinishView", () => ({
-  VocabularyFinishView: () => {
-    const { Text } = require("react-native");
-    return <Text>Finish View</Text>;
+  VocabularyFinishView: ({
+    onManga,
+  }: {
+    onManga: () => void;
+  }) => {
+    const { Text, TouchableOpacity, View } = require("react-native");
+    return (
+      <View>
+        <Text>Finish View</Text>
+        <TouchableOpacity onPress={onManga}>
+          <Text>Read Manga</Text>
+        </TouchableOpacity>
+      </View>
+    );
   },
 }));
 
@@ -242,7 +253,7 @@ describe("VocabularyScreen stopwatch", () => {
     expect(secondRender.getByTestId("swipe-study-timer-value").props.children).toBe("00:00");
   });
 
-  it("keeps the timer visible when the finish view is shown", async () => {
+  it("hides the timer when the finish view is shown", async () => {
     const screen = render(<VocabularyScreen />);
 
     await Promise.resolve();
@@ -259,7 +270,30 @@ describe("VocabularyScreen stopwatch", () => {
 
     await Promise.resolve();
     expect(screen.getByText("Finish View")).toBeTruthy();
-    expect(screen.getByText("Study Time")).toBeTruthy();
-    expect(screen.getByTestId("swipe-study-timer-value").props.children).toBe("00:05");
+    expect(screen.queryByText("Study Time")).toBeNull();
+    expect(screen.queryByTestId("swipe-study-timer-value")).toBeNull();
+  });
+
+  it("navigates to the manga reader with courseId and day params", async () => {
+    const screen = render(<VocabularyScreen />);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    act(() => {
+      fireEvent.press(screen.getByText("Finish Deck"));
+    });
+
+    await Promise.resolve();
+
+    fireEvent.press(screen.getByText("Read Manga"));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/manga/reader",
+      params: {
+        courseId: "TOEIC",
+        day: "1",
+      },
+    });
   });
 });

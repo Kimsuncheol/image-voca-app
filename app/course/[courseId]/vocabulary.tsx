@@ -386,7 +386,7 @@ export default function VocabularyScreen() {
   const handleManga = () => {
     router.push({
       pathname: "/manga/reader",
-      params: { mangaId: courseId, chapterId: String(dayNumber) },
+      params: { courseId, day: String(dayNumber) },
     });
   };
 

@@ -6,23 +6,25 @@ import { useTheme } from "../../src/context/ThemeContext";
 interface MangaReaderControlsProps {
   currentPage: number;
   totalPages: number;
-  direction: "ltr" | "rtl";
   onBack: () => void;
-  onToggleDirection: () => void;
+  visible: boolean;
 }
 
 export function MangaReaderControls({
   currentPage,
   totalPages,
-  direction,
   onBack,
-  onToggleDirection,
+  visible,
 }: MangaReaderControlsProps) {
   const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
   const barBg = isDark ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.85)";
   const textColor = isDark ? "#fff" : "#000";
+
+  if (!visible) {
+    return null;
+  }
 
   return (
     <>
@@ -34,11 +36,6 @@ export function MangaReaderControls({
       >
         <TouchableOpacity onPress={onBack} style={styles.button}>
           <Text style={[styles.buttonText, { color: textColor }]}>✕</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={onToggleDirection} style={styles.button}>
-          <Text style={[styles.buttonText, { color: textColor }]}>
-            {direction === "rtl" ? "← RTL" : "LTR →"}
-          </Text>
         </TouchableOpacity>
       </View>
 

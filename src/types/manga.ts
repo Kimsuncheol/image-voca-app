@@ -1,6 +1,5 @@
-export interface MangaChapter {
+export interface MangaPageItem {
   id: string;
-  title: string;
-  order: number;
-  pageUrls: string[];
+  uploadIndex: number;
+  imageUrl: string;
 }

@@ -1,25 +1,47 @@
 import { Image } from "expo-image";
 import React from "react";
 import { StyleSheet, View, useWindowDimensions } from "react-native";
-import { ResumeZoom } from "react-native-zoom-toolkit";
+import {
+  ResumableZoom,
+  type SwipeDirection,
+} from "react-native-zoom-toolkit";
 
 interface MangaPageViewProps {
   uri: string;
+  onSwipeLeft?: () => void;
+  onSwipeRight?: () => void;
+  onTap?: () => void;
 }
 
-export function MangaPageView({ uri }: MangaPageViewProps) {
+export function MangaPageView({
+  uri,
+  onSwipeLeft,
+  onSwipeRight,
+  onTap,
+}: MangaPageViewProps) {
   const { width, height } = useWindowDimensions();
+
+  const handleSwipe = (direction: SwipeDirection) => {
+    if (direction === "left") {
+      onSwipeLeft?.();
+      return;
+    }
+
+    if (direction === "right") {
+      onSwipeRight?.();
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <ResumeZoom width={width} height={height}>
+      <ResumableZoom onSwipe={handleSwipe} onTap={onTap}>
         <Image
           source={{ uri }}
           style={{ width, height }}
           contentFit="contain"
           cachePolicy="memory-disk"
         />
-      </ResumeZoom>
+      </ResumableZoom>
     </View>
   );
 }

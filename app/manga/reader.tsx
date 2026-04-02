@@ -5,12 +5,12 @@ import PagerView from "react-native-pager-view";
 import { MangaPageView } from "../../components/manga/MangaPageView";
 import { MangaReaderControls } from "../../components/manga/MangaReaderControls";
 import { useTheme } from "../../src/context/ThemeContext";
-import { fetchChapterPages } from "../../src/services/mangaService";
+import { fetchMangaDayPages } from "../../src/services/mangaService";
 
 export default function MangaReaderScreen() {
-  const { mangaId, chapterId } = useLocalSearchParams<{
-    mangaId: string;
-    chapterId: string;
+  const { courseId, day } = useLocalSearchParams<{
+    courseId: string;
+    day: string;
   }>();
   const router = useRouter();
   const { isDark } = useTheme();
@@ -18,15 +18,16 @@ export default function MangaReaderScreen() {
   const [pageUrls, setPageUrls] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [direction, setDirection] = useState<"ltr" | "rtl">("rtl");
+  const [tappingCount, setTappingCount] = useState(0);
 
   const pagerRef = useRef<PagerView>(null);
+  const showControls = tappingCount % 2 === 1;
 
   useEffect(() => {
-    if (!mangaId || !chapterId) return;
+    if (!courseId || !day) return;
     void (async () => {
       try {
-        const urls = await fetchChapterPages(mangaId, chapterId);
+        const urls = await fetchMangaDayPages(courseId, day);
         setPageUrls(urls);
       } catch (error) {
         console.warn("Failed to fetch chapter pages:", error);
@@ -34,10 +35,28 @@ export default function MangaReaderScreen() {
         setLoading(false);
       }
     })();
-  }, [mangaId, chapterId]);
+  }, [courseId, day]);
 
-  const handleToggleDirection = useCallback(() => {
-    setDirection((prev) => (prev === "rtl" ? "ltr" : "rtl"));
+  const handlePrevious = useCallback(() => {
+    if (currentPage <= 0) return;
+    pagerRef.current?.setPage(currentPage - 1);
+  }, [currentPage]);
+
+  const handleNext = useCallback(() => {
+    if (currentPage >= pageUrls.length - 1) return;
+    pagerRef.current?.setPage(currentPage + 1);
+  }, [currentPage, pageUrls.length]);
+
+  const handleSwipeLeft = useCallback(() => {
+    handlePrevious();
+  }, [handlePrevious]);
+
+  const handleSwipeRight = useCallback(() => {
+    handleNext();
+  }, [handleNext]);
+
+  const handlePageTap = useCallback(() => {
+    setTappingCount((prev) => prev + 1);
   }, []);
 
   if (loading) {
@@ -56,25 +75,28 @@ export default function MangaReaderScreen() {
   return (
     <View style={styles.container}>
       <PagerView
-        key={direction}
         ref={pagerRef}
         style={styles.pager}
         initialPage={0}
-        layoutDirection={direction}
+        layoutDirection="rtl"
         onPageSelected={(e) => setCurrentPage(e.nativeEvent.position)}
       >
         {pageUrls.map((uri, index) => (
           <View key={index} style={styles.page}>
-            <MangaPageView uri={uri} />
+            <MangaPageView
+              uri={uri}
+              onSwipeLeft={handleSwipeLeft}
+              onSwipeRight={handleSwipeRight}
+              onTap={handlePageTap}
+            />
           </View>
         ))}
       </PagerView>
       <MangaReaderControls
         currentPage={currentPage}
         totalPages={pageUrls.length}
-        direction={direction}
         onBack={() => router.back()}
-        onToggleDirection={handleToggleDirection}
+        visible={showControls}
       />
     </View>
   );
