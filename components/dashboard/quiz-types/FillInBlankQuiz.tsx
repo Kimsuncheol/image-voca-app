@@ -9,6 +9,7 @@
 
 import React from "react";
 import { StyleSheet, View } from "react-native";
+import { stripKanaParens } from "../../../src/utils/japaneseText";
 import { ThemedText } from "../../themed-text";
 import { PopQuizOption } from "./PopQuizOption";
 import type { DashboardWordOption as WordOption } from "../utils/quizHelpers";
@@ -34,18 +35,22 @@ export function FillInBlankQuiz({
   isDark,
   onOptionPress,
 }: FillInBlankQuizProps) {
+  const displaySentence = React.useMemo(
+    () => stripKanaParens(clozeSentence),
+    [clozeSentence],
+  );
+
   return (
     <>
       <View style={styles.sentence}>
-        <ThemedText style={styles.sentenceText}>{clozeSentence}</ThemedText>
+        <ThemedText style={styles.sentenceText}>{displaySentence}</ThemedText>
       </View>
 
       <View style={styles.options}>
-        {options.map(({ word, pronunciation }, index) => (
+        {options.map(({ word }, index) => (
           <PopQuizOption
             key={`${word}-${index}`}
             option={word}
-            subtitle={pronunciation}
             isSelected={selectedOption === word}
             isCorrect={word === correctWord}
             isAnswered={isCorrect === true}

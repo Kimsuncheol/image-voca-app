@@ -17,10 +17,8 @@ jest.mock("react-i18next", () => ({
   }),
 }));
 
-jest.mock("../src/hooks/useSpeech", () => ({
-  useSpeech: () => ({
-    speak: jest.fn(),
-  }),
+jest.mock("expo-speech", () => ({
+  speak: jest.fn(),
 }));
 
 jest.mock("../components/swipe/SwipeCardItemImageSection", () => ({
@@ -89,11 +87,11 @@ describe("JlptVocabularyCard", () => {
     expect(getByTestId("jlpt-card-info")).toBeTruthy();
     expect(getByTestId("jlpt-card-info-scroll")).toBeTruthy();
     expect(getByText("間")).toBeTruthy();
-    expect(getByText("あいだ [aida]")).toBeTruthy();
+    expect(getByText("あいだ")).toBeTruthy();
     expect(getByText("interval; space; between")).toBeTruthy();
     expect(getByText("between the station and the hotel")).toBeTruthy();
     expect(getByText("駅とホテルの間")).toBeTruthy();
-    expect(getByText("eki to hoteru no aida")).toBeTruthy();
+    expect(queryByText("eki to hoteru no aida")).toBeNull();
     expect(queryByText("Meaning")).toBeNull();
     expect(queryByText("Example")).toBeNull();
   });
@@ -133,31 +131,31 @@ describe("JlptVocabularyCard", () => {
     expect(queryByTestId("jlpt-card-translation")).toBeTruthy();
   });
 
-  it("renders exampleRoman below the example and before the translation", () => {
-    const { getByText, toJSON } = render(<JlptVocabularyCard item={buildCard()} />);
+  it("renders translation below the example without rendering exampleRoman", () => {
+    const { getByText, queryByText, toJSON } = render(
+      <JlptVocabularyCard item={buildCard()} />,
+    );
 
     expect(getByText("駅とホテルの間")).toBeTruthy();
-    expect(getByText("eki to hoteru no aida")).toBeTruthy();
     expect(getByText("between the station and the hotel")).toBeTruthy();
+    expect(queryByText("eki to hoteru no aida")).toBeNull();
 
     const renderedTree = JSON.stringify(toJSON());
     expect(renderedTree.indexOf("駅とホテルの間")).toBeLessThan(
-      renderedTree.indexOf("eki to hoteru no aida"),
-    );
-    expect(renderedTree.indexOf("eki to hoteru no aida")).toBeLessThan(
       renderedTree.indexOf("between the station and the hotel"),
     );
   });
 
-  it("omits the exampleRoman row when it is missing", () => {
-    const { queryByTestId } = render(
-      <JlptVocabularyCard item={buildCard({ exampleRoman: undefined })} />,
+  it("never renders the exampleRoman row even when the data exists", () => {
+    const { queryByTestId, queryByText } = render(
+      <JlptVocabularyCard item={buildCard()} />,
     );
 
     expect(queryByTestId("jlpt-card-example-roman")).toBeNull();
+    expect(queryByText("eki to hoteru no aida")).toBeNull();
   });
 
-  it("renders mismatched exampleRoman line counts without crashing", () => {
+  it("ignores mismatched exampleRoman line counts without crashing", () => {
     const { getByText, queryByText } = render(
       <JlptVocabularyCard
         item={buildCard({
@@ -178,7 +176,7 @@ describe("JlptVocabularyCard", () => {
       />,
     );
 
-    expect(getByText("eki to hoteru no aida")).toBeTruthy();
+    expect(queryByText("eki to hoteru no aida")).toBeNull();
     expect(queryByText("ie to gakkou no aida")).toBeNull();
     expect(getByText("between home and school")).toBeTruthy();
   });
@@ -205,10 +203,10 @@ describe("JlptVocabularyCard", () => {
     );
   });
 
-  it("renders only the pronunciation value when romanization is missing", () => {
+  it("renders the pronunciation value without any romanization", () => {
     const { getByText, queryByTestId } = render(
       <JlptVocabularyCard
-        item={buildCard({ pronunciationRoman: undefined })}
+        item={buildCard()}
         initialIsSaved={true}
         day={1}
       />,
@@ -216,10 +214,26 @@ describe("JlptVocabularyCard", () => {
 
     expect(getByText("あいだ")).toBeTruthy();
     expect(queryByTestId("jlpt-card-pronunciation-roman")).toBeNull();
+    expect(queryByTestId("jlpt-card-example-roman")).toBeNull();
   });
 
-  it("renders only bracketed romanization when pronunciation is missing", () => {
-    const { getByText, queryByTestId } = render(
+  it("hides the pronunciation row when word and pronunciation are identical", () => {
+    const { queryByTestId, queryByText } = render(
+      <JlptVocabularyCard
+        item={buildCard({
+          word: "あさって",
+          pronunciation: "あさって",
+          pronunciationRoman: undefined,
+        })}
+      />,
+    );
+
+    expect(queryByTestId("jlpt-card-pronunciation")).toBeNull();
+    expect(queryByText("あさって")).toBeTruthy();
+  });
+
+  it("hides the pronunciation row when only pronunciationRoman exists", () => {
+    const { queryByText, queryByTestId } = render(
       <JlptVocabularyCard
         item={buildCard({ pronunciation: undefined, pronunciationRoman: "aida" })}
         initialIsSaved={true}
@@ -227,7 +241,8 @@ describe("JlptVocabularyCard", () => {
       />,
     );
 
-    expect(getByText("[aida]")).toBeTruthy();
+    expect(queryByText("[aida]")).toBeNull();
+    expect(queryByTestId("jlpt-card-pronunciation")).toBeNull();
     expect(queryByTestId("jlpt-card-pronunciation-roman")).toBeNull();
   });
 

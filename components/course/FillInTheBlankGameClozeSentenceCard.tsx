@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
+import { stripKanaParens } from "../../src/utils/japaneseText";
 import { RoleplayRenderer } from "../CollocationFlipCard/RoleplayRenderer";
 import { ThemedText } from "../themed-text";
 
@@ -26,6 +27,10 @@ export function FillInTheBlankGameClozeSentenceCard({
 }: FillInTheBlankGameClozeSentenceCardProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
+  const displaySentence = React.useMemo(
+    () => stripKanaParens(clozeSentence),
+    [clozeSentence],
+  );
 
   // Parse the sentence to separate text and blanks
   const renderTextWithBlanks = (
@@ -121,7 +126,7 @@ export function FillInTheBlankGameClozeSentenceCard({
     return (
       <View style={{ gap: 8 }}>
         <RoleplayRenderer
-          content={clozeSentence}
+          content={displaySentence}
           isDark={isDark}
           renderText={(text) => renderTextWithBlanks(text, blankCounter)}
         />
@@ -140,13 +145,6 @@ export function FillInTheBlankGameClozeSentenceCard({
         {t("quiz.types.fillInBlank.completeSentence")}
       </ThemedText>
       {renderContent()}
-      {localizedPronunciation && (
-        <ThemedText style={styles.translationText}>
-          {`${t("notifications.labels.pronunciation", {
-            defaultValue: "Pronunciation",
-          })}: ${localizedPronunciation}`}
-        </ThemedText>
-      )}
       {translation && (
         <ThemedText style={styles.translationText}>{translation}</ThemedText>
       )}

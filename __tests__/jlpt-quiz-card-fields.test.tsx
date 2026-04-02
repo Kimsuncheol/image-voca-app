@@ -1,5 +1,6 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
+import { FillInTheBlankGameClozeSentenceCard } from "../components/course/FillInTheBlankGameClozeSentenceCard";
 import { FillInTheBlankGameOptions } from "../components/course/FillInTheBlankGameOptions";
 import { MatchingGame } from "../components/course/MatchingGame";
 import { FillInBlankQuiz } from "../components/dashboard/quiz-types/FillInBlankQuiz";
@@ -25,8 +26,16 @@ jest.mock("../components/themed-text", () => ({
   },
 }));
 
+jest.mock("../components/CollocationFlipCard/RoleplayRenderer", () => ({
+  RoleplayRenderer: ({ content, renderText }: any) => {
+    const React = require("react");
+    const { View } = require("react-native");
+    return <View>{renderText(content)}</View>;
+  },
+}));
+
 describe("JLPT quiz card fields", () => {
-  it("renders course matching left cards with pronunciation details and right cards with meaning", () => {
+  it("renders course matching left cards without pronunciation and right cards with meaning", () => {
     const screen = render(
       <MatchingGame
         questions={[
@@ -45,16 +54,13 @@ describe("JLPT quiz card fields", () => {
         onSelectWord={jest.fn()}
         onSelectMeaning={jest.fn()}
         isDark={false}
-        showPronunciationDetails
       />,
     );
 
     expect(screen.getByText("間")).toBeTruthy();
-    expect(screen.getByText("あいだ")).toBeTruthy();
-    expect(screen.getByText("aida")).toBeTruthy();
     expect(screen.getByText("사이")).toBeTruthy();
-    expect(screen.queryAllByText("あいだ")).toHaveLength(1);
-    expect(screen.queryAllByText("aida")).toHaveLength(1);
+    expect(screen.queryByText("あいだ")).toBeNull();
+    expect(screen.queryByText("aida")).toBeNull();
   });
 
   it("renders course fill-in-the-blank options with pronunciation details and answers by word", () => {
@@ -78,10 +84,22 @@ describe("JLPT quiz card fields", () => {
 
     expect(screen.getByText("間")).toBeTruthy();
     expect(screen.getByText("あいだ")).toBeTruthy();
-    expect(screen.getByText("aida")).toBeTruthy();
+    expect(screen.queryByText("aida")).toBeNull();
 
     fireEvent.press(screen.getByText("間"));
     expect(onAnswer).toHaveBeenCalledWith("間");
+  });
+
+  it("strips furigana from the course fill-in-the-blank sentence display", () => {
+    const screen = render(
+      <FillInTheBlankGameClozeSentenceCard
+        clozeSentence="入(い)り口(ぐち)から入(はい)る。"
+        translation="Enter through the entrance."
+      />,
+    );
+
+    expect(screen.getByText("入り口から入る。")).toBeTruthy();
+    expect(screen.queryByText("入(い)り口(ぐち)から入(はい)る。")).toBeNull();
   });
 
   it("renders dashboard matching left cards with pronunciation details", () => {
@@ -103,16 +121,15 @@ describe("JLPT quiz card fields", () => {
 
     expect(screen.getByText("間")).toBeTruthy();
     expect(screen.getByText("あいだ")).toBeTruthy();
-    expect(screen.getByText("aida")).toBeTruthy();
     expect(screen.getByText("사이")).toBeTruthy();
     expect(screen.queryAllByText("あいだ")).toHaveLength(1);
-    expect(screen.queryAllByText("aida")).toHaveLength(1);
+    expect(screen.queryByText("aida")).toBeNull();
   });
 
-  it("renders dashboard fill-in-the-blank options with pronunciation details", () => {
+  it("strips furigana from the dashboard fill-in-the-blank sentence and keeps option pronunciation details", () => {
     const screen = render(
       <FillInBlankQuiz
-        clozeSentence="___を空ける"
+        clozeSentence="入(い)り口(ぐち)から入(はい)る。"
         options={[
           {
             word: "間",
@@ -128,8 +145,10 @@ describe("JLPT quiz card fields", () => {
       />,
     );
 
+    expect(screen.getByText("入り口から入る。")).toBeTruthy();
+    expect(screen.queryByText("入(い)り口(ぐち)から入(はい)る。")).toBeNull();
     expect(screen.getByText("間")).toBeTruthy();
     expect(screen.getByText("あいだ")).toBeTruthy();
-    expect(screen.getByText("aida")).toBeTruthy();
+    expect(screen.queryByText("aida")).toBeNull();
   });
 });

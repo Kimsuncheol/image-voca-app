@@ -23,7 +23,6 @@ interface MatchingGameProps {
   onSelectMeaning: (meaning: string) => void;
   courseColor?: string;
   isDark: boolean;
-  showPronunciationDetails?: boolean;
 }
 
 export function MatchingGame({
@@ -36,7 +35,6 @@ export function MatchingGame({
   onSelectMeaning,
   courseColor,
   isDark,
-  showPronunciationDetails = false,
 }: MatchingGameProps) {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
@@ -82,9 +80,6 @@ export function MatchingGame({
               <View style={styles.matchingCell}>
                 <MatchingCard
                   text={question.word}
-                  pronunciation={
-                    showPronunciationDetails ? question.pronunciation : undefined
-                  }
                   variant="word"
                   isMatched={Boolean(matchedPairs[question.word])}
                   isSelected={selectedWord === question.word}

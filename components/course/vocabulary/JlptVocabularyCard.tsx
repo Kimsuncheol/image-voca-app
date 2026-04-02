@@ -12,19 +12,13 @@ import {
 import * as Speech from "expo-speech";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { VocabularyCard } from "../../../src/types/vocabulary";
+import { stripKanaParens } from "../../../src/utils/japaneseText";
 import { resolveVocabularyContent } from "../../../src/utils/localizedVocabulary";
 import { InlineMeaningWithChips } from "../../common/InlineMeaningWithChips";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
 import { SwipeCardItemImageSection } from "../../swipe/SwipeCardItemImageSection";
 
 const { width } = Dimensions.get("window");
-
-// Matches hiragana/katakana inside full-width or half-width parentheses
-const KANA_PARENS_REGEX = /[（(][\u3040-\u30FF\u30FC]+[）)]/g;
-
-function stripKanaParens(text: string): string {
-  return text.replace(KANA_PARENS_REGEX, "").replace(/\s{2,}/g, " ").trim();
-}
 
 interface JlptVocabularyCardProps {
   item: VocabularyCard;
@@ -179,7 +173,14 @@ export function JlptVocabularyCard({
     () => resolveVocabularyContent(item, i18n.language),
     [i18n.language, item],
   );
-  const pronunciation = toDisplayValue(resolved.sharedPronunciation);
+  const displayWord = toDisplayValue(item.word);
+  const pronunciation = React.useMemo(() => {
+    const candidate = toDisplayValue(resolved.sharedPronunciation);
+    if (!candidate) {
+      return undefined;
+    }
+    return candidate === displayWord ? undefined : candidate;
+  }, [displayWord, resolved.sharedPronunciation]);
 
   const handlePressWord = React.useCallback(() => {
     Speech.speak(item.word, { language: "ja-JP", rate: 0.85 });

@@ -72,17 +72,6 @@ export function MatchingCard({
             >
               {text}
             </ThemedText>
-            {pronunciation ? (
-              <ThemedText
-                style={[
-                  styles.secondaryText,
-                  isMatched && styles.matchingItemTextMatched,
-                  isSelected && { color: courseColor || "#007AFF" },
-                ]}
-              >
-                {pronunciation}
-              </ThemedText>
-            ) : null}
           </View>
         )}
       </View>
@@ -154,11 +143,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     textAlign: "center",
-  },
-  secondaryText: {
-    textAlign: "center",
-    fontSize: 12,
-    opacity: 0.8,
-    lineHeight: 18,
   },
 });

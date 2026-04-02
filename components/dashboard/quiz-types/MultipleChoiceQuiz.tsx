@@ -52,14 +52,6 @@ export function MultipleChoiceQuiz({
         >
           {quizItem.word}
         </ThemedText>
-        {/* pronunciation={quizItem.pronunciation}  */}
-        {
-          quizItem.pronunciation && (
-            <ThemedText style={[styles.questionLabel]}>
-              {quizItem.pronunciation}
-            </ThemedText>
-          )
-        }
       </View>
 
       <View style={styles.options}>
