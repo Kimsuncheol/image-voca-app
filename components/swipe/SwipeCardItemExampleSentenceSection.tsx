@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import * as Speech from "expo-speech";
+import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { stripKanaParens } from "../../src/utils/japaneseText";
 import { formatSynonyms } from "../../src/utils/synonyms";
 
@@ -19,6 +20,7 @@ interface SwipeCardItemExampleSentenceSectionProps {
   synonyms?: string[];
   courseId: string;
   isDark: boolean;
+  isActive?: boolean;
 }
 
 export function SwipeCardItemExampleSentenceSection({
@@ -28,8 +30,10 @@ export function SwipeCardItemExampleSentenceSection({
   synonyms,
   courseId,
   isDark,
+  isActive = true,
 }: SwipeCardItemExampleSentenceSectionProps) {
   const { t } = useTranslation();
+  useCardSpeechCleanup(isActive);
 
   // Split examples and translations by newlines
   // Remove number prefixes (e.g., "1. ", "2. ") from the raw text
@@ -54,6 +58,9 @@ export function SwipeCardItemExampleSentenceSection({
     shouldCollapse && !isExpanded ? examples.slice(0, 3) : examples;
 
   const handleSpeak = (text: string) => {
+    if (!isActive) {
+      return;
+    }
     Speech.speak(text, { language: "en-US", rate: 0.9 });
   };
 

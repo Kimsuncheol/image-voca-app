@@ -14,6 +14,7 @@ interface SwipeCardItemMeaningExampleSentenceSectionProps {
   synonyms?: string[];
   courseId: string;
   isDark: boolean;
+  isActive?: boolean;
   initialIsSaved?: boolean;
   day?: number;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
@@ -30,6 +31,7 @@ export function SwipeCardItemMeaningExampleSentenceSection({
   synonyms,
   courseId,
   isDark,
+  isActive = true,
   initialIsSaved = false,
   day,
   onSavedWordChange,
@@ -42,6 +44,7 @@ export function SwipeCardItemMeaningExampleSentenceSection({
         pronunciation={pronunciation}
         meaning={meaning}
         isDark={isDark}
+        isActive={isActive}
         initialIsSaved={initialIsSaved}
         day={day}
         onSavedWordChange={onSavedWordChange}
@@ -53,6 +56,7 @@ export function SwipeCardItemMeaningExampleSentenceSection({
         synonyms={synonyms}
         courseId={courseId}
         isDark={isDark}
+        isActive={isActive}
       />
     </>
   );

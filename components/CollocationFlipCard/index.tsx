@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { Dimensions, StyleSheet } from "react-native";
 import FlipCard from "react-native-flip-card";
+import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import BackSide from "./BackSide";
 import FaceSide from "./FaceSide";
 import { CollocationData, CollocationWordBankConfig } from "./types";
@@ -55,6 +56,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
     // Controls the flip state of the card (true = back side visible)
     const [isFlipped, setIsFlipped] = useState(false);
     const hasReportedFirstBackRef = React.useRef(false);
+    useCardSpeechCleanup(isActive);
 
     // Reset flip state when the card becomes inactive (user swipes away)
     React.useEffect(() => {

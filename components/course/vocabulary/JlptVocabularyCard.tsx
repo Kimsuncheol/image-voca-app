@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import * as Speech from "expo-speech";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { useCardSpeechCleanup } from "../../../src/hooks/useCardSpeechCleanup";
 import { VocabularyCard } from "../../../src/types/vocabulary";
 import {
   splitJapaneseTextSegments,
@@ -27,6 +28,7 @@ interface JlptVocabularyCardProps {
   item: VocabularyCard;
   initialIsSaved?: boolean;
   day?: number;
+  isActive?: boolean;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   showKana?: boolean;
   onToggleKana?: () => void;
@@ -42,6 +44,7 @@ interface ExampleBlockProps {
   example?: string;
   translation?: string;
   isDark: boolean;
+  isActive: boolean;
   showKana: boolean;
 }
 
@@ -89,8 +92,10 @@ const ExampleBlock = React.memo(function ExampleBlock({
   example,
   translation,
   isDark,
+  isActive,
   showKana,
 }: ExampleBlockProps) {
+  useCardSpeechCleanup(isActive);
   const hiddenExample = React.useMemo(
     () => (example ? stripKanaParens(example) : example),
     [example],
@@ -109,8 +114,11 @@ const ExampleBlock = React.memo(function ExampleBlock({
   );
 
   const handleSpeak = React.useCallback((text: string) => {
+    if (!isActive) {
+      return;
+    }
     Speech.speak(stripKanaParens(text), { language: "ja-JP", rate: 0.85 });
-  }, []);
+  }, [isActive]);
 
   if (rowCount === 0) {
     return null;
@@ -181,12 +189,14 @@ export function JlptVocabularyCard({
   item,
   initialIsSaved = false,
   day,
+  isActive = true,
   onSavedWordChange,
   showKana = false,
   onToggleKana = () => {},
 }: JlptVocabularyCardProps) {
   const { isDark } = useTheme();
   const { i18n } = useTranslation();
+  useCardSpeechCleanup(isActive);
   const resolved = React.useMemo(
     () => resolveVocabularyContent(item, i18n.language),
     [i18n.language, item],
@@ -201,8 +211,11 @@ export function JlptVocabularyCard({
   }, [displayWord, resolved.sharedPronunciation]);
 
   const handlePressWord = React.useCallback(() => {
+    if (!isActive) {
+      return;
+    }
     Speech.speak(item.word, { language: "ja-JP", rate: 0.85 });
-  }, [item.word]);
+  }, [isActive, item.word]);
 
   return (
     <View
@@ -278,6 +291,7 @@ export function JlptVocabularyCard({
             example={resolved.example}
             translation={resolved.translation}
             isDark={isDark}
+            isActive={isActive}
             showKana={showKana}
           />
         </ScrollView>

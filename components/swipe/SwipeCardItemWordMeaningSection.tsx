@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import * as Speech from "expo-speech";
+import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 
@@ -10,6 +11,7 @@ interface SwipeCardItemWordMeaningSectionProps {
   pronunciation?: string;
   meaning: string;
   isDark: boolean;
+  isActive?: boolean;
   initialIsSaved?: boolean;
   day?: number;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
@@ -27,10 +29,12 @@ export function SwipeCardItemWordMeaningSection({
   pronunciation,
   meaning,
   isDark,
+  isActive = true,
   initialIsSaved = false,
   day,
   onSavedWordChange,
 }: SwipeCardItemWordMeaningSectionProps) {
+  useCardSpeechCleanup(isActive);
   const normalizedPronunciation = pronunciation?.trim();
   const wordVariants = React.useMemo(() => parseWordVariants(word), [word]);
   const isMultiVariantWord = wordVariants.length > 1;
@@ -44,6 +48,10 @@ export function SwipeCardItemWordMeaningSection({
   );
 
   const speak = React.useCallback(async () => {
+    if (!isActive) {
+      return;
+    }
+
     if (!isMultiVariantWord) {
       Speech.speak(wordVariants[0] ?? word, { language: "en-US", rate: 0.9 });
       return;
@@ -52,7 +60,7 @@ export function SwipeCardItemWordMeaningSection({
     for (const variant of wordVariants) {
       await speakVariant(variant);
     }
-  }, [isMultiVariantWord, speakVariant, word, wordVariants]);
+  }, [isActive, isMultiVariantWord, speakVariant, word, wordVariants]);
 
   const handlePressWord = React.useCallback(() => {
     void speak();

@@ -42,6 +42,7 @@ interface CarouselSwipeDeckProps {
   renderCard?: (params: {
     item: VocabularyCard;
     isSaved: boolean;
+    isActive: boolean;
     dayNumber: number;
     onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   }) => React.ReactNode;
@@ -57,6 +58,7 @@ interface CardItemProps {
   translateX: SharedValue<number>;
   isSaved: boolean;
   dayNumber: number;
+  isActive: boolean;
   isActiveWindow: boolean;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   renderCard?: CarouselSwipeDeckProps["renderCard"];
@@ -68,6 +70,7 @@ const CardItem = React.memo(function CardItem({
   translateX,
   isSaved,
   dayNumber,
+  isActive,
   isActiveWindow,
   onSavedWordChange,
   renderCard,
@@ -88,6 +91,7 @@ const CardItem = React.memo(function CardItem({
           renderCard({
             item,
             isSaved,
+            isActive,
             dayNumber,
             onSavedWordChange,
           })
@@ -96,6 +100,7 @@ const CardItem = React.memo(function CardItem({
             item={item}
             initialIsSaved={isSaved}
             day={dayNumber}
+            isActive={isActive}
             onSavedWordChange={onSavedWordChange}
           />
         )
@@ -236,6 +241,7 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
               translateX={translateX}
               isSaved={savedWordIds.has(item.id)}
               dayNumber={dayNumber}
+              isActive={index === activeIndex}
               isActiveWindow={Math.abs(index - activeIndex) <= 1}
               onSavedWordChange={onSavedWordChange}
               renderCard={renderCard}

@@ -14,6 +14,7 @@ interface CardInfoSectionProps {
   synonyms?: string[];
   courseId: string;
   isDark: boolean;
+  isActive?: boolean;
   initialIsSaved?: boolean;
   day?: number;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
@@ -30,6 +31,7 @@ export function SwipeCardItemCardInfoSection({
   synonyms,
   courseId,
   isDark,
+  isActive = true,
   initialIsSaved = false,
   day,
   onSavedWordChange,
@@ -54,6 +56,7 @@ export function SwipeCardItemCardInfoSection({
         synonyms={synonyms}
         courseId={courseId}
         isDark={isDark}
+        isActive={isActive}
         initialIsSaved={initialIsSaved}
         day={day}
         onSavedWordChange={onSavedWordChange}

@@ -6,6 +6,7 @@ import { Card, Divider, Text } from "react-native-paper";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { SpeakerButton } from "../CollocationFlipCard/SpeakerButton";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
+import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import type { NotificationWordCardPayload } from "../../src/types/notificationCard";
 import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
 import { formatSynonyms } from "../../src/utils/synonyms";
@@ -76,6 +77,7 @@ export default function WordCard({
   onReady,
 }: WordCardProps) {
   const { t, i18n } = useTranslation();
+  useCardSpeechCleanup();
   const resolved = React.useMemo(
     () => resolveVocabularyContent(data, i18n.language),
     [data, i18n.language],

@@ -2,6 +2,7 @@ import React from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../../src/context/ThemeContext";
+import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
 import { SwipeCardItemAddToWordBankButton } from "./SwipeCardItemAddToWordBankButton";
@@ -14,6 +15,7 @@ interface SwipeCardItemProps {
   item: VocabularyCard;
   initialIsSaved?: boolean;
   day?: number;
+  isActive?: boolean;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
 }
 
@@ -21,10 +23,12 @@ export function SwipeCardItem({
   item,
   initialIsSaved = false,
   day,
+  isActive = true,
   onSavedWordChange,
 }: SwipeCardItemProps) {
   const { isDark } = useTheme();
   const { i18n } = useTranslation();
+  useCardSpeechCleanup(isActive);
   const resolved = React.useMemo(
     () => resolveVocabularyContent(item, i18n.language),
     [i18n.language, item],
@@ -69,6 +73,7 @@ export function SwipeCardItem({
         synonyms={item.synonyms}
         courseId={item.course}
         isDark={isDark}
+        isActive={isActive}
         initialIsSaved={initialIsSaved}
         day={day}
         onSavedWordChange={onSavedWordChange}

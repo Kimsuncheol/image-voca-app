@@ -18,6 +18,7 @@ interface JlptDeckCardProps {
   item: VocabularyCard;
   initialIsSaved: boolean;
   dayNumber: number;
+  isActive: boolean;
   deckKey: string;
   kanaStateCacheRef: React.MutableRefObject<Record<string, boolean>>;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
@@ -27,6 +28,7 @@ const JlptDeckCard = React.memo(function JlptDeckCard({
   item,
   initialIsSaved,
   dayNumber,
+  isActive,
   deckKey,
   kanaStateCacheRef,
   onSavedWordChange,
@@ -49,6 +51,7 @@ const JlptDeckCard = React.memo(function JlptDeckCard({
       item={item}
       initialIsSaved={initialIsSaved}
       day={dayNumber}
+      isActive={isActive}
       onSavedWordChange={onSavedWordChange}
       showKana={showKana}
       onToggleKana={handleToggleKana}
@@ -73,11 +76,13 @@ export const JlptSwipeDeck: React.FC<JlptSwipeDeckProps> = (props) => {
     ({
       item,
       isSaved,
+      isActive,
       dayNumber,
       onSavedWordChange,
     }: {
       item: VocabularyCard;
       isSaved: boolean;
+      isActive: boolean;
       dayNumber: number;
       onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
     }) => (
@@ -86,6 +91,7 @@ export const JlptSwipeDeck: React.FC<JlptSwipeDeckProps> = (props) => {
         item={item}
         initialIsSaved={isSaved}
         dayNumber={dayNumber}
+        isActive={isActive}
         deckKey={cardIdsKey}
         kanaStateCacheRef={kanaStateCacheRef}
         onSavedWordChange={onSavedWordChange}

@@ -59,7 +59,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
     setIsHintVisible(false);
     hintOpacity.setValue(0);
     hintTranslateY.setValue(6);
-  }, [normalizedInitialIndex, data.length]);
+  }, [data.length, hintOpacity, hintTranslateY, normalizedInitialIndex]);
 
   const unlockIndex = React.useCallback((index: number) => {
     unlockedIndicesRef.current.add(index);
@@ -215,27 +215,31 @@ export const CollocationSwipeable: React.FC<Props> = ({
       >
         {data.map((item, index) => (
           <View key={item.id} style={styles.page}>
-            <CollocationFlipCard
-              data={{
-                collocation: item.word,
-                meaning: item.meaning,
-                explanation: item.pronunciation || "",
-                example: item.example,
-                translation: item.translation || "",
-              }}
-              isDark={isDark}
-              wordBankConfig={{
-                id: item.id,
-                course: item.course,
-              day,
-              initialIsSaved: savedWordIds?.has(item.id) ?? false,
-              enableAdd: true,
-              enableDelete: false,
-              onSavedStateChange: onSavedWordChange,
-            }}
-              onFirstFlipToBack={() => handleCardFirstFlip(index)}
-              isActive={activeIndex === index}
-            />
+            {Math.abs(index - activeIndex) <= 1 ? (
+              <CollocationFlipCard
+                data={{
+                  collocation: item.word,
+                  meaning: item.meaning,
+                  explanation: item.pronunciation || "",
+                  example: item.example,
+                  translation: item.translation || "",
+                }}
+                isDark={isDark}
+                wordBankConfig={{
+                  id: item.id,
+                  course: item.course,
+                  day,
+                  initialIsSaved: savedWordIds?.has(item.id) ?? false,
+                  enableAdd: true,
+                  enableDelete: false,
+                  onSavedStateChange: onSavedWordChange,
+                }}
+                onFirstFlipToBack={() => handleCardFirstFlip(index)}
+                isActive={activeIndex === index}
+              />
+            ) : (
+              <View style={styles.cardPlaceholder} />
+            )}
           </View>
         ))}
         {renderFinalPage && (
@@ -280,6 +284,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  cardPlaceholder: {
+    width: "90%",
+    minHeight: "70%",
+    alignSelf: "center",
   },
   hintContainer: {
     position: "absolute",

@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { formatSynonyms } from "../../src/utils/synonyms";
 import { ThemedText } from "../themed-text";
@@ -29,6 +30,7 @@ export function WordCardExample({
   speakLanguage = "en-US",
 }: WordCardExampleProps) {
   const { speak } = useSpeech();
+  useCardSpeechCleanup();
   const { t } = useTranslation();
 
   const examples = example

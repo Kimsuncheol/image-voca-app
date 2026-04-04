@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
+import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { useTranslation } from "react-i18next";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
@@ -50,6 +51,7 @@ export function WordCard({
   showPronunciation = true,
 }: WordCardProps) {
   const { speak } = useSpeech();
+  useCardSpeechCleanup();
   const { i18n } = useTranslation();
   const { learningLanguage } = useLearningLanguage();
   const speakLanguage = learningLanguage === "ja" ? "ja-JP" : "en-US";
