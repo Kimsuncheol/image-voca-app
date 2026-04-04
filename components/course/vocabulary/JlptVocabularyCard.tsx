@@ -12,7 +12,10 @@ import {
 import * as Speech from "expo-speech";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { VocabularyCard } from "../../../src/types/vocabulary";
-import { stripKanaParens } from "../../../src/utils/japaneseText";
+import {
+  splitJapaneseTextSegments,
+  stripKanaParens,
+} from "../../../src/utils/japaneseText";
 import { resolveVocabularyContent } from "../../../src/utils/localizedVocabulary";
 import { InlineMeaningWithChips } from "../../common/InlineMeaningWithChips";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
@@ -118,6 +121,9 @@ const ExampleBlock = React.memo(function ExampleBlock({
       {rowIndices.map((index) => {
         const exampleText = examples[index];
         const translationText = translations[index];
+        const exampleSegments = exampleText
+          ? splitJapaneseTextSegments(exampleText)
+          : [];
 
         return (
           <View key={index} style={styles.exampleGroup}>
@@ -134,7 +140,19 @@ const ExampleBlock = React.memo(function ExampleBlock({
                   ]}
                   numberOfLines={2}
                 >
-                  {exampleText}
+                  {exampleSegments.map((segment, segmentIndex) => (
+                    <Text
+                      key={`${index}-${segmentIndex}`}
+                      testID={
+                        segment.isKanaParen
+                          ? `jlpt-card-furigana-${index}-${segmentIndex}`
+                          : undefined
+                      }
+                      style={segment.isKanaParen ? styles.cardFurigana : undefined}
+                    >
+                      {segment.text}
+                    </Text>
+                  ))}
                 </Text>
               </TouchableOpacity>
             ) : null}
@@ -198,6 +216,15 @@ export function JlptVocabularyCard({
         testID="jlpt-card-image-shell"
         imageUrl={item.imageUrl}
         isDark={isDark}
+        topRightOverlay={
+          <SwipeCardItemAddToWordBankButton
+            item={item}
+            isDark={isDark}
+            initialIsSaved={initialIsSaved}
+            day={day}
+            onSavedWordChange={onSavedWordChange}
+          />
+        }
       />
 
       <View
@@ -227,16 +254,6 @@ export function JlptVocabularyCard({
                   {item.word}
                 </Text>
               </TouchableOpacity>
-            </View>
-
-            <View style={styles.addButtonContainer}>
-              <SwipeCardItemAddToWordBankButton
-                item={item}
-                isDark={isDark}
-                initialIsSaved={initialIsSaved}
-                day={day}
-                onSavedWordChange={onSavedWordChange}
-              />
             </View>
           </View>
 
@@ -358,11 +375,6 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     minWidth: 0,
   },
-  addButtonContainer: {
-    marginLeft: "auto",
-    paddingLeft: 12,
-    alignSelf: "flex-start",
-  },
   cardTitle: {
     fontSize: 32,
     fontWeight: "bold",
@@ -424,5 +436,9 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
     marginTop: 4,
     lineHeight: 22,
+  },
+  cardFurigana: {
+    fontSize: 12,
+    color: "#9A9A9A",
   },
 });

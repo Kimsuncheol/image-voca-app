@@ -7,6 +7,10 @@ jest.mock("../src/context/ThemeContext", () => ({
   useTheme: () => ({ isDark: false }),
 }));
 
+jest.mock("expo-speech", () => ({
+  speak: jest.fn(),
+}));
+
 jest.mock("../src/hooks/useSpeech", () => ({
   useSpeech: () => ({
     speak: jest.fn(),

@@ -21,6 +21,7 @@ export interface SavedWord {
   word: string;
   meaning: string;
   translation?: string;
+  synonyms?: string[];
   pronunciation: string;
   pronunciationRoman?: string;
   example: string;
@@ -107,11 +108,14 @@ export function WordCard({
       <WordCardExample
         example={resolved.example}
         translation={resolved.translation}
+        synonyms={word.synonyms}
         pronunciation={
           resolved.localizedPronunciation !== resolved.sharedPronunciation
             ? resolved.localizedPronunciation
             : undefined
         }
+        course={word.course}
+        isDark={isDark}
         speakLanguage={speakLanguage}
       />
     </View>

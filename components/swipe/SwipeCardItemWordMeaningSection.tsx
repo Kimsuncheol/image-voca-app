@@ -3,7 +3,6 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import * as Speech from "expo-speech";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
-import { SwipeCardItemAddToWordBankButton } from "./SwipeCardItemAddToWordBankButton";
 
 interface SwipeCardItemWordMeaningSectionProps {
   item: VocabularyCard;
@@ -99,15 +98,6 @@ export function SwipeCardItemWordMeaningSection({
             {renderWord()}
           </TouchableOpacity>
         </View>
-        <View style={styles.addButtonContainer}>
-          <SwipeCardItemAddToWordBankButton
-            item={item}
-            isDark={isDark}
-            initialIsSaved={initialIsSaved}
-            day={day}
-            onSavedWordChange={onSavedWordChange}
-          />
-        </View>
       </View>
       {normalizedPronunciation ? (
         <Text
@@ -144,11 +134,6 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     flexShrink: 1,
     minWidth: 0,
-  },
-  addButtonContainer: {
-    marginLeft: "auto",
-    paddingLeft: 12,
-    alignSelf: "flex-start",
   },
   cardTitle: {
     fontSize: 32,

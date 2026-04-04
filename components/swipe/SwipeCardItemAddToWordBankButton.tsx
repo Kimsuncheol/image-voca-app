@@ -7,6 +7,7 @@ import { useAuth } from "../../src/context/AuthContext";
 import { db } from "../../src/services/firebase";
 import { useUserStatsStore } from "../../src/stores";
 import { VocabularyCard } from "../../src/types/vocabulary";
+import { sanitizeSavedWordForFirestore } from "../../src/utils/savedWordFirestore";
 import { SavedWord } from "../wordbank/WordCard";
 
 interface SwipeCardItemAddToWordBankButtonProps {
@@ -60,11 +61,12 @@ export function SwipeCardItemAddToWordBankButton({
           return "removed" as const;
         }
 
-        const newWord: SavedWord = {
+        const newWord = sanitizeSavedWordForFirestore({
           id: item.id,
           word: item.word,
           meaning: item.meaning,
           translation: item.translation || "",
+          synonyms: item.synonyms,
           pronunciation: item.pronunciation || "",
           pronunciationRoman: item.pronunciationRoman,
           example: item.example,
@@ -73,7 +75,7 @@ export function SwipeCardItemAddToWordBankButton({
           addedAt: new Date().toISOString(),
           imageUrl: item.imageUrl,
           localized: item.localized,
-        };
+        } as SavedWord);
 
         transaction.set(
           wordRef,
@@ -103,22 +105,24 @@ export function SwipeCardItemAddToWordBankButton({
 
   return (
     <TouchableOpacity
+      testID="swipe-card-add-to-wordbank-button"
       style={[
         styles.addButton,
         isAdded && styles.addButtonAdded,
         isAdding && styles.addButtonDisabled,
         !isAdded && {
-          backgroundColor: isDark ? "#1c3a52" : "#E8F4FD",
-          borderColor: isDark ? "#0a84ff80" : "#007AFF40",
+          backgroundColor: "#FFFFFF",
+          borderColor: "#000000",
         },
       ]}
       onPress={toggleWordBank}
       disabled={isAdding}
     >
       <Ionicons
-        name={isAdded ? "bookmark" : "bookmark-outline"}
-        size={24}
-        color={isAdded ? "#fff" : isDark ? "#0a84ff" : "#007AFF"}
+        testID="swipe-card-add-to-wordbank-icon"
+        name={isAdded ? "star" : "star-outline"}
+        size={18}
+        color={isAdded ? "#4A3600" : "#000000"}
       />
     </TouchableOpacity>
   );
@@ -126,18 +130,18 @@ export function SwipeCardItemAddToWordBankButton({
 
 const styles = StyleSheet.create({
   addButton: {
-    width: 40,
-    height: 40,
+    width: 28,
+    height: 28,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#E8F4FD",
+    backgroundColor: "#FFFFFF",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#007AFF40",
+    borderColor: "#000000",
   },
   addButtonAdded: {
-    backgroundColor: "#28a745",
-    borderColor: "#28a745",
+    backgroundColor: "#F4C542",
+    borderColor: "#F4C542",
   },
   addButtonDisabled: {
     opacity: 0.6,

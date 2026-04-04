@@ -10,11 +10,14 @@ import {
 } from "react-native";
 import * as Speech from "expo-speech";
 import { stripKanaParens } from "../../src/utils/japaneseText";
+import { formatSynonyms } from "../../src/utils/synonyms";
 
 interface SwipeCardItemExampleSentenceSectionProps {
   example: string;
   translation?: string;
   pronunciation?: string;
+  synonyms?: string[];
+  courseId: string;
   isDark: boolean;
 }
 
@@ -22,6 +25,8 @@ export function SwipeCardItemExampleSentenceSection({
   example,
   translation,
   pronunciation,
+  synonyms,
+  courseId,
   isDark,
 }: SwipeCardItemExampleSentenceSectionProps) {
   const { t } = useTranslation();
@@ -40,6 +45,8 @@ export function SwipeCardItemExampleSentenceSection({
         .filter((t) => t.trim())
         .map((t) => t.replace(/^\d+\.\s*/, "").trim())
     : [];
+  const formattedSynonyms =
+    courseId === "TOEFL_IELTS" ? formatSynonyms(synonyms) : undefined;
 
   const [isExpanded, setIsExpanded] = useState(false);
   const shouldCollapse = examples.length >= 4;
@@ -102,6 +109,31 @@ export function SwipeCardItemExampleSentenceSection({
             )}
           </View>
         ))}
+        {formattedSynonyms ? (
+          <View testID="swipe-card-synonyms-section" style={styles.exampleGroup}>
+            <Text
+              style={[
+                styles.sectionLabel,
+                { color: isDark ? "#b0b0b0" : "#5c5c5c" },
+              ]}
+            >
+              {t("notifications.labels.synonyms", {
+                defaultValue: "Synonyms",
+              })}
+            </Text>
+            <Text
+              testID="swipe-card-synonyms"
+              style={[
+                styles.cardSynonyms,
+                { color: isDark ? "#9A9A9A" : "#2F2F2F" },
+                { borderLeftColor: isDark ? "#0a84ff" : "#007AFF" },
+              ]}
+              numberOfLines={2}
+            >
+              {formattedSynonyms}
+            </Text>
+          </View>
+        ) : null}
       </ScrollView>
 
       {shouldCollapse && (
@@ -144,6 +176,13 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 2,
   },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+    marginBottom: 4,
+    textTransform: "uppercase",
+  },
   cardExample: {
     fontSize: 16,
     fontWeight: "500",
@@ -161,6 +200,13 @@ const styles = StyleSheet.create({
     borderLeftColor: "#28a745",
     paddingLeft: 12,
     marginTop: 4,
+    lineHeight: 22,
+  },
+  cardSynonyms: {
+    fontSize: 15,
+    fontWeight: "500",
+    borderLeftWidth: 4,
+    paddingLeft: 12,
     lineHeight: 22,
   },
   expandButton: {

@@ -8,6 +8,7 @@ interface SwipeCardItemImageSectionProps {
   isDark: boolean;
   testID?: string;
   containerStyle?: StyleProp<ViewStyle>;
+  topRightOverlay?: React.ReactNode;
 }
 
 export function SwipeCardItemImageSection({
@@ -15,6 +16,7 @@ export function SwipeCardItemImageSection({
   isDark,
   testID,
   containerStyle,
+  topRightOverlay,
 }: SwipeCardItemImageSectionProps) {
   return (
     <View testID={testID} style={[styles.imageContainer, containerStyle]}>
@@ -28,6 +30,11 @@ export function SwipeCardItemImageSection({
       ) : (
         <ImagePlaceholder isDark={isDark} style={styles.cardImage} />
       )}
+      {topRightOverlay ? (
+        <View testID="swipe-card-image-top-right-overlay" style={styles.topRightOverlay}>
+          {topRightOverlay}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -36,11 +43,16 @@ const styles = StyleSheet.create({
   imageContainer: {
     height: "35%",
     width: "100%",
+    position: "relative",
   },
   cardImage: {
     height: "100%",
     width: "100%",
     resizeMode: "cover",
   },
-
+  topRightOverlay: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+  },
 });

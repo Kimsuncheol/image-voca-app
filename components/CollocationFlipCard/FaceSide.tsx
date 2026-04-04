@@ -17,6 +17,7 @@ import { useAuth } from "../../src/context/AuthContext";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { db } from "../../src/services/firebase";
 import { useUserStatsStore } from "../../src/stores";
+import { sanitizeSavedWordForFirestore } from "../../src/utils/savedWordFirestore";
 import { parseWordVariants, speakWordVariants } from "../../src/utils/wordVariants";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { SavedWord } from "../wordbank/WordCard";
@@ -208,7 +209,7 @@ export default React.memo(function FaceSide({
         }
 
         // Scenario 2: Add to Bank
-        const newWord: SavedWord = {
+        const newWord = sanitizeSavedWordForFirestore({
           id: wordBankConfig.id,
           word: data.collocation,
           meaning: data.meaning,
@@ -218,7 +219,7 @@ export default React.memo(function FaceSide({
           course: wordBankConfig.course,
           day: wordBankConfig.day,
           addedAt: new Date().toISOString(),
-        };
+        } as SavedWord);
 
         transaction.set(
           wordRef,

@@ -11,6 +11,8 @@ interface SwipeCardItemMeaningExampleSentenceSectionProps {
   meaning: string;
   example: string;
   translation?: string;
+  synonyms?: string[];
+  courseId: string;
   isDark: boolean;
   initialIsSaved?: boolean;
   day?: number;
@@ -25,6 +27,8 @@ export function SwipeCardItemMeaningExampleSentenceSection({
   meaning,
   example,
   translation,
+  synonyms,
+  courseId,
   isDark,
   initialIsSaved = false,
   day,
@@ -46,7 +50,8 @@ export function SwipeCardItemMeaningExampleSentenceSection({
         example={example}
         translation={translation}
         pronunciation={localizedPronunciation}
-
+        synonyms={synonyms}
+        courseId={courseId}
         isDark={isDark}
       />
     </>

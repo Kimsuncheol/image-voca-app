@@ -273,6 +273,22 @@ describe("JlptVocabularyCard", () => {
     expect(queryByText("ご飯を食べます")).toBeNull();
   });
 
+  it("renders visible furigana with light grey 12px styling when active", () => {
+    const { getByTestId } = render(
+      <JlptVocabularyCard
+        item={buildCard({
+          example: "ご飯(ごはん)を食べます",
+        })}
+        showKana={true}
+      />,
+    );
+
+    expect(getByTestId("jlpt-card-furigana-0-1")).toHaveStyle({
+      color: "#9A9A9A",
+      fontSize: 12,
+    });
+  });
+
   it("hides inline kana annotations like 赤(あか)ちゃんが泣(な)く。 by default", () => {
     const { getByText, queryByText } = render(
       <JlptVocabularyCard

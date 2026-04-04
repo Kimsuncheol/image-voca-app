@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "../../src/context/ThemeContext";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
+import { SwipeCardItemAddToWordBankButton } from "./SwipeCardItemAddToWordBankButton";
 import { SwipeCardItemCardInfoSection } from "./SwipeCardItemCardInfoSection";
 import { SwipeCardItemImageSection } from "./SwipeCardItemImageSection";
 
@@ -38,7 +39,19 @@ export function SwipeCardItem({
       ]}
     >
       {/* Image Section */}
-      <SwipeCardItemImageSection imageUrl={item.imageUrl} isDark={isDark} />
+      <SwipeCardItemImageSection
+        imageUrl={item.imageUrl}
+        isDark={isDark}
+        topRightOverlay={
+          <SwipeCardItemAddToWordBankButton
+            item={item}
+            isDark={isDark}
+            initialIsSaved={initialIsSaved}
+            day={day}
+            onSavedWordChange={onSavedWordChange}
+          />
+        }
+      />
 
       {/* Card Info Section */}
       <SwipeCardItemCardInfoSection
@@ -49,11 +62,12 @@ export function SwipeCardItem({
             ? resolved.localizedPronunciation
             : undefined
         }
-
         word={resolved.word}
         meaning={resolved.meaning}
         example={resolved.example}
         translation={resolved.translation}
+        synonyms={item.synonyms}
+        courseId={item.course}
         isDark={isDark}
         initialIsSaved={initialIsSaved}
         day={day}

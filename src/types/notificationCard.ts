@@ -16,6 +16,7 @@ interface NotificationCardPayloadBase {
   pronunciationRoman?: string;
   example?: string;
   translation?: string;
+  synonyms?: string[];
   imageUrl?: string;
   localized?: VocabularyLocalizationMap;
 }
@@ -36,6 +37,12 @@ export type NotificationCardPayload =
 const isStringOrUndefined = (value: unknown): value is string | undefined =>
   value === undefined || typeof value === "string";
 
+const isStringArrayOrUndefined = (
+  value: unknown,
+): value is string[] | undefined =>
+  value === undefined ||
+  (Array.isArray(value) && value.every((entry) => typeof entry === "string"));
+
 export const isNotificationCardPayload = (
   value: unknown,
 ): value is NotificationCardPayload => {
@@ -55,6 +62,7 @@ export const isNotificationCardPayload = (
   if (!isStringOrUndefined(data.pronunciationRoman)) return false;
   if (!isStringOrUndefined(data.example)) return false;
   if (!isStringOrUndefined(data.translation)) return false;
+  if (!isStringArrayOrUndefined(data.synonyms)) return false;
   if (!isStringOrUndefined(data.imageUrl)) return false;
   if (data.localized !== undefined) {
     if (typeof data.localized === "string") {

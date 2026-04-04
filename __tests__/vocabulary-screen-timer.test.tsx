@@ -25,6 +25,7 @@ const cards = [
     course: "TOEIC",
   },
 ];
+let mockCards = cards;
 
 jest.mock("expo-router", () => ({
   Stack: {
@@ -105,9 +106,9 @@ jest.mock("../src/services/firebase", () => ({
 }));
 
 jest.mock("../src/services/vocabularyPrefetch", () => ({
-  fetchVocabularyCards: jest.fn(async () => cards),
-  getCachedVocabularyCards: jest.fn(() => cards),
-  hydrateVocabularyCache: jest.fn(async () => cards),
+  fetchVocabularyCards: jest.fn(async () => mockCards),
+  getCachedVocabularyCards: jest.fn(() => mockCards),
+  hydrateVocabularyCache: jest.fn(async () => mockCards),
   isVocabularyCacheFresh: jest.fn(() => true),
 }));
 
@@ -139,7 +140,10 @@ jest.mock("../components/common/StreakMilestoneModal", () => ({
 }));
 
 jest.mock("../components/course/vocabulary/VocabularyEmptyState", () => ({
-  VocabularyEmptyState: () => null,
+  VocabularyEmptyState: () => {
+    const { Text } = require("react-native");
+    return <Text>No words found for this day.</Text>;
+  },
 }));
 
 jest.mock("../components/course/vocabulary/VocabularyFinishView", () => ({
@@ -188,6 +192,7 @@ describe("VocabularyScreen stopwatch", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockCards = cards;
   });
 
   afterEach(() => {
@@ -271,6 +276,20 @@ describe("VocabularyScreen stopwatch", () => {
     await Promise.resolve();
     expect(screen.getByText("Finish View")).toBeTruthy();
     expect(screen.queryByText("Study Time")).toBeNull();
+    expect(screen.queryByTestId("swipe-study-timer-value")).toBeNull();
+  });
+
+  it("does not mount the timer when the empty state is shown", async () => {
+    mockCards = [];
+
+    const screen = render(<VocabularyScreen />);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(screen.getByText("No words found for this day.")).toBeTruthy();
+    expect(screen.queryByText("Study Time")).toBeNull();
+    expect(screen.queryByTestId("swipe-study-timer")).toBeNull();
     expect(screen.queryByTestId("swipe-study-timer-value")).toBeNull();
   });
 

@@ -111,7 +111,7 @@ describe("SwipeCardItemAddToWordBankButton", () => {
     await waitFor(() => {
       expect(mockRecordWordLearned).toHaveBeenCalledWith("user-1");
       expect(mockOnSavedWordChange).toHaveBeenCalledWith("1", true);
-      expect(screen.getByText("bookmark")).toBeTruthy();
+      expect(screen.getByText("star")).toBeTruthy();
     });
 
     expect(transaction.set).toHaveBeenCalledWith(
@@ -137,6 +137,110 @@ describe("SwipeCardItemAddToWordBankButton", () => {
     expect(Alert.alert).not.toHaveBeenCalled();
   });
 
+  it("omits undefined optional fields from the firestore payload", async () => {
+    const transaction = createTransactionMock();
+    mockRunTransaction.mockImplementation(async (_db, handler) =>
+      handler(transaction),
+    );
+    mockRecordWordLearned.mockResolvedValue(undefined);
+
+    const screen = render(
+      <SwipeCardItemAddToWordBankButton
+        item={buildItem({
+          pronunciationRoman: undefined,
+          imageUrl: undefined,
+          localized: undefined,
+        })}
+        isDark={false}
+        onSavedWordChange={mockOnSavedWordChange}
+      />,
+    );
+
+    fireEvent.press(screen.UNSAFE_getByType(TouchableOpacity));
+
+    await waitFor(() => {
+      expect(mockRunTransaction).toHaveBeenCalled();
+    });
+
+    const writtenWord = transaction.set.mock.calls[0][1].words[0];
+    expect(writtenWord).not.toHaveProperty("pronunciationRoman");
+    expect(writtenWord).not.toHaveProperty("imageUrl");
+    expect(writtenWord).not.toHaveProperty("localized");
+    expect(writtenWord).not.toHaveProperty("day");
+  });
+
+  it("persists synonyms for TOEFL_IELTS words while trimming undefined fields", async () => {
+    const transaction = createTransactionMock();
+    mockRunTransaction.mockImplementation(async (_db, handler) =>
+      handler(transaction),
+    );
+    mockRecordWordLearned.mockResolvedValue(undefined);
+
+    const screen = render(
+      <SwipeCardItemAddToWordBankButton
+        item={buildItem({
+          course: "TOEFL_IELTS",
+          synonyms: ["discard", " leave ", "", "forsake"],
+          pronunciationRoman: undefined,
+        })}
+        isDark={false}
+        onSavedWordChange={mockOnSavedWordChange}
+      />,
+    );
+
+    fireEvent.press(screen.UNSAFE_getByType(TouchableOpacity));
+
+    await waitFor(() => {
+      expect(mockRunTransaction).toHaveBeenCalled();
+    });
+
+    const writtenWord = transaction.set.mock.calls[0][1].words[0];
+    expect(writtenWord).toHaveProperty("synonyms", [
+      "discard",
+      " leave ",
+      "",
+      "forsake",
+    ]);
+    expect(writtenWord).not.toHaveProperty("pronunciationRoman");
+  });
+
+  it("removes nested undefined values from localized payloads", async () => {
+    const transaction = createTransactionMock();
+    mockRunTransaction.mockImplementation(async (_db, handler) =>
+      handler(transaction),
+    );
+    mockRecordWordLearned.mockResolvedValue(undefined);
+
+    const screen = render(
+      <SwipeCardItemAddToWordBankButton
+        item={buildItem({
+          localized: {
+            en: {
+              meaning: "to leave behind",
+              pronunciation: undefined,
+              translation: undefined,
+            },
+            ko: undefined,
+          },
+        })}
+        isDark={false}
+        onSavedWordChange={mockOnSavedWordChange}
+      />,
+    );
+
+    fireEvent.press(screen.UNSAFE_getByType(TouchableOpacity));
+
+    await waitFor(() => {
+      expect(mockRunTransaction).toHaveBeenCalled();
+    });
+
+    const writtenWord = transaction.set.mock.calls[0][1].words[0];
+    expect(writtenWord).toHaveProperty("localized.en.meaning", "to leave behind");
+    expect(writtenWord).not.toHaveProperty("localized.en.pronunciation");
+    expect(writtenWord).not.toHaveProperty("localized.en.translation");
+    expect(writtenWord).not.toHaveProperty("localized.ko");
+  });
+
   it("removes an already-saved word without showing an info alert", async () => {
     const transaction = createTransactionMock([{ id: "1" }]);
     mockRunTransaction.mockImplementation(async (_db, handler) =>
@@ -156,7 +260,7 @@ describe("SwipeCardItemAddToWordBankButton", () => {
 
     await waitFor(() => {
       expect(mockOnSavedWordChange).toHaveBeenCalledWith("1", false);
-      expect(screen.getByText("bookmark-outline")).toBeTruthy();
+      expect(screen.getByText("star-outline")).toBeTruthy();
     });
 
     expect(mockRecordWordLearned).not.toHaveBeenCalled();
@@ -201,5 +305,38 @@ describe("SwipeCardItemAddToWordBankButton", () => {
 
     expect(mockRecordWordLearned).not.toHaveBeenCalled();
     expect(mockOnSavedWordChange).not.toHaveBeenCalled();
+  });
+
+  it("renders a white circular outlined star when inactive", () => {
+    const { getByTestId, getByText } = render(
+      <SwipeCardItemAddToWordBankButton item={buildItem()} isDark={false} />,
+    );
+
+    expect(getByTestId("swipe-card-add-to-wordbank-button")).toHaveStyle({
+      backgroundColor: "#FFFFFF",
+      borderColor: "#000000",
+      borderRadius: 8,
+    });
+    expect(getByText("star-outline")).toBeTruthy();
+    expect(getByTestId("swipe-card-add-to-wordbank-icon").props.color).toBe(
+      "#000000",
+    );
+  });
+
+  it("renders a yellow filled star state when added", () => {
+    const { getByTestId, getByText } = render(
+      <SwipeCardItemAddToWordBankButton
+        item={buildItem()}
+        isDark={false}
+        initialIsSaved={true}
+      />,
+    );
+
+    expect(getByTestId("swipe-card-add-to-wordbank-button")).toHaveStyle({
+      backgroundColor: "#F4C542",
+      borderColor: "#F4C542",
+      borderRadius: 8,
+    });
+    expect(getByText("star")).toBeTruthy();
   });
 });

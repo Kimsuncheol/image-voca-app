@@ -1,13 +1,14 @@
 import { Image } from "expo-image";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, View } from "react-native";
+import { StyleProp, StyleSheet, TextStyle, View } from "react-native";
 import { Card, Divider, Text } from "react-native-paper";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { SpeakerButton } from "../CollocationFlipCard/SpeakerButton";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import type { NotificationWordCardPayload } from "../../src/types/notificationCard";
 import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
+import { formatSynonyms } from "../../src/utils/synonyms";
 
 interface WordCardProps {
   data: Pick<
@@ -17,8 +18,10 @@ interface WordCardProps {
     | "pronunciation"
     | "example"
     | "translation"
+    | "synonyms"
     | "imageUrl"
     | "localized"
+    | "course"
   >;
   isDark?: boolean;
   onReady?: () => void;
@@ -29,6 +32,8 @@ interface SectionRowProps {
   value?: string;
   isDark: boolean;
   multiline?: boolean;
+  valueStyle?: StyleProp<TextStyle>;
+  valueTestID?: string;
 }
 
 function SectionRow({
@@ -36,6 +41,8 @@ function SectionRow({
   value,
   isDark,
   multiline = false,
+  valueStyle,
+  valueTestID,
 }: SectionRowProps) {
   if (!value?.trim()) return null;
 
@@ -48,11 +55,13 @@ function SectionRow({
         {label}
       </Text>
       <Text
+        testID={valueTestID}
         variant="bodyLarge"
         style={[
           styles.sectionValue,
           multiline && styles.sectionValueMultiline,
           { color: isDark ? "#F9FAFB" : "#111827" },
+          valueStyle,
         ]}
       >
         {value}
@@ -75,6 +84,9 @@ export default function WordCard({
   React.useEffect(() => {
     if (!resolved.imageUrl) onReady?.();
   }, [resolved.imageUrl, onReady]);
+
+  const formattedSynonyms =
+    data.course === "TOEFL_IELTS" ? formatSynonyms(data.synonyms) : undefined;
 
   return (
     <Card
@@ -151,6 +163,19 @@ export default function WordCard({
           value={resolved.translation}
           isDark={isDark}
           multiline={true}
+        />
+        <SectionRow
+          label={t("notifications.labels.synonyms", {
+            defaultValue: "Synonyms",
+          })}
+          value={formattedSynonyms}
+          isDark={isDark}
+          multiline={true}
+          valueTestID="notification-word-card-synonyms"
+          valueStyle={[
+            styles.synonymValue,
+            { color: isDark ? "#E5E7EB" : "#0F172A" },
+          ]}
         />
         <SectionRow
           label={t("notifications.labels.pronunciation", {
@@ -231,5 +256,9 @@ const styles = StyleSheet.create({
   },
   sectionValueMultiline: {
     lineHeight: 24,
+  },
+  synonymValue: {
+    fontSize: 15,
+    lineHeight: 21,
   },
 });

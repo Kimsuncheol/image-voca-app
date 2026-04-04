@@ -28,4 +28,18 @@ describe("SwipeCardItemImageSection", () => {
 
     expect(getByTestId("icon-image-outline")).toBeTruthy();
   });
+
+  it("renders the top-right overlay inside the image section", () => {
+    const ReactModule = require("react");
+    const { Text } = require("react-native");
+    const { getByTestId, getByText } = render(
+      <SwipeCardItemImageSection
+        isDark={false}
+        topRightOverlay={<Text>save</Text>}
+      />,
+    );
+
+    expect(getByTestId("swipe-card-image-top-right-overlay")).toBeTruthy();
+    expect(getByText("save")).toBeTruthy();
+  });
 });

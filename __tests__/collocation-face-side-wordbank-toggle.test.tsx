@@ -108,6 +108,8 @@ describe("Collocation FaceSide word bank toggle", () => {
       "swipe.errors.alreadyAdded",
     );
     expect(Alert.alert).not.toHaveBeenCalled();
+    const writtenWord = transaction.set.mock.calls[0][1].words[0];
+    expect(writtenWord).not.toHaveProperty("day");
   });
 
   it("removes a saved collocation and reports unsaved state without alerts", async () => {

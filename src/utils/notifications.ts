@@ -145,6 +145,7 @@ type NotificationCardSelection = {
   pronunciationRoman?: string;
   example?: string;
   translation?: string;
+  synonyms?: string[];
   imageUrl?: string;
   localized?: NotificationCardPayload["localized"];
   course?: CourseType | string;
@@ -166,6 +167,7 @@ const buildPopWordNotificationData = (
     pronunciationRoman: selection.pronunciationRoman ?? "",
     example: selection.example ?? "",
     translation: selection.translation ?? "",
+    synonyms: selection.synonyms,
     imageUrl: selection.imageUrl ?? "",
     localized: selection.localized,
   };

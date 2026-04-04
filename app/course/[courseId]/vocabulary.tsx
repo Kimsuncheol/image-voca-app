@@ -417,7 +417,7 @@ export default function VocabularyScreen() {
         }}
       />
       <View style={styles.swipeContainer}>
-        {!isFinished && (
+        {!isFinished && cards.length > 0 && (
           <SwipeStudyTimer
             elapsedSeconds={elapsedSeconds}
             label={t("swipe.timer.label")}

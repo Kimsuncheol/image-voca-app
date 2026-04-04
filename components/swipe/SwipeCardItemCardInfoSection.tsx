@@ -11,6 +11,8 @@ interface CardInfoSectionProps {
   meaning: string;
   example: string;
   translation?: string;
+  synonyms?: string[];
+  courseId: string;
   isDark: boolean;
   initialIsSaved?: boolean;
   day?: number;
@@ -25,6 +27,8 @@ export function SwipeCardItemCardInfoSection({
   meaning,
   example,
   translation,
+  synonyms,
+  courseId,
   isDark,
   initialIsSaved = false,
   day,
@@ -47,6 +51,8 @@ export function SwipeCardItemCardInfoSection({
         meaning={meaning}
         example={example}
         translation={translation}
+        synonyms={synonyms}
+        courseId={courseId}
         isDark={isDark}
         initialIsSaved={initialIsSaved}
         day={day}
