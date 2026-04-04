@@ -1,11 +1,9 @@
 import { getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
-import { createHash } from "node:crypto";
 import { defineSecret } from "firebase-functions/params";
 import { onRequest } from "firebase-functions/v2/https";
 
-const openAiApiKey = defineSecret("OPENAI_API_KEY");
 const tossSecretKey = defineSecret("TOSS_SECRET_KEY");
 
 if (!getApps().length) {
@@ -56,102 +54,6 @@ const STORE_FRONT_PRICES: Record<
   },
 };
 
-interface TtsRequestBody {
-  text?: string;
-  language?: string;
-  rate?: number;
-  voice?: string;
-}
-
-interface VoiceDefinition {
-  alias: string;
-  providerVoice: string;
-}
-
-const VOICE_MAP: Record<string, VoiceDefinition> = {
-  Aiden: {
-    alias: "Aiden",
-    providerVoice: "alloy",
-  },
-  Sohee: {
-    alias: "Sohee",
-    providerVoice: "nova",
-  },
-  Ono_Anna: {
-    alias: "Ono_Anna",
-    providerVoice: "shimmer",
-  },
-};
-
-const DEFAULT_VOICE_BY_LANGUAGE: Record<string, string> = {
-  en: "Aiden",
-  ja: "Ono_Anna",
-  ko: "Sohee",
-};
-
-const stripSurroundingQuotes = (text: string): string => {
-  const trimmedText = text.trim();
-  if (
-    (trimmedText.startsWith('"') && trimmedText.endsWith('"')) ||
-    (trimmedText.startsWith("'") && trimmedText.endsWith("'"))
-  ) {
-    return trimmedText.slice(1, -1).trim();
-  }
-  return trimmedText;
-};
-
-const normalizeText = (text: string): string =>
-  stripSurroundingQuotes(text).replace(/\s+/g, " ").trim();
-
-const clampRate = (rate?: number): number => {
-  if (typeof rate !== "number" || Number.isNaN(rate)) {
-    return 0.9;
-  }
-
-  return Math.min(2, Math.max(0.5, rate));
-};
-
-const getBaseLanguageCode = (language = "en-US"): string =>
-  language.split("-")[0].toLowerCase();
-
-const resolveVoiceAlias = (language?: string, voice?: string): string => {
-  if (voice && VOICE_MAP[voice]) {
-    return voice;
-  }
-
-  const baseCode = getBaseLanguageCode(language);
-  return DEFAULT_VOICE_BY_LANGUAGE[baseCode] || "Aiden";
-};
-
-const buildCacheKey = (
-  text: string,
-  language: string,
-  voice: string,
-  rate: number
-): string =>
-  createHash("sha256")
-    .update(
-      JSON.stringify({
-        text,
-        language,
-        voice,
-        rate,
-      })
-    )
-    .digest("hex");
-
-const parseBody = (body: unknown): TtsRequestBody => {
-  if (typeof body === "string") {
-    return JSON.parse(body) as TtsRequestBody;
-  }
-
-  if (body && typeof body === "object") {
-    return body as TtsRequestBody;
-  }
-
-  return {};
-};
-
 const parseConfirmPaymentBody = (body: unknown): ConfirmTossPaymentRequestBody => {
   if (typeof body === "string") {
     return JSON.parse(body) as ConfirmTossPaymentRequestBody;
@@ -185,108 +87,6 @@ const getConfirmedAmount = (payload: ConfirmedTossPayment) =>
   typeof payload.totalAmount === "number"
     ? payload.totalAmount
     : payload.balanceAmount;
-
-export const qwenTtsSynthesize = onRequest(
-  {
-    cors: true,
-    region: "asia-northeast3",
-    secrets: [openAiApiKey],
-  },
-  async (req, res) => {
-    if (req.method !== "POST") {
-      res.status(405).json({ message: "Method not allowed." });
-      return;
-    }
-
-    try {
-      const body = parseBody(req.body);
-      const normalizedText = normalizeText(body.text || "");
-
-      if (!normalizedText) {
-        res.status(400).json({ message: "Text is required." });
-        return;
-      }
-
-      if (normalizedText.length > 300) {
-        res
-          .status(400)
-          .json({ message: "Text must be 300 characters or fewer." });
-        return;
-      }
-
-      const language = (body.language || "en-US").trim() || "en-US";
-      const rate = clampRate(body.rate);
-      const voiceAlias = resolveVoiceAlias(language, body.voice);
-      const voiceConfig = VOICE_MAP[voiceAlias];
-
-      if (!voiceConfig) {
-        res.status(400).json({ message: "Unsupported voice." });
-        return;
-      }
-
-      const cacheKey = buildCacheKey(
-        normalizedText,
-        language,
-        voiceConfig.alias,
-        rate
-      );
-
-      const response = await fetch(
-        "https://api.openai.com/v1/audio/speech",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${openAiApiKey.value()}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "gpt-4o-mini-tts",
-            input: normalizedText,
-            voice: voiceConfig.providerVoice,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        let message = "OpenAI TTS request failed.";
-        try {
-          const payload = (await response.json()) as {
-            error?: {
-              message?: string;
-            };
-            message?: string;
-          };
-          message = payload.error?.message || payload.message || message;
-        } catch {
-          const fallbackMessage = await response.text();
-          if (fallbackMessage) {
-            message = fallbackMessage;
-          }
-        }
-
-        res.status(response.status).json({
-          message,
-        });
-        return;
-      }
-
-      const audioBuffer = Buffer.from(await response.arrayBuffer());
-      res.status(200).json({
-        audioBase64: audioBuffer.toString("base64"),
-        mimeType: "audio/mpeg",
-        cacheKey,
-      });
-    } catch (error) {
-      console.error("Speech synthesis failed:", error);
-      res.status(500).json({
-        message:
-          error instanceof Error
-            ? error.message
-            : "Unexpected speech synthesis error.",
-      });
-    }
-  }
-);
 
 export const confirmTossPayment = onRequest(
   {

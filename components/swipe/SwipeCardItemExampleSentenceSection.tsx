@@ -8,8 +8,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import * as Speech from "expo-speech";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
+import { useSpeech } from "../../src/hooks/useSpeech";
 import { stripKanaParens } from "../../src/utils/japaneseText";
 import { formatSynonyms } from "../../src/utils/synonyms";
 
@@ -34,6 +34,7 @@ export function SwipeCardItemExampleSentenceSection({
 }: SwipeCardItemExampleSentenceSectionProps) {
   const { t } = useTranslation();
   useCardSpeechCleanup(isActive);
+  const { speak } = useSpeech();
 
   // Split examples and translations by newlines
   // Remove number prefixes (e.g., "1. ", "2. ") from the raw text
@@ -57,12 +58,12 @@ export function SwipeCardItemExampleSentenceSection({
   const displayedExamples =
     shouldCollapse && !isExpanded ? examples.slice(0, 3) : examples;
 
-  const handleSpeak = (text: string) => {
+  const handleSpeak = React.useCallback(async (text: string) => {
     if (!isActive) {
       return;
     }
-    Speech.speak(text, { language: "en-US", rate: 0.9 });
-  };
+    await speak(text, { language: "en-US", rate: 0.9 });
+  }, [isActive, speak]);
 
   return (
     <>
@@ -87,7 +88,9 @@ export function SwipeCardItemExampleSentenceSection({
           <View key={index} style={styles.exampleGroup}>
             {/* Example sentence */}
             <TouchableOpacity
-              onPress={() => handleSpeak(stripKanaParens(exampleText.trim()))}
+              onPress={() => {
+                void handleSpeak(stripKanaParens(exampleText.trim()));
+              }}
               activeOpacity={0.7}
             >
               <Text

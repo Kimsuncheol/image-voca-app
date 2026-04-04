@@ -1,9 +1,8 @@
 import React from "react";
-import * as Speech from "expo-speech";
 import { stopSpeech } from "../services/speechService";
 
 export const stopAllCardSpeech = async (): Promise<void> => {
-  await Promise.allSettled([stopSpeech(), Speech.stop()]);
+  await stopSpeech();
 };
 
 export function useCardSpeechCleanup(isActive: boolean = true) {

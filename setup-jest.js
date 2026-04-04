@@ -1,5 +1,7 @@
 import 'react-native-gesture-handler/jestSetup';
 
+const { jest } = globalThis;
+
 jest.mock(
   "@react-native-async-storage/async-storage",
   () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
@@ -19,8 +21,6 @@ process.env.EXPO_PUBLIC_COURSE_PATH_JLPT_N4 = "courses/jlpt/n4";
 process.env.EXPO_PUBLIC_COURSE_PATH_JLPT_N5 = "courses/jlpt/n5";
 process.env.EXPO_PUBLIC_COURSE_PATH_JLPT_PREFIX = "reference/jlpt/prefix";
 process.env.EXPO_PUBLIC_COURSE_PATH_JLPT_POSTFIX = "reference/jlpt/postfix";
-process.env.EXPO_PUBLIC_OPENAI_TTS_ENDPOINT = "https://example.com/openai-tts";
-process.env.EXPO_PUBLIC_QWEN_TTS_ENDPOINT = "https://example.com/qwen-tts";
 process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID = "demo-project";
 
 jest.mock('expo-image', () => {
@@ -46,51 +46,14 @@ jest.mock("@expo/vector-icons", () => {
   };
 });
 
-jest.mock("expo-av", () => {
-  const playbackStatus = {
-    isLoaded: true,
-    isPlaying: false,
-    didJustFinish: false,
-    positionMillis: 0,
-    durationMillis: 1000,
-  };
-
-  const createSound = () => ({
-    setOnPlaybackStatusUpdate: jest.fn(),
-    unloadAsync: jest.fn(async () => playbackStatus),
-    playAsync: jest.fn(async () => ({ ...playbackStatus, isPlaying: true })),
-    pauseAsync: jest.fn(async () => ({ ...playbackStatus, isPlaying: false })),
-    setRateAsync: jest.fn(async () => playbackStatus),
-  });
-
-  return {
-    Audio: {
-      setAudioModeAsync: jest.fn(async () => undefined),
-      Sound: {
-        createAsync: jest.fn(async (_source, _initialStatus, onPlaybackStatusUpdate) => {
-          const sound = createSound();
-          sound.setOnPlaybackStatusUpdate.mockImplementation(() => undefined);
-          if (onPlaybackStatusUpdate) {
-            sound.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
-          }
-          return {
-            sound,
-            status: playbackStatus,
-          };
-        }),
-      },
-    },
-  };
-});
-
-jest.mock("expo-file-system/legacy", () => ({
-  cacheDirectory: "file:///mock-cache/",
-  EncodingType: {
-    Base64: "base64",
-  },
-  getInfoAsync: jest.fn(async () => ({ exists: false, isDirectory: false })),
-  makeDirectoryAsync: jest.fn(async () => undefined),
-  writeAsStringAsync: jest.fn(async () => undefined),
+jest.mock("expo-speech", () => ({
+  maxSpeechInputLength: 4000,
+  speak: jest.fn(),
+  stop: jest.fn(async () => undefined),
+  pause: jest.fn(async () => undefined),
+  resume: jest.fn(async () => undefined),
+  isSpeakingAsync: jest.fn(async () => false),
+  getAvailableVoicesAsync: jest.fn(async () => []),
 }));
 
 jest.mock("expo-crypto", () => ({

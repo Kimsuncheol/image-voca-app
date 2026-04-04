@@ -1,269 +1,183 @@
-import { Audio } from "expo-av";
-import * as Crypto from "expo-crypto";
-import * as FileSystem from "expo-file-system/legacy";
+import * as Speech from "expo-speech";
 import {
   __resetSpeechServiceForTests,
-  buildSpeechCacheKey,
   isPaused,
   isSpeaking,
   normalizeSpeechText,
   pauseSpeech,
   resumeSpeech,
   speak,
+  splitSpeechPassage,
   stopSpeech,
 } from "../src/services/speechService";
 
 describe("speechService", () => {
-  const createAsyncMock = Audio.Sound.createAsync as unknown as jest.Mock;
-  const setAudioModeAsyncMock = Audio.setAudioModeAsync as jest.Mock;
-  const digestStringAsyncMock = Crypto.digestStringAsync as jest.Mock;
-  const getInfoAsyncMock = FileSystem.getInfoAsync as jest.Mock;
-  const makeDirectoryAsyncMock = FileSystem.makeDirectoryAsync as jest.Mock;
-  const writeAsStringAsyncMock = FileSystem.writeAsStringAsync as jest.Mock;
+  const speakMock = Speech.speak as jest.Mock;
+  const stopMock = Speech.stop as jest.Mock;
+  const pauseMock = Speech.pause as jest.Mock;
+  const resumeMock = Speech.resume as jest.Mock;
+  const waitForSpeakCalls = async (count: number) => {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      if (speakMock.mock.calls.length >= count) {
+        return;
+      }
+      await Promise.resolve();
+    }
 
-  let existingUris: Set<string>;
-  let playbackStatusHandler: ((status: any) => void) | null;
-  let soundMock: {
-    setOnPlaybackStatusUpdate: jest.Mock;
-    unloadAsync: jest.Mock;
-    playAsync: jest.Mock;
-    pauseAsync: jest.Mock;
-    setRateAsync: jest.Mock;
+    throw new Error(`Timed out waiting for ${count} speech calls.`);
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
-    existingUris = new Set();
-    playbackStatusHandler = null;
-    process.env.EXPO_PUBLIC_OPENAI_TTS_ENDPOINT = "https://example.com/openai-tts";
-    process.env.EXPO_PUBLIC_QWEN_TTS_ENDPOINT = "https://example.com/qwen-tts";
-
-    soundMock = {
-      setOnPlaybackStatusUpdate: jest.fn(),
-      unloadAsync: jest.fn(async () => ({
-        isLoaded: true,
-        isPlaying: false,
-        didJustFinish: false,
-        positionMillis: 0,
-        durationMillis: 1000,
-      })),
-      playAsync: jest.fn(async () => ({
-        isLoaded: true,
-        isPlaying: true,
-        didJustFinish: false,
-        positionMillis: 0,
-        durationMillis: 1000,
-      })),
-      pauseAsync: jest.fn(async () => ({
-        isLoaded: true,
-        isPlaying: false,
-        didJustFinish: false,
-        positionMillis: 200,
-        durationMillis: 1000,
-      })),
-      setRateAsync: jest.fn(async () => ({
-        isLoaded: true,
-        isPlaying: false,
-        didJustFinish: false,
-        positionMillis: 0,
-        durationMillis: 1000,
-      })),
-    };
-
-    createAsyncMock.mockImplementation(
-      async (_source, _initialStatus, onPlaybackStatusUpdate) => {
-        playbackStatusHandler = onPlaybackStatusUpdate;
-        return {
-          sound: soundMock,
-          status: {
-            isLoaded: true,
-            isPlaying: false,
-            didJustFinish: false,
-            positionMillis: 0,
-            durationMillis: 1000,
-          },
-        };
-      }
-    );
-
-    setAudioModeAsyncMock.mockResolvedValue(undefined);
-    digestStringAsyncMock.mockImplementation(
-      async (_algorithm, value) => `hash:${value}`
-    );
-    getInfoAsyncMock.mockImplementation(async (uri: string) => ({
-      exists: existingUris.has(uri),
-      isDirectory: uri.endsWith("/"),
-    }));
-    makeDirectoryAsyncMock.mockImplementation(async (uri: string) => {
-      existingUris.add(uri);
-    });
-    writeAsStringAsyncMock.mockImplementation(async (uri: string) => {
-      existingUris.add(uri);
-    });
-
-    global.fetch = jest.fn();
-
     await __resetSpeechServiceForTests();
+    jest.clearAllMocks();
+    stopMock.mockResolvedValue(undefined);
+    pauseMock.mockResolvedValue(undefined);
+    resumeMock.mockResolvedValue(undefined);
   });
 
   afterEach(async () => {
     await __resetSpeechServiceForTests();
   });
 
-  it("normalizes speech text and builds a stable cache key", async () => {
+  it("normalizes text and splits long passages into ordered chunks", () => {
     expect(normalizeSpeechText(` "Hello   world" \n `)).toBe("Hello world");
 
-    await buildSpeechCacheKey(`"안녕   하세요"`, {
-      language: "ko-KR",
-      rate: 0.85,
-    });
-
-    expect(digestStringAsyncMock).toHaveBeenCalledWith(
-      "SHA256",
-      JSON.stringify({
-        backend: "openai",
-        text: "안녕 하세요",
-        language: "ko-KR",
-        voice: "Sohee",
-        rate: 0.85,
-      })
+    const chunks = splitSpeechPassage(
+      "alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu",
+      20,
     );
+
+    expect(chunks).toEqual([
+      "alpha beta gamma",
+      "delta epsilon zeta",
+      "eta theta iota kappa",
+      "lambda mu",
+    ]);
+    expect(chunks.every((chunk) => chunk.length <= 20)).toBe(true);
   });
 
-  it("downloads synthesized audio once and reuses the cached file", async () => {
-    const cacheKey = await buildSpeechCacheKey("Hello world", {
-      language: "en-US",
-      rate: 0.9,
-      voice: "Aiden",
-    });
-
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        audioBase64: "ZmFrZS1hdWRpbw==",
-        mimeType: "audio/mpeg",
-        cacheKey,
-      }),
-    });
-
-    await speak(`"Hello   world"`, {
-      language: "en-US",
-      rate: 0.9,
-    });
-
-    expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(global.fetch).toHaveBeenCalledWith(
-      "https://example.com/openai-tts",
-      expect.any(Object)
-    );
-    expect(writeAsStringAsyncMock).toHaveBeenCalledWith(
-      expect.stringContaining(`${cacheKey}.mp3`),
-      "ZmFrZS1hdWRpbw==",
-      { encoding: "base64" }
-    );
-
-    await stopSpeech();
-    (global.fetch as jest.Mock).mockClear();
-
-    await speak("Hello world", {
-      language: "en-US",
-      rate: 0.9,
-    });
-
-    expect(global.fetch).not.toHaveBeenCalled();
-    expect(createAsyncMock).toHaveBeenCalledTimes(2);
+  it("rejects empty speech text", async () => {
+    await expect(speak(`  "   "  `)).rejects.toThrow("Speech text cannot be empty.");
+    expect(speakMock).not.toHaveBeenCalled();
   });
 
-  it("tracks play, pause, resume, and finish state through expo-av", async () => {
-    const cacheKey = await buildSpeechCacheKey("Vocabulary", {
+  it("tracks single-utterance playback, pause, resume, and finish state", async () => {
+    const speakPromise = speak("Vocabulary", {
       language: "en-US",
       rate: 0.9,
     });
 
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        audioBase64: "ZmFrZS1hdWRpbw==",
-        mimeType: "audio/mpeg",
-        cacheKey,
-      }),
-    });
+    await waitForSpeakCalls(1);
+    expect(speakMock).toHaveBeenCalledTimes(1);
 
-    await speak("Vocabulary", {
-      language: "en-US",
-      rate: 0.9,
-    });
+    const speechOptions = speakMock.mock.calls[0][1];
+    speechOptions.onStart?.();
+    await Promise.resolve();
 
     expect(await isSpeaking()).toBe(true);
     expect(await isPaused()).toBe(false);
 
     await pauseSpeech();
-    expect(soundMock.pauseAsync).toHaveBeenCalled();
+    expect(pauseMock).toHaveBeenCalledTimes(1);
     expect(await isSpeaking()).toBe(false);
     expect(await isPaused()).toBe(true);
 
     await resumeSpeech();
-    expect(soundMock.playAsync).toHaveBeenCalledTimes(2);
+    expect(resumeMock).toHaveBeenCalledTimes(1);
     expect(await isSpeaking()).toBe(true);
     expect(await isPaused()).toBe(false);
 
-    playbackStatusHandler?.({
-      isLoaded: true,
-      isPlaying: false,
-      didJustFinish: true,
-      positionMillis: 1000,
-      durationMillis: 1000,
-    });
-
-    await Promise.resolve();
-    await Promise.resolve();
+    speechOptions.onDone?.();
+    await speakPromise;
 
     expect(await isSpeaking()).toBe(false);
     expect(await isPaused()).toBe(false);
-    expect(soundMock.unloadAsync).toHaveBeenCalled();
   });
 
-  it("falls back to the legacy TTS endpoint env var when the preferred one is absent", async () => {
-    delete process.env.EXPO_PUBLIC_OPENAI_TTS_ENDPOINT;
-
-    const cacheKey = await buildSpeechCacheKey("Fallback", {
+  it("stops active playback and clears speech state", async () => {
+    const speakPromise = speak("Stop me", {
       language: "en-US",
       rate: 0.9,
     });
 
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        audioBase64: "ZmFrZS1hdWRpbw==",
-        mimeType: "audio/mpeg",
-        cacheKey,
-      }),
-    });
+    await waitForSpeakCalls(1);
+    const speechOptions = speakMock.mock.calls[0][1];
+    speechOptions.onStart?.();
+    await Promise.resolve();
 
-    await speak("Fallback", {
-      language: "en-US",
-      rate: 0.9,
-    });
+    stopMock.mockClear();
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      "https://example.com/qwen-tts",
-      expect.any(Object)
-    );
+    await stopSpeech();
+    speechOptions.onStopped?.();
+    await speakPromise;
+
+    expect(stopMock).toHaveBeenCalledTimes(1);
+    expect(await isSpeaking()).toBe(false);
+    expect(await isPaused()).toBe(false);
   });
 
-  it("throws a configuration error when no remote endpoint is configured", async () => {
-    delete process.env.EXPO_PUBLIC_OPENAI_TTS_ENDPOINT;
-    delete process.env.EXPO_PUBLIC_QWEN_TTS_ENDPOINT;
+  it("queues chunked passages sequentially and fires session callbacks once", async () => {
+    const originalMaxSpeechInputLength = Speech.maxSpeechInputLength;
+    const onStart = jest.fn();
+    const onDone = jest.fn();
 
-    await expect(
-      speak("Configuration required", {
+    Object.defineProperty(Speech, "maxSpeechInputLength", {
+      value: 20,
+      configurable: true,
+      writable: true,
+    });
+
+    try {
+      const longText =
+        "alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu";
+      const expectedChunks = splitSpeechPassage(longText);
+
+      const speakPromise = speak(longText, {
         language: "en-US",
         rate: 0.9,
-      })
-    ).rejects.toThrow(
-      "EXPO_PUBLIC_OPENAI_TTS_ENDPOINT or EXPO_PUBLIC_QWEN_TTS_ENDPOINT must be configured."
-    );
+        onStart,
+        onDone,
+      });
 
-    expect(global.fetch).not.toHaveBeenCalled();
+      await waitForSpeakCalls(1);
+      expect(speakMock).toHaveBeenCalledTimes(1);
+      expect(speakMock.mock.calls[0][0]).toBe(expectedChunks[0]);
+
+      const firstChunkOptions = speakMock.mock.calls[0][1];
+      firstChunkOptions.onStart?.();
+      firstChunkOptions.onDone?.();
+      await waitForSpeakCalls(2);
+
+      expect(onStart).toHaveBeenCalledTimes(1);
+      expect(speakMock).toHaveBeenCalledTimes(2);
+      expect(speakMock.mock.calls[1][0]).toBe(expectedChunks[1]);
+
+      const secondChunkOptions = speakMock.mock.calls[1][1];
+      secondChunkOptions.onStart?.();
+      secondChunkOptions.onDone?.();
+      await waitForSpeakCalls(3);
+
+      const thirdChunkOptions = speakMock.mock.calls[2][1];
+      thirdChunkOptions.onStart?.();
+      thirdChunkOptions.onDone?.();
+      await waitForSpeakCalls(4);
+
+      const fourthChunkOptions = speakMock.mock.calls[3][1];
+      fourthChunkOptions.onStart?.();
+      fourthChunkOptions.onDone?.();
+      await speakPromise;
+
+      expect(onStart).toHaveBeenCalledTimes(1);
+      expect(onDone).toHaveBeenCalledTimes(1);
+      expect(speakMock).toHaveBeenCalledTimes(expectedChunks.length);
+      expect(await isSpeaking()).toBe(false);
+      expect(await isPaused()).toBe(false);
+    } finally {
+      Object.defineProperty(Speech, "maxSpeechInputLength", {
+        value: originalMaxSpeechInputLength,
+        configurable: true,
+        writable: true,
+      });
+    }
   });
 });

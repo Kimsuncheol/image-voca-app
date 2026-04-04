@@ -9,9 +9,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import * as Speech from "expo-speech";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useCardSpeechCleanup } from "../../../src/hooks/useCardSpeechCleanup";
+import { useSpeech } from "../../../src/hooks/useSpeech";
 import { VocabularyCard } from "../../../src/types/vocabulary";
 import {
   splitJapaneseTextSegments,
@@ -96,6 +96,7 @@ const ExampleBlock = React.memo(function ExampleBlock({
   showKana,
 }: ExampleBlockProps) {
   useCardSpeechCleanup(isActive);
+  const { speak } = useSpeech();
   const hiddenExample = React.useMemo(
     () => (example ? stripKanaParens(example) : example),
     [example],
@@ -117,8 +118,8 @@ const ExampleBlock = React.memo(function ExampleBlock({
     if (!isActive) {
       return;
     }
-    Speech.speak(stripKanaParens(text), { language: "ja-JP", rate: 0.85 });
-  }, [isActive]);
+    void speak(stripKanaParens(text), { language: "ja-JP", rate: 0.85 });
+  }, [isActive, speak]);
 
   if (rowCount === 0) {
     return null;
@@ -196,6 +197,7 @@ export function JlptVocabularyCard({
 }: JlptVocabularyCardProps) {
   const { isDark } = useTheme();
   const { i18n } = useTranslation();
+  const { speak } = useSpeech();
   useCardSpeechCleanup(isActive);
   const resolved = React.useMemo(
     () => resolveVocabularyContent(item, i18n.language),
@@ -214,8 +216,8 @@ export function JlptVocabularyCard({
     if (!isActive) {
       return;
     }
-    Speech.speak(item.word, { language: "ja-JP", rate: 0.85 });
-  }, [isActive, item.word]);
+    void speak(item.word, { language: "ja-JP", rate: 0.85 });
+  }, [isActive, item.word, speak]);
 
   return (
     <View

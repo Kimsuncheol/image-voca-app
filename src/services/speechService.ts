@@ -1,22 +1,19 @@
 /**
  * Speech Service
  *
- * Centralized Text-to-Speech functionality backed by remote provider endpoints.
+ * Centralized Text-to-Speech functionality backed by expo-speech.
  */
 
-import NetInfo from "@react-native-community/netinfo";
-import { Audio, type AVPlaybackStatus, type AVPlaybackStatusSuccess } from "expo-av";
-import * as Crypto from "expo-crypto";
-import * as FileSystem from "expo-file-system/legacy";
+import * as Speech from "expo-speech";
 
 export interface SpeechOptions {
   /** Language code (e.g., "en-US", "ko-KR") */
   language?: string;
   /** Speech rate (0.5 - 2.0, default: 1.0) */
   rate?: number;
-  /** Pitch is unused by the remote provider and reserved for future support */
+  /** Speech pitch (0.5 - 2.0, default: 1.0) */
   pitch?: number;
-  /** App-supported voice identifier */
+  /** Native expo-speech voice identifier */
   voice?: string;
   /** Callback when speech starts */
   onStart?: () => void;
@@ -26,37 +23,10 @@ export interface SpeechOptions {
   onError?: (error: Error) => void;
 }
 
-export interface SpeechVoiceOption {
-  id: string;
-  providerVoice: string;
-  label: string;
-  languages: string[];
-}
-
 interface SpeechState {
   isSpeaking: boolean;
   isPaused: boolean;
 }
-
-interface SpeechResponse {
-  audioBase64: string;
-  mimeType: string;
-  cacheKey: string;
-}
-
-type SpeechBackend =
-  | {
-      kind: "remote-openai";
-      endpoint: string;
-      cacheNamespace: "openai";
-    }
-  | {
-      kind: "remote-qwen";
-      endpoint: string;
-      cacheNamespace: "qwen";
-    };
-
-export const SPEECH_OFFLINE_ERROR = "SPEECH_OFFLINE";
 
 const DEFAULT_CONFIG: SpeechOptions = {
   language: "en-US",
@@ -64,80 +34,41 @@ const DEFAULT_CONFIG: SpeechOptions = {
   pitch: 1.0,
 };
 
-const TTS_CACHE_DIRECTORY = `${FileSystem.cacheDirectory ?? ""}openai-tts/`;
-
-export const SUPPORTED_VOICES: SpeechVoiceOption[] = [
-  {
-    id: "Aiden",
-    providerVoice: "alloy",
-    label: "Aiden",
-    languages: ["en", "es", "fr", "de", "it", "pt", "ru", "ja", "ko", "zh"],
-  },
-  {
-    id: "Sohee",
-    providerVoice: "nova",
-    label: "Sohee",
-    languages: ["ko", "en", "ja", "zh"],
-  },
-  {
-    id: "Ono_Anna",
-    providerVoice: "shimmer",
-    label: "Ono Anna",
-    languages: ["ja", "en", "ko", "zh"],
-  },
-];
-
-const DEFAULT_VOICE_BY_LANGUAGE: Record<string, string> = {
-  en: "Aiden",
-  ja: "Ono_Anna",
-  ko: "Sohee",
-};
-
 export const LANGUAGE_CONFIGS: Record<string, Partial<SpeechOptions>> = {
   en: {
     language: "en-US",
     rate: 0.9,
     pitch: 1.0,
-    voice: "Aiden",
   },
   ko: {
     language: "ko-KR",
     rate: 0.85,
     pitch: 1.0,
-    voice: "Sohee",
   },
   es: {
     language: "es-ES",
     rate: 0.9,
     pitch: 1.0,
-    voice: "Aiden",
   },
   fr: {
     language: "fr-FR",
     rate: 0.9,
     pitch: 1.0,
-    voice: "Aiden",
   },
   ja: {
     language: "ja-JP",
     rate: 0.85,
     pitch: 1.0,
-    voice: "Ono_Anna",
   },
   zh: {
     language: "zh-CN",
     rate: 0.85,
     pitch: 1.0,
-    voice: "Aiden",
   },
 };
 
-let currentSound: Audio.Sound | null = null;
 let currentPlaybackToken = 0;
-let audioModeConfigured = false;
-let cacheDirectoryReady = false;
 let speechState: SpeechState = { isSpeaking: false, isPaused: false };
-let activeBackend: SpeechBackend["kind"] | null = null;
 const speechListeners = new Set<(state: SpeechState) => void>();
 
 const clampRate = (rate: number | undefined): number => {
@@ -146,6 +77,14 @@ const clampRate = (rate: number | undefined): number => {
     return fallbackRate;
   }
   return Math.min(2, Math.max(0.5, rate));
+};
+
+const clampPitch = (pitch: number | undefined): number => {
+  const fallbackPitch = DEFAULT_CONFIG.pitch ?? 1;
+  if (typeof pitch !== "number" || Number.isNaN(pitch)) {
+    return fallbackPitch;
+  }
+  return Math.min(2, Math.max(0.5, pitch));
 };
 
 const stripSurroundingQuotes = (text: string): string => {
@@ -167,240 +106,157 @@ const setSpeechState = (nextState: Partial<SpeechState>) => {
   speechListeners.forEach((listener) => listener(speechState));
 };
 
-const resolveVoiceId = (languageCode?: string, voice?: string): string => {
-  if (voice && SUPPORTED_VOICES.some((item) => item.id === voice)) {
-    return voice;
+const getSpeechInputLimit = () => {
+  const candidate = Speech.maxSpeechInputLength;
+  if (typeof candidate !== "number" || !Number.isFinite(candidate) || candidate <= 0) {
+    return Number.MAX_SAFE_INTEGER;
   }
-
-  const baseCode = getBaseLanguageCode(languageCode);
-  return DEFAULT_VOICE_BY_LANGUAGE[baseCode] || "Aiden";
+  return candidate;
 };
 
-const getSpeechBackend = (): SpeechBackend => {
-  const openAiEndpoint = process.env.EXPO_PUBLIC_OPENAI_TTS_ENDPOINT?.trim();
-  if (openAiEndpoint) {
-    return {
-      kind: "remote-openai",
-      endpoint: openAiEndpoint,
-      cacheNamespace: "openai",
-    };
-  }
-
-  const qwenEndpoint = process.env.EXPO_PUBLIC_QWEN_TTS_ENDPOINT?.trim();
-  if (qwenEndpoint) {
-    return {
-      kind: "remote-qwen",
-      endpoint: qwenEndpoint,
-      cacheNamespace: "qwen",
-    };
-  }
-
-  throw new Error(
-    "EXPO_PUBLIC_OPENAI_TTS_ENDPOINT or EXPO_PUBLIC_QWEN_TTS_ENDPOINT must be configured."
-  );
-};
-
-const ensureCacheDirectory = async () => {
-  if (cacheDirectoryReady || !TTS_CACHE_DIRECTORY) {
+const runSpeechMethod = async (
+  method: (() => Promise<void>) | undefined,
+): Promise<void> => {
+  if (typeof method !== "function") {
     return;
   }
 
-  const directoryInfo = await FileSystem.getInfoAsync(TTS_CACHE_DIRECTORY);
-  if (!directoryInfo.exists) {
-    await FileSystem.makeDirectoryAsync(TTS_CACHE_DIRECTORY, {
-      intermediates: true,
-    });
-  }
-  cacheDirectoryReady = true;
+  await method();
 };
 
-const ensureAudioMode = async () => {
-  if (audioModeConfigured) {
-    return;
-  }
-
-  await Audio.setAudioModeAsync({
-    allowsRecordingIOS: false,
-    playsInSilentModeIOS: true,
-    shouldDuckAndroid: true,
-    playThroughEarpieceAndroid: false,
-    staysActiveInBackground: false,
-  });
-  audioModeConfigured = true;
-};
-
-const getCacheFileUri = (cacheKey: string): string =>
-  `${TTS_CACHE_DIRECTORY}${cacheKey}.mp3`;
-
-const isPlaybackStatusSuccess = (
-  status: AVPlaybackStatus
-): status is AVPlaybackStatusSuccess => status.isLoaded;
-
-const unloadCurrentSound = async () => {
-  if (!currentSound) {
-    return;
-  }
-
-  const soundToUnload = currentSound;
-  currentSound = null;
-  soundToUnload.setOnPlaybackStatusUpdate(null);
-  await soundToUnload.unloadAsync();
-};
-
-const stopActiveSound = async () => {
+const stopActivePlayback = async () => {
   try {
-    await unloadCurrentSound();
-  } catch (error) {
-    console.error("Error unloading speech audio:", error);
+    await runSpeechMethod(Speech.stop);
   } finally {
     setSpeechState({ isSpeaking: false, isPaused: false });
   }
 };
 
-const stopActivePlayback = async () => {
-  await stopActiveSound();
-  activeBackend = null;
-};
-
-const normalizeResponseError = async (response: Response): Promise<string> => {
-  try {
-    const data = await response.json();
-    if (data?.message) {
-      return data.message;
-    }
-  } catch {
-    // Ignore JSON parse errors and fall through to status text.
-  }
-
-  return response.statusText || "Speech synthesis failed.";
-};
-
-const handlePlaybackStatus = (
-  status: AVPlaybackStatus,
-  playbackToken: number,
-  options?: SpeechOptions
-) => {
-  if (playbackToken !== currentPlaybackToken) {
-    return;
-  }
-
-  if (!isPlaybackStatusSuccess(status)) {
-    if (status.error) {
-      const error = new Error(status.error);
-      setSpeechState({ isSpeaking: false, isPaused: false });
-      options?.onError?.(error);
-      void stopActiveSound();
-    }
-    return;
-  }
-
-  if (status.didJustFinish) {
-    setSpeechState({ isSpeaking: false, isPaused: false });
-    options?.onDone?.();
-    void stopActiveSound();
-    return;
-  }
-
-  if (status.isPlaying) {
-    setSpeechState({ isSpeaking: true, isPaused: false });
-    return;
-  }
-
-  if (status.positionMillis > 0 && status.positionMillis < (status.durationMillis ?? 0)) {
-    setSpeechState({ isSpeaking: false, isPaused: true });
-  }
-};
+const createSpeechError = (error: unknown): Error =>
+  error instanceof Error ? error : new Error("Speech synthesis failed.");
 
 export const normalizeSpeechText = (text: string): string =>
   stripSurroundingQuotes(text).replace(/\s+/g, " ").trim();
 
-export const buildSpeechCacheKey = async (
+export const splitSpeechPassage = (
   text: string,
-  options?: SpeechOptions
-): Promise<string> => {
+  maxLength = getSpeechInputLimit(),
+): string[] => {
   const normalizedText = normalizeSpeechText(text);
-  const language = options?.language || DEFAULT_CONFIG.language || "en-US";
-  const voice = resolveVoiceId(language, options?.voice);
-  const rate = clampRate(options?.rate);
-  const backend = getSpeechBackend();
+  if (!normalizedText) {
+    return [];
+  }
 
-  return Crypto.digestStringAsync(
-    Crypto.CryptoDigestAlgorithm.SHA256,
-    JSON.stringify({
-      backend: backend.cacheNamespace,
-      text: normalizedText,
-      language,
-      voice,
-      rate,
-    })
-  );
+  if (normalizedText.length <= maxLength) {
+    return [normalizedText];
+  }
+
+  const words = normalizedText.split(" ");
+  const chunks: string[] = [];
+  let currentChunk = "";
+
+  for (const word of words) {
+    if (word.length > maxLength) {
+      if (currentChunk) {
+        chunks.push(currentChunk);
+        currentChunk = "";
+      }
+
+      let offset = 0;
+      while (offset < word.length) {
+        chunks.push(word.slice(offset, offset + maxLength));
+        offset += maxLength;
+      }
+      continue;
+    }
+
+    const nextChunk = currentChunk ? `${currentChunk} ${word}` : word;
+    if (nextChunk.length > maxLength) {
+      if (currentChunk) {
+        chunks.push(currentChunk);
+      }
+      currentChunk = word;
+    } else {
+      currentChunk = nextChunk;
+    }
+  }
+
+  if (currentChunk) {
+    chunks.push(currentChunk);
+  }
+
+  return chunks;
 };
 
-const fetchSpeechAudio = async (
+const speakChunk = (
   text: string,
-  backend: Extract<SpeechBackend, { kind: "remote-openai" | "remote-qwen" }>,
-  options?: SpeechOptions
-): Promise<SpeechResponse> => {
-  const normalizedText = normalizeSpeechText(text);
-  const response = await fetch(backend.endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      text: normalizedText,
-      language: options?.language || DEFAULT_CONFIG.language,
-      rate: clampRate(options?.rate),
-      voice: resolveVoiceId(options?.language, options?.voice),
-    }),
+  options: SpeechOptions,
+  playbackToken: number,
+  isFirstChunk: boolean,
+): Promise<void> =>
+  new Promise<void>((resolve, reject) => {
+    let settled = false;
+
+    const finish = (error?: Error) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    };
+
+    Speech.speak(text, {
+      language: options.language,
+      rate: clampRate(options.rate),
+      pitch: clampPitch(options.pitch),
+      voice: options.voice,
+      onStart: () => {
+        if (playbackToken !== currentPlaybackToken) {
+          return;
+        }
+
+        setSpeechState({ isSpeaking: true, isPaused: false });
+        if (isFirstChunk) {
+          options.onStart?.();
+        }
+      },
+      onDone: () => {
+        if (playbackToken !== currentPlaybackToken) {
+          finish();
+          return;
+        }
+        finish();
+      },
+      onStopped: () => {
+        finish();
+      },
+      onPause: () => {
+        if (playbackToken !== currentPlaybackToken) {
+          return;
+        }
+        setSpeechState({ isSpeaking: false, isPaused: true });
+      },
+      onResume: () => {
+        if (playbackToken !== currentPlaybackToken) {
+          return;
+        }
+        setSpeechState({ isSpeaking: true, isPaused: false });
+      },
+      onError: (error) => {
+        finish(createSpeechError(error));
+      },
+    });
   });
-
-  if (!response.ok) {
-    throw new Error(await normalizeResponseError(response));
-  }
-
-  const payload = (await response.json()) as Partial<SpeechResponse>;
-  if (!payload.audioBase64 || !payload.cacheKey) {
-    throw new Error("Speech endpoint response is missing audio data.");
-  }
-
-  return {
-    audioBase64: payload.audioBase64,
-    mimeType: payload.mimeType || "audio/mpeg",
-    cacheKey: payload.cacheKey,
-  };
-};
-
-const playFromFile = async (
-  fileUri: string,
-  options?: SpeechOptions,
-  playbackToken?: number
-) => {
-  await ensureAudioMode();
-
-  const activeToken = playbackToken ?? currentPlaybackToken;
-  const { sound } = await Audio.Sound.createAsync(
-    { uri: fileUri },
-    { shouldPlay: false },
-    (status) => handlePlaybackStatus(status, activeToken, options)
-  );
-
-  if (activeToken !== currentPlaybackToken) {
-    sound.setOnPlaybackStatusUpdate(null);
-    await sound.unloadAsync();
-    return;
-  }
-
-  currentSound = sound;
-  await sound.setRateAsync(clampRate(options?.rate), true);
-  await sound.playAsync();
-  setSpeechState({ isSpeaking: true, isPaused: false });
-  options?.onStart?.();
-};
 
 export const speak = async (
   text: string,
-  options?: SpeechOptions
+  options?: SpeechOptions,
 ): Promise<void> => {
   const normalizedText = normalizeSpeechText(text);
 
@@ -411,41 +267,33 @@ export const speak = async (
   }
 
   const config = { ...DEFAULT_CONFIG, ...options };
+  const chunks = splitSpeechPassage(normalizedText);
   const playbackToken = ++currentPlaybackToken;
-  const backend = getSpeechBackend();
 
   try {
     await stopActivePlayback();
 
-    const cacheKey = await buildSpeechCacheKey(normalizedText, config);
-    const fileUri = getCacheFileUri(cacheKey);
-
-    await ensureCacheDirectory();
-
-    const cacheInfo = await FileSystem.getInfoAsync(fileUri);
-    if (!cacheInfo.exists) {
-      const netState = await NetInfo.fetch();
-      if (!netState.isConnected) {
-        throw new Error(SPEECH_OFFLINE_ERROR);
+    for (let index = 0; index < chunks.length; index += 1) {
+      if (playbackToken !== currentPlaybackToken) {
+        return;
       }
-      const synthesizedAudio = await fetchSpeechAudio(normalizedText, backend, config);
-      await FileSystem.writeAsStringAsync(fileUri, synthesizedAudio.audioBase64, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+
+      await speakChunk(chunks[index], config, playbackToken, index === 0);
     }
 
     if (playbackToken !== currentPlaybackToken) {
       return;
     }
 
-    activeBackend = backend.kind;
-    await playFromFile(fileUri, config, playbackToken);
-  } catch (error) {
-    activeBackend = null;
     setSpeechState({ isSpeaking: false, isPaused: false });
-    console.error("Speech error:", error);
-    options?.onError?.(error as Error);
-    throw error;
+    options?.onDone?.();
+  } catch (error) {
+    const speechError = createSpeechError(error);
+    if (playbackToken === currentPlaybackToken) {
+      setSpeechState({ isSpeaking: false, isPaused: false });
+      options?.onError?.(speechError);
+    }
+    throw speechError;
   }
 };
 
@@ -456,11 +304,7 @@ export const stopSpeech = async (): Promise<void> => {
 
 export const pauseSpeech = async (): Promise<void> => {
   try {
-    if (!currentSound) {
-      return;
-    }
-
-    await currentSound.pauseAsync();
+    await runSpeechMethod(Speech.pause);
     setSpeechState({ isSpeaking: false, isPaused: true });
   } catch (error) {
     console.error("Error pausing speech:", error);
@@ -470,11 +314,7 @@ export const pauseSpeech = async (): Promise<void> => {
 
 export const resumeSpeech = async (): Promise<void> => {
   try {
-    if (!currentSound) {
-      return;
-    }
-
-    await currentSound.playAsync();
+    await runSpeechMethod(Speech.resume);
     setSpeechState({ isSpeaking: true, isPaused: false });
   } catch (error) {
     console.error("Error resuming speech:", error);
@@ -486,10 +326,8 @@ export const isSpeaking = async (): Promise<boolean> => speechState.isSpeaking;
 
 export const isPaused = async (): Promise<boolean> => speechState.isPaused;
 
-export const getAvailableVoices = async () => SUPPORTED_VOICES;
-
 export const subscribeToSpeechState = (
-  listener: (state: SpeechState) => void
+  listener: (state: SpeechState) => void,
 ): (() => void) => {
   speechListeners.add(listener);
   listener(speechState);
@@ -500,7 +338,7 @@ export const subscribeToSpeechState = (
 };
 
 export const getLanguageConfig = (
-  languageCode: string
+  languageCode: string,
 ): Partial<SpeechOptions> => {
   const baseCode = getBaseLanguageCode(languageCode);
   return LANGUAGE_CONFIGS[baseCode] || DEFAULT_CONFIG;
@@ -509,7 +347,7 @@ export const getLanguageConfig = (
 export const speakWithLanguage = async (
   text: string,
   languageCode: string,
-  options?: SpeechOptions
+  options?: SpeechOptions,
 ): Promise<void> => {
   const langConfig = getLanguageConfig(languageCode);
   await speak(text, { ...langConfig, ...options });
@@ -519,8 +357,5 @@ export const __resetSpeechServiceForTests = async () => {
   currentPlaybackToken += 1;
   await stopActivePlayback();
   speechListeners.clear();
-  audioModeConfigured = false;
-  cacheDirectoryReady = false;
-  activeBackend = null;
   speechState = { isSpeaking: false, isPaused: false };
 };

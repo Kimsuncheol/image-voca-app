@@ -2,7 +2,6 @@ import { Stack, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Alert,
   Dimensions,
   ScrollView,
   StyleSheet,
@@ -20,7 +19,6 @@ import {
   CharCell,
 } from "../src/data/kana";
 import { useSpeech } from "../src/hooks/useSpeech";
-import { SPEECH_OFFLINE_ERROR } from "../src/services/speechService";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const H_PAD = 16;
@@ -102,18 +100,12 @@ export default function JapaneseCharactersScreen() {
         language: "ja-JP",
         rate: 0.75,
         onDone: () => setSpeakingKana(null),
-        onError: (err) => {
+        onError: () => {
           setSpeakingKana(null);
-          if (err.message === SPEECH_OFFLINE_ERROR) {
-            Alert.alert(
-              t("kana.offlineSpeech.title"),
-              t("kana.offlineSpeech.message"),
-            );
-          }
         },
       });
     },
-    [speech, t],
+    [speech],
   );
 
   const bg = isDark ? "#000" : "#fff";
