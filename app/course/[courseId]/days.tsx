@@ -344,6 +344,7 @@ export default function DayPickerScreen() {
     >
       <Stack.Screen
         options={{
+          headerShown: loadingDay === null,
           title:
             loadingDay !== null
               ? ""
