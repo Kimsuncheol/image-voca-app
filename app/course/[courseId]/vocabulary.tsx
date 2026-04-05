@@ -23,7 +23,6 @@ import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
 // Components
 import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
 import { StreakMilestoneModal } from "../../../components/common/StreakMilestoneModal";
-import { SwipeStudyTimer } from "../../../components/course/vocabulary/SwipeStudyTimer";
 import { VocabularyEmptyState } from "../../../components/course/vocabulary/VocabularyEmptyState";
 import { VocabularyFinishView } from "../../../components/course/vocabulary/VocabularyFinishView";
 import { VocabularySwipeDeck } from "../../../components/course/vocabulary/VocabularySwipeDeck";
@@ -97,7 +96,6 @@ export default function VocabularyScreen() {
 
   // Tracks whether the splash screen is still mounted (unmounted after fade-out)
   const [splashVisible, setSplashVisible] = useState(true);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   const dayNumber = parseInt(day || "1", 10);
 
@@ -240,16 +238,6 @@ export default function VocabularyScreen() {
       void fetchCourseProgress(user.uid, courseId as string);
     }
   }, [user, courseId, fetchCourseProgress]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setElapsedSeconds((previous) => previous + 1);
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
 
   // ============================================================================
   // Section 4: Event Handlers (Swipe & Progress)
@@ -417,14 +405,6 @@ export default function VocabularyScreen() {
         }}
       />
       <View style={styles.swipeContainer}>
-        {!isFinished && cards.length > 0 && (
-          <SwipeStudyTimer
-            elapsedSeconds={elapsedSeconds}
-            label={t("swipe.timer.label")}
-            isDark={isDark}
-          />
-        )}
-
         <View style={styles.deckContainer}>
           {cards.length > 0 ? (
             isFinished && courseId !== "COLLOCATION" ? (
