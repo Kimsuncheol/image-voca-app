@@ -1,15 +1,8 @@
-import React, { useRef } from "react";
-import {
-  TinderSwipe,
-  TinderSwipeRef,
-} from "../../../src/components/tinder-swipe/TinderSwipe";
+import React from "react";
 import { CourseType, VocabularyCard, isJlptLevelCourseId } from "../../../src/types/vocabulary";
 import { CollocationSwipeable } from "../../CollocationFlipCard/CollocationSwipeable";
-import { SwipeCardItem } from "../../swipe/SwipeCardItem";
 import { CarouselSwipeDeck } from "./CarouselSwipeDeck";
 import { JlptSwipeDeck } from "./JlptSwipeDeck";
-
-const CAROUSEL_COURSES: CourseType[] = ["수능", "TOEIC", "TOEFL_IELTS"];
 
 interface VocabularySwipeDeckProps {
   cards: VocabularyCard[];
@@ -40,8 +33,6 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
   renderFinishView,
   isStudyCompleted,
 }) => {
-  const swipeRef = useRef<TinderSwipeRef>(null);
-
   if (courseId === "COLLOCATION") {
     return (
       <CollocationSwipeable
@@ -73,38 +64,16 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
     );
   }
 
-  if (CAROUSEL_COURSES.includes(courseId)) {
-    return (
-      <CarouselSwipeDeck
-        cards={cards}
-        dayNumber={dayNumber}
-        savedWordIds={savedWordIds}
-        onSavedWordChange={onSavedWordChange}
-        onSwipeRight={onSwipeRight}
-        onSwipeLeft={onSwipeLeft}
-        onIndexChange={onIndexChange}
-        onFinish={onFinish}
-      />
-    );
-  }
-
   return (
-    <TinderSwipe
-      ref={swipeRef}
-      data={cards}
-      renderCard={(item) => (
-        <SwipeCardItem
-          item={item}
-          initialIsSaved={savedWordIds.has(item.id)}
-          day={dayNumber}
-          onSavedWordChange={onSavedWordChange}
-        />
-      )}
+    <CarouselSwipeDeck
+      cards={cards}
+      dayNumber={dayNumber}
+      savedWordIds={savedWordIds}
+      onSavedWordChange={onSavedWordChange}
       onSwipeRight={onSwipeRight}
       onSwipeLeft={onSwipeLeft}
-      loop={false}
-      onRunOutOfCards={onFinish}
-      swipeLeftMode="rewind"
+      onIndexChange={onIndexChange}
+      onFinish={onFinish}
     />
   );
 };

@@ -1,13 +1,12 @@
-import { Ionicons } from "@expo/vector-icons";
 import { SubscriptionBadge } from "@/components/subscription";
-import { ThemedText } from "../../../components/themed-text";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import {
   Stack,
   useFocusEffect,
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
-import { Image } from "expo-image";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -18,8 +17,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { DayGrid } from "../../../components/course";
 import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
+import { DayGrid } from "../../../components/course";
+import { ThemedText } from "../../../components/themed-text";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useLearningLanguage } from "../../../src/context/LearningLanguageContext";
 import { useTheme } from "../../../src/context/ThemeContext";
@@ -344,10 +344,14 @@ export default function DayPickerScreen() {
     >
       <Stack.Screen
         options={{
-          title: course
-            ? t(course.titleKey, { defaultValue: course.title })
-            : t("course.days"),
+          title:
+            loadingDay !== null
+              ? ""
+              : course
+                ? t(course.titleKey, { defaultValue: course.title })
+                : t("course.days"),
           headerBackTitle: t("common.back"),
+          headerBackVisible: loadingDay === null ? true : false,
         }}
       />
       <ScrollView

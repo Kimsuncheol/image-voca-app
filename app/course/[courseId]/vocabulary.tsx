@@ -12,10 +12,10 @@ import { useTheme } from "../../../src/context/ThemeContext";
 import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
 import { db } from "../../../src/services/firebase";
 import {
-    fetchVocabularyCards,
-    getCachedVocabularyCards,
-    hydrateVocabularyCache,
-    isVocabularyCacheFresh,
+  fetchVocabularyCards,
+  getCachedVocabularyCards,
+  hydrateVocabularyCache,
+  isVocabularyCacheFresh,
 } from "../../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../../src/stores";
 import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
@@ -402,6 +402,10 @@ export default function VocabularyScreen() {
         options={{
           title: "",
           headerBackTitle: t("common.back"),
+          // headerBackVisible: !loading,
+          headerBackVisible: !splashVisible ? true : false,
+          gestureEnabled: !loading,
+          headerLeft: loading ? () => null : undefined,
         }}
       />
       <View style={styles.swipeContainer}>
