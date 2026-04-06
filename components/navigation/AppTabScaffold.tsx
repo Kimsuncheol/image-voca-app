@@ -16,6 +16,7 @@ import { TabLayoutProvider } from "../../src/context/TabLayoutContext";
 import { useTheme } from "../../src/context/ThemeContext";
 
 import DashboardScreen from "../../app/(tabs)/index";
+import CalendarScreen from "../../app/calendar";
 import SettingsScreen from "../../app/(tabs)/settings";
 import CourseSelectionScreen from "../../app/(tabs)/swipe";
 import WordBankScreen from "../../app/(tabs)/wordbank";
@@ -24,6 +25,7 @@ const TABS = [
   { key: "dashboard", titleKey: "tabs.dashboard", icon: "house.fill" as const },
   { key: "wordbank", titleKey: "tabs.wordBank", icon: "folder.fill" as const },
   { key: "voca", titleKey: "tabs.voca", icon: "book.fill" as const },
+  { key: "calendar", titleKey: "tabs.calendar", icon: "calendar" as const },
   {
     key: "settings",
     titleKey: "tabs.settings",
@@ -90,6 +92,8 @@ export default function AppTabScaffold() {
       case 2:
         return <CourseSelectionScreen />;
       case 3:
+        return <CalendarScreen />;
+      case 4:
         return <SettingsScreen />;
       default:
         return null;

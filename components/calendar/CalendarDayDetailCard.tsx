@@ -3,12 +3,16 @@ import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { DailyStats } from "../../src/stores";
 import { useTheme } from "../../src/context/ThemeContext";
+import type { VocabularyDayStudyEntry } from "../../src/services/dailyStudyHistory";
+import { findRuntimeCourse } from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
 
 interface CalendarDayDetailCardProps {
   title: string;
   stats?: DailyStats;
   contributedToStreak: boolean;
+  vocabularyDays: VocabularyDayStudyEntry[];
+  isHistoryLoading: boolean;
 }
 
 const formatAccuracy = (stats: DailyStats) => {
@@ -23,6 +27,8 @@ export function CalendarDayDetailCard({
   title,
   stats,
   contributedToStreak,
+  vocabularyDays,
+  isHistoryLoading,
 }: CalendarDayDetailCardProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -73,6 +79,59 @@ export function CalendarDayDetailCard({
           </View>
         </View>
       )}
+      <View
+        style={[
+          styles.historySection,
+          { borderTopColor: isDark ? "#262A33" : "#E4E8EF" },
+        ]}
+      >
+        <ThemedText type="subtitle" style={styles.historyTitle}>
+          {t("calendar.detail.studiedCourses")}
+        </ThemedText>
+        {isHistoryLoading ? (
+          <ThemedText style={styles.historyEmptyText}>
+            {t("calendar.detail.loadingStudiedCourses")}
+          </ThemedText>
+        ) : vocabularyDays.length === 0 ? (
+          <ThemedText style={styles.historyEmptyText}>
+            {t("calendar.detail.noStudiedCourses")}
+          </ThemedText>
+        ) : (
+          <View style={styles.historyList}>
+            {vocabularyDays.map((entry) => {
+              const course = findRuntimeCourse(entry.courseId);
+              const courseTitle = course
+                ? t(course.titleKey, { defaultValue: course.title })
+                : entry.courseId;
+
+              return (
+                <View
+                  key={`${entry.courseId}-${entry.dayNumber}`}
+                  style={[
+                    styles.historyRow,
+                    { backgroundColor: isDark ? "#1D2129" : "#FFFFFF" },
+                  ]}
+                >
+                  <View style={styles.historyTextBlock}>
+                    <ThemedText style={styles.historyCourseTitle}>
+                      {courseTitle}
+                    </ThemedText>
+                    <ThemedText style={styles.historyMeta}>
+                      {t("calendar.detail.wordsProgress", {
+                        learned: entry.wordsLearned,
+                        total: entry.totalWords,
+                      })}
+                    </ThemedText>
+                  </View>
+                  <ThemedText style={styles.historyDayLabel}>
+                    {t("calendar.detail.dayLabel", { count: entry.dayNumber })}
+                  </ThemedText>
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </View>
     </View>
   );
 }
@@ -104,6 +163,45 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: 16,
+    fontWeight: "700",
+  },
+  historySection: {
+    marginTop: 18,
+    paddingTop: 18,
+    borderTopWidth: 1,
+  },
+  historyTitle: {
+    marginBottom: 12,
+  },
+  historyEmptyText: {
+    opacity: 0.7,
+  },
+  historyList: {
+    gap: 10,
+  },
+  historyRow: {
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  historyTextBlock: {
+    flex: 1,
+  },
+  historyCourseTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  historyMeta: {
+    fontSize: 13,
+    opacity: 0.62,
+  },
+  historyDayLabel: {
+    fontSize: 14,
     fontWeight: "700",
   },
 });

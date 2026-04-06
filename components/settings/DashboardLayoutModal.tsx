@@ -49,12 +49,6 @@ const ELEMENT_CONFIGS: Record<DashboardElement, ElementConfig> = {
     icon: "chatbubble-ellipses",
     color: "#FF9500",
   },
-  stats: {
-    id: "stats",
-    label: "Stats",
-    icon: "bar-chart",
-    color: "#34C759",
-  },
 };
 
 interface Preset {
@@ -209,11 +203,11 @@ export function DashboardLayoutModal({
     () => [
       {
         name: t("settings.dashboard.layoutModal.quizFirst"),
-        order: ["quiz", "famousQuote", "stats"],
+        order: ["quiz", "famousQuote"],
       },
       {
         name: t("settings.dashboard.layoutModal.quoteFirst"),
-        order: ["famousQuote", "quiz", "stats"],
+        order: ["famousQuote", "quiz"],
       },
     ],
     [t],

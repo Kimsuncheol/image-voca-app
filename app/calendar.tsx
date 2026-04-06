@@ -1,14 +1,18 @@
 import { useFocusEffect } from "expo-router";
 import React from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
+import { ScrollView, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { CalendarDayDetailCard } from "../components/calendar/CalendarDayDetailCard";
 import { CalendarMonthGrid } from "../components/calendar/CalendarMonthGrid";
 import { CalendarMonthSummaryCard } from "../components/calendar/CalendarMonthSummaryCard";
-import { ThemedText } from "../components/themed-text";
+
 import { useAuth } from "../src/context/AuthContext";
 import { useTheme } from "../src/context/ThemeContext";
+import {
+  VocabularyDayStudyEntry,
+  fetchDailyStudyHistory,
+} from "../src/services/dailyStudyHistory";
 import { useUserStatsStore } from "../src/stores";
 import {
   addMonths,
@@ -33,8 +37,8 @@ const buildWeekdayLabels = (language: string) => {
 export default function CalendarScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
-  const { t, i18n } = useTranslation();
-  const { stats, loading, fetchStats } = useUserStatsStore();
+  const { i18n } = useTranslation();
+  const { stats, fetchStats } = useUserStatsStore();
   const [visibleMonth, setVisibleMonth] = React.useState(() => startOfMonth(new Date()));
   const todayKey = React.useMemo(() => formatDateKey(new Date()), []);
   const dailyStatsByDate = React.useMemo(
@@ -42,6 +46,12 @@ export default function CalendarScreen() {
     [stats?.dailyStats],
   );
   const [selectedDateKey, setSelectedDateKey] = React.useState(todayKey);
+  const [historyByDate, setHistoryByDate] = React.useState<
+    Record<string, VocabularyDayStudyEntry[]>
+  >({});
+  const [historyLoadingByDate, setHistoryLoadingByDate] = React.useState<
+    Record<string, boolean>
+  >({});
 
   useFocusEffect(
     React.useCallback(() => {
@@ -52,10 +62,58 @@ export default function CalendarScreen() {
   );
 
   React.useEffect(() => {
+    setHistoryByDate({});
+    setHistoryLoadingByDate({});
+  }, [user?.uid]);
+
+  React.useEffect(() => {
     setSelectedDateKey(
       getMonthPreferredSelectedDate(visibleMonth, dailyStatsByDate, todayKey),
     );
   }, [dailyStatsByDate, todayKey, visibleMonth]);
+
+  const selectedHistory = historyByDate[selectedDateKey];
+  const selectedHistoryLoading = historyLoadingByDate[selectedDateKey] ?? false;
+
+  React.useEffect(() => {
+    if (!user || selectedHistory !== undefined || selectedHistoryLoading) {
+      return;
+    }
+
+    let isMounted = true;
+    setHistoryLoadingByDate((previous) => ({
+      ...previous,
+      [selectedDateKey]: true,
+    }));
+
+    void fetchDailyStudyHistory(user.uid, selectedDateKey)
+      .then((historyDoc) => {
+        if (!isMounted) return;
+        setHistoryByDate((previous) => ({
+          ...previous,
+          [selectedDateKey]: historyDoc?.vocabularyDays ?? [],
+        }));
+      })
+      .catch((error) => {
+        console.error("Failed to fetch daily study history:", error);
+        if (!isMounted) return;
+        setHistoryByDate((previous) => ({
+          ...previous,
+          [selectedDateKey]: [],
+        }));
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setHistoryLoadingByDate((previous) => ({
+          ...previous,
+          [selectedDateKey]: false,
+        }));
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedDateKey, selectedHistory, selectedHistoryLoading, user]);
 
   const monthLabel = React.useMemo(
     () =>
@@ -114,20 +172,13 @@ export default function CalendarScreen() {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000000" : "#FFFFFF" }]}
-      edges={["left", "right", "bottom"]}
+      edges={["left", "right"]}
     >
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <ThemedText type="title" style={styles.headerTitle}>
-            {t("calendar.title")}
-          </ThemedText>
-          <ThemedText style={styles.headerSubtitle}>
-            {loading ? t("calendar.loading") : t("calendar.subtitle")}
-          </ThemedText>
-        </View>
+
 
         <CalendarMonthSummaryCard
           summary={monthSummary}
@@ -147,6 +198,8 @@ export default function CalendarScreen() {
           title={detailTitle}
           stats={selectedCell?.stats}
           contributedToStreak={selectedCell?.contributedToStreak ?? false}
+          vocabularyDays={selectedHistory ?? []}
+          isHistoryLoading={selectedHistoryLoading}
         />
       </ScrollView>
     </SafeAreaView>
@@ -158,19 +211,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 20,
-    paddingBottom: 40,
+    padding: 10,
   },
-  header: {
-    marginBottom: 20,
-  },
-  headerTitle: {
-    fontSize: 30,
-    lineHeight: 34,
-    marginBottom: 8,
-  },
-  headerSubtitle: {
-    fontSize: 15,
-    opacity: 0.68,
-  },
+
 });

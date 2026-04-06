@@ -34,8 +34,8 @@ jest.mock("react-native-reanimated", () => {
 });
 
 describe("DashboardLayoutModal", () => {
-  const defaultOrder: DashboardElement[] = ["quiz", "famousQuote", "stats"];
-  const quoteFirstOrder: DashboardElement[] = ["famousQuote", "quiz", "stats"];
+  const defaultOrder: DashboardElement[] = ["quiz", "famousQuote"];
+  const quoteFirstOrder: DashboardElement[] = ["famousQuote", "quiz"];
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -84,7 +84,7 @@ describe("DashboardLayoutModal", () => {
     );
 
     const carousel = getByTestId("dashboard-layout-carousel");
-    const expectedCardWidth = Math.min(240, Dimensions.get("window").width - 96);
+    const expectedCardWidth = Dimensions.get("window").width * 0.75;
 
     expect(carousel.props.horizontal).toBe(true);
     expect(carousel.props.decelerationRate).toBe("fast");

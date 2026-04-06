@@ -11,6 +11,7 @@ import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
 import { db } from "../../../src/services/firebase";
+import { upsertVocabularyDayStudyHistory } from "../../../src/services/dailyStudyHistory";
 import {
   fetchVocabularyCards,
   getCachedVocabularyCards,
@@ -19,6 +20,7 @@ import {
 } from "../../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../../src/stores";
 import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
+import { formatDateKey } from "../../../src/utils/calendarStats";
 
 // Components
 import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
@@ -290,6 +292,9 @@ export default function VocabularyScreen() {
       }
 
       try {
+        const completedAt = new Date().toISOString();
+        const studyDate = formatDateKey(new Date());
+
         // Update user's progress for this specific course and day
         await updateDoc(doc(db, "users", user.uid), {
           [`courseProgress.${courseId}.${dayNumber}.completed`]: true,
@@ -302,6 +307,18 @@ export default function VocabularyScreen() {
           completed: true,
           totalWords: cards.length,
           wordsLearned: learnedCount,
+        });
+
+        await upsertVocabularyDayStudyHistory({
+          userId: user.uid,
+          date: studyDate,
+          entry: {
+            courseId,
+            dayNumber,
+            wordsLearned: learnedCount,
+            totalWords: cards.length,
+            completedAt,
+          },
         });
       } catch (error) {
         console.error("Error marking day as completed:", error);

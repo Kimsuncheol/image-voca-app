@@ -3,9 +3,30 @@ import { create } from "zustand";
 
 const STORAGE_KEY = "@dashboard_settings";
 
-export type DashboardElement = "quiz" | "famousQuote" | "stats";
+export type DashboardElement = "quiz" | "famousQuote";
 
-const DEFAULT_ORDER: DashboardElement[] = ["quiz", "famousQuote", "stats"];
+const DEFAULT_ORDER: DashboardElement[] = ["quiz", "famousQuote"];
+
+const normalizeElementOrder = (value: unknown): DashboardElement[] => {
+  if (!Array.isArray(value)) {
+    return DEFAULT_ORDER;
+  }
+
+  const filtered = value.filter(
+    (item): item is DashboardElement =>
+      item === "quiz" || item === "famousQuote",
+  );
+
+  const nextOrder = [...filtered];
+
+  for (const element of DEFAULT_ORDER) {
+    if (!nextOrder.includes(element)) {
+      nextOrder.push(element);
+    }
+  }
+
+  return nextOrder;
+};
 
 interface DashboardSettingsState {
   quizEnabled: boolean;
@@ -33,7 +54,7 @@ export const useDashboardSettingsStore = create<DashboardSettingsState>((set, ge
         set({
           quizEnabled: parsed.quizEnabled ?? true,
           famousQuoteEnabled: parsed.famousQuoteEnabled ?? true,
-          elementOrder: parsed.elementOrder ?? DEFAULT_ORDER,
+          elementOrder: normalizeElementOrder(parsed.elementOrder),
         });
       }
     } catch (error) {
