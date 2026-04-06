@@ -51,6 +51,7 @@ import {
   DashboardQuizItem as QuizItem,
   DashboardQuizType as QuizType,
 } from "./utils/quizHelpers";
+import { normalizeSynonyms } from "../../src/utils/synonyms";
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -144,6 +145,7 @@ export function DashboardPopQuiz() {
       batch.map((word) => ({
         ...resolveQuizVocabulary(word, i18n.language),
         course: word.course,
+        synonyms: normalizeSynonyms(word.synonyms),
       })),
     [i18n.language],
   );
@@ -168,6 +170,12 @@ export function DashboardPopQuiz() {
         nextQuizType =
           JLPT_QUIZ_TYPES[quizTypeIndexRef.current % JLPT_QUIZ_TYPES.length];
         quizTypeIndexRef.current += 1;
+      } else if (
+        wordData.course === "TOEFL_IELTS" &&
+        normalizeSynonyms(wordData.synonyms).length > 0 &&
+        buildDashboardQuizPayload(wordData, batch, "synonym-matching")
+      ) {
+        nextQuizType = "synonym-matching";
       } else {
         nextQuizType = "multiple-choice";
       }
@@ -634,6 +642,19 @@ export function DashboardPopQuiz() {
                 onComplete={handleMatchingComplete}
                 onWrong={handleMatchingWrong}
                 onPairMatched={handlePairMatched}
+                matchingMode="meaning"
+                instruction={t("dashboard.popQuiz.matchingHint")}
+              />
+            )}
+            {quizType === "synonym-matching" && (
+              <MatchingQuiz
+                pairs={matchingPairs}
+                isDark={isDark}
+                onComplete={handleMatchingComplete}
+                onWrong={handleMatchingWrong}
+                onPairMatched={handlePairMatched}
+                matchingMode="synonym"
+                instruction={t("dashboard.popQuiz.synonymMatchingHint")}
               />
             )}
             {quizType === "fill-in-blank" && quizItem.example !== undefined && (

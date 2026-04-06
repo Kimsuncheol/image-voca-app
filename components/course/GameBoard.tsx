@@ -13,6 +13,7 @@ interface QuizQuestion {
   id: string;
   word: string;
   meaning: string;
+  synonym?: string;
   pronunciation?: string;
 
   options?: string[] | QuizWordOption[];
@@ -45,6 +46,7 @@ interface GameBoardProps {
   userAnswer: string;
   showResult: boolean;
   isCorrect: boolean;
+  matchingMode?: "meaning" | "synonym";
 
   onAnswer: (answer: string) => void;
 }
@@ -65,12 +67,14 @@ export function GameBoard({
   userAnswer,
   showResult,
   isCorrect,
+  matchingMode = "meaning",
   onAnswer,
   showPronunciationDetails = false,
 }: GameBoardProps) {
   const isCollocationGapFill = quizType === "gap-fill-sentence";
   const isCollocationMatching = quizType === "collocation-matching";
-  const isMatching = quizType === "matching";
+  const isMatching =
+    quizType === "matching" || quizType === "synonym-matching";
   const isFillInBlank = quizType === "fill-in-blank";
 
   return (
@@ -106,6 +110,7 @@ export function GameBoard({
           courseColor={courseColor}
           isDark={isDark}
           showPronunciationDetails={showPronunciationDetails}
+          matchingMode={matchingMode}
         />
       ) : isCollocationGapFill ? (
         <CollocationGapFillSentenceGame

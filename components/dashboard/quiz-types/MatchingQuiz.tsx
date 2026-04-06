@@ -21,6 +21,8 @@ interface MatchingQuizProps {
   onComplete: () => void;
   onWrong: () => void;
   onPairMatched?: () => void;
+  matchingMode?: "meaning" | "synonym";
+  instruction: string;
 }
 
 export function MatchingQuiz({
@@ -29,6 +31,8 @@ export function MatchingQuiz({
   onComplete,
   onWrong,
   onPairMatched,
+  matchingMode = "meaning",
+  instruction,
 }: MatchingQuizProps) {
   // Shuffle meanings independently from words on mount
   const shuffledMeanings = useRef(
@@ -62,7 +66,12 @@ export function MatchingQuiz({
       if (!selectedWord || wrongWord) return;
 
       const correctPair = pairs.find((p) => p.word === selectedWord);
-      if (correctPair?.meaning === meaning) {
+      const expectedMatch =
+        matchingMode === "synonym" && correctPair?.synonym
+          ? correctPair.synonym
+          : correctPair?.meaning;
+
+      if (expectedMatch === meaning) {
         // Correct match
         setMatchedWords((prev) => new Set(prev).add(selectedWord));
         setSelectedWord(null);
@@ -79,7 +88,7 @@ export function MatchingQuiz({
         }, 600);
       }
     },
-    [selectedWord, wrongWord, pairs, onWrong, onPairMatched],
+    [matchingMode, selectedWord, wrongWord, pairs, onWrong, onPairMatched],
   );
 
   const getWordStyle = (word: string) => {
@@ -91,7 +100,9 @@ export function MatchingQuiz({
 
   const getMeaningStyle = (meaning: string) => {
     const isMatched = pairs.some(
-      (p) => p.meaning === meaning && matchedWords.has(p.word),
+      (p) =>
+        (matchingMode === "synonym" && p.synonym ? p.synonym : p.meaning) === meaning &&
+        matchedWords.has(p.word),
     );
     if (isMatched) return styles.matched;
     if (meaning === wrongMeaning) return styles.wrong;
@@ -102,9 +113,13 @@ export function MatchingQuiz({
 
   return (
     <View style={styles.container}>
+      <ThemedText style={styles.hint}>{instruction}</ThemedText>
       {pairs.map((pair, index) => {
         const { word } = pair;
-        const { meaning } = shuffledMeanings[index];
+        const meaning =
+          matchingMode === "synonym" && shuffledMeanings[index].synonym
+            ? shuffledMeanings[index].synonym!
+            : shuffledMeanings[index].meaning;
         return (
           <View key={index} style={styles.row}>
             {/* Word cell */}
@@ -140,6 +155,13 @@ export function MatchingQuiz({
 const styles = StyleSheet.create({
   container: {
     gap: 8,
+  },
+  hint: {
+    textAlign: "center",
+    opacity: 0.7,
+    fontSize: 13,
+    marginBottom: 4,
+    fontWeight: "500",
   },
   row: {
     flexDirection: "row",

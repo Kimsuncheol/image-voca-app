@@ -10,6 +10,7 @@ export interface QuizQuestion {
   id: string;
   word: string;
   meaning: string;
+  synonym?: string;
   pronunciation?: string;
   pronunciationRoman?: string;
   options?: string[] | QuizWordOption[];
@@ -25,6 +26,7 @@ export interface QuizQuestion {
 export interface QuizVocabData {
   word: string;
   meaning: string;
+  synonyms?: string[];
   pronunciation?: string;
   pronunciationRoman?: string;
   localizedPronunciation?: string;
@@ -48,10 +50,15 @@ export const generateQuizQuestions = (
   vocabData: QuizVocabData[],
   quizType: string,
 ): QuizQuestion[] => {
-  const selectedWords = shuffleArray([...vocabData]);
+  const selectedWords = shuffleArray(
+    quizType === "synonym-matching"
+      ? vocabData.filter((vocab) => (vocab.synonyms?.length ?? 0) > 0)
+      : [...vocabData],
+  );
 
   return selectedWords.map((vocab, index) => {
     const isWordAnswer = quizType === "fill-in-blank";
+    const synonym = vocab.synonyms?.[0];
 
     let options: string[] | QuizWordOption[] | undefined;
     if (quizType === "multiple-choice") {
@@ -130,10 +137,15 @@ export const generateQuizQuestions = (
       id: `q${index}`,
       word: vocab.word,
       meaning: vocab.meaning,
+      synonym,
       pronunciation: vocab.pronunciation,
       pronunciationRoman: vocab.pronunciationRoman,
       options,
-      correctAnswer: isWordAnswer ? vocab.word : vocab.meaning,
+      correctAnswer: isWordAnswer
+        ? vocab.word
+        : quizType === "synonym-matching" && synonym
+          ? synonym
+          : vocab.meaning,
       clozeSentence,
       translation,
       localizedPronunciation: vocab.localizedPronunciation,

@@ -47,6 +47,7 @@ import {
   isJlptLevelCourseId,
 } from "../../../src/types/vocabulary";
 import { resolveQuizVocabulary } from "../../../src/utils/localizedVocabulary";
+import { normalizeSynonyms } from "../../../src/utils/synonyms";
 
 const shuffleArray = <T,>(items: T[]): T[] => {
   const copy = [...items];
@@ -135,6 +136,7 @@ export default function QuizPlayScreen() {
           return {
             word: resolved.word,
             meaning: resolved.meaning,
+            synonyms: normalizeSynonyms(card.synonyms),
             pronunciation: resolved.pronunciation,
 
             localizedPronunciation: resolved.localizedPronunciation,
@@ -160,9 +162,18 @@ export default function QuizPlayScreen() {
         }
         setQuestions(generatedQuestions);
 
-        if (resolvedQuizType === "matching") {
+        if (
+          resolvedQuizType === "matching" ||
+          resolvedQuizType === "synonym-matching"
+        ) {
           setMatchingMeanings(
-            shuffleArray(generatedQuestions.map((q) => q.meaning)),
+            shuffleArray(
+              generatedQuestions.map((q) =>
+                resolvedQuizType === "synonym-matching" && q.synonym
+                  ? q.synonym
+                  : q.meaning,
+              ),
+            ),
           );
         } else {
           setMatchingMeanings([]);
@@ -190,7 +201,8 @@ export default function QuizPlayScreen() {
   }, [courseId, dayNumber, i18n.language, resolvedQuizType]);
 
   const currentQuestion = questions[currentIndex];
-  const isMatching = resolvedQuizType === "matching";
+  const isMatching =
+    resolvedQuizType === "matching" || resolvedQuizType === "synonym-matching";
   const matchedCount = Object.keys(matchedPairs).length;
   const totalQuestions = questions.length;
   const progressCurrent = isMatching ? matchedCount : currentIndex + 1;
@@ -273,7 +285,11 @@ export default function QuizPlayScreen() {
   };
 
   const handleMatchingAttempt = async (word: string, meaning: string) => {
-    const correct = questions.find((q) => q.word === word)?.meaning === meaning;
+    const correctQuestion = questions.find((q) => q.word === word);
+    const correct =
+      (resolvedQuizType === "synonym-matching"
+        ? correctQuestion?.synonym
+        : correctQuestion?.meaning) === meaning;
 
     if (user) {
       bufferQuizAnswer(user.uid, correct);
@@ -545,6 +561,9 @@ export default function QuizPlayScreen() {
               showResult={showResult}
               isCorrect={isCorrect}
               showPronunciationDetails={showJlptPronunciationDetails}
+              matchingMode={
+                resolvedQuizType === "synonym-matching" ? "synonym" : "meaning"
+              }
               onAnswer={(answer) => {
                 setUserAnswer(answer);
                 handleAnswer(answer);
@@ -573,6 +592,9 @@ export default function QuizPlayScreen() {
               showResult={showResult}
               isCorrect={isCorrect}
               showPronunciationDetails={showJlptPronunciationDetails}
+              matchingMode={
+                resolvedQuizType === "synonym-matching" ? "synonym" : "meaning"
+              }
               onAnswer={(answer) => {
                 setUserAnswer(answer);
                 handleAnswer(answer);

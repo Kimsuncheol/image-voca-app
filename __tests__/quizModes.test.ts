@@ -12,6 +12,12 @@ describe("quizModes", () => {
     ]);
   });
 
+  test("exposes synonym matching only for TOEFL_IELTS", () => {
+    expect(
+      getQuizTypesForCourse("TOEFL_IELTS").map((quizType) => quizType.id),
+    ).toEqual(["matching", "synonym-matching", "fill-in-blank"]);
+  });
+
   test("exposes only supported quiz types for collocation", () => {
     expect(
       getQuizTypesForCourse("COLLOCATION").map((quizType) => quizType.id),
@@ -42,11 +48,15 @@ describe("quizModes", () => {
     expect(sanitizeRequestedQuizType("TOEIC", "fill-in-blank")).toBe(
       "fill-in-blank",
     );
+    expect(
+      sanitizeRequestedQuizType("TOEFL_IELTS", "synonym-matching"),
+    ).toBe("synonym-matching");
     expect(sanitizeRequestedQuizType("JLPT_N3", "matching")).toBe("matching");
     expect(sanitizeRequestedQuizType("COLLOCATION", "collocation-matching")).toBe(
       "collocation-matching",
     );
     expect(resolveRuntimeQuizType("gap-fill-sentence")).toBe("fill-in-blank");
     expect(resolveRuntimeQuizType("collocation-matching")).toBe("matching");
+    expect(resolveRuntimeQuizType("synonym-matching")).toBe("synonym-matching");
   });
 });

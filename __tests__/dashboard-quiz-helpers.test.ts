@@ -68,6 +68,41 @@ describe("dashboard quiz payloads", () => {
     },
   ];
 
+  const toeflBatch = [
+    {
+      word: "abandon",
+      meaning: "leave behind",
+      pronunciation: "uh-BAN-duhn",
+      example: "They abandon the plan.",
+      course: "TOEFL_IELTS" as const,
+      synonyms: ["forsake", "desert"],
+    },
+    {
+      word: "brief",
+      meaning: "short",
+      pronunciation: "breef",
+      example: "Keep it brief.",
+      course: "TOEFL_IELTS" as const,
+      synonyms: ["concise"],
+    },
+    {
+      word: "calm",
+      meaning: "peaceful",
+      pronunciation: "kahm",
+      example: "Stay calm.",
+      course: "TOEFL_IELTS" as const,
+      synonyms: ["serene"],
+    },
+    {
+      word: "daring",
+      meaning: "bold",
+      pronunciation: "DAIR-ing",
+      example: "A daring idea.",
+      course: "TOEFL_IELTS" as const,
+      synonyms: ["bold"],
+    },
+  ];
+
   it("builds matching payloads with localized meaning and pronunciation fields", () => {
     const payload = buildDashboardQuizPayload(batch[0], batch, "matching");
 
@@ -135,5 +170,34 @@ describe("dashboard quiz payloads", () => {
         "cause doubt",
       ]),
     );
+  });
+
+  it("builds synonym matching payloads for TOEFL_IELTS words", () => {
+    const payload = buildDashboardQuizPayload(
+      toeflBatch[0],
+      toeflBatch,
+      "synonym-matching",
+    );
+
+    expect(payload).not.toBeNull();
+    expect(payload?.matchingPairs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          word: "abandon",
+          synonym: "forsake",
+          meaning: "leave behind",
+        }),
+      ]),
+    );
+  });
+
+  it("returns null for synonym matching when there are not enough TOEFL_IELTS synonym words", () => {
+    const payload = buildDashboardQuizPayload(
+      toeflBatch[0],
+      toeflBatch.slice(0, 3),
+      "synonym-matching",
+    );
+
+    expect(payload).toBeNull();
   });
 });

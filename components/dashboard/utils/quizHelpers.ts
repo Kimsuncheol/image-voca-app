@@ -8,6 +8,7 @@
 
 import type { CourseType } from "../../../src/types/vocabulary";
 import type { ResolvedQuizVocabulary } from "../../../src/utils/localizedVocabulary";
+import { normalizeSynonyms } from "../../../src/utils/synonyms";
 
 /**
  * Get dynamic font size based on text length.
@@ -94,10 +95,12 @@ const shuffleArray = <T,>(items: T[]): T[] => {
 export type DashboardQuizType =
   | "multiple-choice"
   | "matching"
+  | "synonym-matching"
   | "fill-in-blank";
 
 export type ResolvedDashboardQuizVocabulary = ResolvedQuizVocabulary & {
   course?: CourseType;
+  synonyms?: string[];
 };
 
 export interface DashboardQuizItem {
@@ -117,6 +120,7 @@ export interface DashboardWordOption {
 export interface DashboardMatchingPair {
   word: string;
   meaning: string;
+  synonym?: string;
   pronunciation?: string;
   pronunciationRoman?: string;
 }
@@ -149,6 +153,50 @@ export function buildDashboardQuizPayload(
 
   const availableWords = batch.filter((word) => word.word !== targetWord.word);
   const shuffledAvailable = shuffleArray(availableWords);
+
+  if (quizType === "synonym-matching") {
+    const targetSynonym = normalizeSynonyms(targetWord.synonyms)[0];
+    if (!targetSynonym) {
+      return null;
+    }
+
+    const synonymWords = batch.filter(
+      (word) =>
+        word.course === "TOEFL_IELTS" &&
+        word.word !== targetWord.word &&
+        normalizeSynonyms(word.synonyms).length > 0,
+    );
+
+    if (synonymWords.length < 3) {
+      return null;
+    }
+
+    const otherPairs: DashboardMatchingPair[] = shuffleArray(synonymWords)
+      .slice(0, 3)
+      .map((word) => ({
+        word: word.word,
+        meaning: word.meaning,
+        synonym: normalizeSynonyms(word.synonyms)[0],
+        pronunciation: word.pronunciation,
+        pronunciationRoman: word.pronunciationRoman,
+      }));
+
+    return {
+      quizItem: toDashboardQuizItem(targetWord),
+      options: [],
+      wordOptions: [],
+      matchingPairs: shuffleArray([
+        {
+          word: targetWord.word,
+          meaning: targetWord.meaning,
+          synonym: targetSynonym,
+          pronunciation: targetWord.pronunciation,
+          pronunciationRoman: targetWord.pronunciationRoman,
+        },
+        ...otherPairs,
+      ]),
+    };
+  }
 
   if (quizType === "matching") {
     const otherPairs: DashboardMatchingPair[] = shuffledAvailable

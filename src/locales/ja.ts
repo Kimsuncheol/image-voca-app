@@ -114,6 +114,8 @@ const ja = {
       fillInBlank: "文を完成させる",
       matching: "単語と意味をマッチさせる",
       matchingHint: "単語をタップして、その意味をタップしてください",
+      synonymMatching: "単語と類義語をマッチさせる",
+      synonymMatchingHint: "単語をタップして、その類義語をタップしてください",
       words: "単語",
       meanings: "意味",
       correct: "正解！",
@@ -645,6 +647,10 @@ const ja = {
         completeSentence: "文を完成させてください",
         chooseWord: "正しい単語を選んでください",
       },
+      synonymMatching: {
+        title: "類義語マッチング",
+        description: "単語と類義語をペアにしてください",
+      },
       matching: {
         title: "マッチング",
         description: "単語と意味をペアにしてください",
@@ -669,6 +675,9 @@ const ja = {
     matching: {
       instructions: "単語とその意味をタップしてペアにしてください。",
       progressTitle: "マッチング {{current}}/{{total}}",
+    },
+    synonymMatching: {
+      instructions: "単語とその類義語をタップしてペアにしてください。",
     },
     feedback: {
       correct: "正解！",

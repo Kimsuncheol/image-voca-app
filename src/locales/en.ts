@@ -114,6 +114,8 @@ const en = {
       fillInBlank: "Complete the sentence",
       matching: "Match words with meanings",
       matchingHint: "Tap a word, then tap its meaning",
+      synonymMatching: "Match words with synonyms",
+      synonymMatchingHint: "Tap a word, then tap its synonym",
       words: "Words",
       meanings: "Meanings",
       correct: "Correct!",
@@ -656,6 +658,10 @@ const en = {
         completeSentence: "Complete the sentence",
         chooseWord: "Choose the correct word",
       },
+      synonymMatching: {
+        title: "Synonym Matching",
+        description: "Match words with their synonyms",
+      },
       matching: {
         title: "Matching",
         description: "Pair words with their meanings",
@@ -680,6 +686,9 @@ const en = {
     matching: {
       instructions: "Tap a word and its matching meaning.",
       progressTitle: "Matching {{current}}/{{total}}",
+    },
+    synonymMatching: {
+      instructions: "Tap a word and its matching synonym.",
     },
     feedback: {
       correct: "Correct!",

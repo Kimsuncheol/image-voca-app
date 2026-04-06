@@ -2,6 +2,7 @@ import { CourseType } from "../types/vocabulary";
 
 export type QuizTypeId =
   | "matching"
+  | "synonym-matching"
   | "fill-in-blank"
   | "gap-fill-sentence"
   | "collocation-matching";
@@ -25,6 +26,36 @@ const STANDARD_QUIZ_TYPES: QuizTypeOption[] = [
     descriptionKey: "quiz.types.matching.description",
     icon: "git-compare",
     color: "#FFE66D",
+  },
+  {
+    id: "fill-in-blank",
+    title: "Fill in the Blank",
+    titleKey: "quiz.types.fillInBlank.title",
+    description: "Complete the sentence",
+    descriptionKey: "quiz.types.fillInBlank.description",
+    icon: "create-outline",
+    color: "#4ECDC4",
+  },
+];
+
+const TOEFL_QUIZ_TYPES: QuizTypeOption[] = [
+  {
+    id: "matching",
+    title: "Matching",
+    titleKey: "quiz.types.matching.title",
+    description: "Match words with meanings",
+    descriptionKey: "quiz.types.matching.description",
+    icon: "git-compare",
+    color: "#FFE66D",
+  },
+  {
+    id: "synonym-matching",
+    title: "Synonym Matching",
+    titleKey: "quiz.types.synonymMatching.title",
+    description: "Match words with synonyms",
+    descriptionKey: "quiz.types.synonymMatching.description",
+    icon: "git-compare",
+    color: "#7ED6A7",
   },
   {
     id: "fill-in-blank",
@@ -61,6 +92,9 @@ const COLLOCATION_QUIZ_TYPES: QuizTypeOption[] = [
 const STANDARD_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
   STANDARD_QUIZ_TYPES.map((quizType) => quizType.id),
 );
+const TOEFL_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
+  TOEFL_QUIZ_TYPES.map((quizType) => quizType.id),
+);
 const COLLOCATION_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
   COLLOCATION_QUIZ_TYPES.map((quizType) => quizType.id),
 );
@@ -68,7 +102,11 @@ const COLLOCATION_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
 export const getQuizTypesForCourse = (
   courseId?: CourseType,
 ): QuizTypeOption[] =>
-  courseId === "COLLOCATION" ? COLLOCATION_QUIZ_TYPES : STANDARD_QUIZ_TYPES;
+  courseId === "COLLOCATION"
+    ? COLLOCATION_QUIZ_TYPES
+    : courseId === "TOEFL_IELTS"
+      ? TOEFL_QUIZ_TYPES
+      : STANDARD_QUIZ_TYPES;
 
 export const getLegacyFallbackQuizType = (
   courseId?: CourseType,
@@ -81,6 +119,12 @@ export const sanitizeRequestedQuizType = (
 ): QuizTypeId => {
   if (courseId === "COLLOCATION") {
     return COLLOCATION_QUIZ_TYPE_IDS.has(requestedQuizType as QuizTypeId)
+      ? (requestedQuizType as QuizTypeId)
+      : getLegacyFallbackQuizType(courseId);
+  }
+
+  if (courseId === "TOEFL_IELTS") {
+    return TOEFL_QUIZ_TYPE_IDS.has(requestedQuizType as QuizTypeId)
       ? (requestedQuizType as QuizTypeId)
       : getLegacyFallbackQuizType(courseId);
   }

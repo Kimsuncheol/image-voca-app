@@ -9,6 +9,7 @@ describe("quizUtils", () => {
     {
       word: "alpha",
       meaning: "first",
+      synonyms: ["primary", " initial ", "primary"],
       pronunciation: "AL-fa",
       pronunciationRoman: "alpha",
       example: "Alpha example",
@@ -17,6 +18,7 @@ describe("quizUtils", () => {
     {
       word: "beta",
       meaning: "second",
+      synonyms: ["secondary"],
       pronunciation: "BAY-ta",
       pronunciationRoman: "beta",
       example: "Beta example",
@@ -25,6 +27,7 @@ describe("quizUtils", () => {
     {
       word: "gamma",
       meaning: "third",
+      synonyms: ["tertiary"],
       pronunciation: "GAM-ma",
       pronunciationRoman: "gamma",
       example: "Gamma example",
@@ -33,6 +36,7 @@ describe("quizUtils", () => {
     {
       word: "delta",
       meaning: "fourth",
+      synonyms: ["quaternary"],
       pronunciation: "DEL-ta",
       pronunciationRoman: "delta",
       example: "Delta example",
@@ -99,5 +103,18 @@ describe("quizUtils", () => {
     expect(hasReachedQuizCompletionThreshold(4, 4)).toBe(true);
     expect(hasReachedQuizCompletionThreshold(3, 4)).toBe(false);
     expect(hasReachedQuizCompletionThreshold(0, 0)).toBe(false);
+  });
+
+  it("builds synonym-matching questions from words with synonyms", () => {
+    const questions = generateQuizQuestions(buildVocab(), "synonym-matching");
+    const alphaQuestion = questions.find((question) => question.word === "alpha");
+
+    expect(questions).toHaveLength(4);
+    expect(alphaQuestion).toMatchObject({
+      word: "alpha",
+      meaning: "first",
+      synonym: "primary",
+      correctAnswer: "primary",
+    });
   });
 });

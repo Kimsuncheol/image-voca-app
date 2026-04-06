@@ -114,6 +114,8 @@ const ko = {
       fillInBlank: "문장 완성하기",
       matching: "단어와 뜻 매칭하기",
       matchingHint: "단어를 누르고, 그 뜻을 눌러주세요",
+      synonymMatching: "단어와 유의어 매칭하기",
+      synonymMatchingHint: "단어를 누르고, 그 유의어를 눌러주세요",
       words: "단어",
       meanings: "뜻",
       wordArrangement: "단어 배열하기",
@@ -653,6 +655,10 @@ const ko = {
         completeSentence: "문장을 완성하세요",
         chooseWord: "정답 단어를 선택하세요",
       },
+      synonymMatching: {
+        title: "유의어 매칭",
+        description: "단어와 유의어를 짝지으세요",
+      },
       matching: {
         title: "매칭",
         description: "단어와 뜻을 짝지으세요",
@@ -677,6 +683,9 @@ const ko = {
     matching: {
       instructions: "단어와 뜻을 각각 눌러 짝을 맞추세요.",
       progressTitle: "매칭 {{current}}/{{total}}",
+    },
+    synonymMatching: {
+      instructions: "단어와 유의어를 각각 눌러 짝을 맞추세요.",
     },
     feedback: {
       correct: "정답!",
