@@ -1,6 +1,5 @@
 import 'react-native-gesture-handler/jestSetup';
-
-const { jest } = globalThis;
+import { jest } from "@jest/globals";
 
 jest.mock(
   "@react-native-async-storage/async-storage",

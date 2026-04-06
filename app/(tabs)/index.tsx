@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -19,13 +19,13 @@ import { useUserStatsStore } from "../../src/stores";
 export default function DashboardScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
+  const router = useRouter();
 
   const { t } = useTranslation();
 
   const {
     stats,
     fetchStats,
-    getWordsLearnedForPeriod,
     streakBrokenAt,
     clearStreakBroken,
   } = useUserStatsStore();
@@ -42,15 +42,13 @@ export default function DashboardScreen() {
     }, [user, fetchStats, loadSettings]),
   );
 
-  const wordsThisWeek = getWordsLearnedForPeriod(7);
-
   const userName = user?.displayName || user?.email?.split("@")[0] || undefined;
 
   const statsElement = (
     <DashboardStats
       key="stats"
-      wordsLearned={wordsThisWeek}
       streak={stats?.currentStreak || 0}
+      onCalendarPress={() => router.push("/calendar")}
     />
   );
 

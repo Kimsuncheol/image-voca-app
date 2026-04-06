@@ -133,13 +133,45 @@ const ja = {
     dailyGoal: "一日の目標",
     stats: {
       title: "統計",
-      wordsLearned: "学習した単語",
-      thisWeek: "今週",
       streak: "連続学習",
       days: "日",
       accuracy: "正確率",
       last7Days: "過去7日間",
       timeSpent: "学習時間",
+    },
+  },
+  calendar: {
+    title: "カレンダー",
+    subtitle: "毎日の学習量を月ごとに確認できます。",
+    loading: "学習記録を読み込み中...",
+    entry: {
+      title: "学習カレンダー",
+      value: "月別",
+      subtitle: "日ごとの学習状況を見る",
+    },
+    month: {
+      title: "今月の学習",
+    },
+    navigation: {
+      previousMonth: "前の月",
+      nextMonth: "次の月",
+    },
+    summary: {
+      title: "月間サマリー",
+      studyDays: "学習日数",
+      wordsLearned: "学習単語",
+      minutesSpent: "学習時間",
+      currentStreak: "連続日数",
+    },
+    detail: {
+      noStudy: "この日の学習記録はありません。",
+      wordsLearned: "学習単語",
+      minutesSpent: "学習時間",
+      quizAccuracy: "クイズ正答率",
+      streakContribution: "連続学習に反映",
+      noQuiz: "クイズなし",
+      yes: "はい",
+      no: "いいえ",
     },
   },
   streak: {

@@ -26,6 +26,7 @@ const MAPPING = {
   "flame.fill": "local-fire-department",
   "checkmark.circle.fill": "check-circle",
   "clock.fill": "access-time",
+  calendar: "calendar-today",
   "folder.fill": "folder",
   "mic.fill": "mic",
   waveform: "graphic-eq",

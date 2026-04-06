@@ -133,13 +133,45 @@ const en = {
     dailyGoal: "Daily Goal",
     stats: {
       title: "Your Stats",
-      wordsLearned: "Words Learned",
-      thisWeek: "This week",
       streak: "Streak",
       days: "Days",
       accuracy: "Accuracy",
       last7Days: "Last 7 days",
       timeSpent: "Time Spent",
+    },
+  },
+  calendar: {
+    title: "Calendar",
+    subtitle: "Track your study rhythm month by month.",
+    loading: "Loading your study history...",
+    entry: {
+      title: "Calendar",
+      value: "Open",
+      subtitle: "Study history",
+    },
+    month: {
+      title: "Month Overview",
+    },
+    navigation: {
+      previousMonth: "Previous month",
+      nextMonth: "Next month",
+    },
+    summary: {
+      title: "This Month",
+      studyDays: "Study days",
+      wordsLearned: "Words learned",
+      minutesSpent: "Minutes spent",
+      currentStreak: "Current streak",
+    },
+    detail: {
+      noStudy: "No study activity recorded for this date.",
+      wordsLearned: "Words learned",
+      minutesSpent: "Minutes spent",
+      quizAccuracy: "Quiz accuracy",
+      streakContribution: "Part of streak",
+      noQuiz: "No quiz",
+      yes: "Yes",
+      no: "No",
     },
   },
 

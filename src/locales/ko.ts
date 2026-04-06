@@ -137,13 +137,45 @@ const ko = {
     dailyGoal: "일일 목표",
     stats: {
       title: "통계",
-      wordsLearned: "학습한 단어",
-      thisWeek: "이번 주",
       streak: "연속 학습",
       days: "일",
       accuracy: "정확도",
       last7Days: "최근 7일",
       timeSpent: "학습 시간",
+    },
+  },
+  calendar: {
+    title: "캘린더",
+    subtitle: "월별로 학습 흐름을 확인하세요.",
+    loading: "학습 기록을 불러오는 중...",
+    entry: {
+      title: "캘린더",
+      value: "열기",
+      subtitle: "학습 기록",
+    },
+    month: {
+      title: "이번 달 개요",
+    },
+    navigation: {
+      previousMonth: "이전 달",
+      nextMonth: "다음 달",
+    },
+    summary: {
+      title: "이번 달",
+      studyDays: "학습한 날",
+      wordsLearned: "학습한 단어",
+      minutesSpent: "학습 시간(분)",
+      currentStreak: "연속 학습",
+    },
+    detail: {
+      noStudy: "이 날짜에는 기록된 학습 활동이 없습니다.",
+      wordsLearned: "학습한 단어",
+      minutesSpent: "학습 시간",
+      quizAccuracy: "퀴즈 정확도",
+      streakContribution: "연속 학습 포함",
+      noQuiz: "퀴즈 없음",
+      yes: "예",
+      no: "아니오",
     },
   },
 

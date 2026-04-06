@@ -5,13 +5,13 @@ import { ThemedText } from "../themed-text";
 import { DashboardCard } from "./DashboardCard";
 
 interface DashboardStatsProps {
-  wordsLearned: number;
   streak: number;
+  onCalendarPress?: () => void;
 }
 
 export function DashboardStats({
-  wordsLearned,
   streak,
+  onCalendarPress,
 }: DashboardStatsProps) {
   const { t } = useTranslation();
 
@@ -22,18 +22,19 @@ export function DashboardStats({
       </ThemedText>
       <View style={styles.statsGrid}>
         <DashboardCard
-          title={t("dashboard.stats.wordsLearned")}
-          value={wordsLearned}
-          subtitle={t("dashboard.stats.thisWeek")}
-          icon="book.fill"
-          color="#FF6B6B"
-        />
-        <DashboardCard
           title={t("dashboard.stats.streak")}
           value={streak}
           subtitle={t("dashboard.stats.days")}
           icon="flame.fill"
           color="#FFE66D"
+        />
+        <DashboardCard
+          title={t("calendar.entry.title")}
+          value={t("calendar.entry.value")}
+          subtitle={t("calendar.entry.subtitle")}
+          icon="calendar"
+          color="#4A90E2"
+          onPress={onCalendarPress}
         />
       </View>
     </View>

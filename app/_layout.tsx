@@ -151,6 +151,10 @@ export function RootLayoutNav() {
               options={{ title: t("manageDevices.title") }}
             />
             <Stack.Screen
+              name="calendar"
+              options={{ title: t("calendar.title") }}
+            />
+            <Stack.Screen
               name="coming-soon"
               options={{ headerBackTitle: "Back" }}
             />
