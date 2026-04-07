@@ -6,7 +6,7 @@ import { ThemedText } from "../themed-text";
 interface MatchingCardProps {
   text: string;
   pronunciation?: string;
-  variant?: "word" | "meaning";
+  variant?: "word" | "meaning" | "pronunciation";
   isMatched: boolean;
   isSelected: boolean;
   onPress: () => void;
@@ -60,6 +60,17 @@ export function MatchingCard({
             lineStyle={styles.meaningLine}
             testID="matching-meaning"
           />
+        ) : variant === "pronunciation" ? (
+          <ThemedText
+            style={[
+              styles.matchingItemText,
+              styles.pronunciationText,
+              isMatched && styles.matchingItemTextMatched,
+              isSelected && { color: courseColor || "#007AFF" },
+            ]}
+          >
+            {text}
+          </ThemedText>
         ) : (
           <View style={styles.wordStack}>
             <ThemedText
@@ -72,6 +83,17 @@ export function MatchingCard({
             >
               {text}
             </ThemedText>
+            {pronunciation ? (
+              <ThemedText
+                style={[
+                  styles.pronunciationCaption,
+                  isMatched && styles.matchingItemTextMatched,
+                  isSelected && { color: courseColor || "#007AFF" },
+                ]}
+              >
+                {pronunciation}
+              </ThemedText>
+            ) : null}
           </View>
         )}
       </View>
@@ -143,5 +165,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     textAlign: "center",
+  },
+  pronunciationText: {
+    fontSize: 16,
+    lineHeight: 22,
+    textAlign: "center",
+    fontWeight: "600",
+  },
+  pronunciationCaption: {
+    fontSize: 12,
+    lineHeight: 16,
+    textAlign: "center",
+    opacity: 0.75,
   },
 });

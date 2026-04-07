@@ -26,6 +26,19 @@ const en = {
     calendar: "Calendar",
     settings: "Settings",
   },
+  elementaryJapanese: {
+    title: "Elementary Japanese",
+    subtitle: "Start with characters and core building blocks",
+    modules: {
+      kana: {
+        description:
+          "Learn the Japanese character systems and practice recognition.",
+      },
+      prefixPostfix: {
+        description: "Study common Japanese prefixes and suffixes.",
+      },
+    },
+  },
   settings: {
     title: "Settings",
     appearance: {
@@ -114,6 +127,8 @@ const en = {
       fillInBlank: "Complete the sentence",
       matching: "Match words with meanings",
       matchingHint: "Tap a word, then tap its meaning",
+      pronunciationMatching: "Match words with pronunciations",
+      pronunciationMatchingHint: "Tap a word, then tap its pronunciation",
       synonymMatching: "Match words with synonyms",
       synonymMatchingHint: "Tap a word, then tap its synonym",
       words: "Words",
@@ -662,6 +677,10 @@ const en = {
         title: "Synonym Matching",
         description: "Match words with their synonyms",
       },
+      pronunciationMatching: {
+        title: "Pronunciation Matching",
+        description: "Match words with their pronunciations",
+      },
       matching: {
         title: "Matching",
         description: "Pair words with their meanings",
@@ -689,6 +708,9 @@ const en = {
     },
     synonymMatching: {
       instructions: "Tap a word and its matching synonym.",
+    },
+    pronunciationMatching: {
+      instructions: "Tap a word and its matching pronunciation.",
     },
     feedback: {
       correct: "Correct!",

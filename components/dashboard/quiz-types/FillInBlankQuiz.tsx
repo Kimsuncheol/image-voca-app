@@ -47,10 +47,13 @@ export function FillInBlankQuiz({
       </View>
 
       <View style={styles.options}>
-        {options.map(({ word }, index) => (
+        {options.map(({ word, pronunciation }, index) => (
           <PopQuizOption
             key={`${word}-${index}`}
             option={word}
+            subtitle={
+              pronunciation && pronunciation !== word ? pronunciation : undefined
+            }
             isSelected={selectedOption === word}
             isCorrect={word === correctWord}
             isAnswered={isCorrect === true}

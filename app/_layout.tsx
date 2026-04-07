@@ -155,6 +155,14 @@ export function RootLayoutNav() {
               options={{ title: t("calendar.title") }}
             />
             <Stack.Screen
+              name="elementary-japanese"
+              options={{
+                title: t("elementaryJapanese.title", {
+                  defaultValue: "Elementary Japanese",
+                }),
+              }}
+            />
+            <Stack.Screen
               name="coming-soon"
               options={{ headerBackTitle: "Back" }}
             />

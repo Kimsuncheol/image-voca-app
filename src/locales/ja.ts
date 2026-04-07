@@ -26,6 +26,18 @@ const ja = {
     calendar: "カレンダー",
     settings: "設定",
   },
+  elementaryJapanese: {
+    title: "初級日本語",
+    subtitle: "文字と基本の構成要素から始めましょう",
+    modules: {
+      kana: {
+        description: "ひらがなとカタカナを学び、文字認識を練習します。",
+      },
+      prefixPostfix: {
+        description: "よく使う日本語の接頭辞と接尾辞を学習します。",
+      },
+    },
+  },
   settings: {
     title: "設定",
     appearance: {
@@ -114,6 +126,8 @@ const ja = {
       fillInBlank: "文を完成させる",
       matching: "単語と意味をマッチさせる",
       matchingHint: "単語をタップして、その意味をタップしてください",
+      pronunciationMatching: "単語と発音をマッチさせる",
+      pronunciationMatchingHint: "単語をタップして、その発音をタップしてください",
       synonymMatching: "単語と類義語をマッチさせる",
       synonymMatchingHint: "単語をタップして、その類義語をタップしてください",
       words: "単語",
@@ -651,6 +665,10 @@ const ja = {
         title: "類義語マッチング",
         description: "単語と類義語をペアにしてください",
       },
+      pronunciationMatching: {
+        title: "発音マッチング",
+        description: "単語と発音をペアにしてください",
+      },
       matching: {
         title: "マッチング",
         description: "単語と意味をペアにしてください",
@@ -678,6 +696,9 @@ const ja = {
     },
     synonymMatching: {
       instructions: "単語とその類義語をタップしてペアにしてください。",
+    },
+    pronunciationMatching: {
+      instructions: "単語とその発音をタップしてペアにしてください。",
     },
     feedback: {
       correct: "正解！",

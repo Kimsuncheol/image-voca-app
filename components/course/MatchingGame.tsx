@@ -24,7 +24,8 @@ interface MatchingGameProps {
   onSelectMeaning: (meaning: string) => void;
   courseColor?: string;
   isDark: boolean;
-  matchingMode?: "meaning" | "synonym";
+  matchingMode?: "meaning" | "synonym" | "pronunciation";
+  showPronunciationDetails?: boolean;
 }
 
 export function MatchingGame({
@@ -38,6 +39,7 @@ export function MatchingGame({
   courseColor,
   isDark,
   matchingMode = "meaning",
+  showPronunciationDetails = false,
 }: MatchingGameProps) {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
@@ -51,15 +53,18 @@ export function MatchingGame({
   // Shuffle meanings for the current page only; re-shuffle when page changes
   const shuffledMeanings = React.useMemo(() => {
     const shuffled = currentQuestions.map((q) =>
-      matchingMode === "synonym" && q.synonym ? q.synonym : q.meaning,
+      matchingMode === "synonym" && q.synonym
+        ? q.synonym
+        : matchingMode === "pronunciation" && q.pronunciation
+          ? q.pronunciation
+          : q.meaning,
     );
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matchingMode, page]);
+  }, [currentQuestions, matchingMode]);
 
   // Auto-advance to the next page when all current cards are matched
   useEffect(() => {
@@ -77,7 +82,9 @@ export function MatchingGame({
         {t(
           matchingMode === "synonym"
             ? "quiz.synonymMatching.instructions"
-            : "quiz.matching.instructions",
+            : matchingMode === "pronunciation"
+              ? "quiz.pronunciationMatching.instructions"
+              : "quiz.matching.instructions",
         )}
       </ThemedText>
 
@@ -90,6 +97,11 @@ export function MatchingGame({
                 <MatchingCard
                   text={question.word}
                   variant="word"
+                  pronunciation={
+                    showPronunciationDetails && matchingMode !== "pronunciation"
+                      ? question.pronunciation
+                      : undefined
+                  }
                   isMatched={Boolean(matchedPairs[question.word])}
                   isSelected={selectedWord === question.word}
                   onPress={() => onSelectWord(question.word)}
@@ -101,7 +113,9 @@ export function MatchingGame({
               <View style={styles.matchingCell}>
                 <MatchingCard
                   text={meaning}
-                  variant="meaning"
+                  variant={
+                    matchingMode === "pronunciation" ? "pronunciation" : "meaning"
+                  }
                   isMatched={Object.values(matchedPairs).includes(meaning)}
                   isSelected={selectedMeaning === meaning}
                   onPress={() => onSelectMeaning(meaning)}

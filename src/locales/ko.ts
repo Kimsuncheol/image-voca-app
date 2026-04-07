@@ -26,6 +26,18 @@ const ko = {
     calendar: "캘린더",
     settings: "설정",
   },
+  elementaryJapanese: {
+    title: "초급 일본어",
+    subtitle: "문자와 기본 구성 요소부터 시작하세요",
+    modules: {
+      kana: {
+        description: "히라가나와 가타카나를 익히고 글자 인식을 연습하세요.",
+      },
+      prefixPostfix: {
+        description: "자주 쓰이는 일본어 접두사와 접미사를 학습하세요.",
+      },
+    },
+  },
   settings: {
     title: "설정",
     appearance: {
@@ -114,6 +126,8 @@ const ko = {
       fillInBlank: "문장 완성하기",
       matching: "단어와 뜻 매칭하기",
       matchingHint: "단어를 누르고, 그 뜻을 눌러주세요",
+      pronunciationMatching: "단어와 발음 매칭하기",
+      pronunciationMatchingHint: "단어를 누르고, 그 발음을 눌러주세요",
       synonymMatching: "단어와 유의어 매칭하기",
       synonymMatchingHint: "단어를 누르고, 그 유의어를 눌러주세요",
       words: "단어",
@@ -659,6 +673,10 @@ const ko = {
         title: "유의어 매칭",
         description: "단어와 유의어를 짝지으세요",
       },
+      pronunciationMatching: {
+        title: "발음 매칭",
+        description: "단어와 발음을 짝지으세요",
+      },
       matching: {
         title: "매칭",
         description: "단어와 뜻을 짝지으세요",
@@ -686,6 +704,9 @@ const ko = {
     },
     synonymMatching: {
       instructions: "단어와 유의어를 각각 눌러 짝을 맞추세요.",
+    },
+    pronunciationMatching: {
+      instructions: "단어와 발음을 각각 눌러 짝을 맞추세요.",
     },
     feedback: {
       correct: "정답!",

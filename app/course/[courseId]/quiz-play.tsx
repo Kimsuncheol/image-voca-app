@@ -26,6 +26,7 @@ import {
 } from "../../../components/course";
 import { QuizGenerationAnimation } from "../../../components/common/QuizGenerationAnimation";
 import {
+  type QuizTypeId,
   resolveRuntimeQuizType,
   sanitizeRequestedQuizType,
 } from "../../../src/course/quizModes";
@@ -47,6 +48,7 @@ import {
   isJlptLevelCourseId,
 } from "../../../src/types/vocabulary";
 import { resolveQuizVocabulary } from "../../../src/utils/localizedVocabulary";
+import { isPronunciationMatchEligible } from "../../../src/utils/pronunciationMatching";
 import { normalizeSynonyms } from "../../../src/utils/synonyms";
 
 const shuffleArray = <T,>(items: T[]): T[] => {
@@ -83,8 +85,7 @@ export default function QuizPlayScreen() {
     day: string;
     quizType: string;
   }>();
-  const sanitizedQuizType = sanitizeRequestedQuizType(courseId, quizType);
-  const resolvedQuizType = resolveRuntimeQuizType(sanitizedQuizType);
+  const requestedQuizType = sanitizeRequestedQuizType(courseId, quizType);
   const course = findRuntimeCourse(courseId);
   const dayNumber = parseInt(day || "1", 10);
   const showJlptPronunciationDetails = isJlptLevelCourseId(courseId);
@@ -101,7 +102,10 @@ export default function QuizPlayScreen() {
   const [selectedMeaning, setSelectedMeaning] = useState<string | null>(null);
   const [matchedPairs, setMatchedPairs] = useState<Record<string, string>>({});
   const [matchingMeanings, setMatchingMeanings] = useState<string[]>([]);
+  const [effectiveQuizType, setEffectiveQuizType] =
+    useState<QuizTypeId>(requestedQuizType);
   const retakeMarkedRef = React.useRef(false);
+  const resolvedQuizType = resolveRuntimeQuizType(effectiveQuizType);
 
   useEffect(() => {
     if (user && courseId) {
@@ -153,9 +157,20 @@ export default function QuizPlayScreen() {
           console.warn("Not enough vocabulary for quiz (need at least 4)");
         }
 
+        const pronunciationEligibleCount = fetchedVocab.filter((vocab) =>
+          isPronunciationMatchEligible(vocab.word, vocab.pronunciation),
+        ).length;
+        const nextQuizType =
+          requestedQuizType === "pronunciation-matching" &&
+          pronunciationEligibleCount < 4
+            ? "matching"
+            : requestedQuizType;
+        const nextResolvedQuizType = resolveRuntimeQuizType(nextQuizType);
+        setEffectiveQuizType(nextQuizType);
+
         const generatedQuestions = generateQuizQuestions(
           fetchedVocab,
-          resolvedQuizType,
+          nextResolvedQuizType,
         );
         if (cancelled) {
           return;
@@ -163,14 +178,18 @@ export default function QuizPlayScreen() {
         setQuestions(generatedQuestions);
 
         if (
-          resolvedQuizType === "matching" ||
-          resolvedQuizType === "synonym-matching"
+          nextResolvedQuizType === "matching" ||
+          nextResolvedQuizType === "synonym-matching" ||
+          nextResolvedQuizType === "pronunciation-matching"
         ) {
           setMatchingMeanings(
             shuffleArray(
               generatedQuestions.map((q) =>
-                resolvedQuizType === "synonym-matching" && q.synonym
+                nextResolvedQuizType === "synonym-matching" && q.synonym
                   ? q.synonym
+                  : nextResolvedQuizType === "pronunciation-matching" &&
+                      q.pronunciation
+                    ? q.pronunciation
                   : q.meaning,
               ),
             ),
@@ -198,11 +217,13 @@ export default function QuizPlayScreen() {
     return () => {
       cancelled = true;
     };
-  }, [courseId, dayNumber, i18n.language, resolvedQuizType]);
+  }, [courseId, dayNumber, i18n.language, requestedQuizType]);
 
   const currentQuestion = questions[currentIndex];
   const isMatching =
-    resolvedQuizType === "matching" || resolvedQuizType === "synonym-matching";
+    resolvedQuizType === "matching" ||
+    resolvedQuizType === "synonym-matching" ||
+    resolvedQuizType === "pronunciation-matching";
   const matchedCount = Object.keys(matchedPairs).length;
   const totalQuestions = questions.length;
   const progressCurrent = isMatching ? matchedCount : currentIndex + 1;
@@ -247,7 +268,7 @@ export default function QuizPlayScreen() {
       currentQuestion.correctAnswer.toLowerCase().trim();
     const nextScore = correct ? score + 1 : score;
     console.log(
-      `[Quiz] ${sanitizedQuizType} answer in handleAnswer`,
+      `[Quiz] ${effectiveQuizType} answer in handleAnswer`,
       correct ? "correct" : "incorrect",
       {
         questionId: currentQuestion.id,
@@ -289,6 +310,8 @@ export default function QuizPlayScreen() {
     const correct =
       (resolvedQuizType === "synonym-matching"
         ? correctQuestion?.synonym
+        : resolvedQuizType === "pronunciation-matching"
+          ? correctQuestion?.pronunciation
         : correctQuestion?.meaning) === meaning;
 
     if (user) {
@@ -350,7 +373,7 @@ export default function QuizPlayScreen() {
         {
           courseId,
           day: dayNumber,
-          quizType: sanitizedQuizType,
+          quizType: effectiveQuizType,
           score: resolvedScore,
           totalQuestions,
           percentage,
@@ -545,7 +568,7 @@ export default function QuizPlayScreen() {
         {isMatching ? (
           <View style={styles.matchingContent}>
             <GameBoard
-              quizType={sanitizedQuizType}
+              quizType={effectiveQuizType}
               currentQuestion={currentQuestion}
               questions={questions}
               progressCurrent={progressCurrent}
@@ -562,7 +585,11 @@ export default function QuizPlayScreen() {
               isCorrect={isCorrect}
               showPronunciationDetails={showJlptPronunciationDetails}
               matchingMode={
-                resolvedQuizType === "synonym-matching" ? "synonym" : "meaning"
+                resolvedQuizType === "synonym-matching"
+                  ? "synonym"
+                  : resolvedQuizType === "pronunciation-matching"
+                    ? "pronunciation"
+                    : "meaning"
               }
               onAnswer={(answer) => {
                 setUserAnswer(answer);
@@ -576,7 +603,7 @@ export default function QuizPlayScreen() {
             showsVerticalScrollIndicator={false}
           >
             <GameBoard
-              quizType={sanitizedQuizType}
+              quizType={effectiveQuizType}
               currentQuestion={currentQuestion}
               questions={questions}
               progressCurrent={progressCurrent}
@@ -593,7 +620,11 @@ export default function QuizPlayScreen() {
               isCorrect={isCorrect}
               showPronunciationDetails={showJlptPronunciationDetails}
               matchingMode={
-                resolvedQuizType === "synonym-matching" ? "synonym" : "meaning"
+                resolvedQuizType === "synonym-matching"
+                  ? "synonym"
+                  : resolvedQuizType === "pronunciation-matching"
+                    ? "pronunciation"
+                    : "meaning"
               }
               onAnswer={(answer) => {
                 setUserAnswer(answer);

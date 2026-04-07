@@ -59,6 +59,7 @@ import { normalizeSynonyms } from "../../src/utils/synonyms";
 const JLPT_QUIZ_TYPES: QuizType[] = [
   "multiple-choice",
   "matching",
+  "pronunciation-matching",
   "fill-in-blank",
 ];
 const INITIAL_LOADING_MIN_MS = 500;
@@ -164,12 +165,16 @@ export function DashboardPopQuiz() {
       wordData: ResolvedDashboardQuizVocabulary,
       batch: ResolvedDashboardQuizVocabulary[],
     ) => {
-      // Determine quiz type
       let nextQuizType: QuizType;
+      let fallbackTypes: QuizType[] = [];
       if (learningLanguage === "ja") {
         nextQuizType =
           JLPT_QUIZ_TYPES[quizTypeIndexRef.current % JLPT_QUIZ_TYPES.length];
         quizTypeIndexRef.current += 1;
+        fallbackTypes =
+          nextQuizType === "pronunciation-matching"
+            ? ["matching", "multiple-choice"]
+            : [];
       } else if (
         wordData.course === "TOEFL_IELTS" &&
         normalizeSynonyms(wordData.synonyms).length > 0 &&
@@ -179,15 +184,20 @@ export function DashboardPopQuiz() {
       } else {
         nextQuizType = "multiple-choice";
       }
-      setQuizType(nextQuizType);
 
-      const payload = buildDashboardQuizPayload(wordData, batch, nextQuizType);
-      if (!payload) return;
+      for (const candidateType of [nextQuizType, ...fallbackTypes]) {
+        const payload = buildDashboardQuizPayload(wordData, batch, candidateType);
+        if (!payload) {
+          continue;
+        }
 
-      setQuizItem(payload.quizItem);
-      setOptions(payload.options);
-      setWordOptions(payload.wordOptions);
-      setMatchingPairs(payload.matchingPairs);
+        setQuizType(candidateType);
+        setQuizItem(payload.quizItem);
+        setOptions(payload.options);
+        setWordOptions(payload.wordOptions);
+        setMatchingPairs(payload.matchingPairs);
+        return;
+      }
     },
     [learningLanguage],
   );
@@ -644,6 +654,17 @@ export function DashboardPopQuiz() {
                 onPairMatched={handlePairMatched}
                 matchingMode="meaning"
                 instruction={t("dashboard.popQuiz.matchingHint")}
+              />
+            )}
+            {quizType === "pronunciation-matching" && (
+              <MatchingQuiz
+                pairs={matchingPairs}
+                isDark={isDark}
+                onComplete={handleMatchingComplete}
+                onWrong={handleMatchingWrong}
+                onPairMatched={handlePairMatched}
+                matchingMode="pronunciation"
+                instruction={t("dashboard.popQuiz.pronunciationMatchingHint")}
               />
             )}
             {quizType === "synonym-matching" && (

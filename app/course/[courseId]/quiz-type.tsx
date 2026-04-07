@@ -8,7 +8,12 @@ import { QuizTypeGrid, QuizTypeHeader } from "../../../components/course";
 import { getQuizTypesForCourse } from "../../../src/course/quizModes";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { prefetchVocabularyCards } from "../../../src/services/vocabularyPrefetch";
-import { CourseType, findRuntimeCourse } from "../../../src/types/vocabulary";
+import {
+  CourseType,
+  findRuntimeCourse,
+  isJlptLevelCourseId,
+} from "../../../src/types/vocabulary";
+import { isPronunciationMatchEligible } from "../../../src/utils/pronunciationMatching";
 import { normalizeSynonyms } from "../../../src/utils/synonyms";
 
 export default function QuizTypeSelectionScreen() {
@@ -28,7 +33,7 @@ export default function QuizTypeSelectionScreen() {
 
     const loadQuizTypes = async () => {
       const baseQuizTypes = getQuizTypesForCourse(courseId);
-      if (courseId !== "TOEFL_IELTS") {
+      if (courseId !== "TOEFL_IELTS" && !isJlptLevelCourseId(courseId)) {
         if (isMounted) {
           setQuizTypes(baseQuizTypes);
         }
@@ -48,16 +53,32 @@ export default function QuizTypeSelectionScreen() {
           return;
         }
 
+        const pronunciationEligibleCount = cards.filter((card) =>
+          isPronunciationMatchEligible(card.word, card.pronunciation),
+        ).length;
+
         setQuizTypes(
-          synonymEligibleCount >= 4
-            ? baseQuizTypes
-            : baseQuizTypes.filter((quizType) => quizType.id !== "synonym-matching"),
+          courseId === "TOEFL_IELTS"
+            ? synonymEligibleCount >= 4
+              ? baseQuizTypes
+              : baseQuizTypes.filter(
+                  (quizType) => quizType.id !== "synonym-matching",
+                )
+            : pronunciationEligibleCount >= 4
+              ? baseQuizTypes
+              : baseQuizTypes.filter(
+                  (quizType) => quizType.id !== "pronunciation-matching",
+                ),
         );
       } catch (error) {
-        console.error("Failed to load TOEFL synonym quiz availability:", error);
+        console.error("Failed to load conditional quiz availability:", error);
         if (isMounted) {
           setQuizTypes(
-            baseQuizTypes.filter((quizType) => quizType.id !== "synonym-matching"),
+            baseQuizTypes.filter(
+              (quizType) =>
+                quizType.id !== "synonym-matching" &&
+                quizType.id !== "pronunciation-matching",
+            ),
           );
         }
       }

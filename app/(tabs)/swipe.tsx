@@ -73,44 +73,27 @@ export default function CourseSelectionScreen() {
               styles.kanaButton,
               { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
             ]}
-            onPress={() => router.push("/japanese-characters")}
+            onPress={() => router.push("/elementary-japanese")}
             activeOpacity={0.7}
           >
             <View style={styles.kanaButtonLeft}>
               <Ionicons
-                name="language-outline"
+                name="school-outline"
                 size={22}
                 color={isDark ? "#fff" : "#111827"}
               />
-              <ThemedText style={styles.kanaButtonText}>
-                {t("kana.title", { defaultValue: "Hiragana & Katakana" })}
-              </ThemedText>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={18}
-              color={isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.3)"}
-            />
-          </TouchableOpacity>
-        )}
-        {learningLanguage === "ja" && (
-          <TouchableOpacity
-            style={[
-              styles.kanaButton,
-              { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
-            ]}
-            onPress={() => router.push("/prefix-postfix" as any)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.kanaButtonLeft}>
-              <Ionicons
-                name="text-outline"
-                size={22}
-                color={isDark ? "#fff" : "#111827"}
-              />
-              <ThemedText style={styles.kanaButtonText}>
-                {t("prefixPostfix.title", { defaultValue: "Prefix & Postfix" })}
-              </ThemedText>
+              <View style={styles.kanaButtonTextGroup}>
+                <ThemedText style={styles.kanaButtonText}>
+                  {t("elementaryJapanese.title", {
+                    defaultValue: "Elementary Japanese",
+                  })}
+                </ThemedText>
+                <ThemedText style={styles.kanaButtonSubtitle}>
+                  {t("elementaryJapanese.subtitle", {
+                    defaultValue: "Start with characters and core building blocks",
+                  })}
+                </ThemedText>
+              </View>
             </View>
             <Ionicons
               name="chevron-forward"
@@ -161,11 +144,21 @@ const styles = StyleSheet.create({
   },
   kanaButtonLeft: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 10,
+    flex: 1,
   },
   kanaButtonText: {
     fontSize: 15,
     fontWeight: "500",
+  },
+  kanaButtonTextGroup: {
+    flex: 1,
+    gap: 2,
+  },
+  kanaButtonSubtitle: {
+    fontSize: 12,
+    opacity: 0.65,
+    lineHeight: 16,
   },
 });

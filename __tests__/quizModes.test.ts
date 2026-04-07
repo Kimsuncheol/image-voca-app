@@ -18,6 +18,12 @@ describe("quizModes", () => {
     ).toEqual(["matching", "synonym-matching", "fill-in-blank"]);
   });
 
+  test("exposes pronunciation matching only for JLPT level courses", () => {
+    expect(
+      getQuizTypesForCourse("JLPT_N3").map((quizType) => quizType.id),
+    ).toEqual(["matching", "pronunciation-matching", "fill-in-blank"]);
+  });
+
   test("exposes only supported quiz types for collocation", () => {
     expect(
       getQuizTypesForCourse("COLLOCATION").map((quizType) => quizType.id),
@@ -51,6 +57,9 @@ describe("quizModes", () => {
     expect(
       sanitizeRequestedQuizType("TOEFL_IELTS", "synonym-matching"),
     ).toBe("synonym-matching");
+    expect(
+      sanitizeRequestedQuizType("JLPT_N3", "pronunciation-matching"),
+    ).toBe("pronunciation-matching");
     expect(sanitizeRequestedQuizType("JLPT_N3", "matching")).toBe("matching");
     expect(sanitizeRequestedQuizType("COLLOCATION", "collocation-matching")).toBe(
       "collocation-matching",
@@ -58,5 +67,8 @@ describe("quizModes", () => {
     expect(resolveRuntimeQuizType("gap-fill-sentence")).toBe("fill-in-blank");
     expect(resolveRuntimeQuizType("collocation-matching")).toBe("matching");
     expect(resolveRuntimeQuizType("synonym-matching")).toBe("synonym-matching");
+    expect(resolveRuntimeQuizType("pronunciation-matching")).toBe(
+      "pronunciation-matching",
+    );
   });
 });

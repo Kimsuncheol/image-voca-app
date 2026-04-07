@@ -20,22 +20,26 @@ jest.mock("../src/context/ThemeContext", () => ({
 
 jest.mock("../components/themed-text", () => ({
   ThemedText: ({ children, style }: any) => {
-    const React = require("react");
-    const { Text } = require("react-native");
+    const React = jest.requireActual<typeof import("react")>("react");
+    const { Text } = jest.requireActual<typeof import("react-native")>(
+      "react-native",
+    );
     return <Text style={style}>{children}</Text>;
   },
 }));
 
 jest.mock("../components/CollocationFlipCard/RoleplayRenderer", () => ({
   RoleplayRenderer: ({ content, renderText }: any) => {
-    const React = require("react");
-    const { View } = require("react-native");
+    const React = jest.requireActual<typeof import("react")>("react");
+    const { View } = jest.requireActual<typeof import("react-native")>(
+      "react-native",
+    );
     return <View>{renderText(content)}</View>;
   },
 }));
 
 describe("JLPT quiz card fields", () => {
-  it("renders course matching left cards without pronunciation and right cards with meaning", () => {
+  it("renders course matching left cards with pronunciation details and right cards with meaning", () => {
     const screen = render(
       <MatchingGame
         questions={[
@@ -54,13 +58,42 @@ describe("JLPT quiz card fields", () => {
         onSelectWord={jest.fn()}
         onSelectMeaning={jest.fn()}
         isDark={false}
+        showPronunciationDetails
       />,
     );
 
     expect(screen.getByText("間")).toBeTruthy();
     expect(screen.getByText("사이")).toBeTruthy();
-    expect(screen.queryByText("あいだ")).toBeNull();
+    expect(screen.getByText("あいだ")).toBeTruthy();
     expect(screen.queryByText("aida")).toBeNull();
+  });
+
+  it("hides duplicate pronunciation subtitles in course pronunciation matching", () => {
+    const screen = render(
+      <MatchingGame
+        questions={[
+          {
+            id: "q1",
+            word: "間",
+            meaning: "사이",
+            pronunciation: "あいだ",
+          },
+        ]}
+        meanings={["あいだ"]}
+        selectedWord={null}
+        selectedMeaning={null}
+        matchedPairs={{}}
+        onSelectWord={jest.fn()}
+        onSelectMeaning={jest.fn()}
+        isDark={false}
+        showPronunciationDetails
+        matchingMode="pronunciation"
+      />,
+    );
+
+    expect(screen.getByText("間")).toBeTruthy();
+    expect(screen.getByText("あいだ")).toBeTruthy();
+    expect(screen.queryAllByText("あいだ")).toHaveLength(1);
   });
 
   it("renders course fill-in-the-blank options with pronunciation details and answers by word", () => {
@@ -116,6 +149,7 @@ describe("JLPT quiz card fields", () => {
         isDark={false}
         onComplete={jest.fn()}
         onWrong={jest.fn()}
+        instruction="hint"
       />,
     );
 
@@ -124,6 +158,29 @@ describe("JLPT quiz card fields", () => {
     expect(screen.getByText("사이")).toBeTruthy();
     expect(screen.queryAllByText("あいだ")).toHaveLength(1);
     expect(screen.queryByText("aida")).toBeNull();
+  });
+
+  it("renders dashboard pronunciation matching without duplicate left-side pronunciation subtitles", () => {
+    const screen = render(
+      <MatchingQuiz
+        pairs={[
+          {
+            word: "間",
+            meaning: "사이",
+            pronunciation: "あいだ",
+          },
+        ]}
+        isDark={false}
+        onComplete={jest.fn()}
+        onWrong={jest.fn()}
+        matchingMode="pronunciation"
+        instruction="hint"
+      />,
+    );
+
+    expect(screen.getByText("間")).toBeTruthy();
+    expect(screen.getByText("あいだ")).toBeTruthy();
+    expect(screen.queryAllByText("あいだ")).toHaveLength(1);
   });
 
   it("strips furigana from the dashboard fill-in-the-blank sentence and keeps option pronunciation details", () => {

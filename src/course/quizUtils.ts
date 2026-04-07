@@ -1,4 +1,5 @@
 import nlp from "compromise";
+import { isPronunciationMatchEligible } from "../utils/pronunciationMatching";
 
 export interface QuizWordOption {
   word: string;
@@ -53,12 +54,22 @@ export const generateQuizQuestions = (
   const selectedWords = shuffleArray(
     quizType === "synonym-matching"
       ? vocabData.filter((vocab) => (vocab.synonyms?.length ?? 0) > 0)
+      : quizType === "pronunciation-matching"
+        ? vocabData.filter((vocab) =>
+            isPronunciationMatchEligible(vocab.word, vocab.pronunciation),
+          )
       : [...vocabData],
   );
 
   return selectedWords.map((vocab, index) => {
     const isWordAnswer = quizType === "fill-in-blank";
     const synonym = vocab.synonyms?.[0];
+    const pronunciation = isPronunciationMatchEligible(
+      vocab.word,
+      vocab.pronunciation,
+    )
+      ? vocab.pronunciation
+      : undefined;
 
     let options: string[] | QuizWordOption[] | undefined;
     if (quizType === "multiple-choice") {
@@ -143,6 +154,8 @@ export const generateQuizQuestions = (
       options,
       correctAnswer: isWordAnswer
         ? vocab.word
+        : quizType === "pronunciation-matching" && pronunciation
+          ? pronunciation
         : quizType === "synonym-matching" && synonym
           ? synonym
           : vocab.meaning,

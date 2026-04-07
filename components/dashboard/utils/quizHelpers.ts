@@ -8,6 +8,7 @@
 
 import type { CourseType } from "../../../src/types/vocabulary";
 import type { ResolvedQuizVocabulary } from "../../../src/utils/localizedVocabulary";
+import { isPronunciationMatchEligible } from "../../../src/utils/pronunciationMatching";
 import { normalizeSynonyms } from "../../../src/utils/synonyms";
 
 /**
@@ -95,6 +96,7 @@ const shuffleArray = <T,>(items: T[]): T[] => {
 export type DashboardQuizType =
   | "multiple-choice"
   | "matching"
+  | "pronunciation-matching"
   | "synonym-matching"
   | "fill-in-blank";
 
@@ -190,6 +192,46 @@ export function buildDashboardQuizPayload(
           word: targetWord.word,
           meaning: targetWord.meaning,
           synonym: targetSynonym,
+          pronunciation: targetWord.pronunciation,
+          pronunciationRoman: targetWord.pronunciationRoman,
+        },
+        ...otherPairs,
+      ]),
+    };
+  }
+
+  if (quizType === "pronunciation-matching") {
+    if (!isPronunciationMatchEligible(targetWord.word, targetWord.pronunciation)) {
+      return null;
+    }
+
+    const pronunciationWords = batch.filter(
+      (word) =>
+        word.word !== targetWord.word &&
+        isPronunciationMatchEligible(word.word, word.pronunciation),
+    );
+
+    if (pronunciationWords.length < 3) {
+      return null;
+    }
+
+    const otherPairs: DashboardMatchingPair[] = shuffleArray(pronunciationWords)
+      .slice(0, 3)
+      .map((word) => ({
+        word: word.word,
+        meaning: word.meaning,
+        pronunciation: word.pronunciation,
+        pronunciationRoman: word.pronunciationRoman,
+      }));
+
+    return {
+      quizItem: toDashboardQuizItem(targetWord),
+      options: [],
+      wordOptions: [],
+      matchingPairs: shuffleArray([
+        {
+          word: targetWord.word,
+          meaning: targetWord.meaning,
           pronunciation: targetWord.pronunciation,
           pronunciationRoman: targetWord.pronunciationRoman,
         },

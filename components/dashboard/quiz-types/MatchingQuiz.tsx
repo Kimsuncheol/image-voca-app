@@ -3,12 +3,12 @@
  * MATCHING QUIZ COMPONENT
  * ====================================
  *
- * Displays word-meaning pairs in two columns.
- * User taps a word, then taps the matching meaning.
+ * Displays word-value pairs in two columns.
+ * User taps a word, then taps the matching value.
  * Correct matches turn green; wrong matches flash red.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "../../themed-text";
 import type { DashboardMatchingPair as MatchingPair } from "../utils/quizHelpers";
@@ -21,7 +21,7 @@ interface MatchingQuizProps {
   onComplete: () => void;
   onWrong: () => void;
   onPairMatched?: () => void;
-  matchingMode?: "meaning" | "synonym";
+  matchingMode?: "meaning" | "synonym" | "pronunciation";
   instruction: string;
 }
 
@@ -34,10 +34,10 @@ export function MatchingQuiz({
   matchingMode = "meaning",
   instruction,
 }: MatchingQuizProps) {
-  // Shuffle meanings independently from words on mount
-  const shuffledMeanings = useRef(
-    [...pairs].sort(() => Math.random() - 0.5),
-  ).current;
+  const shuffledMeanings = useMemo(
+    () => [...pairs].sort(() => Math.random() - 0.5),
+    [pairs],
+  );
 
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [matchedWords, setMatchedWords] = useState<Set<string>>(new Set());
@@ -62,16 +62,18 @@ export function MatchingQuiz({
   );
 
   const handleMeaningPress = useCallback(
-    (meaning: string) => {
+    (value: string) => {
       if (!selectedWord || wrongWord) return;
 
       const correctPair = pairs.find((p) => p.word === selectedWord);
       const expectedMatch =
         matchingMode === "synonym" && correctPair?.synonym
           ? correctPair.synonym
+          : matchingMode === "pronunciation" && correctPair?.pronunciation
+            ? correctPair.pronunciation
           : correctPair?.meaning;
 
-      if (expectedMatch === meaning) {
+      if (expectedMatch === value) {
         // Correct match
         setMatchedWords((prev) => new Set(prev).add(selectedWord));
         setSelectedWord(null);
@@ -79,7 +81,7 @@ export function MatchingQuiz({
       } else {
         // Wrong match — flash red, then reset
         setWrongWord(selectedWord);
-        setWrongMeaning(meaning);
+        setWrongMeaning(value);
         onWrong();
         setTimeout(() => {
           setWrongWord(null);
@@ -101,7 +103,13 @@ export function MatchingQuiz({
   const getMeaningStyle = (meaning: string) => {
     const isMatched = pairs.some(
       (p) =>
-        (matchingMode === "synonym" && p.synonym ? p.synonym : p.meaning) === meaning &&
+        (
+          matchingMode === "synonym" && p.synonym
+            ? p.synonym
+            : matchingMode === "pronunciation" && p.pronunciation
+              ? p.pronunciation
+              : p.meaning
+        ) === meaning &&
         matchedWords.has(p.word),
     );
     if (isMatched) return styles.matched;
@@ -119,6 +127,9 @@ export function MatchingQuiz({
         const meaning =
           matchingMode === "synonym" && shuffledMeanings[index].synonym
             ? shuffledMeanings[index].synonym!
+            : matchingMode === "pronunciation" &&
+                shuffledMeanings[index].pronunciation
+              ? shuffledMeanings[index].pronunciation!
             : shuffledMeanings[index].meaning;
         return (
           <View key={index} style={styles.row}>
@@ -129,7 +140,16 @@ export function MatchingQuiz({
               activeOpacity={0.8}
               disabled={matchedWords.has(word) || !!wrongWord}
             >
-              <ThemedText style={styles.wordText}>{word}</ThemedText>
+              <View style={styles.wordStack}>
+                <ThemedText style={styles.wordText}>{word}</ThemedText>
+                {matchingMode === "meaning" &&
+                pair.pronunciation &&
+                pair.pronunciation !== word ? (
+                  <ThemedText style={styles.pronunciationText}>
+                    {pair.pronunciation}
+                  </ThemedText>
+                ) : null}
+              </View>
             </TouchableOpacity>
 
             {/* Meaning cell */}
@@ -139,7 +159,14 @@ export function MatchingQuiz({
               activeOpacity={0.8}
               disabled={
                 pairs.some(
-                  (p) => p.meaning === meaning && matchedWords.has(p.word),
+                  (p) =>
+                    (
+                      matchingMode === "synonym" && p.synonym
+                        ? p.synonym
+                        : matchingMode === "pronunciation" && p.pronunciation
+                          ? p.pronunciation
+                          : p.meaning
+                    ) === meaning && matchedWords.has(p.word),
                 ) || !!wrongWord
               }
             >
@@ -181,6 +208,15 @@ const styles = StyleSheet.create({
   wordText: {
     fontSize: 18,
     fontWeight: "700",
+    textAlign: "center",
+  },
+  wordStack: {
+    alignItems: "center",
+    gap: 2,
+  },
+  pronunciationText: {
+    fontSize: 12,
+    opacity: 0.75,
     textAlign: "center",
   },
   meaningText: {

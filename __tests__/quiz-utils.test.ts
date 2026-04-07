@@ -3,6 +3,7 @@ import {
   hasReachedQuizCompletionThreshold,
   type QuizVocabData,
 } from "../src/course/quizUtils";
+import { isPronunciationMatchEligible } from "../src/utils/pronunciationMatching";
 
 describe("quizUtils", () => {
   const buildVocab = (): QuizVocabData[] => [
@@ -116,5 +117,34 @@ describe("quizUtils", () => {
       synonym: "primary",
       correctAnswer: "primary",
     });
+  });
+
+  it("builds pronunciation-matching questions only from eligible words", () => {
+    const questions = generateQuizQuestions(
+      [
+        ...buildVocab(),
+        {
+          word: "かな",
+          meaning: "kana",
+          pronunciation: "かな",
+        },
+      ],
+      "pronunciation-matching",
+    );
+    const alphaQuestion = questions.find((question) => question.word === "alpha");
+
+    expect(questions).toHaveLength(4);
+    expect(questions.some((question) => question.word === "かな")).toBe(false);
+    expect(alphaQuestion).toMatchObject({
+      word: "alpha",
+      pronunciation: "AL-fa",
+      correctAnswer: "AL-fa",
+    });
+  });
+
+  it("excludes empty and identical pronunciations from pronunciation matching eligibility", () => {
+    expect(isPronunciationMatchEligible("間", "あいだ")).toBe(true);
+    expect(isPronunciationMatchEligible("かな", "かな")).toBe(false);
+    expect(isPronunciationMatchEligible("間", "   ")).toBe(false);
   });
 });

@@ -35,7 +35,10 @@ describe("dashboard quiz payloads", () => {
       pronunciationRoman: "mae",
       example: "前を見る",
     },
-  ].map((word) => resolveQuizVocabulary(word, "ko"));
+  ].map((word) => ({
+    ...resolveQuizVocabulary(word, "ko"),
+    course: "JLPT_N3" as const,
+  }));
 
   const collocationBatch = [
     {
@@ -196,6 +199,38 @@ describe("dashboard quiz payloads", () => {
       toeflBatch[0],
       toeflBatch.slice(0, 3),
       "synonym-matching",
+    );
+
+    expect(payload).toBeNull();
+  });
+
+  it("builds pronunciation matching payloads for eligible JLPT words", () => {
+    const payload = buildDashboardQuizPayload(
+      batch[0],
+      batch,
+      "pronunciation-matching",
+    );
+
+    expect(payload).not.toBeNull();
+    expect(payload?.matchingPairs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          word: "間",
+          pronunciation: "あいだ",
+        }),
+      ]),
+    );
+  });
+
+  it("returns null for pronunciation matching when there are not enough eligible JLPT words", () => {
+    const payload = buildDashboardQuizPayload(
+      batch[0],
+      [
+        batch[0],
+        { ...batch[1], pronunciation: "外" },
+        { ...batch[2], pronunciation: "中" },
+      ],
+      "pronunciation-matching",
     );
 
     expect(payload).toBeNull();

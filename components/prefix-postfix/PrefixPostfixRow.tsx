@@ -1,11 +1,13 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedText } from '../themed-text';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import type { PrefixWord, PostfixWord } from '../../src/types/prefixPostfix';
 import { buildGroupedLines } from './utils';
 import type { Tab } from './PrefixPostfixTabs';
+import { useSpeech } from '../../src/hooks/useSpeech';
+import { speakWordVariants } from '../../src/utils/wordVariants';
 
 interface Props {
   item: PrefixWord | PostfixWord;
@@ -17,6 +19,7 @@ export function PrefixPostfixRow({ item, tab, index }: Props) {
   const { isDark } = useTheme();
   const { i18n } = useTranslation();
   const isKorean = i18n.language === "ko";
+  const { speak } = useSpeech();
 
   const primaryText = isDark ? "#fff" : "#2a3437";
   const mutedText = isDark ? "#8e8e93" : "#6e6e73";
@@ -33,21 +36,29 @@ export function PrefixPostfixRow({ item, tab, index }: Props) {
   const translation = `${item.translationEnglish}(${item.translationKorean})`;
   const pronunciationGroups = buildGroupedLines(
     item.pronunciation,
-    item.pronunciationRoman,
   );
   const exampleGroups = buildGroupedLines(
     item.example,
-    item.exampleRoman,
     item.translationEnglish,
   );
+
+  const handleSpeak = useCallback(async () => {
+    try {
+      await speakWordVariants(word, speak);
+    } catch (error) {
+      console.error("Prefix/Postfix TTS error:", error);
+    }
+  }, [speak, word]);
 
   return (
     <View style={[styles.row, { backgroundColor: rowBg }]}>
       {/* Prefix / Postfix */}
       <View style={[styles.cell, styles.wordColumn]}>
-        <ThemedText style={[styles.wordText, { color: primaryText }]}>
-          {word}
-        </ThemedText>
+        <TouchableOpacity onPress={handleSpeak} activeOpacity={0.7}>
+          <ThemedText style={[styles.wordText, { color: primaryText }]}>
+            {word}
+          </ThemedText>
+        </TouchableOpacity>
       </View>
 
       {/* Meaning */}
@@ -74,24 +85,12 @@ export function PrefixPostfixRow({ item, tab, index }: Props) {
               >
                 {group[0]}
               </ThemedText>
-              <ThemedText
-                style={[
-                  styles.subText,
-                  styles.leftAlignedText,
-                  { color: mutedText },
-                ]}
-              >
-                {group[1]}
-              </ThemedText>
             </View>
           ))
         ) : (
           <>
             <ThemedText style={[styles.bodyText, styles.leftAlignedText, { color: primaryText }]}>
               {item.pronunciation}
-            </ThemedText>
-            <ThemedText style={[styles.subText, styles.leftAlignedText, { color: mutedText }]}>
-              {item.pronunciationRoman}
             </ThemedText>
           </>
         )}
@@ -123,24 +122,12 @@ export function PrefixPostfixRow({ item, tab, index }: Props) {
               >
                 {group[1]}
               </ThemedText>
-              <ThemedText
-                style={[
-                  styles.subText,
-                  styles.leftAlignedText,
-                  { color: mutedText },
-                ]}
-              >
-                {group[2]}
-              </ThemedText>
             </View>
           ))
         ) : (
           <>
             <ThemedText style={[styles.exampleText, styles.leftAlignedText, { color: primaryText }]}>
               {item.example}
-            </ThemedText>
-            <ThemedText style={[styles.subText, styles.leftAlignedText, { color: mutedText }]}>
-              {item.exampleRoman}
             </ThemedText>
             <ThemedText style={[styles.subText, styles.leftAlignedText, { color: mutedText }]}>
               {translation}

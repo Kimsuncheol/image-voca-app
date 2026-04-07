@@ -1,7 +1,8 @@
-import { CourseType } from "../types/vocabulary";
+import { CourseType, isJlptLevelCourseId } from "../types/vocabulary";
 
 export type QuizTypeId =
   | "matching"
+  | "pronunciation-matching"
   | "synonym-matching"
   | "fill-in-blank"
   | "gap-fill-sentence"
@@ -68,6 +69,36 @@ const TOEFL_QUIZ_TYPES: QuizTypeOption[] = [
   },
 ];
 
+const JLPT_QUIZ_TYPES: QuizTypeOption[] = [
+  {
+    id: "matching",
+    title: "Matching",
+    titleKey: "quiz.types.matching.title",
+    description: "Match words with meanings",
+    descriptionKey: "quiz.types.matching.description",
+    icon: "git-compare",
+    color: "#FFE66D",
+  },
+  {
+    id: "pronunciation-matching",
+    title: "Pronunciation Matching",
+    titleKey: "quiz.types.pronunciationMatching.title",
+    description: "Match words with pronunciations",
+    descriptionKey: "quiz.types.pronunciationMatching.description",
+    icon: "volume-medium",
+    color: "#FFB86B",
+  },
+  {
+    id: "fill-in-blank",
+    title: "Fill in the Blank",
+    titleKey: "quiz.types.fillInBlank.title",
+    description: "Complete the sentence",
+    descriptionKey: "quiz.types.fillInBlank.description",
+    icon: "create-outline",
+    color: "#4ECDC4",
+  },
+];
+
 const COLLOCATION_QUIZ_TYPES: QuizTypeOption[] = [
   {
     id: "gap-fill-sentence",
@@ -95,6 +126,9 @@ const STANDARD_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
 const TOEFL_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
   TOEFL_QUIZ_TYPES.map((quizType) => quizType.id),
 );
+const JLPT_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
+  JLPT_QUIZ_TYPES.map((quizType) => quizType.id),
+);
 const COLLOCATION_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
   COLLOCATION_QUIZ_TYPES.map((quizType) => quizType.id),
 );
@@ -106,6 +140,8 @@ export const getQuizTypesForCourse = (
     ? COLLOCATION_QUIZ_TYPES
     : courseId === "TOEFL_IELTS"
       ? TOEFL_QUIZ_TYPES
+      : isJlptLevelCourseId(courseId)
+        ? JLPT_QUIZ_TYPES
       : STANDARD_QUIZ_TYPES;
 
 export const getLegacyFallbackQuizType = (
@@ -125,6 +161,12 @@ export const sanitizeRequestedQuizType = (
 
   if (courseId === "TOEFL_IELTS") {
     return TOEFL_QUIZ_TYPE_IDS.has(requestedQuizType as QuizTypeId)
+      ? (requestedQuizType as QuizTypeId)
+      : getLegacyFallbackQuizType(courseId);
+  }
+
+  if (isJlptLevelCourseId(courseId)) {
+    return JLPT_QUIZ_TYPE_IDS.has(requestedQuizType as QuizTypeId)
       ? (requestedQuizType as QuizTypeId)
       : getLegacyFallbackQuizType(courseId);
   }

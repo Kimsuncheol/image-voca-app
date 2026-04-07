@@ -46,7 +46,7 @@ interface GameBoardProps {
   userAnswer: string;
   showResult: boolean;
   isCorrect: boolean;
-  matchingMode?: "meaning" | "synonym";
+  matchingMode?: "meaning" | "synonym" | "pronunciation";
 
   onAnswer: (answer: string) => void;
 }
@@ -74,7 +74,9 @@ export function GameBoard({
   const isCollocationGapFill = quizType === "gap-fill-sentence";
   const isCollocationMatching = quizType === "collocation-matching";
   const isMatching =
-    quizType === "matching" || quizType === "synonym-matching";
+    quizType === "matching" ||
+    quizType === "synonym-matching" ||
+    quizType === "pronunciation-matching";
   const isFillInBlank = quizType === "fill-in-blank";
 
   return (
