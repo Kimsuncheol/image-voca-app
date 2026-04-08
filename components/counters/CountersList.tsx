@@ -1,7 +1,7 @@
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import type { CounterTabId, CounterWord } from "../../src/types/counters";
+import type { CounterWord } from "../../src/types/counters";
 import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
 import { CounterRow } from "./CounterRow";
@@ -10,10 +10,10 @@ interface Props {
   data: CounterWord[];
   loading: boolean;
   error: string | null;
-  tab: CounterTabId;
+  showFurigana: boolean;
 }
 
-export function CountersList({ data, loading, error, tab }: Props) {
+export function CountersList({ data, loading, error, showFurigana }: Props) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
 
@@ -73,7 +73,7 @@ export function CountersList({ data, loading, error, tab }: Props) {
             </ThemedText>
           </View>
           {data.map((item, index) => (
-            <CounterRow key={item.id} item={item} index={index} tab={tab} />
+            <CounterRow key={item.id} item={item} index={index} showFurigana={showFurigana} />
           ))}
         </View>
       ) : null}

@@ -179,14 +179,6 @@ export function RootLayoutNav() {
               }}
             />
             <Stack.Screen
-              name="counter-detail"
-              options={{
-                title: t("counters.title", {
-                  defaultValue: "Counters",
-                }),
-              }}
-            />
-            <Stack.Screen
               name="coming-soon"
               options={{ headerBackTitle: "Back" }}
             />

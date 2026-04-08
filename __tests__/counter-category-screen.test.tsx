@@ -5,17 +5,15 @@ import type { CounterTabId } from "../src/types/counters";
 
 const mockGetCountersData = jest.fn();
 const mockLanguage = { current: "en" };
-const mockPush = jest.fn();
 const mockParams = { tab: "numbers" };
+const mockSpeak = jest.fn();
+const mockSpeakWordVariants = jest.fn();
 
 jest.mock("expo-router", () => ({
   Stack: {
     Screen: () => null,
   },
   useLocalSearchParams: () => mockParams,
-  useRouter: () => ({
-    push: mockPush,
-  }),
 }));
 
 jest.mock("../src/context/ThemeContext", () => ({
@@ -26,8 +24,12 @@ jest.mock("../src/context/ThemeContext", () => ({
 
 jest.mock("../src/hooks/useSpeech", () => ({
   useSpeech: () => ({
-    speak: jest.fn(),
+    speak: mockSpeak,
   }),
+}));
+
+jest.mock("../src/utils/wordVariants", () => ({
+  speakWordVariants: (...args: unknown[]) => mockSpeakWordVariants(...args),
 }));
 
 jest.mock("../components/themed-text", () => ({
@@ -113,7 +115,7 @@ describe("CounterCategoryScreen", () => {
     expect(mockGetCountersData).toHaveBeenCalledWith("numbers");
   });
 
-  it("opens counter detail from the selected category screen", async () => {
+  it("renders rows as read-only content without navigating", async () => {
     const screen = render(<CounterCategoryScreen />);
 
     await waitFor(() => {
@@ -121,14 +123,44 @@ describe("CounterCategoryScreen", () => {
     });
 
     fireEvent.press(screen.getByText("one"));
+    expect(screen.queryByText("›")).toBeNull();
+  });
 
-    expect(mockPush).toHaveBeenCalledWith({
-      pathname: "/counter-detail",
-      params: {
-        id: "numbers-01",
-        tab: "numbers",
-      },
+  it("speaks the counter word in Japanese when the word is tapped", async () => {
+    const screen = render(<CounterCategoryScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("一")).toBeTruthy();
     });
+
+    fireEvent.press(screen.getByText("一"));
+
+    expect(mockSpeakWordVariants).toHaveBeenCalledWith(
+      "一",
+      mockSpeak,
+      expect.objectContaining({
+        language: "ja-JP",
+        rate: 0.85,
+      }),
+    );
+  });
+
+  it("speaks the example sentence in Japanese when the example is tapped", async () => {
+    const screen = render(<CounterCategoryScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("一 の例")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("一 の例"));
+
+    expect(mockSpeak).toHaveBeenCalledWith(
+      "一 の例",
+      expect.objectContaining({
+        language: "ja-JP",
+        rate: 0.85,
+      }),
+    );
   });
 
   it("shows a safe error when the tab param is invalid", async () => {

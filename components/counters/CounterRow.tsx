@@ -1,28 +1,28 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import type { CounterWord } from "../../src/types/counters";
 import { useTheme } from "../../src/context/ThemeContext";
-import type { CounterTabId, CounterWord } from "../../src/types/counters";
+import { useSpeech } from "../../src/hooks/useSpeech";
+import { splitJapaneseTextSegments, stripKanaParens } from "../../src/utils/japaneseText";
+import { speakWordVariants } from "../../src/utils/wordVariants";
 import { buildGroupedLines } from "../prefix-postfix/utils";
 import { ThemedText } from "../themed-text";
 
 interface Props {
   item: CounterWord;
   index: number;
-  tab: CounterTabId;
+  showFurigana: boolean;
 }
 
-export function CounterRow({ item, index, tab }: Props) {
+export function CounterRow({ item, index, showFurigana }: Props) {
   const { isDark } = useTheme();
   const { i18n } = useTranslation();
   const isKorean = i18n.language === "ko";
-  const router = useRouter();
+  const { speak } = useSpeech();
 
   const primaryText = isDark ? "#fff" : "#2a3437";
   const mutedText = isDark ? "#8e8e93" : "#6e6e73";
-  const iconColor = isDark ? "#8e8e93" : "#6e6e73";
   const rowBg =
     index % 2 === 0
       ? isDark
@@ -34,30 +34,59 @@ export function CounterRow({ item, index, tab }: Props) {
 
   const word = item.word;
   const meaning = isKorean ? item.meaningKorean : item.meaningEnglish;
-  const translation = `${item.translationEnglish}(${item.translationKorean})`;
+  const translation = isKorean ? item.translationKorean : item.translationEnglish;
   const pronunciationGroups = buildGroupedLines(item.pronunciation);
-  const exampleGroups = buildGroupedLines(item.example, item.translationEnglish);
+  const exampleGroups = buildGroupedLines(item.example, translation);
 
-  const handleOpenDetail = useCallback(() => {
-    router.push({
-      pathname: "/counter-detail",
-      params: {
-        id: item.id,
-        tab,
-      },
-    });
-  }, [item.id, router, tab]);
+  const handleSpeakWord = useCallback(async () => {
+    try {
+      await speakWordVariants(word, speak, {
+        language: "ja-JP",
+        rate: 0.85,
+      });
+    } catch (error) {
+      console.error("Counter word TTS error:", error);
+    }
+  }, [speak, word]);
+
+  const renderExampleText = useCallback(
+    (text: string) => {
+      if (!showFurigana) return stripKanaParens(text);
+      return splitJapaneseTextSegments(text).map((seg, i) =>
+        seg.isKanaParen ? (
+          <Text key={i} style={styles.furiganaText}>
+            {seg.text}
+          </Text>
+        ) : (
+          seg.text
+        ),
+      );
+    },
+    [showFurigana],
+  );
+
+  const handleSpeakExample = useCallback(
+    async (text: string) => {
+      try {
+        await speak(stripKanaParens(text), {
+          language: "ja-JP",
+          rate: 0.85,
+        });
+      } catch (error) {
+        console.error("Counter example TTS error:", error);
+      }
+    },
+    [speak],
+  );
 
   return (
-    <TouchableOpacity
-      style={[styles.row, { backgroundColor: rowBg }]}
-      onPress={handleOpenDetail}
-      activeOpacity={0.72}
-    >
+    <View style={[styles.row, { backgroundColor: rowBg }]}>
       <View style={[styles.cell, styles.counterColumn]}>
-        <ThemedText style={[styles.wordText, { color: primaryText }]}>
-          {word}
-        </ThemedText>
+        <TouchableOpacity onPress={() => void handleSpeakWord()} activeOpacity={0.7}>
+          <ThemedText style={[styles.wordText, { color: primaryText }]}>
+            {word}
+          </ThemedText>
+        </TouchableOpacity>
       </View>
 
       <View style={[styles.cell, styles.meaningColumn]}>
@@ -104,15 +133,20 @@ export function CounterRow({ item, index, tab }: Props) {
               key={`${item.id}-example-${group[0]}`}
               style={groupIndex > 0 ? styles.groupBlock : undefined}
             >
-              <ThemedText
-                style={[
-                  styles.exampleText,
-                  styles.leftAlignedText,
-                  { color: primaryText },
-                ]}
+              <TouchableOpacity
+                onPress={() => void handleSpeakExample(group[0])}
+                activeOpacity={0.7}
               >
-                {group[0]}
-              </ThemedText>
+                <ThemedText
+                  style={[
+                    styles.exampleText,
+                    styles.leftAlignedText,
+                    { color: primaryText },
+                  ]}
+                >
+                  {renderExampleText(group[0])}
+                </ThemedText>
+              </TouchableOpacity>
               <ThemedText
                 style={[
                   styles.subText,
@@ -126,15 +160,20 @@ export function CounterRow({ item, index, tab }: Props) {
           ))
         ) : (
           <>
-            <ThemedText
-              style={[
-                styles.exampleText,
-                styles.leftAlignedText,
-                { color: primaryText },
-              ]}
+            <TouchableOpacity
+              onPress={() => void handleSpeakExample(item.example)}
+              activeOpacity={0.7}
             >
-              {item.example}
-            </ThemedText>
+              <ThemedText
+                style={[
+                  styles.exampleText,
+                  styles.leftAlignedText,
+                  { color: primaryText },
+                ]}
+              >
+                {renderExampleText(item.example)}
+              </ThemedText>
+            </TouchableOpacity>
             <ThemedText
               style={[
                 styles.subText,
@@ -147,11 +186,7 @@ export function CounterRow({ item, index, tab }: Props) {
           </>
         )}
       </View>
-
-      <View style={styles.chevronColumn}>
-        <Ionicons name="chevron-forward" size={16} color={iconColor} />
-      </View>
-    </TouchableOpacity>
+    </View>
   );
 }
 
@@ -180,11 +215,6 @@ const styles = StyleSheet.create({
     paddingLeft: 6,
     paddingRight: 0,
   },
-  chevronColumn: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingLeft: 8,
-  },
   groupBlock: {
     marginTop: 8,
     width: "100%",
@@ -199,9 +229,14 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   exampleText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: "700",
-    lineHeight: 16,
+    lineHeight: 20,
+  },
+  furiganaText: {
+    fontSize: 10,
+    fontWeight: "500",
+    color: "#8e8e93",
   },
   subText: {
     fontSize: 10,
