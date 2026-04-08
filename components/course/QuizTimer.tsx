@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   container: {
     height: 6,
     width: "100%",
-    backgroundColor: "#E5E5EA", // Light gray background
+    backgroundColor: "transparent",
     overflow: "hidden",
   },
   bar: {

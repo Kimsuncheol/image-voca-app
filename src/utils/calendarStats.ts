@@ -173,14 +173,15 @@ export const getMonthPreferredSelectedDate = (
   }).filter((cell) => cell.isCurrentMonth);
 
   const todayCell = monthCells.find((cell) => cell.dateKey === todayKey);
-  if (todayCell) {
+  if (todayCell && todayCell.activityLevel > 0) {
     return todayCell.dateKey;
   }
 
-  const firstActive = monthCells.find((cell) => cell.activityLevel > 0);
-  if (firstActive) {
-    return firstActive.dateKey;
+  const activeCells = monthCells.filter((cell) => cell.activityLevel > 0);
+  const pastOrToday = activeCells.filter((cell) => cell.dateKey <= todayKey);
+  if (pastOrToday.length > 0) {
+    return pastOrToday[pastOrToday.length - 1].dateKey;
   }
 
-  return monthCells[0]?.dateKey ?? todayKey;
+  return todayCell?.dateKey ?? monthCells[0]?.dateKey ?? todayKey;
 };
