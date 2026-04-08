@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { DailyStats } from "../../src/stores";
 import { useTheme } from "../../src/context/ThemeContext";
@@ -13,6 +13,7 @@ interface CalendarDayDetailCardProps {
   contributedToStreak: boolean;
   vocabularyDays: VocabularyDayStudyEntry[];
   isHistoryLoading: boolean;
+  onPressVocabularyDay: (entry: VocabularyDayStudyEntry) => void;
 }
 
 const formatAccuracy = (stats: DailyStats) => {
@@ -29,9 +30,12 @@ export function CalendarDayDetailCard({
   contributedToStreak,
   vocabularyDays,
   isHistoryLoading,
+  onPressVocabularyDay,
 }: CalendarDayDetailCardProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
+  const historyRowBackground = isDark ? "#1D2129" : "#FFFFFF";
+  const historyRowPressedBackground = isDark ? "#242A33" : "#EEF3FB";
 
   return (
     <View
@@ -105,11 +109,17 @@ export function CalendarDayDetailCard({
                 : entry.courseId;
 
               return (
-                <View
+                <Pressable
                   key={`${entry.courseId}-${entry.dayNumber}`}
-                  style={[
+                  accessibilityRole="button"
+                  onPress={() => onPressVocabularyDay(entry)}
+                  style={({ pressed }) => [
                     styles.historyRow,
-                    { backgroundColor: isDark ? "#1D2129" : "#FFFFFF" },
+                    {
+                      backgroundColor: pressed
+                        ? historyRowPressedBackground
+                        : historyRowBackground,
+                    },
                   ]}
                 >
                   <View style={styles.historyTextBlock}>
@@ -126,7 +136,7 @@ export function CalendarDayDetailCard({
                   <ThemedText style={styles.historyDayLabel}>
                     {t("calendar.detail.dayLabel", { count: entry.dayNumber })}
                   </ThemedText>
-                </View>
+                </Pressable>
               );
             })}
           </View>

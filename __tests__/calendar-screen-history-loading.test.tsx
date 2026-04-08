@@ -1,12 +1,16 @@
-import { render, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
 import CalendarScreen from "../app/calendar";
 
 const mockFetchStats = jest.fn();
 const mockFetchDailyStudyHistory = jest.fn();
+const mockRouterPush = jest.fn();
 
 jest.mock("expo-router", () => ({
   useFocusEffect: (callback: () => void) => callback(),
+  useRouter: () => ({
+    push: mockRouterPush,
+  }),
 }));
 
 jest.mock("react-native-safe-area-context", () => {
@@ -138,6 +142,21 @@ describe("CalendarScreen history loading", () => {
       expect(screen.getByText("TOEFL / IELTS")).toBeTruthy();
       expect(screen.getByText("20 / 20 words")).toBeTruthy();
       expect(screen.getByText("Day 1")).toBeTruthy();
+    });
+  });
+
+  it("navigates to the exact vocabulary day when a studied course row is pressed", async () => {
+    const screen = render(<CalendarScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByRole("button"));
+
+    expect(mockRouterPush).toHaveBeenCalledWith({
+      pathname: "/course/[courseId]/vocabulary",
+      params: { courseId: "TOEFL_IELTS", day: "1" },
     });
   });
 });

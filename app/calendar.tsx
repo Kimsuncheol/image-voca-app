@@ -1,4 +1,4 @@
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet } from "react-native";
@@ -38,6 +38,7 @@ export default function CalendarScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const userId = user?.uid;
+  const router = useRouter();
   const { i18n } = useTranslation();
   const { stats, fetchStats } = useUserStatsStore();
   const [visibleMonth, setVisibleMonth] = React.useState(() => startOfMonth(new Date()));
@@ -179,6 +180,19 @@ export default function CalendarScreen() {
     [cells, selectedDateKey],
   );
 
+  const handlePressVocabularyDay = React.useCallback(
+    (entry: VocabularyDayStudyEntry) => {
+      router.push({
+        pathname: "/course/[courseId]/vocabulary",
+        params: {
+          courseId: entry.courseId,
+          day: String(entry.dayNumber),
+        },
+      });
+    },
+    [router],
+  );
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000000" : "#FFFFFF" }]}
@@ -210,6 +224,7 @@ export default function CalendarScreen() {
           contributedToStreak={selectedCell?.contributedToStreak ?? false}
           vocabularyDays={selectedHistory ?? []}
           isHistoryLoading={selectedHistoryLoading}
+          onPressVocabularyDay={handlePressVocabularyDay}
         />
       </ScrollView>
     </SafeAreaView>
