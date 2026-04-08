@@ -37,6 +37,7 @@ const buildWeekdayLabels = (language: string) => {
 export default function CalendarScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
+  const userId = user?.uid;
   const { i18n } = useTranslation();
   const { stats, fetchStats } = useUserStatsStore();
   const [visibleMonth, setVisibleMonth] = React.useState(() => startOfMonth(new Date()));
@@ -55,10 +56,10 @@ export default function CalendarScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      if (user) {
-        void fetchStats(user.uid);
+      if (userId) {
+        void fetchStats(userId);
       }
-    }, [fetchStats, user]),
+    }, [fetchStats, userId]),
   );
 
   React.useEffect(() => {
@@ -76,49 +77,53 @@ export default function CalendarScreen() {
   const selectedHistoryLoading = historyLoadingByDate[selectedDateKey] ?? false;
 
   React.useEffect(() => {
-    if (!user || selectedHistory !== undefined || selectedHistoryLoading) {
+    const requestDateKey = selectedDateKey;
+    const isAlreadyLoading = historyLoadingByDate[requestDateKey] ?? false;
+
+    if (!userId || selectedHistory !== undefined || isAlreadyLoading) {
       return;
     }
 
     let isMounted = true;
     setHistoryLoadingByDate((previous) => ({
       ...previous,
-      [selectedDateKey]: true,
+      [requestDateKey]: true,
     }));
 
-    void fetchDailyStudyHistory(user.uid, selectedDateKey)
+    void fetchDailyStudyHistory(userId, requestDateKey)
       .then((historyDoc) => {
         if (!isMounted) return;
         console.log("[calendar] selected dailyStudyHistory", {
-          selectedDateKey,
+          selectedDateKey: requestDateKey,
           historyDoc,
           vocabularyDays: historyDoc?.vocabularyDays ?? [],
         });
+        setHistoryLoadingByDate((previous) => ({
+          ...previous,
+          [requestDateKey]: false,
+        }));
         setHistoryByDate((previous) => ({
           ...previous,
-          [selectedDateKey]: historyDoc?.vocabularyDays ?? [],
+          [requestDateKey]: historyDoc?.vocabularyDays ?? [],
         }));
       })
       .catch((error) => {
         console.error("Failed to fetch daily study history:", error);
         if (!isMounted) return;
-        setHistoryByDate((previous) => ({
-          ...previous,
-          [selectedDateKey]: [],
-        }));
-      })
-      .finally(() => {
-        if (!isMounted) return;
         setHistoryLoadingByDate((previous) => ({
           ...previous,
-          [selectedDateKey]: false,
+          [requestDateKey]: false,
+        }));
+        setHistoryByDate((previous) => ({
+          ...previous,
+          [requestDateKey]: [],
         }));
       });
 
     return () => {
       isMounted = false;
     };
-  }, [selectedDateKey, selectedHistory, selectedHistoryLoading, user]);
+  }, [selectedDateKey, selectedHistory, userId]);
 
   const monthLabel = React.useMemo(
     () =>
