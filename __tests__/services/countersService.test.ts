@@ -1,6 +1,7 @@
 import { FirebaseError } from "firebase/app";
 import { collection, getDocs } from "firebase/firestore";
 import {
+  __resetCountersServiceForTests,
   fetchCountersDataFromFirestore,
   getCountersCollectionPath,
   getCountersData,
@@ -36,7 +37,13 @@ const buildSnapshot = (
 
 describe("countersService", () => {
   beforeEach(() => {
+    __resetCountersServiceForTests();
     jest.clearAllMocks();
+    delete process.env.EXPO_PUBLIC_JLPT_COUNTER_NUMBERS_PATH;
+    delete process.env.EXPO_PUBLIC_JLPT_COUNTER_COUNTER_TSUU_PATH;
+    delete process.env.EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH;
+    delete process.env.EXPO_PUBLIC_JLTP_COUNTER_COUNTER_TSUU_PATH;
+    delete process.env.EXPO_PUBLIC_JLPT_COUNTER_PATH;
     process.env.EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH =
       "/reference/jlpt/counters/doc/numbers";
     process.env.EXPO_PUBLIC_JLTP_COUNTER_COUNTER_TSUU_PATH =
@@ -46,7 +53,21 @@ describe("countersService", () => {
     }));
   });
 
-  it("resolves the env-backed collection path for a given tab", () => {
+  afterEach(() => {
+    __resetCountersServiceForTests();
+  });
+
+  it("prefers correctly spelled JLPT env keys when present", () => {
+    delete process.env.EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH;
+    process.env.EXPO_PUBLIC_JLPT_COUNTER_NUMBERS_PATH =
+      "/preferred/jlpt/counters/doc/numbers";
+
+    expect(getCountersCollectionPath("numbers")).toBe(
+      "preferred/jlpt/counters/doc/numbers",
+    );
+  });
+
+  it("keeps supporting legacy JLTP env keys", () => {
     expect(getCountersCollectionPath("numbers")).toBe(
       "reference/jlpt/counters/doc/numbers",
     );
@@ -125,13 +146,83 @@ describe("countersService", () => {
     expect(mockSetFirebaseOffline).not.toHaveBeenCalled();
   });
 
-  it("throws when a tab Firestore path is missing", async () => {
+  it("falls back to the root counters collection when per-tab vars are absent", async () => {
+    delete process.env.EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH;
+    process.env.EXPO_PUBLIC_JLPT_COUNTER_PATH =
+      "/reference/jlpt/counters";
+
+    (getDocs as jest.Mock)
+      .mockResolvedValueOnce(
+        buildSnapshot([
+          {
+            id: "root-doc",
+            data: () => ({}),
+          },
+        ]),
+      )
+      .mockResolvedValueOnce(
+        buildSnapshot([
+          {
+            id: "numbers-01",
+            data: () => ({
+              category: "Numbers",
+              word: "一",
+            }),
+          },
+        ]),
+      );
+
+    const result = await fetchCountersDataFromFirestore("numbers");
+
+    expect(result[0].word).toBe("一");
+    expect(collection).toHaveBeenNthCalledWith(1, {}, "reference/jlpt/counters");
+    expect(collection).toHaveBeenNthCalledWith(
+      2,
+      {},
+      "reference/jlpt/counters/root-doc/numbers",
+    );
+  });
+
+  it("throws a descriptive error when no per-tab path or root path exists", async () => {
     delete process.env.EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH;
 
     await expect(getCountersData("numbers")).rejects.toThrow(
-      "Missing or invalid EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH",
+      "Missing or invalid counter collection path for numbers. Checked EXPO_PUBLIC_JLPT_COUNTER_NUMBERS_PATH, EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH, and EXPO_PUBLIC_JLPT_COUNTER_PATH.",
     );
     expect(getDocs).not.toHaveBeenCalled();
+  });
+
+  it("throws a descriptive error when the root counters collection is empty", async () => {
+    delete process.env.EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH;
+    process.env.EXPO_PUBLIC_JLPT_COUNTER_PATH =
+      "/reference/jlpt/counters";
+    (getDocs as jest.Mock).mockResolvedValue(buildSnapshot([]));
+
+    await expect(fetchCountersDataFromFirestore("numbers")).rejects.toThrow(
+      "No counters root document found at EXPO_PUBLIC_JLPT_COUNTER_PATH.",
+    );
+  });
+
+  it("throws a descriptive error when the root counters collection has multiple docs", async () => {
+    delete process.env.EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH;
+    process.env.EXPO_PUBLIC_JLPT_COUNTER_PATH =
+      "/reference/jlpt/counters";
+    (getDocs as jest.Mock).mockResolvedValue(
+      buildSnapshot([
+        {
+          id: "root-a",
+          data: () => ({}),
+        },
+        {
+          id: "root-b",
+          data: () => ({}),
+        },
+      ]),
+    );
+
+    await expect(fetchCountersDataFromFirestore("numbers")).rejects.toThrow(
+      "Expected exactly one counters root document at EXPO_PUBLIC_JLPT_COUNTER_PATH, found 2.",
+    );
   });
 
   it("throws when Firestore read fails", async () => {

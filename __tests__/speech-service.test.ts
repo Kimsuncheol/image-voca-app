@@ -1,4 +1,5 @@
 import * as Speech from "expo-speech";
+import { Platform } from "react-native";
 import {
   __resetSpeechServiceForTests,
   isPaused,
@@ -16,6 +17,8 @@ describe("speechService", () => {
   const stopMock = Speech.stop as jest.Mock;
   const pauseMock = Speech.pause as jest.Mock;
   const resumeMock = Speech.resume as jest.Mock;
+  const getAvailableVoicesMock = Speech.getAvailableVoicesAsync as jest.Mock;
+  const originalPlatform = Platform.OS;
   const waitForSpeakCalls = async (count: number) => {
     for (let attempt = 0; attempt < 20; attempt += 1) {
       if (speakMock.mock.calls.length >= count) {
@@ -30,13 +33,16 @@ describe("speechService", () => {
   beforeEach(async () => {
     await __resetSpeechServiceForTests();
     jest.clearAllMocks();
+    Platform.OS = originalPlatform;
     stopMock.mockResolvedValue(undefined);
     pauseMock.mockResolvedValue(undefined);
     resumeMock.mockResolvedValue(undefined);
+    getAvailableVoicesMock.mockResolvedValue([]);
   });
 
   afterEach(async () => {
     await __resetSpeechServiceForTests();
+    Platform.OS = originalPlatform;
   });
 
   it("normalizes text and splits long passages into ordered chunks", () => {
@@ -179,5 +185,119 @@ describe("speechService", () => {
         writable: true,
       });
     }
+  });
+
+  it("resolves English Android TTS requests to the base language and a matching voice", async () => {
+    Platform.OS = "android";
+    getAvailableVoicesMock.mockResolvedValue([
+      {
+        identifier: "voice-en-us",
+        language: "en-US",
+        name: "English US",
+        quality: "Default",
+      },
+    ]);
+
+    const speakPromise = speak("Vocabulary", {
+      language: "en-US",
+      rate: 0.9,
+    });
+
+    await waitForSpeakCalls(1);
+
+    expect(getAvailableVoicesMock).toHaveBeenCalledTimes(1);
+    expect(speakMock).toHaveBeenCalledWith(
+      "Vocabulary",
+      expect.objectContaining({
+        language: "en",
+        voice: "voice-en-us",
+      }),
+    );
+
+    speakMock.mock.calls[0][1].onDone?.();
+    await speakPromise;
+  });
+
+  it("resolves Japanese Android TTS requests to the base language and a matching voice", async () => {
+    Platform.OS = "android";
+    getAvailableVoicesMock.mockResolvedValue([
+      {
+        identifier: "voice-ja-jp",
+        language: "ja-JP",
+        name: "Japanese",
+        quality: "Default",
+      },
+    ]);
+
+    const speakPromise = speak("かな", {
+      language: "ja-JP",
+      rate: 0.85,
+    });
+
+    await waitForSpeakCalls(1);
+
+    expect(speakMock).toHaveBeenCalledWith(
+      "かな",
+      expect.objectContaining({
+        language: "ja",
+        voice: "voice-ja-jp",
+      }),
+    );
+
+    speakMock.mock.calls[0][1].onDone?.();
+    await speakPromise;
+  });
+
+  it("falls back to a base-language Android voice when an exact locale is unavailable", async () => {
+    Platform.OS = "android";
+    getAvailableVoicesMock.mockResolvedValue([
+      {
+        identifier: "voice-en",
+        language: "en",
+        name: "English",
+        quality: "Default",
+      },
+    ]);
+
+    const speakPromise = speak("Fallback", {
+      language: "en-US",
+      rate: 0.9,
+    });
+
+    await waitForSpeakCalls(1);
+
+    expect(speakMock).toHaveBeenCalledWith(
+      "Fallback",
+      expect.objectContaining({
+        language: "en",
+        voice: "voice-en",
+      }),
+    );
+
+    speakMock.mock.calls[0][1].onDone?.();
+    await speakPromise;
+  });
+
+  it("throws a clear error when Android has no matching voice for the requested language", async () => {
+    Platform.OS = "android";
+    getAvailableVoicesMock.mockResolvedValue([
+      {
+        identifier: "voice-ko-kr",
+        language: "ko-KR",
+        name: "Korean",
+        quality: "Default",
+      },
+    ]);
+
+    await expect(
+      speak("Bonjour", {
+        language: "fr-FR",
+        rate: 0.9,
+      }),
+    ).rejects.toThrow(
+      'No Android TTS voice available for language "fr-FR" (base "fr").',
+    );
+
+    expect(speakMock).not.toHaveBeenCalled();
   });
 });

@@ -32,13 +32,82 @@ jest.mock("../src/utils/wordVariants", () => ({
   speakWordVariants: (...args: unknown[]) => mockSpeakWordVariants(...args),
 }));
 
-jest.mock("../components/themed-text", () => ({
-  ThemedText: ({ children, ...props }: { children: React.ReactNode }) => {
+jest.mock(
+  "@/components/themed-text",
+  () => ({
+    ThemedText: ({ children, ...props }: { children: React.ReactNode }) => {
+      const React = jest.requireActual<typeof import("react")>("react");
+      const { Text } = jest.requireActual<typeof import("react-native")>(
+        "react-native",
+      );
+      return <Text {...props}>{children}</Text>;
+    },
+  }),
+  { virtual: true },
+);
+
+jest.mock("../components/counters/CountersList", () => ({
+  CountersList: ({
+    data,
+    error,
+    loading,
+  }: {
+    data: Array<{
+      word: string;
+      meaningEnglish: string;
+      example: string;
+    }>;
+    error: string | null;
+    loading: boolean;
+    showFurigana: boolean;
+  }) => {
     const React = jest.requireActual<typeof import("react")>("react");
-    const { Text } = jest.requireActual<typeof import("react-native")>(
+    const { Pressable, Text, View } = jest.requireActual<typeof import("react-native")>(
       "react-native",
     );
-    return <Text {...props}>{children}</Text>;
+
+    if (loading) {
+      return <Text>Loading...</Text>;
+    }
+
+    if (error) {
+      return <Text>{error}</Text>;
+    }
+
+    if (data.length === 0) {
+      return <Text>No counters found.</Text>;
+    }
+
+    return (
+      <View>
+        <Text>COUNTER</Text>
+        {data.map((item) => (
+          <View key={item.word}>
+            <Pressable
+              onPress={() =>
+                mockSpeakWordVariants(item.word, mockSpeak, {
+                  language: "ja-JP",
+                  rate: 0.85,
+                })
+              }
+            >
+              <Text>{item.word}</Text>
+            </Pressable>
+            <Text>{item.meaningEnglish}</Text>
+            <Pressable
+              onPress={() =>
+                mockSpeak(item.example, {
+                  language: "ja-JP",
+                  rate: 0.85,
+                })
+              }
+            >
+              <Text>{item.example}</Text>
+            </Pressable>
+          </View>
+        ))}
+      </View>
+    );
   },
 }));
 

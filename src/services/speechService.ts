@@ -5,6 +5,8 @@
  */
 
 import * as Speech from "expo-speech";
+import type { Voice } from "expo-speech";
+import { Platform } from "react-native";
 
 export interface SpeechOptions {
   /** Language code (e.g., "en-US", "ko-KR") */
@@ -27,6 +29,8 @@ interface SpeechState {
   isSpeaking: boolean;
   isPaused: boolean;
 }
+
+type SpeechVoice = Voice;
 
 const DEFAULT_CONFIG: SpeechOptions = {
   language: "en-US",
@@ -70,6 +74,8 @@ export const LANGUAGE_CONFIGS: Record<string, Partial<SpeechOptions>> = {
 let currentPlaybackToken = 0;
 let speechState: SpeechState = { isSpeaking: false, isPaused: false };
 const speechListeners = new Set<(state: SpeechState) => void>();
+let availableVoicesCache: SpeechVoice[] | null = null;
+let availableVoicesPromise: Promise<SpeechVoice[]> | null = null;
 
 const clampRate = (rate: number | undefined): number => {
   const fallbackRate = DEFAULT_CONFIG.rate ?? 1;
@@ -100,6 +106,19 @@ const stripSurroundingQuotes = (text: string): string => {
 
 const getBaseLanguageCode = (languageCode?: string): string =>
   (languageCode || DEFAULT_CONFIG.language || "en-US").split("-")[0].toLowerCase();
+
+const normalizeLanguageTag = (languageCode?: string): string =>
+  (languageCode || DEFAULT_CONFIG.language || "en-US")
+    .trim()
+    .replace(/_/g, "-")
+    .toLowerCase();
+
+const getLanguageCandidates = (languageCode?: string): string[] => {
+  const normalizedLanguage = normalizeLanguageTag(languageCode);
+  const baseLanguage = getBaseLanguageCode(normalizedLanguage);
+
+  return [...new Set([normalizedLanguage, baseLanguage].filter(Boolean))];
+};
 
 const setSpeechState = (nextState: Partial<SpeechState>) => {
   speechState = { ...speechState, ...nextState };
@@ -134,6 +153,93 @@ const stopActivePlayback = async () => {
 
 const createSpeechError = (error: unknown): Error =>
   error instanceof Error ? error : new Error("Speech synthesis failed.");
+
+const getAvailableVoices = async (): Promise<SpeechVoice[]> => {
+  if (availableVoicesCache) {
+    return availableVoicesCache;
+  }
+
+  if (!availableVoicesPromise) {
+    availableVoicesPromise = Speech.getAvailableVoicesAsync()
+      .then((voices) => {
+        availableVoicesCache = voices;
+        return voices;
+      })
+      .catch((error) => {
+        availableVoicesPromise = null;
+        throw error;
+      });
+  }
+
+  return availableVoicesPromise;
+};
+
+const findMatchingVoice = (
+  voices: SpeechVoice[],
+  requestedLanguage?: string,
+): SpeechVoice | undefined => {
+  const requestedCandidates = getLanguageCandidates(requestedLanguage);
+  const requestedExactLanguage = requestedCandidates[0];
+  const requestedBaseLanguage = getBaseLanguageCode(requestedLanguage);
+
+  const exactMatch = voices.find(
+    (voice) => normalizeLanguageTag(voice.language) === requestedExactLanguage,
+  );
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  return voices.find(
+    (voice) => getBaseLanguageCode(normalizeLanguageTag(voice.language)) === requestedBaseLanguage,
+  );
+};
+
+const resolveSpeechOptions = async (
+  options: SpeechOptions,
+): Promise<SpeechOptions> => {
+  if (Platform.OS !== "android") {
+    return options;
+  }
+
+  const requestedLanguage = options.language || DEFAULT_CONFIG.language || "en-US";
+  const baseLanguage = getBaseLanguageCode(requestedLanguage);
+
+  if (!baseLanguage) {
+    return options;
+  }
+
+  if (options.voice) {
+    return { ...options, language: baseLanguage };
+  }
+
+  try {
+    const availableVoices = await getAvailableVoices();
+    const matchingVoice = findMatchingVoice(availableVoices, requestedLanguage);
+
+    if (!matchingVoice) {
+      throw new Error(
+        `No Android TTS voice available for language "${requestedLanguage}" (base "${baseLanguage}").`,
+      );
+    }
+
+    return {
+      ...options,
+      language: baseLanguage,
+      voice: matchingVoice.identifier,
+    };
+  } catch (error) {
+    const speechError = createSpeechError(error);
+
+    if (speechError.message.startsWith("No Android TTS voice available")) {
+      throw speechError;
+    }
+
+    return {
+      ...options,
+      language: baseLanguage,
+    };
+  }
+};
 
 export const normalizeSpeechText = (text: string): string =>
   stripSurroundingQuotes(text).replace(/\s+/g, " ").trim();
@@ -266,7 +372,7 @@ export const speak = async (
     throw error;
   }
 
-  const config = { ...DEFAULT_CONFIG, ...options };
+  const config = await resolveSpeechOptions({ ...DEFAULT_CONFIG, ...options });
   const chunks = splitSpeechPassage(normalizedText);
   const playbackToken = ++currentPlaybackToken;
 
@@ -357,5 +463,7 @@ export const __resetSpeechServiceForTests = async () => {
   currentPlaybackToken += 1;
   await stopActivePlayback();
   speechListeners.clear();
+  availableVoicesCache = null;
+  availableVoicesPromise = null;
   speechState = { isSpeaking: false, isPaused: false };
 };
