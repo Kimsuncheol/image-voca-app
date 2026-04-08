@@ -8,6 +8,7 @@ import { GameScore } from "./GameScore";
 import { MatchingGame } from "./MatchingGame";
 import { MultipleChoiceGame } from "./MultipleChoiceGame";
 import { QuizFeedback } from "./QuizFeedback";
+import { SynonymMatchingGame } from "./SynonymMatchingGame";
 
 interface QuizQuestion {
   id: string;
@@ -99,6 +100,18 @@ export function GameBoard({
           onSelectMeaning={onSelectMeaning}
           courseColor={courseColor}
           isDark={isDark}
+        />
+      ) : quizType === "synonym-matching" ? (
+        <SynonymMatchingGame
+          questions={questions}
+          selectedWord={selectedWord}
+          selectedMeaning={selectedMeaning}
+          matchedPairs={matchedPairs}
+          onSelectWord={onSelectWord}
+          onSelectMeaning={onSelectMeaning}
+          courseColor={courseColor}
+          isDark={isDark}
+          showPronunciationDetails={showPronunciationDetails}
         />
       ) : isMatching ? (
         <MatchingGame

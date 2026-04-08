@@ -14,7 +14,6 @@ import {
   isJlptLevelCourseId,
 } from "../../../src/types/vocabulary";
 import { isPronunciationMatchEligible } from "../../../src/utils/pronunciationMatching";
-import { normalizeSynonyms } from "../../../src/utils/synonyms";
 
 export default function QuizTypeSelectionScreen() {
   const { isDark } = useTheme();
@@ -45,11 +44,13 @@ export default function QuizTypeSelectionScreen() {
           courseId as CourseType,
           parseInt(day || "1", 10),
         );
-        const synonymEligibleCount = cards.filter(
-          (card) => normalizeSynonyms(card.synonyms).length > 0,
-        ).length;
 
         if (!isMounted) {
+          return;
+        }
+
+        if (courseId === "TOEFL_IELTS") {
+          setQuizTypes(baseQuizTypes);
           return;
         }
 
@@ -58,27 +59,21 @@ export default function QuizTypeSelectionScreen() {
         ).length;
 
         setQuizTypes(
-          courseId === "TOEFL_IELTS"
-            ? synonymEligibleCount >= 4
-              ? baseQuizTypes
-              : baseQuizTypes.filter(
-                  (quizType) => quizType.id !== "synonym-matching",
-                )
-            : pronunciationEligibleCount >= 4
-              ? baseQuizTypes
-              : baseQuizTypes.filter(
-                  (quizType) => quizType.id !== "pronunciation-matching",
-                ),
+          pronunciationEligibleCount >= 4
+            ? baseQuizTypes
+            : baseQuizTypes.filter(
+                (quizType) => quizType.id !== "pronunciation-matching",
+              ),
         );
       } catch (error) {
         console.error("Failed to load conditional quiz availability:", error);
         if (isMounted) {
           setQuizTypes(
-            baseQuizTypes.filter(
-              (quizType) =>
-                quizType.id !== "synonym-matching" &&
-                quizType.id !== "pronunciation-matching",
-            ),
+            courseId === "TOEFL_IELTS"
+              ? baseQuizTypes
+              : baseQuizTypes.filter(
+                  (quizType) => quizType.id !== "pronunciation-matching",
+                ),
           );
         }
       }

@@ -89,6 +89,11 @@ export default function CalendarScreen() {
     void fetchDailyStudyHistory(user.uid, selectedDateKey)
       .then((historyDoc) => {
         if (!isMounted) return;
+        console.log("[calendar] selected dailyStudyHistory", {
+          selectedDateKey,
+          historyDoc,
+          vocabularyDays: historyDoc?.vocabularyDays ?? [],
+        });
         setHistoryByDate((previous) => ({
           ...previous,
           [selectedDateKey]: historyDoc?.vocabularyDays ?? [],

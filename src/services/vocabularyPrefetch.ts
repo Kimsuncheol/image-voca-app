@@ -17,6 +17,10 @@ import {
   isJlptLevelCourseId,
 } from "../types/vocabulary";
 import { normalizeVocabularyLocalizationMap } from "../utils/localizedVocabulary";
+import {
+  normalizeLegacySynonymValue,
+  normalizeSynonyms,
+} from "../utils/synonyms";
 import { db } from "./firebase";
 
 type CourseConfig = {
@@ -25,8 +29,8 @@ type CourseConfig = {
 };
 
 // Bump the cache version so older persisted cards without newly added fields
-// like `exampleRoman` do not mask fresh JLPT payloads from Firestore.
-const STORAGE_PREFIX = "vocab_cache_v3";
+// like `exampleRoman` or normalized legacy TOEFL synonyms do not mask fresh data.
+const STORAGE_PREFIX = "vocab_cache_v4";
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const METADATA_TTL_MS = 1000 * 60 * 10;
 
@@ -156,6 +160,11 @@ export const mapVocabularyDocToCard = (
   data: Record<string, unknown>,
   courseId: CourseType,
 ): VocabularyCard => {
+  const normalizedSynonyms = Array.isArray(data.synonyms)
+    ? normalizeSynonyms(data.synonyms as string[])
+    : typeof data.synonym === "string"
+      ? normalizeLegacySynonymValue(data.synonym)
+      : [];
   const imageUrl =
     normalizeVocabularyImageUrl(data.imageUrl) ??
     normalizeVocabularyImageUrl(data.image);
@@ -239,7 +248,7 @@ export const mapVocabularyDocToCard = (
     localized: normalizeVocabularyLocalizationMap(data.localized),
     course: courseId,
     partOfSpeech: data.partOfSpeech as VocabularyCard["partOfSpeech"],
-    synonyms: Array.isArray(data.synonyms) ? (data.synonyms as string[]) : [],
+    synonyms: normalizedSynonyms,
     antonyms: Array.isArray(data.antonyms) ? (data.antonyms as string[]) : [],
     relatedWords: Array.isArray(data.relatedWords)
       ? (data.relatedWords as string[])

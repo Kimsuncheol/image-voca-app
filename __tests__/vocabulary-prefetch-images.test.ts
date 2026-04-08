@@ -129,6 +129,42 @@ describe("vocabulary image normalization", () => {
     expect(card.imageUrl).toBeUndefined();
   });
 
+  it("maps a legacy TOEFL_IELTS synonym string into normalized synonyms", () => {
+    const card = mapVocabularyDocToCard(
+      "doc-toefl-1",
+      {
+        word: "exploit",
+        meaning: "to make use of",
+        example: "Human rights activists protested exploitation.",
+        synonym: "utilize, use, make use of, take advantage of",
+      },
+      "TOEFL_IELTS",
+    );
+
+    expect(card.synonyms).toEqual([
+      "utilize",
+      "use",
+      "make use of",
+      "take advantage of",
+    ]);
+  });
+
+  it("prefers array synonyms over a legacy synonym string", () => {
+    const card = mapVocabularyDocToCard(
+      "doc-toefl-2",
+      {
+        word: "brief",
+        meaning: "short",
+        example: "Keep it brief.",
+        synonym: "ignored, values",
+        synonyms: ["concise", " terse ", "", "concise"],
+      },
+      "TOEFL_IELTS",
+    );
+
+    expect(card.synonyms).toEqual(["concise", "terse"]);
+  });
+
   it("drops the legacy image field when normalizing cached cards", () => {
     const normalized = normalizeVocabularyCard({
       id: "card-1",
@@ -147,7 +183,7 @@ describe("vocabulary image normalization", () => {
 
   it("hydrates legacy cached cards into imageUrl", async () => {
     await AsyncStorage.setItem(
-      "vocab_cache_v3:TOEIC-Day1",
+      "vocab_cache_v4:TOEIC-Day1",
       JSON.stringify({
         updatedAt: Date.now(),
         cards: [
@@ -172,7 +208,7 @@ describe("vocabulary image normalization", () => {
 
   it("hydrates localized cache entries", async () => {
     await AsyncStorage.setItem(
-      "vocab_cache_v3:TOEIC-Day2",
+      "vocab_cache_v4:TOEIC-Day2",
       JSON.stringify({
         updatedAt: Date.now(),
         cards: [
@@ -217,6 +253,28 @@ describe("vocabulary image normalization", () => {
     );
 
     const cards = await hydrateVocabularyCache("JLPT_N5", 1);
+
+    expect(cards).toBeNull();
+  });
+
+  it("ignores older v3 cache entries so fresh data can repopulate legacy TOEFL synonyms", async () => {
+    await AsyncStorage.setItem(
+      "vocab_cache_v3:TOEFL_IELTS-Day1",
+      JSON.stringify({
+        updatedAt: Date.now(),
+        cards: [
+          {
+            id: "cached-toefl-1",
+            word: "exploit",
+            meaning: "to make use of",
+            example: "Example sentence",
+            course: "TOEFL_IELTS",
+          },
+        ],
+      }),
+    );
+
+    const cards = await hydrateVocabularyCache("TOEFL_IELTS", 1);
 
     expect(cards).toBeNull();
   });

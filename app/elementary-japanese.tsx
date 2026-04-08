@@ -79,19 +79,6 @@ export default function ElementaryJapaneseScreen() {
       />
 
       <View style={styles.content}>
-        <View style={styles.header}>
-          <ThemedText type="title">
-            {t("elementaryJapanese.title", {
-              defaultValue: "Elementary Japanese",
-            })}
-          </ThemedText>
-          <ThemedText style={styles.subtitle}>
-            {t("elementaryJapanese.subtitle", {
-              defaultValue: "Start with characters and core building blocks",
-            })}
-          </ThemedText>
-        </View>
-
         <View style={styles.list}>
           <ModuleCard
             title={t("kana.title", { defaultValue: "Hiragana & Katakana" })}
@@ -133,14 +120,6 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     gap: 24,
-  },
-  header: {
-    gap: 6,
-  },
-  subtitle: {
-    fontSize: 15,
-    opacity: 0.65,
-    lineHeight: 22,
   },
   list: {
     gap: 16,

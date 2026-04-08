@@ -8,6 +8,19 @@ export function normalizeSynonyms(synonyms?: string[]): string[] {
   return Array.from(new Set(normalized));
 }
 
+export function normalizeLegacySynonymValue(synonym?: string): string[] {
+  if (typeof synonym !== "string") return [];
+
+  return Array.from(
+    new Set(
+      synonym
+        .split(",")
+        .map((entry) => entry.trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
 export function formatSynonyms(synonyms?: string[]): string | undefined {
   const normalized = normalizeSynonyms(synonyms);
 

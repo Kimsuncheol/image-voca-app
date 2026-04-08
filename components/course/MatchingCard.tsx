@@ -6,7 +6,7 @@ import { ThemedText } from "../themed-text";
 interface MatchingCardProps {
   text: string;
   pronunciation?: string;
-  variant?: "word" | "meaning" | "pronunciation";
+  variant?: "word" | "meaning" | "synonym" | "pronunciation";
   isMatched: boolean;
   isSelected: boolean;
   onPress: () => void;
@@ -66,6 +66,18 @@ export function MatchingCard({
               styles.matchingItemText,
               styles.pronunciationText,
               isMatched && styles.matchingItemTextMatched,
+              isSelected && { color: courseColor || "#007AFF" },
+            ]}
+          >
+            {text}
+          </ThemedText>
+        ) : variant === "synonym" ? (
+          <ThemedText
+            style={[
+              styles.matchingItemText,
+              styles.synonymText,
+              isMatched && styles.matchingItemTextMatched,
+              !isMatched && !isSelected && styles.synonymTextDefault,
               isSelected && { color: courseColor || "#007AFF" },
             ]}
           >
@@ -171,6 +183,15 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     textAlign: "center",
     fontWeight: "600",
+  },
+  synonymText: {
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: "center",
+    fontWeight: "600",
+  },
+  synonymTextDefault: {
+    color: "#9CA3AF",
   },
   pronunciationCaption: {
     fontSize: 12,

@@ -157,14 +157,19 @@ export default function QuizPlayScreen() {
           console.warn("Not enough vocabulary for quiz (need at least 4)");
         }
 
+        const synonymEligibleCount = fetchedVocab.filter(
+          (vocab) => (vocab.synonyms?.length ?? 0) > 0,
+        ).length;
         const pronunciationEligibleCount = fetchedVocab.filter((vocab) =>
           isPronunciationMatchEligible(vocab.word, vocab.pronunciation),
         ).length;
         const nextQuizType =
-          requestedQuizType === "pronunciation-matching" &&
-          pronunciationEligibleCount < 4
+          requestedQuizType === "synonym-matching" && synonymEligibleCount < 4
             ? "matching"
-            : requestedQuizType;
+            : requestedQuizType === "pronunciation-matching" &&
+                pronunciationEligibleCount < 4
+              ? "matching"
+              : requestedQuizType;
         const nextResolvedQuizType = resolveRuntimeQuizType(nextQuizType);
         setEffectiveQuizType(nextQuizType);
 

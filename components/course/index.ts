@@ -22,4 +22,5 @@ export { QuizTypeCard } from "./QuizTypeCard";
 export { QuizTypeGrid } from "./QuizTypeGrid";
 export { QuizTypeHeader } from "./QuizTypeHeader";
 export { RecentCourseSection } from "./RecentCourseSection";
+export { SynonymMatchingGame } from "./SynonymMatchingGame";
 export { VocaHeader } from "./VocaHeader";

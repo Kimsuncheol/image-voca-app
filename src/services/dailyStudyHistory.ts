@@ -64,12 +64,28 @@ export const fetchDailyStudyHistory = async (
 ): Promise<DailyStudyHistoryDoc | null> => {
   const historyRef = doc(db, "users", userId, "dailyStudyHistory", date);
   const historySnap = await getDoc(historyRef);
+  const exists = historySnap.exists();
 
-  if (!historySnap.exists()) {
+  if (!exists) {
+    console.log("[dailyStudyHistory] fetched document", {
+      userId,
+      date,
+      exists,
+      historyDoc: null,
+    });
     return null;
   }
 
-  return normalizeDailyStudyHistoryDoc(date, historySnap.data());
+  const historyDoc = normalizeDailyStudyHistoryDoc(date, historySnap.data());
+
+  console.log("[dailyStudyHistory] fetched document", {
+    userId,
+    date,
+    exists,
+    historyDoc,
+  });
+
+  return historyDoc;
 };
 
 export const upsertVocabularyDayStudyHistory = async ({

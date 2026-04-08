@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Dimensions, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -77,8 +77,9 @@ export default function VocabularyScreen() {
   // Tracks if the user has completed swiping through all cards
   const [isFinished, setIsFinished] = useState(false);
 
-  // Tracks how many cards were swiped right (learned)
-  const [learnedCount, setLearnedCount] = useState(0);
+  // Track session-learned words outside React state so finish-time writes
+  // cannot lag behind the last learn action.
+  const sessionLearnedWordIdsRef = useRef<Set<string>>(new Set());
 
   // Streak milestone modal
   const [streakModalVisible, setStreakModalVisible] = useState(false);
@@ -100,6 +101,19 @@ export default function VocabularyScreen() {
   const [splashVisible, setSplashVisible] = useState(true);
 
   const dayNumber = parseInt(day || "1", 10);
+
+  useEffect(() => {
+    sessionLearnedWordIdsRef.current = new Set();
+  }, [courseId, dayNumber]);
+
+  const trackSessionLearnedWord = useCallback((wordId: string) => {
+    if (sessionLearnedWordIdsRef.current.has(wordId)) {
+      return sessionLearnedWordIdsRef.current.size;
+    }
+
+    sessionLearnedWordIdsRef.current.add(wordId);
+    return sessionLearnedWordIdsRef.current.size;
+  }, []);
 
   // ============================================================================
   // Section 3: Data Fetching Effects
@@ -252,8 +266,8 @@ export default function VocabularyScreen() {
   const onSwipeRight = (item: VocabularyCard) => {
     if (user) {
       const wordId = `${courseId}-${item.id}`;
+      trackSessionLearnedWord(wordId);
       bufferWordLearned(user.uid, wordId);
-      setLearnedCount((prev) => prev + 1);
     }
   };
 
@@ -275,6 +289,8 @@ export default function VocabularyScreen() {
   const handleRunOutOfCards = async () => {
     setIsFinished(true);
     if (user && courseId) {
+      const learnedCount = sessionLearnedWordIdsRef.current.size;
+
       // Flush buffered words to database
       await flushWordStats(user.uid);
 
@@ -336,6 +352,7 @@ export default function VocabularyScreen() {
       const item = cards[index];
       if (user) {
         const wordId = `${courseId}-${item.id}`;
+        trackSessionLearnedWord(wordId);
         bufferWordLearned(user.uid, wordId);
       }
     }
