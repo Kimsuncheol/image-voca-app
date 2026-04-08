@@ -816,6 +816,7 @@ const ja = {
       counter_mai: "枚",
       counter_nin: "人",
       counter_hiki: "匹",
+      counter_ens: "¥",
     },
     colCounter: "助数詞",
     colMeaning: "意味",

@@ -824,6 +824,7 @@ const ko = {
       counter_mai: "장",
       counter_nin: "명",
       counter_hiki: "마리",
+      counter_ens: "¥",
     },
     colCounter: "조수사",
     colMeaning: "의미",

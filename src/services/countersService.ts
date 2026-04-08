@@ -26,6 +26,7 @@ const COUNTER_TAB_ENV_KEYS: Record<CounterTabId, string> = {
   counter_mai: "EXPO_PUBLIC_JLTP_COUNTER_COUNTER_MAI_PATH",
   counter_nin: "EXPO_PUBLIC_JLTP_COUNTER_COUNTER_NIN_PATH",
   counter_hiki: "EXPO_PUBLIC_JLTP_COUNTER_COUNTER_HIKI_PATH",
+  counter_ens: "EXPO_PUBLIC_JLTP_COUNTER_COUNTER_ENS_PATH",
 };
 
 export const getCountersCollectionPath = (tab: CounterTabId) =>

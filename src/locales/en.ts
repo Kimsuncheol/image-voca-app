@@ -829,6 +829,7 @@ const en = {
       counter_mai: "Mai",
       counter_nin: "Nin",
       counter_hiki: "Hiki",
+      counter_ens: "¥",
     },
     colCounter: "COUNTER",
     colMeaning: "MEANING",

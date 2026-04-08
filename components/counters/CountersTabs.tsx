@@ -30,6 +30,7 @@ const COUNTER_TAB_ICONS: Record<CounterTabId, keyof typeof Ionicons.glyphMap> = 
   counter_mai: "copy-outline",
   counter_nin: "people-outline",
   counter_hiki: "paw-outline",
+  counter_ens: "cash-outline",
 };
 
 export function CountersTabs({ onSelect }: Props) {

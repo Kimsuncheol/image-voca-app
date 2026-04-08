@@ -5,6 +5,7 @@ export const COUNTER_TAB_IDS = [
   "counter_kai_floor",
   "counter_kai_times",
   "counter_ban",
+  "counter_ens",
   "counter_years",
   "counter_months",
   "counter_days",
