@@ -111,6 +111,15 @@ export default function ElementaryJapaneseScreen() {
             onPress={() => router.push("/prefix-postfix")}
             isDark={isDark}
           />
+          <ModuleCard
+            title={t("counters.title", { defaultValue: "Counters" })}
+            description={t("elementaryJapanese.modules.counters.description", {
+              defaultValue: "Browse Japanese counters by category with examples.",
+            })}
+            icon="albums-outline"
+            onPress={() => router.push("/counters")}
+            isDark={isDark}
+          />
         </View>
       </View>
     </SafeAreaView>

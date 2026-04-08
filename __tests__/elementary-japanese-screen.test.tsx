@@ -41,6 +41,9 @@ jest.mock("react-i18next", () => ({
           "Learn the Japanese character systems and practice recognition.",
         "elementaryJapanese.modules.prefixPostfix.description":
           "Study common Japanese prefixes and suffixes.",
+        "elementaryJapanese.modules.counters.description":
+          "Browse Japanese counters by category with examples.",
+        "counters.title": "Counters",
         "kana.title": "Hiragana & Katakana",
         "prefixPostfix.title": "Prefix & Postfix",
       };
@@ -54,7 +57,7 @@ describe("ElementaryJapaneseScreen", () => {
     jest.clearAllMocks();
   });
 
-  it("renders the elementary Japanese hub with two module entries", () => {
+  it("renders the elementary Japanese hub with three module entries", () => {
     const screen = render(<ElementaryJapaneseScreen />);
 
     expect(screen.getByText("Elementary Japanese")).toBeTruthy();
@@ -63,9 +66,10 @@ describe("ElementaryJapaneseScreen", () => {
     ).toBeTruthy();
     expect(screen.getByText("Hiragana & Katakana")).toBeTruthy();
     expect(screen.getByText("Prefix & Postfix")).toBeTruthy();
+    expect(screen.getByText("Counters")).toBeTruthy();
   });
 
-  it("routes to Japanese Characters and Prefix & Postfix", () => {
+  it("routes to Japanese Characters, Prefix & Postfix, and Counters", () => {
     const screen = render(<ElementaryJapaneseScreen />);
 
     fireEvent.press(screen.getByText("Hiragana & Katakana"));
@@ -73,5 +77,8 @@ describe("ElementaryJapaneseScreen", () => {
 
     fireEvent.press(screen.getByText("Prefix & Postfix"));
     expect(mockPush).toHaveBeenCalledWith("/prefix-postfix");
+
+    fireEvent.press(screen.getByText("Counters"));
+    expect(mockPush).toHaveBeenCalledWith("/counters");
   });
 });

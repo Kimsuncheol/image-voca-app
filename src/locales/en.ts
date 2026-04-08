@@ -37,6 +37,9 @@ const en = {
       prefixPostfix: {
         description: "Study common Japanese prefixes and suffixes.",
       },
+      counters: {
+        description: "Browse Japanese counters by category with examples.",
+      },
     },
   },
   settings: {
@@ -801,6 +804,39 @@ const en = {
     colMeaning: "MEANING",
     colPronun: "PRONUN.",
     colExample: "EXAMPLE",
+  },
+  counters: {
+    title: "Counters",
+    subtitle:
+      "Browse essential Japanese counter groups and open the one you need in a tap.",
+    gridLabel: "Counter groups",
+    tabs: {
+      numbers: "Numbers",
+      counter_tsuu: "Tsuu",
+      counter_ko: "Ko",
+      counter_kai_floor: "Kai (Floor)",
+      counter_kai_times: "Kai (Times)",
+      counter_ban: "Ban",
+      counter_years: "Years",
+      counter_months: "Months",
+      counter_days: "Days",
+      counter_hours: "Hours",
+      counter_minutes: "Minutes",
+      counter_weekdays: "Weekdays",
+      counter_hai: "Hai",
+      counter_bai: "Bai",
+      counter_hon: "Hon",
+      counter_mai: "Mai",
+      counter_nin: "Nin",
+      counter_hiki: "Hiki",
+    },
+    colCounter: "COUNTER",
+    colMeaning: "MEANING",
+    colPronun: "PRONUN.",
+    colExample: "EXAMPLE",
+    loading: "Loading...",
+    empty: "No counters found.",
+    loadError: "Unable to load counters data.",
   },
 };
 

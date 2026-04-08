@@ -36,6 +36,9 @@ const ko = {
       prefixPostfix: {
         description: "자주 쓰이는 일본어 접두사와 접미사를 학습하세요.",
       },
+      counters: {
+        description: "예문과 함께 일본어 조수사를 카테고리별로 살펴보세요.",
+      },
     },
   },
   settings: {
@@ -796,6 +799,39 @@ const ko = {
     colMeaning: "의미",
     colPronun: "발음",
     colExample: "예시",
+  },
+  counters: {
+    title: "조수사",
+    subtitle:
+      "자주 쓰는 일본어 조수사 그룹을 빠르게 살펴보고 필요한 항목을 바로 열어보세요.",
+    gridLabel: "조수사 그룹",
+    tabs: {
+      numbers: "숫자",
+      counter_tsuu: "통",
+      counter_ko: "개",
+      counter_kai_floor: "층",
+      counter_kai_times: "회",
+      counter_ban: "번",
+      counter_years: "년",
+      counter_months: "월",
+      counter_days: "일",
+      counter_hours: "시간",
+      counter_minutes: "분",
+      counter_weekdays: "요일",
+      counter_hai: "잔",
+      counter_bai: "배",
+      counter_hon: "본",
+      counter_mai: "장",
+      counter_nin: "명",
+      counter_hiki: "마리",
+    },
+    colCounter: "조수사",
+    colMeaning: "의미",
+    colPronun: "발음",
+    colExample: "예시",
+    loading: "로딩중...",
+    empty: "표시할 조수사가 없습니다.",
+    loadError: "조수사 데이터를 불러올 수 없습니다.",
   },
 };
 

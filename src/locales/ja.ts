@@ -36,6 +36,9 @@ const ja = {
       prefixPostfix: {
         description: "よく使う日本語の接頭辞と接尾辞を学習します。",
       },
+      counters: {
+        description: "日本語の助数詞をカテゴリ別に例文と一緒に確認します。",
+      },
     },
   },
   settings: {
@@ -788,6 +791,39 @@ const ja = {
     colMeaning: "意味",
     colPronun: "発音",
     colExample: "例文",
+  },
+  counters: {
+    title: "助数詞",
+    subtitle:
+      "よく使う日本語の助数詞グループを一覧で見て、必要な項目をすぐに開けます。",
+    gridLabel: "助数詞グループ",
+    tabs: {
+      numbers: "数字",
+      counter_tsuu: "通",
+      counter_ko: "個",
+      counter_kai_floor: "階",
+      counter_kai_times: "回",
+      counter_ban: "番",
+      counter_years: "年",
+      counter_months: "月",
+      counter_days: "日",
+      counter_hours: "時間",
+      counter_minutes: "分",
+      counter_weekdays: "曜日",
+      counter_hai: "杯",
+      counter_bai: "倍",
+      counter_hon: "本",
+      counter_mai: "枚",
+      counter_nin: "人",
+      counter_hiki: "匹",
+    },
+    colCounter: "助数詞",
+    colMeaning: "意味",
+    colPronun: "発音",
+    colExample: "例文",
+    loading: "読み込み中...",
+    empty: "表示できる助数詞がありません。",
+    loadError: "助数詞データを読み込めませんでした。",
   },
 };
 

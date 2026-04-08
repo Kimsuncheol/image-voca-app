@@ -1,0 +1,163 @@
+import { Stack, useRouter } from "expo-router";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { ThemedText } from "../components/themed-text";
+import { CountersTabs } from "../components/counters/CountersTabs";
+import { useTheme } from "../src/context/ThemeContext";
+import type { CounterTabId } from "../src/types/counters";
+
+export default function CountersScreen() {
+  const { isDark } = useTheme();
+  const { t } = useTranslation();
+  const router = useRouter();
+
+  const bg = isDark ? "#000" : "#f2f2f7";
+  const heroCardBg = isDark ? "#121318" : "#ffffff";
+  const accentBg = isDark ? "#1e3a5f" : "#dbeafe";
+  const accentText = isDark ? "#c6dbff" : "#1d4ed8";
+  const subtitleColor = isDark
+    ? "rgba(255,255,255,0.66)"
+    : "rgba(17,24,39,0.65)";
+  const sectionLabelColor = isDark
+    ? "rgba(255,255,255,0.54)"
+    : "rgba(17,24,39,0.5)";
+
+  const handleSelect = (tab: CounterTabId) => {
+    router.push({
+      pathname: "/counter-category",
+      params: { tab },
+    });
+  };
+
+  return (
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: bg }]}
+      edges={["bottom"]}
+    >
+      <Stack.Screen
+        options={{
+          title: t("counters.title"),
+          headerBackTitle: t("common.back"),
+        }}
+      />
+
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={[styles.heroCard, { backgroundColor: heroCardBg }]}>
+          <View style={styles.heroTopRow}>
+            <View style={[styles.accentPill, { backgroundColor: accentBg }]}>
+              <ThemedText style={[styles.accentPillText, { color: accentText }]}>
+                {t("elementaryJapanese.title", {
+                  defaultValue: "Elementary Japanese",
+                })}
+              </ThemedText>
+            </View>
+            <View style={styles.heroDots}>
+              <View
+                style={[
+                  styles.heroDotLarge,
+                  { backgroundColor: isDark ? "#2563eb" : "#60a5fa" },
+                ]}
+              />
+              <View
+                style={[
+                  styles.heroDotSmall,
+                  { backgroundColor: isDark ? "#1d4ed8" : "#bfdbfe" },
+                ]}
+              />
+            </View>
+          </View>
+
+          <View style={styles.heroTextGroup}>
+            <ThemedText type="title">
+              {t("counters.title", { defaultValue: "Counters" })}
+            </ThemedText>
+            <ThemedText style={[styles.subtitle, { color: subtitleColor }]}>
+              {t("counters.subtitle", {
+                defaultValue:
+                  "Browse essential Japanese counter groups and open the one you need in a tap.",
+              })}
+            </ThemedText>
+          </View>
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <ThemedText style={[styles.sectionLabel, { color: sectionLabelColor }]}>
+            {t("counters.gridLabel", {
+              defaultValue: "Counter groups",
+            })}
+          </ThemedText>
+        </View>
+
+        <CountersTabs onSelect={handleSelect} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 28,
+  },
+  heroCard: {
+    borderRadius: 28,
+    gap: 18,
+    padding: 20,
+  },
+  heroTopRow: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  accentPill: {
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  accentPillText: {
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  heroDots: {
+    alignItems: "flex-end",
+    gap: 8,
+    minWidth: 44,
+  },
+  heroDotLarge: {
+    borderRadius: 999,
+    height: 14,
+    width: 14,
+  },
+  heroDotSmall: {
+    borderRadius: 999,
+    height: 8,
+    width: 28,
+  },
+  heroTextGroup: {
+    gap: 10,
+  },
+  subtitle: {
+    fontSize: 15,
+    lineHeight: 22,
+    maxWidth: "92%",
+  },
+  sectionHeader: {
+    paddingTop: 18,
+    paddingBottom: 8,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+});
