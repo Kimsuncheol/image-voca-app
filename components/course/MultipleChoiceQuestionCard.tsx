@@ -2,11 +2,13 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
+import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { RoleplayRenderer } from "../CollocationFlipCard/RoleplayRenderer";
 import { ThemedText } from "../themed-text";
 
 interface MultipleChoiceQuestionCardProps {
   word?: string;
+  courseId?: string;
   roleplay?: string;
   questionLabel?: string;
   questionLabelStyle?: object;
@@ -18,6 +20,7 @@ interface MultipleChoiceQuestionCardProps {
 
 export function MultipleChoiceQuestionCard({
   word,
+  courseId,
   roleplay,
   questionLabel,
   questionLabelStyle,
@@ -29,6 +32,14 @@ export function MultipleChoiceQuestionCard({
   const { isDark } = useTheme();
   const { t } = useTranslation();
   const label = questionLabel || t("quiz.questions.meaningOf");
+  const wordFontSize = React.useMemo(
+    () => getIdiomTitleFontSize(word ?? "", courseId, 32),
+    [courseId, word],
+  );
+  const wordLineHeight = React.useMemo(
+    () => Math.round(wordFontSize * 1.15),
+    [wordFontSize],
+  );
 
   return (
     <View
@@ -119,7 +130,15 @@ export function MultipleChoiceQuestionCard({
           />
         </View>
       ) : (
-        <ThemedText type="title" style={[styles.wordText, contentStyle]}>
+        <ThemedText
+          testID="multiple-choice-question-word"
+          type="title"
+          style={[
+            styles.wordText,
+            contentStyle,
+            { fontSize: wordFontSize, lineHeight: wordLineHeight },
+          ]}
+        >
           {word}
         </ThemedText>
       )}

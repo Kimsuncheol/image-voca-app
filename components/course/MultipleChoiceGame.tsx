@@ -5,6 +5,7 @@ import { MultipleChoiceQuestionCard } from "./MultipleChoiceQuestionCard";
 
 interface MultipleChoiceGameProps {
   options: string[];
+  courseId?: string;
   correctAnswer: string;
   userAnswer: string;
   showResult: boolean;
@@ -19,6 +20,7 @@ interface MultipleChoiceGameProps {
 
 export function MultipleChoiceGame({
   options,
+  courseId,
   correctAnswer,
   userAnswer,
   showResult,
@@ -34,6 +36,7 @@ export function MultipleChoiceGame({
     <View style={styles.container}>
       <MultipleChoiceQuestionCard
         word={word}
+        courseId={courseId}
         roleplay={roleplay}
         questionLabel={questionLabel}
         questionLabelStyle={questionLabelStyle}

@@ -1,11 +1,13 @@
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { ThemedText } from "../themed-text";
 
 interface MatchingCardProps {
   text: string;
   pronunciation?: string;
+  courseId?: string;
   variant?: "word" | "meaning" | "synonym" | "pronunciation";
   isMatched: boolean;
   isSelected: boolean;
@@ -17,6 +19,7 @@ interface MatchingCardProps {
 export function MatchingCard({
   text,
   pronunciation,
+  courseId,
   variant = "word",
   isMatched,
   isSelected,
@@ -24,6 +27,15 @@ export function MatchingCard({
   courseColor,
   isDark,
 }: MatchingCardProps) {
+  const wordFontSize = React.useMemo(
+    () => getIdiomTitleFontSize(text, courseId, 16),
+    [courseId, text],
+  );
+  const wordLineHeight = React.useMemo(
+    () => Math.round(wordFontSize * 1.2),
+    [wordFontSize],
+  );
+
   return (
     <TouchableOpacity
       style={[
@@ -43,6 +55,7 @@ export function MatchingCard({
         {variant === "meaning" ? (
           <InlineMeaningWithChips
             meaning={text}
+            courseId={courseId}
             isDark={isDark}
             textStyle={[
               styles.matchingItemText,
@@ -89,6 +102,7 @@ export function MatchingCard({
               style={[
                 styles.matchingItemText,
                 styles.wordText,
+                { fontSize: wordFontSize, lineHeight: wordLineHeight },
                 isMatched && styles.matchingItemTextMatched,
                 isSelected && { color: courseColor || "#007AFF" },
               ]}

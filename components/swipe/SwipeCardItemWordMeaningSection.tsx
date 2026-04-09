@@ -3,6 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { VocabularyCard } from "../../src/types/vocabulary";
+import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { speakWordVariants } from "../../src/utils/wordVariants";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 
@@ -40,6 +41,22 @@ export function SwipeCardItemWordMeaningSection({
   const normalizedPronunciation = pronunciation?.trim();
   const wordVariants = React.useMemo(() => parseWordVariants(word), [word]);
   const isMultiVariantWord = wordVariants.length > 1;
+  const longestWordVariant = React.useMemo(
+    () =>
+      wordVariants.reduce(
+        (longest, variant) => (variant.length > longest.length ? variant : longest),
+        wordVariants[0] ?? word,
+      ),
+    [word, wordVariants],
+  );
+  const titleFontSize = React.useMemo(
+    () => getIdiomTitleFontSize(longestWordVariant, item.course, 32),
+    [item.course, longestWordVariant],
+  );
+  const titleLineHeight = React.useMemo(
+    () => Math.round(titleFontSize * 1.18),
+    [titleFontSize],
+  );
 
   const speak = React.useCallback(async () => {
     if (!isActive) {
@@ -57,27 +74,19 @@ export function SwipeCardItemWordMeaningSection({
   }, [speak]);
 
   const renderWord = () => {
-    if (!isMultiVariantWord) {
-      return (
-        <Text
-          style={[styles.cardTitle, { color: isDark ? "#fff" : "#1a1a1a" }]}
-          numberOfLines={1}
-        >
-          {wordVariants[0] ?? word}
-        </Text>
-      );
-    }
-
     return (
       <View style={styles.wordVariantsContainer}>
         {wordVariants.map((variant, index) => (
           <Text
             key={`${variant}-${index}`}
+            testID={index === 0 ? "swipe-card-word-title" : undefined}
             style={[
               styles.cardTitle,
-              styles.cardTitleVariant,
               { color: isDark ? "#fff" : "#1a1a1a" },
+              index > 0 && styles.cardTitleVariant,
+              { fontSize: titleFontSize, lineHeight: titleLineHeight },
             ]}
+            numberOfLines={isMultiVariantWord ? undefined : 1}
           >
             {variant}
           </Text>
@@ -107,6 +116,7 @@ export function SwipeCardItemWordMeaningSection({
       <View style={styles.meaningSection}>
         <InlineMeaningWithChips
           meaning={meaning}
+          courseId={item.course}
           isDark={isDark}
           textStyle={[
             styles.cardDescription,

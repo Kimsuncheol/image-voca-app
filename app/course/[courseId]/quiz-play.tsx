@@ -574,6 +574,7 @@ export default function QuizPlayScreen() {
           <View style={styles.matchingContent}>
             <GameBoard
               quizType={effectiveQuizType}
+              courseId={courseId}
               currentQuestion={currentQuestion}
               questions={questions}
               progressCurrent={progressCurrent}
@@ -609,6 +610,7 @@ export default function QuizPlayScreen() {
           >
             <GameBoard
               quizType={effectiveQuizType}
+              courseId={courseId}
               currentQuestion={currentQuestion}
               questions={questions}
               progressCurrent={progressCurrent}

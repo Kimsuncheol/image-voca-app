@@ -1,10 +1,12 @@
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { parseWordVariants } from "../../src/utils/wordVariants";
 import { ThemedText } from "../themed-text";
 
 interface WordCardHeaderProps {
   word: string;
+  courseId?: string;
   day?: number;
   pronunciation?: string;
   onSpeak?: () => void;
@@ -17,6 +19,7 @@ interface WordCardHeaderProps {
  */
 export function WordCardHeader({
   word,
+  courseId,
   day,
   pronunciation,
   onSpeak,
@@ -24,13 +27,34 @@ export function WordCardHeader({
 }: WordCardHeaderProps) {
   const wordVariants = React.useMemo(() => parseWordVariants(word), [word]);
   const isMultilineWord = wordVariants.length > 1;
+  const longestVariant = React.useMemo(
+    () =>
+      wordVariants.reduce(
+        (longest, variant) => (variant.length > longest.length ? variant : longest),
+        wordVariants[0] ?? word,
+      ),
+    [word, wordVariants],
+  );
+  const titleFontSize = React.useMemo(
+    () => getIdiomTitleFontSize(longestVariant, courseId, 22),
+    [courseId, longestVariant],
+  );
+  const titleLineHeight = React.useMemo(
+    () => Math.round(titleFontSize * 1.25),
+    [titleFontSize],
+  );
   const titleContent = (
     <View style={styles.wordTitleTextContainer}>
       {wordVariants.map((variant, index) => (
         <ThemedText
           key={`${variant}-${index}`}
           type="subtitle"
-          style={[styles.wordTitle, isMultilineWord && styles.wordTitleMultiline]}
+          testID={index === 0 ? "word-card-title" : undefined}
+          style={[
+            styles.wordTitle,
+            isMultilineWord && styles.wordTitleMultiline,
+            { fontSize: titleFontSize, lineHeight: titleLineHeight },
+          ]}
           numberOfLines={isMultilineWord ? undefined : 1}
         >
           {variant}

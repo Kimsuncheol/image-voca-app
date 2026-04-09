@@ -29,6 +29,7 @@ interface QuizQuestion {
 
 interface GameBoardProps {
   quizType: string;
+  courseId?: string;
   currentQuestion: QuizQuestion;
   questions: QuizQuestion[];
 
@@ -54,6 +55,7 @@ interface GameBoardProps {
 
 export function GameBoard({
   quizType,
+  courseId,
   currentQuestion,
   questions,
   progressCurrent,
@@ -116,6 +118,7 @@ export function GameBoard({
       ) : isMatching ? (
         <MatchingGame
           questions={questions}
+          courseId={courseId}
           meanings={matchingMeanings}
           selectedWord={selectedWord}
           selectedMeaning={selectedMeaning}
@@ -143,6 +146,7 @@ export function GameBoard({
       ) : isFillInBlank ? (
         <FillInTheBlankGame
           word={currentQuestion.word}
+          courseId={courseId}
           clozeSentence={currentQuestion.clozeSentence || ""}
           translation={currentQuestion.translation}
           localizedPronunciation={currentQuestion.localizedPronunciation}
@@ -157,6 +161,7 @@ export function GameBoard({
       ) : (
         <MultipleChoiceGame
           options={(currentQuestion.options as string[]) || []}
+          courseId={courseId}
           correctAnswer={currentQuestion.correctAnswer}
           userAnswer={userAnswer}
           showResult={showResult}

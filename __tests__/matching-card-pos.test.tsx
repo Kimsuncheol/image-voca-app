@@ -32,4 +32,25 @@ describe("MatchingCard", () => {
     expect(queryByText("n.")).toBeNull();
     expect(queryByText("v.")).toBeNull();
   });
+
+  it("renders numbered CSAT idiom meaning cards without the POS gutter", () => {
+    const { getByText, queryByTestId } = render(
+      <MatchingCard
+        text="1. 아주 드물게 2. 거의 하지 않게"
+        courseId="CSAT_IDIOMS"
+        variant="meaning"
+        isMatched={false}
+        isSelected={false}
+        onPress={jest.fn()}
+        isDark={true}
+      />,
+    );
+
+    expect(getByText("1. ")).toBeTruthy();
+    expect(getByText("2. ")).toBeTruthy();
+    expect(getByText("아주 드물게")).toBeTruthy();
+    expect(getByText("거의 하지 않게")).toBeTruthy();
+    expect(queryByTestId("matching-meaning-pos-column-0")).toBeNull();
+    expect(queryByTestId("matching-meaning-pos-column-1")).toBeNull();
+  });
 });

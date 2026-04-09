@@ -120,6 +120,7 @@ export type ResolvedDashboardQuizVocabulary = ResolvedQuizVocabulary & {
 export interface DashboardQuizItem {
   word: string;
   meaning: string;
+  course?: CourseType;
   pronunciation?: string;
   pronunciationRoman?: string;
   example?: string;
@@ -152,6 +153,7 @@ const toDashboardQuizItem = (
 ): DashboardQuizItem => ({
   word: word.word,
   meaning: word.meaning,
+  course: word.course,
   pronunciation: word.course === "COLLOCATION" ? undefined : word.pronunciation,
   pronunciationRoman:
     word.course === "COLLOCATION" ? undefined : word.pronunciationRoman,

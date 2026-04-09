@@ -1,6 +1,10 @@
 import React from "react";
 import { StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from "react-native";
 import {
+  formatIdiomMeaningForDisplay,
+  isCsatIdiomsCourseId,
+} from "../../src/utils/idiomDisplay";
+import {
   parseMeaningPartsOfSpeech,
   type MeaningLine,
   type MeaningSegment,
@@ -10,6 +14,7 @@ const POS_COLUMN_WIDTH = 36;
 
 interface InlineMeaningWithChipsProps {
   meaning: string;
+  courseId?: string;
   isDark: boolean;
   textStyle?: StyleProp<TextStyle>;
   prefixStyle?: StyleProp<TextStyle>;
@@ -21,6 +26,7 @@ interface InlineMeaningWithChipsProps {
 
 export function InlineMeaningWithChips({
   meaning,
+  courseId,
   isDark,
   textStyle,
   prefixStyle,
@@ -29,9 +35,15 @@ export function InlineMeaningWithChips({
   chipStyle,
   testID,
 }: InlineMeaningWithChipsProps) {
-  const parsedMeaning = parseMeaningPartsOfSpeech(meaning);
+  const formattedMeaning = React.useMemo(
+    () => formatIdiomMeaningForDisplay(meaning, courseId),
+    [courseId, meaning],
+  );
+  const parsedMeaning = parseMeaningPartsOfSpeech(formattedMeaning);
   const textColor = isDark ? "#FFFFFF" : "#000000";
-  const useColumnLayout = parsedMeaning.lines.length > 1;
+  const useColumnLayout =
+    parsedMeaning.lines.length > 1 &&
+    (!isCsatIdiomsCourseId(courseId) || parsedMeaning.hasPartsOfSpeech);
 
   return (
     <View style={[styles.container, containerStyle]} testID={testID}>

@@ -80,13 +80,18 @@ export function WordCard({
         <View style={styles.topLeft}>
           <WordCardHeader
             word={word.word}
+            courseId={word.course}
             day={word.day}
             pronunciation={
               showPronunciation ? resolved.sharedPronunciation : undefined
             }
             onSpeak={handleSpeakWord}
           />
-          <WordCardMeaning meaning={resolved.meaning} isDark={isDark} />
+          <WordCardMeaning
+            meaning={resolved.meaning}
+            courseId={word.course}
+            isDark={isDark}
+          />
         </View>
         {resolved.imageUrl ? (
           <Image

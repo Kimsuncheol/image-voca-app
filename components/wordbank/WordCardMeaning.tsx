@@ -4,6 +4,7 @@ import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 
 interface WordCardMeaningProps {
   meaning: string;
+  courseId?: string;
   isDark: boolean;
 }
 
@@ -11,10 +12,15 @@ interface WordCardMeaningProps {
  * Meaning section of the word card
  * Displays the definition of the word
  */
-export function WordCardMeaning({ meaning, isDark }: WordCardMeaningProps) {
+export function WordCardMeaning({
+  meaning,
+  courseId,
+  isDark,
+}: WordCardMeaningProps) {
   return (
     <InlineMeaningWithChips
       meaning={meaning}
+      courseId={courseId}
       isDark={isDark}
       textStyle={styles.meaning}
       containerStyle={styles.container}

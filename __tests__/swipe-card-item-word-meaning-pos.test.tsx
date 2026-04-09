@@ -1,5 +1,6 @@
 import { render } from "@testing-library/react-native";
 import React from "react";
+import { StyleSheet } from "react-native";
 import { SwipeCardItemWordMeaningSection } from "../components/swipe/SwipeCardItemWordMeaningSection";
 import { VocabularyCard } from "../src/types/vocabulary";
 
@@ -94,5 +95,31 @@ describe("SwipeCardItemWordMeaningSection", () => {
 
     expect(getByText("abandon")).toBeTruthy();
     expect(queryByText(/=/)).toBeNull();
+  });
+
+  it("formats numbered idiom meanings onto separate lines and scales long titles", () => {
+    const { getByTestId, getByText, queryByTestId } = render(
+      <SwipeCardItemWordMeaningSection
+        item={{
+          ...buildItem(),
+          course: "CSAT_IDIOMS",
+        }}
+        word="once in a blue moon"
+        meaning="1. 아주 드물게 2. 거의 하지 않게"
+        isDark={false}
+      />,
+    );
+
+    expect(getByText("1. ")).toBeTruthy();
+    expect(getByText("2. ")).toBeTruthy();
+    expect(getByText("아주 드물게")).toBeTruthy();
+    expect(getByText("거의 하지 않게")).toBeTruthy();
+    expect(queryByTestId("inline-meaning-pos-column-0")).toBeNull();
+    expect(queryByTestId("inline-meaning-pos-column-1")).toBeNull();
+
+    const titleStyle = StyleSheet.flatten(
+      getByTestId("swipe-card-word-title").props.style,
+    );
+    expect(titleStyle.fontSize).toBeLessThan(32);
   });
 });

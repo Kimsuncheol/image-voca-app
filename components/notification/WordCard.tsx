@@ -8,6 +8,7 @@ import { SpeakerButton } from "../CollocationFlipCard/SpeakerButton";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import type { NotificationWordCardPayload } from "../../src/types/notificationCard";
+import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
 import { formatSynonyms } from "../../src/utils/synonyms";
 
@@ -89,6 +90,14 @@ export default function WordCard({
 
   const formattedSynonyms =
     data.course === "TOEFL_IELTS" ? formatSynonyms(data.synonyms) : undefined;
+  const titleFontSize = React.useMemo(
+    () => getIdiomTitleFontSize(resolved.word, data.course, 28),
+    [data.course, resolved.word],
+  );
+  const titleLineHeight = React.useMemo(
+    () => Math.round(titleFontSize * 1.18),
+    [titleFontSize],
+  );
 
   return (
     <Card
@@ -105,8 +114,13 @@ export default function WordCard({
           <View style={styles.heroLeft}>
             <View style={styles.wordRow}>
               <Text
+                testID="notification-word-title"
                 variant="headlineMedium"
-                style={[styles.word, { color: isDark ? "#FFFFFF" : "#0F172A" }]}
+                style={[
+                  styles.word,
+                  { color: isDark ? "#FFFFFF" : "#0F172A" },
+                  { fontSize: titleFontSize, lineHeight: titleLineHeight },
+                ]}
               >
                 {resolved.word}
               </Text>
@@ -125,6 +139,7 @@ export default function WordCard({
             ) : null}
             <InlineMeaningWithChips
               meaning={resolved.meaning}
+              courseId={data.course}
               isDark={isDark}
               textStyle={[
                 styles.meaning,

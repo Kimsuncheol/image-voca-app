@@ -17,6 +17,7 @@ interface QuizQuestion {
 interface MatchingGameProps {
   questions: QuizQuestion[];
   meanings: string[];
+  courseId?: string;
   selectedWord: string | null;
   selectedMeaning: string | null;
   matchedPairs: Record<string, string>;
@@ -31,6 +32,7 @@ interface MatchingGameProps {
 export function MatchingGame({
   questions,
   meanings: _unusedMeanings,
+  courseId,
   selectedWord,
   selectedMeaning,
   matchedPairs,
@@ -96,6 +98,7 @@ export function MatchingGame({
               <View style={styles.matchingCell}>
                 <MatchingCard
                   text={question.word}
+                  courseId={courseId}
                   variant="word"
                   pronunciation={
                     showPronunciationDetails && matchingMode !== "pronunciation"
@@ -113,6 +116,7 @@ export function MatchingGame({
               <View style={styles.matchingCell}>
                 <MatchingCard
                   text={meaning}
+                  courseId={courseId}
                   variant={
                     matchingMode === "pronunciation" ? "pronunciation" : "meaning"
                   }

@@ -3,10 +3,12 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import type { QuizWordOption } from "../../src/course/quizUtils";
 import { useTheme } from "../../src/context/ThemeContext";
+import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { ThemedText } from "../themed-text";
 
 interface FillInTheBlankGameOptionsProps {
   options: Array<QuizWordOption | string>;
+  courseId?: string;
   correctAnswer: string;
   userAnswer: string;
   showResult: boolean;
@@ -16,6 +18,7 @@ interface FillInTheBlankGameOptionsProps {
 
 export function FillInTheBlankGameOptions({
   options,
+  courseId,
   correctAnswer,
   userAnswer,
   showResult,
@@ -33,6 +36,11 @@ export function FillInTheBlankGameOptions({
       {options.map((option, index) => {
         const normalizedOption =
           typeof option === "string" ? { word: option } : option;
+        const optionFontSize = getIdiomTitleFontSize(
+          normalizedOption.word,
+          courseId,
+          16,
+        );
 
         return (
           <TouchableOpacity
@@ -61,7 +69,15 @@ export function FillInTheBlankGameOptions({
             }}
             disabled={showResult}
           >
-            <ThemedText style={styles.optionText}>
+            <ThemedText
+              style={[
+                styles.optionText,
+                {
+                  fontSize: optionFontSize,
+                  lineHeight: Math.round(optionFontSize * 1.2),
+                },
+              ]}
+            >
               {normalizedOption.word}
             </ThemedText>
             {showPronunciationDetails && normalizedOption.pronunciation ? (

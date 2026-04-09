@@ -17,10 +17,16 @@ jest.mock("../components/themed-text", () => ({
 }));
 
 jest.mock("../components/dashboard/quiz-types/PopQuizOption", () => ({
-  PopQuizOption: ({ option }: { option: string }) => {
+  PopQuizOption: ({
+    option,
+    displayOption,
+  }: {
+    option: string;
+    displayOption?: string;
+  }) => {
     const ReactModule = jest.requireActual<typeof import("react")>("react");
     const { Text } = jest.requireActual("react-native");
-    return ReactModule.createElement(Text, null, option);
+    return ReactModule.createElement(Text, null, displayOption ?? option);
   },
 }));
 
@@ -44,7 +50,7 @@ describe("Dashboard MultipleChoiceQuiz", () => {
     expect(screen.queryByText("used to describe an event happening")).toBeNull();
   });
 
-  it("still shows pronunciation details when provided", () => {
+  it("still renders the quiz prompt when pronunciation data is provided", () => {
     const screen = render(
       <MultipleChoiceQuiz
         quizItem={{
@@ -62,7 +68,32 @@ describe("Dashboard MultipleChoiceQuiz", () => {
     );
 
     expect(screen.getByText("間")).toBeTruthy();
-    expect(screen.getByText("あいだ")).toBeTruthy();
-    expect(screen.getByText("aida")).toBeTruthy();
+    expect(screen.queryByText("あいだ")).toBeNull();
+    expect(screen.queryByText("aida")).toBeNull();
+  });
+
+  it("formats CSAT idiom meanings in options and scales the idiom prompt", () => {
+    const screen = render(
+      <MultipleChoiceQuiz
+        quizItem={{
+          word: "once in a blue moon",
+          meaning: "1. 아주 드물게 2. 거의 하지 않게",
+          course: "CSAT_IDIOMS",
+        }}
+        options={[
+          "1. 아주 드물게 2. 거의 하지 않게",
+          "매우 자주",
+          "갑자기",
+          "천천히",
+        ]}
+        selectedOption={null}
+        isCorrect={null}
+        isDark={false}
+        onOptionPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText("once in a blue moon")).toBeTruthy();
+    expect(screen.getByText("1. 아주 드물게\n2. 거의 하지 않게")).toBeTruthy();
   });
 });

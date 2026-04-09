@@ -13,6 +13,7 @@ import { ThemedText } from "../../themed-text";
 
 export interface PopQuizOptionProps {
   option: string;
+  displayOption?: string;
   subtitle?: string;
   secondarySubtitle?: string;
   isSelected: boolean;
@@ -25,6 +26,7 @@ export interface PopQuizOptionProps {
 export const PopQuizOption = React.memo(
   ({
     option,
+    displayOption,
     subtitle,
     secondarySubtitle,
     isSelected,
@@ -45,7 +47,7 @@ export const PopQuizOption = React.memo(
         activeOpacity={0.8}
         disabled={isAnswered}
       >
-        <ThemedText style={styles.optionText}>{option}</ThemedText>
+        <ThemedText style={styles.optionText}>{displayOption ?? option}</ThemedText>
         {subtitle ? (
           <ThemedText style={styles.subtitleText}>{subtitle}</ThemedText>
         ) : null}

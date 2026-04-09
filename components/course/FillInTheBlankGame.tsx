@@ -6,6 +6,7 @@ import { FillInTheBlankGameOptions } from "./FillInTheBlankGameOptions";
 
 interface FillInTheBlankGameProps {
   word: string;
+  courseId?: string;
   clozeSentence: string;
   translation?: string;
   localizedPronunciation?: string;
@@ -20,6 +21,7 @@ interface FillInTheBlankGameProps {
 
 export function FillInTheBlankGame({
   word,
+  courseId,
   clozeSentence,
   translation,
   localizedPronunciation,
@@ -48,6 +50,7 @@ export function FillInTheBlankGame({
 
       <FillInTheBlankGameOptions
         options={options}
+        courseId={courseId}
         correctAnswer={correctAnswer}
         userAnswer={userAnswer}
         showResult={showResult}

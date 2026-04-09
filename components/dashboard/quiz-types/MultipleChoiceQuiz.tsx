@@ -9,6 +9,11 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
+import {
+  formatIdiomMeaningForDisplay,
+  getIdiomTitleFontSize,
+  isCsatIdiomsCourseId,
+} from "../../../src/utils/idiomDisplay";
 import { ThemedText } from "../../themed-text";
 import { getDynamicFontSize } from "../utils/quizHelpers";
 import { PopQuizOption } from "./PopQuizOption";
@@ -16,6 +21,7 @@ import { PopQuizOption } from "./PopQuizOption";
 interface QuizItem {
   word: string;
   meaning: string;
+  course?: string;
   pronunciation?: string;
 }
 
@@ -37,6 +43,13 @@ export function MultipleChoiceQuiz({
   onOptionPress,
 }: MultipleChoiceQuizProps) {
   const { t } = useTranslation();
+  const questionFontSize = React.useMemo(
+    () =>
+      isCsatIdiomsCourseId(quizItem.course)
+        ? getIdiomTitleFontSize(quizItem.word, quizItem.course, 24)
+        : getDynamicFontSize(quizItem.word),
+    [quizItem.course, quizItem.word],
+  );
 
   return (
     <>
@@ -47,7 +60,10 @@ export function MultipleChoiceQuiz({
         <ThemedText
           style={[
             styles.questionText,
-            { fontSize: getDynamicFontSize(quizItem.word) },
+            {
+              fontSize: questionFontSize,
+              lineHeight: Math.round(questionFontSize * 1.2),
+            },
           ]}
         >
           {quizItem.word}
@@ -59,6 +75,7 @@ export function MultipleChoiceQuiz({
           <PopQuizOption
             key={`${option}-${index}`}
             option={option}
+            displayOption={formatIdiomMeaningForDisplay(option, quizItem.course)}
             isSelected={selectedOption === option}
             isCorrect={option === quizItem.meaning}
             isAnswered={isCorrect === true}
