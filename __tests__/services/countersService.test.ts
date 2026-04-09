@@ -1,238 +1,76 @@
-import { FirebaseError } from "firebase/app";
-import { collection, getDocs } from "firebase/firestore";
-import {
-  __resetCountersServiceForTests,
-  fetchCountersDataFromFirestore,
-  getCountersCollectionPath,
-  getCountersData,
-} from "../../src/services/countersService";
-
-const mockSetFirebaseOnline = jest.fn();
-const mockSetFirebaseOffline = jest.fn();
+import { getDocs } from "firebase/firestore";
+import { COUNTERS_DATA } from "../../src/data/counters";
+import { getCountersData } from "../../src/services/countersService";
 
 jest.mock("firebase/firestore", () => ({
-  collection: jest.fn(),
   getDocs: jest.fn(),
 }));
 
-jest.mock("../../src/services/firebase", () => ({
-  db: {},
-}));
-
-jest.mock("../../src/stores/networkStore", () => ({
-  useNetworkStore: {
-    getState: () => ({
-      setFirebaseOnline: mockSetFirebaseOnline,
-      setFirebaseOffline: mockSetFirebaseOffline,
-    }),
-  },
-}));
-
-const buildSnapshot = (
-  docs: { data: () => Record<string, unknown>; id: string }[],
-) => ({
-  docs,
-  empty: docs.length === 0,
-});
-
 describe("countersService", () => {
   beforeEach(() => {
-    __resetCountersServiceForTests();
     jest.clearAllMocks();
-    delete process.env.EXPO_PUBLIC_JLPT_COUNTER_NUMBERS_PATH;
-    delete process.env.EXPO_PUBLIC_JLPT_COUNTER_COUNTER_TSUU_PATH;
-    delete process.env.EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH;
-    delete process.env.EXPO_PUBLIC_JLTP_COUNTER_COUNTER_TSUU_PATH;
-    delete process.env.EXPO_PUBLIC_JLPT_COUNTER_PATH;
-    process.env.EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH =
-      "/reference/jlpt/counters/doc/numbers";
-    process.env.EXPO_PUBLIC_JLTP_COUNTER_COUNTER_TSUU_PATH =
-      "/reference/jlpt/counters/doc/counter_tsuu";
-    (collection as jest.Mock).mockImplementation((_db, path: string) => ({
-      path,
-    }));
   });
 
-  afterEach(() => {
-    __resetCountersServiceForTests();
-  });
-
-  it("prefers correctly spelled JLPT env keys when present", () => {
-    delete process.env.EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH;
-    process.env.EXPO_PUBLIC_JLPT_COUNTER_NUMBERS_PATH =
-      "/preferred/jlpt/counters/doc/numbers";
-
-    expect(getCountersCollectionPath("numbers")).toBe(
-      "preferred/jlpt/counters/doc/numbers",
-    );
-  });
-
-  it("keeps supporting legacy JLTP env keys", () => {
-    expect(getCountersCollectionPath("numbers")).toBe(
-      "reference/jlpt/counters/doc/numbers",
-    );
-    expect(getCountersCollectionPath("counter_tsuu")).toBe(
-      "reference/jlpt/counters/doc/counter_tsuu",
-    );
-  });
-
-  it("maps Firestore counter documents into the app shape and sorts by id", async () => {
-    (getDocs as jest.Mock).mockResolvedValue(
-      buildSnapshot([
-        {
-          id: "numbers-02",
-          data: () => ({
-            category: "Numbers",
-            word: "二",
-            example: "二つ",
-            exampleRoman: "futatsu",
-            meaningEnglish: "two",
-            meaningKorean: "둘",
-            pronunciation: "に",
-            pronunciationRoman: "ni",
-            translationEnglish: "two items",
-            translationKorean: "두 개",
-          }),
-        },
-        {
-          id: "numbers-01",
-          data: () => ({
-            category: "Numbers",
-            word: "一",
-            example: "一つ",
-            exampleRoman: "hitotsu",
-            meaningEnglish: "one",
-            meaningKorean: "하나",
-            pronunciation: "いち",
-            pronunciationRoman: "ichi",
-            translationEnglish: "one item",
-            translationKorean: "한 개",
-          }),
-        },
-      ]),
-    );
-
-    const result = await fetchCountersDataFromFirestore("numbers");
-
-    expect(result).toEqual([
-      expect.objectContaining({
-        id: "numbers-01",
-        word: "一",
-      }),
-      expect.objectContaining({
-        id: "numbers-02",
-        word: "二",
-      }),
-    ]);
-  });
-
-  it("returns remote data and marks Firebase online on success", async () => {
-    (getDocs as jest.Mock).mockResolvedValue(
-      buildSnapshot([
-        {
-          id: "numbers-01",
-          data: () => ({
-            category: "Numbers",
-            word: "一",
-          }),
-        },
-      ]),
-    );
-
+  it("returns bundled local data for each tab without calling Firestore", async () => {
     const result = await getCountersData("numbers");
 
-    expect(result[0].word).toBe("一");
-    expect(mockSetFirebaseOnline).toHaveBeenCalled();
-    expect(mockSetFirebaseOffline).not.toHaveBeenCalled();
+    expect(result.length).toBeGreaterThan(0);
+    expect(result[0]).toEqual(expect.objectContaining({
+      id: "numbers-01",
+      word: "一",
+      meaningEnglish: "one",
+      meaningKorean: "하나",
+      pronunciation: "いち",
+      pronunciationRoman: "",
+      exampleRoman: "",
+      translationEnglish: "One year is twelve months.",
+      translationKorean: "일 년은 12개월입니다.",
+      category: "numbers",
+    }));
+    expect(getDocs).not.toHaveBeenCalled();
   });
 
-  it("falls back to the root counters collection when per-tab vars are absent", async () => {
-    delete process.env.EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH;
-    process.env.EXPO_PUBLIC_JLPT_COUNTER_PATH =
-      "/reference/jlpt/counters";
+  it("returns sorted local data", async () => {
+    const result = await getCountersData("counter_tsuu");
 
-    (getDocs as jest.Mock)
-      .mockResolvedValueOnce(
-        buildSnapshot([
-          {
-            id: "root-doc",
-            data: () => ({}),
-          },
-        ]),
-      )
-      .mockResolvedValueOnce(
-        buildSnapshot([
-          {
-            id: "numbers-01",
-            data: () => ({
-              category: "Numbers",
-              word: "一",
-            }),
-          },
-        ]),
-      );
-
-    const result = await fetchCountersDataFromFirestore("numbers");
-
-    expect(result[0].word).toBe("一");
-    expect(collection).toHaveBeenNthCalledWith(1, {}, "reference/jlpt/counters");
-    expect(collection).toHaveBeenNthCalledWith(
-      2,
-      {},
-      "reference/jlpt/counters/root-doc/numbers",
-    );
-  });
-
-  it("throws a descriptive error when no per-tab path or root path exists", async () => {
-    delete process.env.EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH;
-
-    await expect(getCountersData("numbers")).rejects.toThrow(
-      "Missing or invalid counter collection path for numbers. Checked EXPO_PUBLIC_JLPT_COUNTER_NUMBERS_PATH, EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH, and EXPO_PUBLIC_JLPT_COUNTER_PATH.",
+    expect(result.map((item) => item.id)).toEqual(
+      [...result.map((item) => item.id)].sort((a, b) => a.localeCompare(b)),
     );
     expect(getDocs).not.toHaveBeenCalled();
   });
 
-  it("throws a descriptive error when the root counters collection is empty", async () => {
-    delete process.env.EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH;
-    process.env.EXPO_PUBLIC_JLPT_COUNTER_PATH =
-      "/reference/jlpt/counters";
-    (getDocs as jest.Mock).mockResolvedValue(buildSnapshot([]));
+  it("contains bundled local data for every counter tab", async () => {
+    const tabs = Object.keys(COUNTERS_DATA);
 
-    await expect(fetchCountersDataFromFirestore("numbers")).rejects.toThrow(
-      "No counters root document found at EXPO_PUBLIC_JLPT_COUNTER_PATH.",
-    );
+    expect(tabs).toEqual(expect.arrayContaining([
+      "numbers",
+      "counter_tsuu",
+      "counter_ko",
+      "counter_kai_floor",
+      "counter_kai_times",
+      "counter_ban",
+      "counter_ens",
+      "counter_years",
+      "counter_months",
+      "counter_days",
+      "counter_hours",
+      "counter_minutes",
+      "counter_weekdays",
+      "counter_hai",
+      "counter_bai",
+      "counter_hon",
+      "counter_mai",
+      "counter_nin",
+      "counter_hiki",
+    ]));
   });
 
-  it("throws a descriptive error when the root counters collection has multiple docs", async () => {
-    delete process.env.EXPO_PUBLIC_JLTP_COUNTER_NUMBERS_PATH;
-    process.env.EXPO_PUBLIC_JLPT_COUNTER_PATH =
-      "/reference/jlpt/counters";
-    (getDocs as jest.Mock).mockResolvedValue(
-      buildSnapshot([
-        {
-          id: "root-a",
-          data: () => ({}),
-        },
-        {
-          id: "root-b",
-          data: () => ({}),
-        },
-      ]),
-    );
+  it("returns an empty array instead of throwing when a tab has no local rows", async () => {
+    const original = COUNTERS_DATA.counter_hiki;
+    COUNTERS_DATA.counter_hiki = [];
 
-    await expect(fetchCountersDataFromFirestore("numbers")).rejects.toThrow(
-      "Expected exactly one counters root document at EXPO_PUBLIC_JLPT_COUNTER_PATH, found 2.",
-    );
-  });
+    await expect(getCountersData("counter_hiki")).resolves.toEqual([]);
 
-  it("throws when Firestore read fails", async () => {
-    (getDocs as jest.Mock).mockRejectedValue(
-      new FirebaseError("unavailable", "Firestore unavailable"),
-    );
-
-    await expect(getCountersData("counter_tsuu")).rejects.toMatchObject({
-      code: "unavailable",
-    });
-    expect(mockSetFirebaseOffline).toHaveBeenCalledWith(true);
+    COUNTERS_DATA.counter_hiki = original;
   });
 });

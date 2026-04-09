@@ -5,6 +5,7 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
+    "import:counters": "node ./scripts/import_counters.js",
     "import:prefix-postfix": "node ./scripts/import_prefix_postfix.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
