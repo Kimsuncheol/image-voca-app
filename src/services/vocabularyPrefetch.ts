@@ -76,6 +76,11 @@ export const getCourseConfig = (courseId: CourseType): CourseConfig => {
         path: process.env.EXPO_PUBLIC_COURSE_PATH_CSAT,
         prefix: "CSAT",
       };
+    case "CSAT_IDIOMS":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_CSAT_IDIOMS,
+        prefix: "CSAT_IDIOMS",
+      };
     case "TOEIC":
       return {
         path: process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC,
@@ -224,6 +229,20 @@ export const mapVocabularyDocToCard = (
         typeof data.pronunciationRoman === "string"
           ? data.pronunciationRoman
           : undefined,
+      example: typeof data.example === "string" ? data.example : "",
+      imageUrl,
+      localized: normalizeVocabularyLocalizationMap(data.localized),
+      course: courseId,
+    };
+  }
+
+  if (courseId === "CSAT_IDIOMS") {
+    return {
+      id: docId,
+      word: typeof data.idiom === "string" ? data.idiom : "",
+      meaning: typeof data.meaning === "string" ? data.meaning : "",
+      translation:
+        typeof data.translation === "string" ? data.translation : "",
       example: typeof data.example === "string" ? data.example : "",
       imageUrl,
       localized: normalizeVocabularyLocalizationMap(data.localized),

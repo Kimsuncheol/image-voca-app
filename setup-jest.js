@@ -7,6 +7,7 @@ jest.mock(
 );
 
 process.env.EXPO_PUBLIC_COURSE_PATH_CSAT = "courses/csat";
+process.env.EXPO_PUBLIC_COURSE_PATH_CSAT_IDIOMS = "courses/csat-idioms";
 process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC = "courses/toeic";
 process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL = "courses/toefl";
 process.env.EXPO_PUBLIC_COURSE_PATH_IELTS = "courses/ielts";

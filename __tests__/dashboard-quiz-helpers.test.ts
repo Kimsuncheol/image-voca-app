@@ -106,6 +106,34 @@ describe("dashboard quiz payloads", () => {
     },
   ];
 
+  const idiomBatch = [
+    {
+      word: "break the ice",
+      meaning: "start a conversation comfortably",
+      example: "He told a joke to break the ice.",
+      translation: "그는 분위기를 풀기 위해 농담을 했다.",
+      course: "CSAT_IDIOMS" as const,
+    },
+    {
+      word: "hit the books",
+      meaning: "study hard",
+      example: "I need to hit the books tonight.",
+      course: "CSAT_IDIOMS" as const,
+    },
+    {
+      word: "under the weather",
+      meaning: "feeling sick",
+      example: "She feels under the weather today.",
+      course: "CSAT_IDIOMS" as const,
+    },
+    {
+      word: "once in a blue moon",
+      meaning: "very rarely",
+      example: "We eat out once in a blue moon.",
+      course: "CSAT_IDIOMS" as const,
+    },
+  ];
+
   it("builds matching payloads with localized meaning and pronunciation fields", () => {
     const payload = buildDashboardQuizPayload(batch[0], batch, "matching");
 
@@ -234,5 +262,30 @@ describe("dashboard quiz payloads", () => {
     );
 
     expect(payload).toBeNull();
+  });
+
+  it("builds multiple-choice payloads for CSAT idioms with meaning options", () => {
+    const payload = buildDashboardQuizPayload(
+      idiomBatch[0],
+      idiomBatch,
+      "multiple-choice",
+    );
+
+    expect(payload).not.toBeNull();
+    expect(payload?.quizItem).toMatchObject({
+      word: "break the ice",
+      meaning: "start a conversation comfortably",
+    });
+    expect(payload?.quizItem.example).toBeUndefined();
+    expect(payload?.options).toEqual(
+      expect.arrayContaining([
+        "start a conversation comfortably",
+        "study hard",
+        "feeling sick",
+        "very rarely",
+      ]),
+    );
+    expect(payload?.matchingPairs).toEqual([]);
+    expect(payload?.wordOptions).toEqual([]);
   });
 });

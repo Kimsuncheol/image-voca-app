@@ -10,6 +10,9 @@ describe("quizModes", () => {
       "matching",
       "fill-in-blank",
     ]);
+    expect(
+      getQuizTypesForCourse("CSAT_IDIOMS").map((quizType) => quizType.id),
+    ).toEqual(["matching", "fill-in-blank"]);
   });
 
   test("exposes synonym matching only for TOEFL_IELTS", () => {

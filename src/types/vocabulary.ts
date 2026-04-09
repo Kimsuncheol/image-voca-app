@@ -44,6 +44,7 @@ export type LearningLanguage = "en" | "ja";
 
 export type TopLevelCourseType =
   | "수능"
+  | "CSAT_IDIOMS"
   | "TOEIC"
   | "TOEFL_IELTS"
   | "COLLOCATION"
@@ -86,6 +87,16 @@ export const COURSES: Course[] = [
     icon: "school",
     color: "#FF6B6B",
     wordCount: 1200,
+  },
+  {
+    id: "CSAT_IDIOMS",
+    title: "CSAT Idioms",
+    titleKey: "courses.csatIdioms.title",
+    description: "Idioms for the Korean College Entrance Exam",
+    descriptionKey: "courses.csatIdioms.description",
+    icon: "chatbubbles",
+    color: "#E85D75",
+    wordCount: 300,
   },
   {
     id: "TOEIC",
@@ -189,6 +200,7 @@ export const JLPT_LEVELS: JLPTLevelCourse[] = [
 
 export const ENGLISH_COURSES: TopLevelCourseType[] = [
   "수능",
+  "CSAT_IDIOMS",
   "TOEIC",
   "TOEFL_IELTS",
   "COLLOCATION",

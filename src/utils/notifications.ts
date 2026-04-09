@@ -399,6 +399,7 @@ export const schedulePopWordNotifications = async (
 
   const COURSES: CourseType[] = [
     "수능",
+    "CSAT_IDIOMS",
     "TOEIC",
     "TOEFL_IELTS",
     "COLLOCATION",

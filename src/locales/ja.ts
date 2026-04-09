@@ -245,6 +245,10 @@ const ja = {
       title: "CSAT",
       description: "韓国大学修学能力試験",
     },
+    csatIdioms: {
+      title: "CSAT Idioms",
+      description: "韓国大学修学能力試験の熟語",
+    },
     toeic: {
       title: "TOEIC",
       description: "ビジネス英語",

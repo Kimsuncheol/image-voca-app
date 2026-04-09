@@ -250,6 +250,10 @@ const ko = {
       title: "수능",
       description: "한국 대학수학능력시험",
     },
+    csatIdioms: {
+      title: "수능 숙어",
+      description: "대학수학능력시험 대비 숙어",
+    },
     toeic: {
       title: "TOEIC",
       description: "비즈니스 영어",

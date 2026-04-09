@@ -248,6 +248,10 @@ const en = {
       title: "CSAT",
       description: "Korean College Entrance Exam",
     },
+    csatIdioms: {
+      title: "CSAT Idioms",
+      description: "Idioms for the Korean College Entrance Exam",
+    },
     toeic: {
       title: "TOEIC",
       description: "Business English",

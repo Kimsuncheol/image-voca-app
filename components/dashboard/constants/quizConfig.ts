@@ -27,6 +27,7 @@ export const getQuizCoursesForLanguage = (language: LearningLanguage) =>
     ? JLPT_LEVELS.map((level) => ({ id: level.id, wordsPerCourse: 8 }))
     : [
         { id: "수능", wordsPerCourse: 8 },
+        { id: "CSAT_IDIOMS", wordsPerCourse: 8 },
         { id: "COLLOCATION", wordsPerCourse: 8 },
         { id: "TOEIC", wordsPerCourse: 8 },
         { id: "TOEFL_IELTS", wordsPerCourse: 8 },

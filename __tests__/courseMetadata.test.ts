@@ -4,6 +4,7 @@ import {
   getTotalDaysForCourse,
   getCourseMetadata,
   getCourseConfig,
+  mapVocabularyDocToCard,
   __resetVocabularyPrefetchStateForTests,
 } from '../src/services/vocabularyPrefetch';
 import { CourseType } from '../src/types/vocabulary';
@@ -43,6 +44,12 @@ describe('Course Metadata Management', () => {
       const config = getCourseConfig('수능');
       expect(config.prefix).toBe('CSAT');
       expect(config.path).toBe('courses/csat');
+    });
+
+    test('should return correct config for CSAT idioms', () => {
+      const config = getCourseConfig('CSAT_IDIOMS');
+      expect(config.prefix).toBe('CSAT_IDIOMS');
+      expect(config.path).toBe('courses/csat-idioms');
     });
 
     test('should return correct config for TOEFL / IELTS', () => {
@@ -319,6 +326,29 @@ describe('Course Metadata Management', () => {
   });
 
   describe('Integration Scenarios', () => {
+    test('should map CSAT idiom documents into vocabulary cards', () => {
+      expect(
+        mapVocabularyDocToCard(
+          'idiom-1',
+          {
+            idiom: 'break the ice',
+            meaning: 'to start a conversation',
+            imageUrl: 'https://example.com/ice.png',
+          },
+          'CSAT_IDIOMS',
+        ),
+      ).toEqual({
+        id: 'idiom-1',
+        word: 'break the ice',
+        meaning: 'to start a conversation',
+        translation: '',
+        example: '',
+        imageUrl: 'https://example.com/ice.png',
+        localized: undefined,
+        course: 'CSAT_IDIOMS',
+      });
+    });
+
     test('should handle a complete upload workflow', async () => {
       const courseId: CourseType = 'TOEIC';
 
@@ -350,7 +380,13 @@ describe('Course Metadata Management', () => {
     });
 
     test('should work with all course types', async () => {
-      const courses: CourseType[] = ['TOEIC', 'TOEFL_IELTS', '수능', 'COLLOCATION'];
+      const courses: CourseType[] = [
+        'TOEIC',
+        'TOEFL_IELTS',
+        '수능',
+        'CSAT_IDIOMS',
+        'COLLOCATION',
+      ];
 
       for (const courseId of courses) {
         // Mock metadata exists

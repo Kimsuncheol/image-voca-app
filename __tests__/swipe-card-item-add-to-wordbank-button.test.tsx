@@ -204,6 +204,39 @@ describe("SwipeCardItemAddToWordBankButton", () => {
     expect(writtenWord).not.toHaveProperty("pronunciationRoman");
   });
 
+  it("stores CSAT idioms in a separate word-bank course document", async () => {
+    const transaction = createTransactionMock();
+    mockRunTransaction.mockImplementation(async (_db, handler) =>
+      handler(transaction),
+    );
+    mockRecordWordLearned.mockResolvedValue(undefined);
+
+    const screen = render(
+      <SwipeCardItemAddToWordBankButton
+        item={buildItem({
+          id: "idiom-1",
+          word: "break the ice",
+          meaning: "start a conversation",
+          pronunciation: undefined,
+          course: "CSAT_IDIOMS",
+        })}
+        isDark={false}
+      />,
+    );
+
+    fireEvent.press(screen.UNSAFE_getByType(TouchableOpacity));
+
+    await waitFor(() => {
+      expect(mockDoc).toHaveBeenCalledWith(
+        {},
+        "vocabank",
+        "user-1",
+        "course",
+        "CSAT_IDIOMS",
+      );
+    });
+  });
+
   it("removes nested undefined values from localized payloads", async () => {
     const transaction = createTransactionMock();
     mockRunTransaction.mockImplementation(async (_db, handler) =>

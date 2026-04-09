@@ -26,7 +26,30 @@ jest.mock("../src/services/vocaService", () => ({
 }));
 
 import { setLanguage } from "../src/i18n";
-import { buildPopWordNotificationContent } from "../src/utils/notifications";
+import {
+  buildPopWordNotificationContent,
+  schedulePopWordNotifications,
+} from "../src/utils/notifications";
+import {
+  getTotalDaysForCourse,
+  prefetchVocabularyCards,
+} from "../src/services/vocabularyPrefetch";
+
+jest.mock("expo-notifications", () => ({
+  getPermissionsAsync: jest.fn(),
+  requestPermissionsAsync: jest.fn(),
+  setNotificationHandler: jest.fn(),
+  setNotificationChannelAsync: jest.fn(),
+  scheduleNotificationAsync: jest.fn(async () => "notif-id"),
+  cancelScheduledNotificationAsync: jest.fn(),
+  getAllScheduledNotificationsAsync: jest.fn(async () => []),
+  AndroidImportance: {
+    DEFAULT: "DEFAULT",
+  },
+  IosAuthorizationStatus: {
+    PROVISIONAL: 1,
+  },
+}));
 
 describe("notification localization", () => {
   beforeEach(async () => {
@@ -78,5 +101,22 @@ describe("notification localization", () => {
       title: "今日のコロケーション",
       body: "make a decision - to decide\n\n発音: to decide",
     });
+  });
+
+  it("includes CSAT_IDIOMS when scheduling pop-word notifications", async () => {
+    (getTotalDaysForCourse as jest.Mock).mockResolvedValue(1);
+    (prefetchVocabularyCards as jest.Mock).mockResolvedValue([
+      {
+        word: "break the ice",
+        meaning: "start a conversation",
+        example: "He told a joke to break the ice.",
+        course: "CSAT_IDIOMS",
+      },
+    ]);
+
+    await schedulePopWordNotifications("user-1", 1);
+
+    expect(getTotalDaysForCourse).toHaveBeenCalledWith("CSAT_IDIOMS");
+    expect(prefetchVocabularyCards).toHaveBeenCalledWith("CSAT_IDIOMS", 1);
   });
 });

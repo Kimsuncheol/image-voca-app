@@ -42,6 +42,8 @@ export function getCoursePath(courseId: string): string {
   switch (courseId) {
     case "수능":
       return process.env.EXPO_PUBLIC_COURSE_PATH_CSAT || "";
+    case "CSAT_IDIOMS":
+      return process.env.EXPO_PUBLIC_COURSE_PATH_CSAT_IDIOMS || "";
     case "TOEIC":
       return process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC || "";
     case "TOEFL_IELTS":
@@ -66,6 +68,16 @@ export function normalizeWordData(data: any, courseId: string): any {
     return {
       word: data.collocation,
       meaning: data.meaning,
+      ...data,
+    };
+  }
+  if (courseId === "CSAT_IDIOMS") {
+    return {
+      word: data.idiom,
+      meaning: data.meaning,
+      example: data.example ?? "",
+      translation: data.translation ?? "",
+      imageUrl: data.imageUrl,
       ...data,
     };
   }

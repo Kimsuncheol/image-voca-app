@@ -89,6 +89,47 @@ describe("quizUtils", () => {
     expect(alphaQuestion?.clozeSentence).toContain("___");
   });
 
+  it("builds fill-in-the-blank questions for multi-word idioms", () => {
+    const questions = generateQuizQuestions(
+      [
+        {
+          word: "break the ice",
+          meaning: "start a conversation",
+          example: "He tried to break the ice with a joke.",
+          translation: "그는 농담으로 어색함을 풀려고 했다.",
+        },
+        {
+          word: "hit the books",
+          meaning: "study hard",
+          example: "I should hit the books tonight.",
+        },
+        {
+          word: "under the weather",
+          meaning: "feel sick",
+          example: "She is under the weather today.",
+        },
+        {
+          word: "once in a blue moon",
+          meaning: "very rarely",
+          example: "We travel once in a blue moon.",
+        },
+      ],
+      "fill-in-blank",
+    );
+    const idiomQuestion = questions.find(
+      (question) => question.word === "break the ice",
+    );
+
+    expect(idiomQuestion?.correctAnswer).toBe("break the ice");
+    expect(idiomQuestion?.clozeSentence).toBe("He tried to ___ with a joke.");
+    expect(idiomQuestion?.translation).toBe("그는 농담으로 어색함을 풀려고 했다.");
+    expect(idiomQuestion?.options).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ word: "break the ice" }),
+      ]),
+    );
+  });
+
   it("keeps multiple-choice question behavior unchanged while carrying quiz fields", () => {
     const questions = generateQuizQuestions(buildVocab(), "multiple-choice");
     const alphaQuestion = questions.find((question) => question.word === "alpha");
