@@ -26,7 +26,7 @@ const translations: Record<string, string> = {
   "auth.login.subtitle": "Sign in to continue",
   "auth.login.emailPlaceholder": "Email",
   "auth.login.passwordPlaceholder": "Password",
-  "auth.login.rememberMe": "Remember me",
+  "auth.login.rememberMe": "Keep me logged in",
   "auth.login.forgotPassword": "Forgot Password?",
   "auth.login.signingIn": "Signing In...",
   "auth.login.signIn": "Sign In",

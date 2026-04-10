@@ -218,15 +218,19 @@ export default function LoginScreen() {
 
               {/* Feature: Options Row (Remember Me & Forgot Password) */}
               <View style={styles.optionsContainer}>
-                <RememberMeCheckbox
-                  checked={rememberMe}
-                  onToggle={() => setRememberMe(!rememberMe)}
-                  label={t("auth.login.rememberMe")}
-                />
-                <LinkButton
-                  text={t("auth.login.forgotPassword")}
-                  onPress={() => router.push("/(auth)/forgot-password")}
-                />
+                <View style={styles.rememberMeContainer}>
+                  <RememberMeCheckbox
+                    checked={rememberMe}
+                    onToggle={() => setRememberMe(!rememberMe)}
+                    label={t("auth.login.rememberMe")}
+                  />
+                </View>
+                <View style={styles.forgotPasswordContainer}>
+                  <LinkButton
+                    text={t("auth.login.forgotPassword")}
+                    onPress={() => router.push("/(auth)/forgot-password")}
+                  />
+                </View>
               </View>
 
               {/* Feature: Sign In Button */}
@@ -304,10 +308,15 @@ const getStyles = (isDark: boolean) =>
       marginBottom: 24,
     },
     optionsContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
+      flexDirection: "column",
       marginBottom: 28,
       marginTop: 8,
+    },
+    rememberMeContainer: {
+      alignItems: "flex-start",
+      marginBottom: 16,
+    },
+    forgotPasswordContainer: {
+      alignItems: "flex-end",
     },
   });

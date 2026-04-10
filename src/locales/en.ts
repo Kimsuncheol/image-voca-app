@@ -381,7 +381,7 @@ const en = {
     login: {
       emailPlaceholder: "Email",
       passwordPlaceholder: "Password",
-      rememberMe: "Remember me",
+      rememberMe: "Keep me logged in",
       forgotPassword: "Forgot Password?",
       signingIn: "Signing In...",
       signIn: "Sign In",
@@ -424,7 +424,8 @@ const en = {
       resendCooldown: "Resend in {{seconds}}s",
       useAnotherAccount: "Use another account",
       emailSent: "Verification email sent to {{email}}.",
-      sendFailed: "Failed to send verification email. Try again from this screen.",
+      sendFailed:
+        "Failed to send verification email. Try again from this screen.",
       stillPending:
         "This email is still unverified. Open the link in your inbox and try again.",
       refreshFailed: "Failed to refresh verification status. Please try again.",
@@ -557,7 +558,8 @@ const en = {
     currentPlanButton: "Current Plan",
     freePlanButton: "Free Plan",
     purchaseButton: "Purchase",
-    connectionError: "Failed to load subscription data. Please check your connection.",
+    connectionError:
+      "Failed to load subscription data. Please check your connection.",
     info: "One-time payment for lifetime access. Checkout currency follows your device region when supported. Refunds are available only within 7 days of purchase.",
     checkout: {
       title: "Checkout",
@@ -571,7 +573,8 @@ const en = {
       failTitle: "Payment Failed",
       failMessage: "Payment failed.",
       errorMessage: "An error occurred while processing payment.",
-      amountMismatch: "The confirmed amount does not match the selected plan price.",
+      amountMismatch:
+        "The confirmed amount does not match the selected plan price.",
       summaryTitle: "Order Summary",
       productLabel: "Product",
       amountLabel: "Amount",
