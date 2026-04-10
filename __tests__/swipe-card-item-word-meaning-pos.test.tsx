@@ -122,4 +122,29 @@ describe("SwipeCardItemWordMeaningSection", () => {
     );
     expect(titleStyle.fontSize).toBeLessThan(32);
   });
+
+  it("formats numbered extremely advanced meanings and scales long titles", () => {
+    const { getByTestId, getByText, queryByTestId } = render(
+      <SwipeCardItemWordMeaningSection
+        item={{
+          ...buildItem(),
+          course: "EXTREMELY_ADVANCED",
+        }}
+        word="antidisestablishmentarianism"
+        meaning="1. 정교분리 반대론 2. 긴 단어"
+        isDark={false}
+      />,
+    );
+
+    expect(getByText("1. ")).toBeTruthy();
+    expect(getByText("2. ")).toBeTruthy();
+    expect(getByText("정교분리 반대론")).toBeTruthy();
+    expect(getByText("긴 단어")).toBeTruthy();
+    expect(queryByTestId("inline-meaning-pos-column-0")).toBeNull();
+
+    const titleStyle = StyleSheet.flatten(
+      getByTestId("swipe-card-word-title").props.style,
+    );
+    expect(titleStyle.fontSize).toBeLessThan(32);
+  });
 });

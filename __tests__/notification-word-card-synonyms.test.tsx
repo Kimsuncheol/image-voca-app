@@ -80,4 +80,26 @@ describe("Notification WordCard synonyms", () => {
     );
     expect(titleStyle.fontSize).toBeLessThan(28);
   });
+
+  it("formats extremely advanced meanings onto separate lines and scales long titles", () => {
+    const { getByTestId, getByText, queryByTestId } = render(
+      <WordCard
+        data={buildData({
+          course: "EXTREMELY_ADVANCED",
+          word: "antidisestablishmentarianism",
+          meaning: "1. 정교분리 반대론 2. 긴 단어",
+          synonyms: undefined,
+        })}
+      />,
+    );
+
+    expect(getByText("1. ")).toBeTruthy();
+    expect(getByText("2. ")).toBeTruthy();
+    expect(queryByTestId("inline-meaning-pos-column-0")).toBeNull();
+
+    const titleStyle = StyleSheet.flatten(
+      getByTestId("notification-word-title").props.style,
+    );
+    expect(titleStyle.fontSize).toBeLessThan(28);
+  });
 });

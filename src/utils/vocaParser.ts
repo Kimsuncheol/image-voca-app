@@ -6,9 +6,14 @@
  * means the extraction is stateless, synchronous, and trivially unit-testable.
  */
 
-export type CourseType = "COLLOCATION" | "CSAT" | "TOEFL_IELTS" | "TOEIC";
+export type CourseType =
+  | "COLLOCATION"
+  | "CSAT"
+  | "TOEFL_IELTS"
+  | "TOEIC"
+  | "EXTREMELY_ADVANCED";
 
-/** Parsed vocabulary entry for standard courses (CSAT, IELTS, TOEFL, TOEIC). */
+/** Parsed vocabulary entry for standard courses. */
 export interface VocaEntry {
   type: "voca";
   word: string;

@@ -12,7 +12,7 @@ import { StyleSheet, View } from "react-native";
 import {
   formatIdiomMeaningForDisplay,
   getIdiomTitleFontSize,
-  isCsatIdiomsCourseId,
+  isNumberedMeaningDisplayCourseId,
 } from "../../../src/utils/idiomDisplay";
 import { ThemedText } from "../../themed-text";
 import { getDynamicFontSize } from "../utils/quizHelpers";
@@ -23,6 +23,7 @@ interface QuizItem {
   meaning: string;
   course?: string;
   pronunciation?: string;
+  pronunciationRoman?: string;
 }
 
 interface MultipleChoiceQuizProps {
@@ -45,7 +46,7 @@ export function MultipleChoiceQuiz({
   const { t } = useTranslation();
   const questionFontSize = React.useMemo(
     () =>
-      isCsatIdiomsCourseId(quizItem.course)
+      isNumberedMeaningDisplayCourseId(quizItem.course)
         ? getIdiomTitleFontSize(quizItem.word, quizItem.course, 24)
         : getDynamicFontSize(quizItem.word),
     [quizItem.course, quizItem.word],

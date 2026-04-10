@@ -257,6 +257,10 @@ const ja = {
       title: "TOEFL / IELTS",
       description: "アカデミック・国際英語",
     },
+    extremelyAdvanced: {
+      title: "Extremely Advanced",
+      description: "高難度の英語語彙",
+    },
     toeicSpeaking: {
       title: "TOEIC Speaking",
       description: "スピーキングスキル",

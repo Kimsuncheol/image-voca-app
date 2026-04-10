@@ -262,6 +262,10 @@ const ko = {
       title: "TOEFL / IELTS",
       description: "학문·국제 영어",
     },
+    extremelyAdvanced: {
+      title: "최상급 영어",
+      description: "고난도 영어 어휘",
+    },
     toeicSpeaking: {
       title: "TOEIC Speaking",
       description: "스피킹 스킬",

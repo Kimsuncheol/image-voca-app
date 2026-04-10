@@ -48,6 +48,8 @@ export function getCoursePath(courseId: string): string {
       return process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC || "";
     case "TOEFL_IELTS":
       return process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL_IELTS || "";
+    case "EXTREMELY_ADVANCED":
+      return process.env.EXPO_PUBLIC_COURSE_PATH_EXTREMELY_ADVANCED || "";
     case "COLLOCATION":
       return process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION || "";
     default:

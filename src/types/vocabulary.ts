@@ -47,6 +47,7 @@ export type TopLevelCourseType =
   | "CSAT_IDIOMS"
   | "TOEIC"
   | "TOEFL_IELTS"
+  | "EXTREMELY_ADVANCED"
   | "COLLOCATION"
   | "JLPT";
 
@@ -117,6 +118,16 @@ export const COURSES: Course[] = [
     icon: "library",
     color: "#A855F7",
     wordCount: 2100,
+  },
+  {
+    id: "EXTREMELY_ADVANCED",
+    title: "Extremely Advanced",
+    titleKey: "courses.extremelyAdvanced.title",
+    description: "Challenging English vocabulary",
+    descriptionKey: "courses.extremelyAdvanced.description",
+    icon: "flame",
+    color: "#B91C1C",
+    wordCount: 300,
   },
   {
     id: "COLLOCATION",
@@ -203,6 +214,7 @@ export const ENGLISH_COURSES: TopLevelCourseType[] = [
   "CSAT_IDIOMS",
   "TOEIC",
   "TOEFL_IELTS",
+  "EXTREMELY_ADVANCED",
   "COLLOCATION",
 ];
 

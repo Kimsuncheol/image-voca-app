@@ -103,7 +103,7 @@ describe("notification localization", () => {
     });
   });
 
-  it("includes CSAT_IDIOMS when scheduling pop-word notifications", async () => {
+  it("includes CSAT_IDIOMS and EXTREMELY_ADVANCED when scheduling pop-word notifications", async () => {
     (getTotalDaysForCourse as jest.Mock).mockResolvedValue(1);
     (prefetchVocabularyCards as jest.Mock).mockResolvedValue([
       {
@@ -117,6 +117,11 @@ describe("notification localization", () => {
     await schedulePopWordNotifications("user-1", 1);
 
     expect(getTotalDaysForCourse).toHaveBeenCalledWith("CSAT_IDIOMS");
+    expect(getTotalDaysForCourse).toHaveBeenCalledWith("EXTREMELY_ADVANCED");
     expect(prefetchVocabularyCards).toHaveBeenCalledWith("CSAT_IDIOMS", 1);
+    expect(prefetchVocabularyCards).toHaveBeenCalledWith(
+      "EXTREMELY_ADVANCED",
+      1,
+    );
   });
 });

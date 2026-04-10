@@ -2,7 +2,7 @@ import React from "react";
 import { StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from "react-native";
 import {
   formatIdiomMeaningForDisplay,
-  isCsatIdiomsCourseId,
+  isNumberedMeaningDisplayCourseId,
 } from "../../src/utils/idiomDisplay";
 import {
   parseMeaningPartsOfSpeech,
@@ -43,7 +43,8 @@ export function InlineMeaningWithChips({
   const textColor = isDark ? "#FFFFFF" : "#000000";
   const useColumnLayout =
     parsedMeaning.lines.length > 1 &&
-    (!isCsatIdiomsCourseId(courseId) || parsedMeaning.hasPartsOfSpeech);
+    (!isNumberedMeaningDisplayCourseId(courseId) ||
+      parsedMeaning.hasPartsOfSpeech);
 
   return (
     <View style={[styles.container, containerStyle]} testID={testID}>

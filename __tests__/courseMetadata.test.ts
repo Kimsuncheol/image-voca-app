@@ -58,6 +58,12 @@ describe('Course Metadata Management', () => {
       expect(config.path).toBe('courses/toefl');
     });
 
+    test('should return correct config for extremely advanced', () => {
+      const config = getCourseConfig('EXTREMELY_ADVANCED');
+      expect(config.prefix).toBe('EXTREMELY_ADVANCED');
+      expect(config.path).toBe('courses/extremely-advanced');
+    });
+
     test('should return correct config for COLLOCATION', () => {
       const config = getCourseConfig('COLLOCATION');
       expect(config.prefix).toBe('COLLOCATION');
@@ -349,6 +355,30 @@ describe('Course Metadata Management', () => {
       });
     });
 
+    test('should map extremely advanced documents through the default schema', () => {
+      expect(
+        mapVocabularyDocToCard(
+          'advanced-1',
+          {
+            word: 'sesquipedalian',
+            meaning: '1. 긴 단어를 사용하는 2. 긴 단어',
+            example: 'His sesquipedalian style confused the audience.',
+            translation: '그의 장황한 문체는 청중을 혼란스럽게 했다.',
+            imageUrl: 'https://example.com/advanced.png',
+          },
+          'EXTREMELY_ADVANCED',
+        ),
+      ).toMatchObject({
+        id: 'advanced-1',
+        word: 'sesquipedalian',
+        meaning: '1. 긴 단어를 사용하는 2. 긴 단어',
+        example: 'His sesquipedalian style confused the audience.',
+        translation: '그의 장황한 문체는 청중을 혼란스럽게 했다.',
+        imageUrl: 'https://example.com/advanced.png',
+        course: 'EXTREMELY_ADVANCED',
+      });
+    });
+
     test('should handle a complete upload workflow', async () => {
       const courseId: CourseType = 'TOEIC';
 
@@ -385,6 +415,7 @@ describe('Course Metadata Management', () => {
         'TOEFL_IELTS',
         '수능',
         'CSAT_IDIOMS',
+        'EXTREMELY_ADVANCED',
         'COLLOCATION',
       ];
 

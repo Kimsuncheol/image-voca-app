@@ -402,6 +402,7 @@ export const schedulePopWordNotifications = async (
     "CSAT_IDIOMS",
     "TOEIC",
     "TOEFL_IELTS",
+    "EXTREMELY_ADVANCED",
     "COLLOCATION",
   ];
   const allCards: any[] = [];

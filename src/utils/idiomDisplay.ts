@@ -1,14 +1,23 @@
 const CSAT_IDIOMS_COURSE_ID = "CSAT_IDIOMS";
+const EXTREMELY_ADVANCED_COURSE_ID = "EXTREMELY_ADVANCED";
+const NUMBERED_MEANING_DISPLAY_COURSE_IDS = new Set([
+  CSAT_IDIOMS_COURSE_ID,
+  EXTREMELY_ADVANCED_COURSE_ID,
+]);
 
 export function isCsatIdiomsCourseId(courseId?: string): boolean {
   return courseId === CSAT_IDIOMS_COURSE_ID;
+}
+
+export function isNumberedMeaningDisplayCourseId(courseId?: string): boolean {
+  return !!courseId && NUMBERED_MEANING_DISPLAY_COURSE_IDS.has(courseId);
 }
 
 export function formatIdiomMeaningForDisplay(
   meaning: string,
   courseId?: string,
 ): string {
-  if (!isCsatIdiomsCourseId(courseId)) {
+  if (!isNumberedMeaningDisplayCourseId(courseId)) {
     return meaning;
   }
 
@@ -25,7 +34,7 @@ export function getIdiomTitleFontSize(
   courseId?: string,
   fallbackFontSize = 32,
 ): number {
-  if (!isCsatIdiomsCourseId(courseId)) {
+  if (!isNumberedMeaningDisplayCourseId(courseId)) {
     return fallbackFontSize;
   }
 

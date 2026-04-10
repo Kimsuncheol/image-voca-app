@@ -11,6 +11,7 @@ process.env.EXPO_PUBLIC_COURSE_PATH_CSAT_IDIOMS = "courses/csat-idioms";
 process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC = "courses/toeic";
 process.env.EXPO_PUBLIC_COURSE_PATH_TOEFL = "courses/toefl";
 process.env.EXPO_PUBLIC_COURSE_PATH_IELTS = "courses/ielts";
+process.env.EXPO_PUBLIC_COURSE_PATH_EXTREMELY_ADVANCED = "courses/extremely-advanced";
 process.env.EXPO_PUBLIC_COURSE_PATH_OPIC = "courses/opic";
 process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC_SPEAKING = "courses/toeic-speaking";
 process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION = "courses/collocation";

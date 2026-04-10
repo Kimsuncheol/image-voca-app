@@ -7,7 +7,12 @@ const openai = new OpenAI({
 export interface ExampleGenerationOptions {
   word: string;
   meaning: string;
-  courseLevel?: "CSAT" | "TOEFL_IELTS" | "TOEIC" | "COLLOCATION";
+  courseLevel?:
+    | "CSAT"
+    | "TOEFL_IELTS"
+    | "TOEIC"
+    | "COLLOCATION"
+    | "EXTREMELY_ADVANCED";
   translation?: string; // If provided, generate translation too
 }
 
@@ -33,6 +38,7 @@ export async function generateExampleSentence(
     TOEFL: "academic English at university level",
     TOEIC: "business and workplace English",
     IELTS: "academic and general English",
+    EXTREMELY_ADVANCED: "extremely advanced English vocabulary",
     COLLOCATION: "natural word combinations and phrases",
   };
 

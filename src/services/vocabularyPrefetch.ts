@@ -94,6 +94,11 @@ export const getCourseConfig = (courseId: CourseType): CourseConfig => {
           process.env.EXPO_PUBLIC_COURSE_PATH_IELTS,
         prefix: "TOEFL_IELTS",
       };
+    case "EXTREMELY_ADVANCED":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_EXTREMELY_ADVANCED,
+        prefix: "EXTREMELY_ADVANCED",
+      };
     case "COLLOCATION":
       return {
         path: process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION,

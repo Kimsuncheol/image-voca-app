@@ -96,4 +96,29 @@ describe("Dashboard MultipleChoiceQuiz", () => {
     expect(screen.getByText("once in a blue moon")).toBeTruthy();
     expect(screen.getByText("1. 아주 드물게\n2. 거의 하지 않게")).toBeTruthy();
   });
+
+  it("formats extremely advanced numbered meanings in options", () => {
+    const screen = render(
+      <MultipleChoiceQuiz
+        quizItem={{
+          word: "antidisestablishmentarianism",
+          meaning: "1. 정교분리 반대론 2. 긴 단어",
+          course: "EXTREMELY_ADVANCED",
+        }}
+        options={[
+          "1. 정교분리 반대론 2. 긴 단어",
+          "짧은 답",
+          "기본 단어",
+          "쉬운 표현",
+        ]}
+        selectedOption={null}
+        isCorrect={null}
+        isDark={false}
+        onOptionPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText("antidisestablishmentarianism")).toBeTruthy();
+    expect(screen.getByText("1. 정교분리 반대론\n2. 긴 단어")).toBeTruthy();
+  });
 });

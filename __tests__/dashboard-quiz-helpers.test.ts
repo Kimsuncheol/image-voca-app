@@ -1,4 +1,7 @@
-import { buildDashboardQuizPayload } from "../components/dashboard/utils/quizHelpers";
+import {
+  buildDashboardQuizPayload,
+  getCoursePath,
+} from "../components/dashboard/utils/quizHelpers";
 import { resolveQuizVocabulary } from "../src/utils/localizedVocabulary";
 
 describe("dashboard quiz payloads", () => {
@@ -42,6 +45,7 @@ describe("dashboard quiz payloads", () => {
 
   const collocationBatch = [
     {
+      language: "en" as const,
       word: "take place",
       meaning: "happen",
       pronunciation: "used to describe an event happening",
@@ -49,6 +53,7 @@ describe("dashboard quiz payloads", () => {
       course: "COLLOCATION" as const,
     },
     {
+      language: "en" as const,
       word: "make progress",
       meaning: "advance",
       pronunciation: "used when improving over time",
@@ -56,6 +61,7 @@ describe("dashboard quiz payloads", () => {
       course: "COLLOCATION" as const,
     },
     {
+      language: "en" as const,
       word: "pay attention",
       meaning: "focus carefully",
       pronunciation: "used to ask for focus",
@@ -63,6 +69,7 @@ describe("dashboard quiz payloads", () => {
       course: "COLLOCATION" as const,
     },
     {
+      language: "en" as const,
       word: "raise questions",
       meaning: "cause doubt",
       pronunciation: "used when something seems doubtful",
@@ -73,6 +80,7 @@ describe("dashboard quiz payloads", () => {
 
   const toeflBatch = [
     {
+      language: "en" as const,
       word: "abandon",
       meaning: "leave behind",
       pronunciation: "uh-BAN-duhn",
@@ -81,6 +89,7 @@ describe("dashboard quiz payloads", () => {
       synonyms: ["forsake", "desert"],
     },
     {
+      language: "en" as const,
       word: "brief",
       meaning: "short",
       pronunciation: "breef",
@@ -89,6 +98,7 @@ describe("dashboard quiz payloads", () => {
       synonyms: ["concise"],
     },
     {
+      language: "en" as const,
       word: "calm",
       meaning: "peaceful",
       pronunciation: "kahm",
@@ -97,6 +107,7 @@ describe("dashboard quiz payloads", () => {
       synonyms: ["serene"],
     },
     {
+      language: "en" as const,
       word: "daring",
       meaning: "bold",
       pronunciation: "DAIR-ing",
@@ -108,6 +119,7 @@ describe("dashboard quiz payloads", () => {
 
   const idiomBatch = [
     {
+      language: "en" as const,
       word: "break the ice",
       meaning: "start a conversation comfortably",
       example: "He told a joke to break the ice.",
@@ -115,22 +127,57 @@ describe("dashboard quiz payloads", () => {
       course: "CSAT_IDIOMS" as const,
     },
     {
+      language: "en" as const,
       word: "hit the books",
       meaning: "study hard",
       example: "I need to hit the books tonight.",
       course: "CSAT_IDIOMS" as const,
     },
     {
+      language: "en" as const,
       word: "under the weather",
       meaning: "feeling sick",
       example: "She feels under the weather today.",
       course: "CSAT_IDIOMS" as const,
     },
     {
+      language: "en" as const,
       word: "once in a blue moon",
       meaning: "very rarely",
       example: "We eat out once in a blue moon.",
       course: "CSAT_IDIOMS" as const,
+    },
+  ];
+
+  const extremelyAdvancedBatch = [
+    {
+      language: "en" as const,
+      word: "antidisestablishmentarianism",
+      meaning: "1. 정교분리 반대론 2. 긴 단어",
+      example: "The debate mentioned antidisestablishmentarianism.",
+      translation: "그 논쟁은 정교분리 반대론을 언급했다.",
+      course: "EXTREMELY_ADVANCED" as const,
+    },
+    {
+      language: "en" as const,
+      word: "perspicacious",
+      meaning: "통찰력 있는",
+      example: "She gave a perspicacious answer.",
+      course: "EXTREMELY_ADVANCED" as const,
+    },
+    {
+      language: "en" as const,
+      word: "obstreperous",
+      meaning: "소란스러운",
+      example: "The obstreperous crowd ignored the warning.",
+      course: "EXTREMELY_ADVANCED" as const,
+    },
+    {
+      language: "en" as const,
+      word: "recalcitrant",
+      meaning: "고집 센",
+      example: "The recalcitrant student refused to cooperate.",
+      course: "EXTREMELY_ADVANCED" as const,
     },
   ];
 
@@ -287,5 +334,37 @@ describe("dashboard quiz payloads", () => {
     );
     expect(payload?.matchingPairs).toEqual([]);
     expect(payload?.wordOptions).toEqual([]);
+  });
+
+  it("builds multiple-choice payloads for extremely advanced words with meaning options", () => {
+    const payload = buildDashboardQuizPayload(
+      extremelyAdvancedBatch[0],
+      extremelyAdvancedBatch,
+      "multiple-choice",
+    );
+
+    expect(payload).not.toBeNull();
+    expect(payload?.quizItem).toMatchObject({
+      word: "antidisestablishmentarianism",
+      meaning: "1. 정교분리 반대론 2. 긴 단어",
+      course: "EXTREMELY_ADVANCED",
+    });
+    expect(payload?.quizItem.example).toBeUndefined();
+    expect(payload?.options).toEqual(
+      expect.arrayContaining([
+        "1. 정교분리 반대론 2. 긴 단어",
+        "통찰력 있는",
+        "소란스러운",
+        "고집 센",
+      ]),
+    );
+    expect(payload?.matchingPairs).toEqual([]);
+    expect(payload?.wordOptions).toEqual([]);
+  });
+
+  it("resolves the extremely advanced dashboard course path", () => {
+    expect(getCoursePath("EXTREMELY_ADVANCED")).toBe(
+      "courses/extremely-advanced",
+    );
   });
 });

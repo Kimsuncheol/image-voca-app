@@ -11,6 +11,12 @@ describe("idiomDisplay", () => {
         "CSAT_IDIOMS",
       ),
     ).toBe("1. ~할 예정이다\n2. ~할 것 같다");
+    expect(
+      formatIdiomMeaningForDisplay(
+        "1. ~할 예정이다 2. ~할 것 같다",
+        "EXTREMELY_ADVANCED",
+      ),
+    ).toBe("1. ~할 예정이다\n2. ~할 것 같다");
   });
 
   it("keeps already multiline idiom meanings stable", () => {
@@ -40,6 +46,13 @@ describe("idiomDisplay", () => {
       getIdiomTitleFontSize(
         "a blessing in disguise indeed",
         "CSAT_IDIOMS",
+        32,
+      ),
+    ).toBe(22);
+    expect(
+      getIdiomTitleFontSize(
+        "antidisestablishmentarianism",
+        "EXTREMELY_ADVANCED",
         32,
       ),
     ).toBe(22);

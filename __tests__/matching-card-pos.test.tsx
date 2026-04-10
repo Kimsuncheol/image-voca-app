@@ -53,4 +53,25 @@ describe("MatchingCard", () => {
     expect(queryByTestId("matching-meaning-pos-column-0")).toBeNull();
     expect(queryByTestId("matching-meaning-pos-column-1")).toBeNull();
   });
+
+  it("renders numbered extremely advanced meaning cards without the POS gutter", () => {
+    const { getByText, queryByTestId } = render(
+      <MatchingCard
+        text="1. 정교분리 반대론 2. 긴 단어"
+        courseId="EXTREMELY_ADVANCED"
+        variant="meaning"
+        isMatched={false}
+        isSelected={false}
+        onPress={jest.fn()}
+        isDark={true}
+      />,
+    );
+
+    expect(getByText("1. ")).toBeTruthy();
+    expect(getByText("2. ")).toBeTruthy();
+    expect(getByText("정교분리 반대론")).toBeTruthy();
+    expect(getByText("긴 단어")).toBeTruthy();
+    expect(queryByTestId("matching-meaning-pos-column-0")).toBeNull();
+    expect(queryByTestId("matching-meaning-pos-column-1")).toBeNull();
+  });
 });

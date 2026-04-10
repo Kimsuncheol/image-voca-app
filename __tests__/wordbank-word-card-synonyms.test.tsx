@@ -51,7 +51,7 @@ describe("Word bank WordCard synonyms", () => {
     course: "TOEFL_IELTS",
     synonyms: ["discard", " leave ", "", "forsake"],
     addedAt: "2026-01-01T00:00:00.000Z",
-  } as const;
+  };
 
   it("renders the synonyms section for saved TOEFL_IELTS words", () => {
     const { getByText, getByTestId } = render(
@@ -102,6 +102,30 @@ describe("Word bank WordCard synonyms", () => {
     expect(getByText("2. ")).toBeTruthy();
     expect(queryByTestId("inline-meaning-pos-column-0")).toBeNull();
     expect(queryByTestId("inline-meaning-pos-column-1")).toBeNull();
+
+    const titleStyle = StyleSheet.flatten(
+      getByTestId("word-card-title").props.style,
+    );
+    expect(titleStyle.fontSize).toBeLessThan(22);
+  });
+
+  it("formats extremely advanced meanings onto separate lines and scales long titles", () => {
+    const { getByTestId, getByText, queryByTestId } = render(
+      <WordCard
+        word={{
+          ...baseWord,
+          course: "EXTREMELY_ADVANCED",
+          word: "antidisestablishmentarianism",
+          meaning: "1. 정교분리 반대론 2. 긴 단어",
+          synonyms: undefined,
+        }}
+        isDark={false}
+      />,
+    );
+
+    expect(getByText("1. ")).toBeTruthy();
+    expect(getByText("2. ")).toBeTruthy();
+    expect(queryByTestId("inline-meaning-pos-column-0")).toBeNull();
 
     const titleStyle = StyleSheet.flatten(
       getByTestId("word-card-title").props.style,

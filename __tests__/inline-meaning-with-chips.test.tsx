@@ -79,4 +79,22 @@ describe("InlineMeaningWithChips", () => {
     expect(queryByTestId("inline-meaning-text-column-0")).toBeNull();
     expect(queryByTestId("inline-meaning-text-column-1")).toBeNull();
   });
+
+  it("renders numbered extremely advanced meanings without POS indentation", () => {
+    const { getByText, queryByTestId } = render(
+      <InlineMeaningWithChips
+        meaning="1. ~할 예정이다 2. ~할 것 같다"
+        courseId="EXTREMELY_ADVANCED"
+        isDark={false}
+        testID="inline-meaning"
+      />,
+    );
+
+    expect(getByText("1. ")).toBeTruthy();
+    expect(getByText("2. ")).toBeTruthy();
+    expect(getByText("~할 예정이다")).toBeTruthy();
+    expect(getByText("~할 것 같다")).toBeTruthy();
+    expect(queryByTestId("inline-meaning-pos-column-0")).toBeNull();
+    expect(queryByTestId("inline-meaning-pos-column-1")).toBeNull();
+  });
 });

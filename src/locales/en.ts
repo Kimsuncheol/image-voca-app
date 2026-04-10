@@ -260,6 +260,10 @@ const en = {
       title: "TOEFL / IELTS",
       description: "Academic & International English",
     },
+    extremelyAdvanced: {
+      title: "Extremely Advanced",
+      description: "Challenging English vocabulary",
+    },
     toeicSpeaking: {
       title: "TOEIC Speaking",
       description: "Speaking Skills",
