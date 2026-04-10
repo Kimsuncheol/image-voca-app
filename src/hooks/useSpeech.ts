@@ -14,6 +14,10 @@ import {
   SpeechOptions,
   subscribeToSpeechState,
 } from "../services/speechService";
+import {
+  getSpeechPreferenceLanguage,
+  getSpeechRatePreference,
+} from "../services/speechPreferences";
 
 export interface UseSpeechReturn {
   /** Function to speak the given text */
@@ -72,8 +76,14 @@ export const useSpeech = (): UseSpeechReturn => {
         setIsSpeaking(true);
         setIsPaused(false);
 
+        const preferenceLanguage = getSpeechPreferenceLanguage(options?.language);
+        const preferredRate = preferenceLanguage
+          ? await getSpeechRatePreference(preferenceLanguage)
+          : options?.rate;
+
         await speak(text, {
           ...options,
+          rate: preferredRate,
           onStart: () => {
             setIsSpeaking(true);
             setIsPaused(false);

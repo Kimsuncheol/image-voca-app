@@ -87,7 +87,6 @@ jest.mock("../components/counters/CountersList", () => ({
               onPress={() =>
                 mockSpeakWordVariants(item.word, mockSpeak, {
                   language: "ja-JP",
-                  rate: 0.85,
                 })
               }
             >
@@ -98,7 +97,6 @@ jest.mock("../components/counters/CountersList", () => ({
               onPress={() =>
                 mockSpeak(item.example, {
                   language: "ja-JP",
-                  rate: 0.85,
                 })
               }
             >
@@ -209,7 +207,6 @@ describe("CounterCategoryScreen", () => {
       mockSpeak,
       expect.objectContaining({
         language: "ja-JP",
-        rate: 0.85,
       }),
     );
   });
@@ -227,7 +224,6 @@ describe("CounterCategoryScreen", () => {
       "一 の例",
       expect.objectContaining({
         language: "ja-JP",
-        rate: 0.85,
       }),
     );
   });

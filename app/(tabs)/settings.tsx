@@ -35,6 +35,7 @@ import { LearningLanguageSection } from "../../components/settings/LearningLangu
 import { NotificationsSection } from "../../components/settings/NotificationsSection"; // Push notification settings
 import { SettingsHeader } from "../../components/settings/SettingsHeader"; // Header component
 import { SignOutSection } from "../../components/settings/SignOutSection"; // Sign out button
+import { SpeechSection } from "../../components/settings/SpeechSection"; // Pronunciation speed settings
 
 // ============================================================================
 // CONTEXT & STATE MANAGEMENT
@@ -499,6 +500,8 @@ export default function SettingsScreen() {
             Changes the app's display language
         */}
         <LearningLanguageSection styles={styles} isDark={isDark} />
+
+        <SpeechSection styles={styles} isDark={isDark} />
 
         <LanguageSection
           styles={styles}

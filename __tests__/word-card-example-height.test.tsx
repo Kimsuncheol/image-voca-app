@@ -74,7 +74,6 @@ describe("WordCardExample height behavior", () => {
     expect(mockSpeak).toHaveBeenCalledWith("expanded example", {
       language: "en-US",
       pitch: 1,
-      rate: 0.9,
     });
   });
 });

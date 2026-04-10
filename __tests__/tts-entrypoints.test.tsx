@@ -119,7 +119,6 @@ describe("TTS entrypoints", () => {
     await waitFor(() => {
       expect(mockSpeak).toHaveBeenCalledWith("abandon", {
         language: "en-US",
-        rate: 0.9,
       });
     });
   });
@@ -146,7 +145,6 @@ describe("TTS entrypoints", () => {
     await waitFor(() => {
       expect(mockSpeak).toHaveBeenCalledWith("abandon", {
         language: "en-US",
-        rate: 0.9,
       });
     });
   });
@@ -187,7 +185,6 @@ describe("TTS entrypoints", () => {
         "connection flight",
         expect.objectContaining({
           language: "en-US",
-          rate: 0.9,
           onDone: expect.any(Function),
           onError: expect.any(Function),
         }),
@@ -196,7 +193,6 @@ describe("TTS entrypoints", () => {
         "connecting flight",
         expect.objectContaining({
           language: "en-US",
-          rate: 0.9,
           onDone: expect.any(Function),
           onError: expect.any(Function),
         }),
@@ -205,7 +201,6 @@ describe("TTS entrypoints", () => {
         "connection",
         expect.objectContaining({
           language: "en-US",
-          rate: 0.9,
           onDone: expect.any(Function),
           onError: expect.any(Function),
         }),
@@ -227,7 +222,6 @@ describe("TTS entrypoints", () => {
       expect(mockSpeak).toHaveBeenCalledWith(`"She made a careful decision."`, {
         language: "en-US",
         pitch: 1,
-        rate: 0.9,
       });
     });
   });
@@ -242,7 +236,6 @@ describe("TTS entrypoints", () => {
     await waitFor(() => {
       expect(mockSpeak).toHaveBeenCalledWith("make a decision", {
         language: "en-US",
-        rate: 0.9,
       });
     });
   });
@@ -271,7 +264,6 @@ describe("TTS entrypoints", () => {
     await waitFor(() => {
       expect(mockSpeak).toHaveBeenCalledWith("make a decision", {
         language: "en-US",
-        rate: 0.9,
       });
     });
   });

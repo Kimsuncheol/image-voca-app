@@ -42,7 +42,6 @@ export function CounterRow({ item, index, showFurigana }: Props) {
     try {
       await speakWordVariants(word, speak, {
         language: "ja-JP",
-        rate: 0.85,
       });
     } catch (error) {
       console.error("Counter word TTS error:", error);
@@ -70,7 +69,6 @@ export function CounterRow({ item, index, showFurigana }: Props) {
       try {
         await speak(stripKanaParens(text), {
           language: "ja-JP",
-          rate: 0.85,
         });
       } catch (error) {
         console.error("Counter example TTS error:", error);

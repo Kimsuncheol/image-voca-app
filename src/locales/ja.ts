@@ -78,6 +78,14 @@ const ja = {
       japanese: "日本語",
       wishToLearn: "学習したい言語",
     },
+    speech: {
+      title: "発音速度",
+      englishSpeed: "英語の発音速度",
+      japaneseSpeed: "日本語の発音速度",
+      slow: "遅い",
+      normal: "標準",
+      fast: "速い",
+    },
     dashboard: {
       title: "ダッシュボード",
       popQuiz: "ポップクイズ",

@@ -79,6 +79,14 @@ const en = {
       japanese: "Japanese",
       wishToLearn: "The language you wish to learn",
     },
+    speech: {
+      title: "Pronunciation Speed",
+      englishSpeed: "English pronunciation speed",
+      japaneseSpeed: "Japanese pronunciation speed",
+      slow: "Slow",
+      normal: "Normal",
+      fast: "Fast",
+    },
     dashboard: {
       title: "Dashboard",
       popQuiz: "Pop Quiz",

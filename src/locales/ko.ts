@@ -78,6 +78,14 @@ const ko = {
       japanese: "일본어",
       wishToLearn: "학습하고 싶은 언어",
     },
+    speech: {
+      title: "발음 속도",
+      englishSpeed: "영어 발음 속도",
+      japaneseSpeed: "일본어 발음 속도",
+      slow: "느림",
+      normal: "보통",
+      fast: "빠름",
+    },
     dashboard: {
       title: "대시보드",
       popQuiz: "팝 퀴즈",

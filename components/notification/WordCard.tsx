@@ -143,7 +143,7 @@ export default function WordCard({
               </Text>
               <SpeakerButton
                 text={isJapanese ? (resolved.sharedPronunciation ?? resolved.word) : resolved.word}
-                speakOptions={isJapanese ? { language: "ja-JP", rate: 0.85 } : undefined}
+                speakOptions={isJapanese ? { language: "ja-JP" } : undefined}
                 isDark={isDark ?? false}
               />
             </View>
@@ -194,7 +194,7 @@ export default function WordCard({
           isDark={isDark}
           multiline={true}
           onPress={isJapanese && data.exampleHurigana
-            ? () => { void speak(data.exampleHurigana!, { language: "ja-JP", rate: 0.85 }); }
+            ? () => { void speak(data.exampleHurigana!, { language: "ja-JP" }); }
             : undefined}
         />
         <SectionRow

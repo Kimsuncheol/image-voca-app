@@ -62,7 +62,7 @@ export function SwipeCardItemExampleSentenceSection({
     if (!isActive) {
       return;
     }
-    await speak(text, { language: "en-US", rate: 0.9 });
+    await speak(text, { language: "en-US" });
   }, [isActive, speak]);
 
   return (

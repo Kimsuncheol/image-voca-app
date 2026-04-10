@@ -13,6 +13,12 @@ jest.mock("../src/context/ThemeContext", () => ({
   useTheme: () => ({ isDark: false }),
 }));
 
+jest.mock("../src/context/LearningLanguageContext", () => ({
+  useLearningLanguage: () => ({
+    learningLanguage: "en",
+  }),
+}));
+
 jest.mock("../src/hooks/useSpeech", () => ({
   useSpeech: () => ({
     speak: mockSpeak,
@@ -23,6 +29,9 @@ jest.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (_key: string, options?: { defaultValue?: string }) =>
       options?.defaultValue ?? _key,
+    i18n: {
+      language: "en",
+    },
   }),
 }));
 
@@ -67,7 +76,6 @@ describe("Word bank swipe delete interactions", () => {
     await waitFor(() => {
       expect(mockSpeak).toHaveBeenCalledWith("abandon", {
         language: "en-US",
-        rate: 0.9,
       });
     });
   });

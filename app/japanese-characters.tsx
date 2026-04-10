@@ -98,7 +98,6 @@ export default function JapaneseCharactersScreen() {
       setSpeakingKana(kana);
       await speech.speak(kana, {
         language: "ja-JP",
-        rate: 0.75,
         onDone: () => setSpeakingKana(null),
         onError: () => {
           setSpeakingKana(null);

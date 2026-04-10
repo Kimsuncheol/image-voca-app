@@ -282,7 +282,7 @@ export default function KanaQuizScreen() {
         setWrongChars((prev) => [...prev, current.char]);
       }
 
-      speech.speak(current.char.kana, { language: "ja-JP", rate: 0.75 });
+      speech.speak(current.char.kana, { language: "ja-JP" });
 
       const delay = correct ? AUTO_ADVANCE_CORRECT_MS : AUTO_ADVANCE_WRONG_MS;
       autoAdvanceTimer.current = setTimeout(advanceQuestion, delay);

@@ -44,7 +44,7 @@ export function PrefixPostfixRow({ item, tab, index }: Props) {
 
   const handleSpeak = useCallback(async () => {
     try {
-      await speakWordVariants(word, speak);
+      await speakWordVariants(word, speak, { language: "ja-JP" });
     } catch (error) {
       console.error("Prefix/Postfix TTS error:", error);
     }

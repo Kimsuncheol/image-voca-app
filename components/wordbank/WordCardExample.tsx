@@ -58,7 +58,7 @@ export function WordCardExample({
 
   const handleSpeak = async (text: string) => {
     try {
-      await speak(text, { language: speakLanguage, pitch: 1.0, rate: 0.9 });
+      await speak(text, { language: speakLanguage, pitch: 1.0 });
     } catch (error) {
       console.error("TTS error:", error);
     }

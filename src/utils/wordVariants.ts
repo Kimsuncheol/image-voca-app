@@ -2,7 +2,6 @@ import type { SpeechOptions } from "../services/speechService";
 
 export const DEFAULT_WORD_SPEECH_OPTIONS: SpeechOptions = {
   language: "en-US",
-  rate: 0.9,
 };
 
 export const parseWordVariants = (value: string): string[] =>

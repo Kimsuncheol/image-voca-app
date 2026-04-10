@@ -65,7 +65,6 @@ export function SwipeCardItemWordMeaningSection({
 
     await speakWordVariants(word, speakText, {
       language: "en-US",
-      rate: 0.9,
     });
   }, [isActive, speakText, word]);
 

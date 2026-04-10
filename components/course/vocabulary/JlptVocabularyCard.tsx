@@ -122,7 +122,7 @@ const ExampleBlock = React.memo(function ExampleBlock({
       return;
     }
     const ttsText = huriganaLines[index] ?? stripKanaParens(text);
-    void speak(ttsText, { language: "ja-JP", rate: 0.85 });
+    void speak(ttsText, { language: "ja-JP" });
   }, [isActive, speak, huriganaLines]);
 
   if (rowCount === 0) {
@@ -220,7 +220,7 @@ export function JlptVocabularyCard({
     if (!isActive) {
       return;
     }
-    void speak(resolved.sharedPronunciation ?? item.word, { language: "ja-JP", rate: 0.85 });
+    void speak(resolved.sharedPronunciation ?? item.word, { language: "ja-JP" });
   }, [isActive, item.word, resolved.sharedPronunciation, speak]);
 
   return (

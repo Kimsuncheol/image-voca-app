@@ -68,7 +68,6 @@ export function WordCard({
         : word.word;
       await speakWordVariants(textToSpeak, speak, {
         language: speakLanguage,
-        rate: learningLanguage === "ja" ? 0.85 : 0.9,
       });
     } catch (error) {
       console.error("Word card TTS error:", error);
