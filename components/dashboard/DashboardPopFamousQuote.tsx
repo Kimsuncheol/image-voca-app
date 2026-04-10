@@ -1,11 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, StyleSheet, View } from "react-native";
+import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
 import { LearningLanguage } from "../../src/types/vocabulary";
+import {
+  splitJapaneseTextSegments,
+  stripKanaParens,
+} from "../../src/utils/japaneseText";
 import { ThemedText } from "../themed-text";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -210,6 +214,7 @@ export function DashboardPopFamousQuote() {
   const { learningLanguage } = useLearningLanguage();
   const [quote, setQuote] = useState<FamousQuote | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showKana, setShowKana] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -224,18 +229,36 @@ export function DashboardPopFamousQuote() {
 
   if (!quote) return null;
 
+  const isJapanese = quote.language === "Japanese";
   const cardBg = isDark ? "#1c1c1e" : "#fff";
   const textColor = isDark ? "#fff" : "#1c1c1e";
   const mutedColor = isDark ? "#8e8e93" : "#6d6d72";
+
+  const quoteSegments = isJapanese
+    ? splitJapaneseTextSegments(showKana ? quote.quote : stripKanaParens(quote.quote))
+    : null;
 
   return (
     <View style={[styles.card, { backgroundColor: cardBg }]}>
       <ThemedText style={[styles.label, { color: mutedColor }]}>
         Today&apos;s quote
       </ThemedText>
-      <ThemedText style={[styles.quoteText, { color: textColor }]}>
-        {quote.quote}
-      </ThemedText>
+      {quoteSegments ? (
+        <Text style={[styles.quoteText, { color: textColor }]}>
+          {quoteSegments.map((segment, i) => (
+            <Text
+              key={i}
+              style={segment.isKanaParen ? styles.furigana : undefined}
+            >
+              {segment.text}
+            </Text>
+          ))}
+        </Text>
+      ) : (
+        <ThemedText style={[styles.quoteText, { color: textColor }]}>
+          {quote.quote}
+        </ThemedText>
+      )}
       <ThemedText style={[styles.translation, { color: mutedColor }]}>
         {quote.translation}
       </ThemedText>
@@ -243,6 +266,33 @@ export function DashboardPopFamousQuote() {
         <ThemedText style={[styles.author, { color: mutedColor }]}>
           — {quote.author}
         </ThemedText>
+      )}
+      {isJapanese && (
+        <View style={styles.kanaToggleBar}>
+          <Pressable
+            onPress={() => setShowKana((prev) => !prev)}
+            style={[
+              styles.kanaTogglePill,
+              showKana && styles.kanaTogglePillActive,
+              {
+                borderColor: showKana
+                  ? "rgba(46, 160, 67, 0.95)"
+                  : isDark
+                    ? "rgba(255,255,255,0.22)"
+                    : "rgba(17,24,28,0.16)",
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.kanaToggleText,
+                { color: showKana ? "#FFFFFF" : isDark ? "#8e8e93" : "#666" },
+              ]}
+            >
+              がな
+            </Text>
+          </Pressable>
+        </View>
       )}
     </View>
   );
@@ -276,5 +326,32 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 12,
     textAlign: "right",
+  },
+  furigana: {
+    fontSize: 12,
+    color: "#9A9A9A",
+  },
+  kanaToggleBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginTop: 12,
+  },
+  kanaTogglePill: {
+    minHeight: 34,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+  },
+  kanaTogglePillActive: {
+    backgroundColor: "#2EA043",
+  },
+  kanaToggleText: {
+    fontSize: 14,
+    fontWeight: "600",
+    letterSpacing: 0.5,
   },
 });

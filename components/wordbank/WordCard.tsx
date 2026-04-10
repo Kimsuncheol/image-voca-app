@@ -26,6 +26,7 @@ export interface SavedWord {
   pronunciation: string;
   pronunciationRoman?: string;
   example: string;
+  exampleHurigana?: string;
   course: string;
   day?: number;
   addedAt: string;
@@ -62,11 +63,17 @@ export function WordCard({
 
   const handleSpeakWord = React.useCallback(async () => {
     try {
-      await speakWordVariants(word.word, speak);
+      const textToSpeak = learningLanguage === "ja"
+        ? (resolved.sharedPronunciation ?? word.word)
+        : word.word;
+      await speakWordVariants(textToSpeak, speak, {
+        language: speakLanguage,
+        rate: learningLanguage === "ja" ? 0.85 : 0.9,
+      });
     } catch (error) {
       console.error("Word card TTS error:", error);
     }
-  }, [speak, word.word]);
+  }, [speak, word.word, learningLanguage, resolved.sharedPronunciation, speakLanguage]);
 
   return (
     <View
@@ -114,6 +121,7 @@ export function WordCard({
 
       <WordCardExample
         example={resolved.example}
+        exampleHurigana={word.exampleHurigana}
         translation={resolved.translation}
         synonyms={word.synonyms}
         pronunciation={

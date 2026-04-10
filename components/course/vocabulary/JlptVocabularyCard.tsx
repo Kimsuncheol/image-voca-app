@@ -42,6 +42,7 @@ interface LabeledMeaningRowProps {
 
 interface ExampleBlockProps {
   example?: string;
+  exampleHurigana?: string;
   translation?: string;
   isDark: boolean;
   isActive: boolean;
@@ -90,6 +91,7 @@ function LabeledMeaningRow({
 
 const ExampleBlock = React.memo(function ExampleBlock({
   example,
+  exampleHurigana,
   translation,
   isDark,
   isActive,
@@ -103,6 +105,7 @@ const ExampleBlock = React.memo(function ExampleBlock({
   );
   const processedExample = showKana ? example : hiddenExample;
   const examples = React.useMemo(() => splitLines(processedExample), [processedExample]);
+  const huriganaLines = React.useMemo(() => splitLines(exampleHurigana), [exampleHurigana]);
   const translations = React.useMemo(() => splitLines(translation), [translation]);
 
   const rowCount = Math.max(
@@ -114,12 +117,13 @@ const ExampleBlock = React.memo(function ExampleBlock({
     [rowCount],
   );
 
-  const handleSpeak = React.useCallback((text: string) => {
+  const handleSpeak = React.useCallback((text: string, index: number) => {
     if (!isActive) {
       return;
     }
-    void speak(stripKanaParens(text), { language: "ja-JP", rate: 0.85 });
-  }, [isActive, speak]);
+    const ttsText = huriganaLines[index] ?? stripKanaParens(text);
+    void speak(ttsText, { language: "ja-JP", rate: 0.85 });
+  }, [isActive, speak, huriganaLines]);
 
   if (rowCount === 0) {
     return null;
@@ -138,7 +142,7 @@ const ExampleBlock = React.memo(function ExampleBlock({
           <View key={index} style={styles.exampleGroup}>
             {exampleText ? (
               <TouchableOpacity
-                onPress={() => handleSpeak(exampleText)}
+                onPress={() => handleSpeak(exampleText, index)}
                 activeOpacity={0.7}
               >
                 <Text
@@ -216,8 +220,8 @@ export function JlptVocabularyCard({
     if (!isActive) {
       return;
     }
-    void speak(item.word, { language: "ja-JP", rate: 0.85 });
-  }, [isActive, item.word, speak]);
+    void speak(resolved.sharedPronunciation ?? item.word, { language: "ja-JP", rate: 0.85 });
+  }, [isActive, item.word, resolved.sharedPronunciation, speak]);
 
   return (
     <View
@@ -291,6 +295,7 @@ export function JlptVocabularyCard({
 
           <ExampleBlock
             example={resolved.example}
+            exampleHurigana={resolved.exampleHurigana}
             translation={resolved.translation}
             isDark={isDark}
             isActive={isActive}

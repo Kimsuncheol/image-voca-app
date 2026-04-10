@@ -15,6 +15,7 @@ interface NotificationCardPayloadBase {
   pronunciation?: string;
   pronunciationRoman?: string;
   example?: string;
+  exampleHurigana?: string;
   translation?: string;
   synonyms?: string[];
   imageUrl?: string;

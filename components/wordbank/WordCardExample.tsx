@@ -8,6 +8,7 @@ import { ThemedText } from "../themed-text";
 
 interface WordCardExampleProps {
   example: string;
+  exampleHurigana?: string;
   translation?: string;
   synonyms?: string[];
   pronunciation?: string;
@@ -22,6 +23,7 @@ interface WordCardExampleProps {
  */
 export function WordCardExample({
   example,
+  exampleHurigana,
   translation,
   synonyms,
   pronunciation,
@@ -35,6 +37,12 @@ export function WordCardExample({
 
   const examples = example
     ? example
+        .split("\n")
+        .filter((e) => e.trim())
+        .map((e) => e.replace(/^\d+\.\s*/, "").trim())
+    : [];
+  const huriganaLines = exampleHurigana
+    ? exampleHurigana
         .split("\n")
         .filter((e) => e.trim())
         .map((e) => e.replace(/^\d+\.\s*/, "").trim())
@@ -68,7 +76,7 @@ export function WordCardExample({
       {examples.map((exampleText, index) => (
         <View key={index} style={styles.exampleGroup}>
           <TouchableOpacity
-            onPress={() => handleSpeak(exampleText.trim())}
+            onPress={() => handleSpeak((huriganaLines[index] ?? exampleText).trim())}
             activeOpacity={0.7}
           >
             <ThemedText style={styles.example}>{exampleText.trim()}</ThemedText>

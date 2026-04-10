@@ -1,14 +1,16 @@
 import { Image } from "expo-image";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { StyleProp, StyleSheet, TextStyle, View } from "react-native";
+import { StyleProp, StyleSheet, TextStyle, TouchableOpacity, View } from "react-native";
 import { Card, Divider, Text } from "react-native-paper";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { SpeakerButton } from "../CollocationFlipCard/SpeakerButton";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
+import { useSpeech } from "../../src/hooks/useSpeech";
 import type { NotificationWordCardPayload } from "../../src/types/notificationCard";
 import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
+import { isJlptCourseId } from "../../src/types/vocabulary";
 import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
 import { formatSynonyms } from "../../src/utils/synonyms";
 
@@ -19,6 +21,7 @@ interface WordCardProps {
     | "meaning"
     | "pronunciation"
     | "example"
+    | "exampleHurigana"
     | "translation"
     | "synonyms"
     | "imageUrl"
@@ -36,6 +39,7 @@ interface SectionRowProps {
   multiline?: boolean;
   valueStyle?: StyleProp<TextStyle>;
   valueTestID?: string;
+  onPress?: () => void;
 }
 
 function SectionRow({
@@ -45,10 +49,11 @@ function SectionRow({
   multiline = false,
   valueStyle,
   valueTestID,
+  onPress,
 }: SectionRowProps) {
   if (!value?.trim()) return null;
 
-  return (
+  const content = (
     <View style={styles.section}>
       <Text
         variant="labelMedium"
@@ -70,6 +75,16 @@ function SectionRow({
       </Text>
     </View>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return content;
 }
 
 export default function WordCard({
@@ -79,6 +94,8 @@ export default function WordCard({
 }: WordCardProps) {
   const { t, i18n } = useTranslation();
   useCardSpeechCleanup();
+  const { speak } = useSpeech();
+  const isJapanese = isJlptCourseId(data.course);
   const resolved = React.useMemo(
     () => resolveVocabularyContent(data, i18n.language),
     [data, i18n.language],
@@ -124,7 +141,11 @@ export default function WordCard({
               >
                 {resolved.word}
               </Text>
-              <SpeakerButton text={resolved.word} isDark={isDark ?? false} />
+              <SpeakerButton
+                text={isJapanese ? (resolved.sharedPronunciation ?? resolved.word) : resolved.word}
+                speakOptions={isJapanese ? { language: "ja-JP", rate: 0.85 } : undefined}
+                isDark={isDark ?? false}
+              />
             </View>
             {resolved.sharedPronunciation ? (
               <Text
@@ -172,6 +193,9 @@ export default function WordCard({
           value={resolved.example}
           isDark={isDark}
           multiline={true}
+          onPress={isJapanese && data.exampleHurigana
+            ? () => { void speak(data.exampleHurigana!, { language: "ja-JP", rate: 0.85 }); }
+            : undefined}
         />
         <SectionRow
           label={t("notifications.labels.translation", {

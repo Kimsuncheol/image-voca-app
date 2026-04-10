@@ -13,11 +13,13 @@ import { useSoundMode } from "../../src/hooks/useSoundMode";
 interface SpeakerButtonProps {
   text: string;
   isDark: boolean;
+  speakOptions?: { language?: string; rate?: number };
 }
 
 export const SpeakerButton: React.FC<SpeakerButtonProps> = ({
   text,
   isDark,
+  speakOptions,
 }) => {
   const { speak, stop, pause, resume, isSpeaking, isPaused } = useSpeech();
   const {
@@ -70,8 +72,8 @@ export const SpeakerButton: React.FC<SpeakerButtonProps> = ({
               onPress: async () => {
                 // User wants to play anyway (they might adjust volume during playback)
                 await speak(text, {
-                  language: "en-US",
-                  rate: 0.9,
+                  language: speakOptions?.language ?? "en-US",
+                  rate: speakOptions?.rate ?? 0.9,
                 });
               },
             },
@@ -94,8 +96,8 @@ export const SpeakerButton: React.FC<SpeakerButtonProps> = ({
               text: "Play Anyway",
               onPress: async () => {
                 await speak(text, {
-                  language: "en-US",
-                  rate: 0.9,
+                  language: speakOptions?.language ?? "en-US",
+                  rate: speakOptions?.rate ?? 0.9,
                 });
               },
             },
@@ -110,12 +112,13 @@ export const SpeakerButton: React.FC<SpeakerButtonProps> = ({
 
       // Start speaking (normal volume)
       await speak(text, {
-        language: "en-US",
-        rate: 0.9,
+        language: speakOptions?.language ?? "en-US",
+        rate: speakOptions?.rate ?? 0.9,
       });
     }
   }, [
     text,
+    speakOptions,
     isPaused,
     isSpeaking,
     isVolumeMuted,

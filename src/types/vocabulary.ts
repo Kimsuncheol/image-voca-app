@@ -20,6 +20,7 @@ export interface VocabularyCard {
   pronunciationRoman?: string;
   example: string;
   exampleRoman?: string;
+  exampleHurigana?: string;
   imageUrl?: string;
   localized?: VocabularyLocalizationMap;
   course: CourseType;
