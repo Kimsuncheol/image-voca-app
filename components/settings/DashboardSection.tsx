@@ -1,8 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import React from "react";
+import { Text, View } from "react-native";
 import { ToggleSwitch } from "../common/ToggleSwitch";
-import { DashboardLayoutModal } from "./DashboardLayoutModal";
 import { useDashboardSettingsStore } from "../../src/stores/dashboardSettingsStore";
 
 interface DashboardSectionProps {
@@ -11,14 +10,12 @@ interface DashboardSectionProps {
   t: (key: string, options?: any) => string;
 }
 
-export function DashboardSection({ styles, isDark, t }: DashboardSectionProps) {
+export function DashboardSection({ styles, t }: DashboardSectionProps) {
   const { quizEnabled, famousQuoteEnabled, setQuizEnabled, setFamousQuoteEnabled } =
     useDashboardSettingsStore();
-  const [showLayoutModal, setShowLayoutModal] = useState(false);
 
   return (
-    <>
-      <View style={styles.section}>
+    <View style={styles.section}>
         <Text style={styles.sectionTitle}>
           {t("settings.dashboard.title", { defaultValue: "Dashboard" })}
         </Text>
@@ -51,36 +48,8 @@ export function DashboardSection({ styles, isDark, t }: DashboardSectionProps) {
             <ToggleSwitch value={famousQuoteEnabled} onValueChange={setFamousQuoteEnabled} />
           </View>
 
-          <View style={styles.separator} />
-
-          {/* Layout order */}
-          <TouchableOpacity
-            style={styles.option}
-            onPress={() => setShowLayoutModal(true)}
-          >
-            <View style={styles.optionLeft}>
-              <View style={[iconStyles.circle, { backgroundColor: "#34C75920" }]}>
-                <Ionicons name="reorder-three" size={20} color="#34C759" />
-              </View>
-              <Text style={styles.optionText}>
-                {t("settings.dashboard.layout", { defaultValue: "Layout" })}
-              </Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={16}
-              color={isDark ? "#636366" : "#c7c7cc"}
-            />
-          </TouchableOpacity>
         </View>
-      </View>
-
-      <DashboardLayoutModal
-        visible={showLayoutModal}
-        onClose={() => setShowLayoutModal(false)}
-        isDark={isDark}
-      />
-    </>
+    </View>
   );
 }
 
