@@ -10,8 +10,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
-import { db } from "../../../src/services/firebase";
 import { upsertVocabularyDayStudyHistory } from "../../../src/services/dailyStudyHistory";
+import { db } from "../../../src/services/firebase";
 import {
   fetchVocabularyCards,
   getCachedVocabularyCards,
@@ -295,8 +295,7 @@ export default function VocabularyScreen() {
       await flushWordStats(user.uid);
 
       // Check for streak milestone
-      const newStreak =
-        useUserStatsStore.getState().stats?.currentStreak ?? 0;
+      const newStreak = useUserStatsStore.getState().stats?.currentStreak ?? 0;
       if (STREAK_MILESTONES.includes(newStreak)) {
         const raw = await AsyncStorage.getItem(STREAK_MILESTONE_KEY);
         const lastShown = raw ? parseInt(raw, 10) : 0;
@@ -315,7 +314,8 @@ export default function VocabularyScreen() {
         await updateDoc(doc(db, "users", user.uid), {
           [`courseProgress.${courseId}.${dayNumber}.completed`]: true,
           [`courseProgress.${courseId}.${dayNumber}.totalWords`]: cards.length,
-          [`courseProgress.${courseId}.${dayNumber}.wordsLearned`]: learnedCount,
+          [`courseProgress.${courseId}.${dayNumber}.wordsLearned`]:
+            learnedCount,
         });
 
         // Update local store state for immediate UI reflection
@@ -427,6 +427,8 @@ export default function VocabularyScreen() {
     />
   );
 
+  const hasCards = () => cards.length > 0;
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
@@ -437,14 +439,14 @@ export default function VocabularyScreen() {
           title: "",
           headerBackTitle: t("common.back"),
           // headerBackVisible: !loading,
-          headerBackVisible: !splashVisible ? true : false,
+          headerBackVisible: !splashVisible && hasCards() ? true : false,
           gestureEnabled: !loading,
           headerLeft: loading ? () => null : undefined,
         }}
       />
       <View style={styles.swipeContainer}>
         <View style={styles.deckContainer}>
-          {cards.length > 0 ? (
+          {hasCards() ? (
             isFinished && courseId !== "COLLOCATION" ? (
               renderFinishedView()
             ) : (

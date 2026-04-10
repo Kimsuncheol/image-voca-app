@@ -1,6 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface VocabularyEmptyStateProps {
   isDark: boolean;
@@ -9,6 +11,9 @@ interface VocabularyEmptyStateProps {
 export const VocabularyEmptyState: React.FC<VocabularyEmptyStateProps> = ({
   isDark,
 }) => {
+  const router = useRouter();
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
       <Ionicons
@@ -23,6 +28,27 @@ export const VocabularyEmptyState: React.FC<VocabularyEmptyStateProps> = ({
       <Text style={[styles.subtitle, { color: isDark ? "#9CA3AF" : "#6B7280" }]}>
         No words found for this day.
       </Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.back()}
+        style={({ pressed }) => [
+          styles.button,
+          {
+            backgroundColor: isDark ? "#1F2937" : "#F3F4F6",
+            opacity: pressed ? 0.7 : 1,
+          },
+        ]}
+      >
+        <Ionicons
+          name="arrow-back-outline"
+          size={18}
+          color={isDark ? "#D1D5DB" : "#374151"}
+          style={styles.buttonIcon}
+        />
+        <Text style={[styles.buttonText, { color: isDark ? "#D1D5DB" : "#374151" }]}>
+          {t("common.back")}
+        </Text>
+      </Pressable>
     </View>
   );
 };
@@ -47,5 +73,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
     lineHeight: 20,
+  },
+  button: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 24,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  buttonIcon: {
+    marginRight: 6,
+  },
+  buttonText: {
+    fontSize: 15,
+    fontWeight: "500",
   },
 });
