@@ -24,7 +24,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Animated, StyleSheet, View } from "react-native";
-import { QuizGenerationAnimation } from "../common/QuizGenerationAnimation";
 import { useAuth } from "../../src/context/AuthContext";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
@@ -34,7 +33,8 @@ import { CourseType } from "../../src/types/vocabulary";
 import {
   resolveQuizVocabulary,
 } from "../../src/utils/localizedVocabulary";
-import { ThemedText } from "../themed-text";
+import { normalizeSynonyms } from "../../src/utils/synonyms";
+import { QuizGenerationAnimation } from "../common/QuizGenerationAnimation";
 import {
   getDebugTotalDaysCourses,
   getQuizCoursesForLanguage,
@@ -47,11 +47,10 @@ import { QuizHeader } from "./QuizHeader";
 import { QuizStoppedState } from "./QuizStoppedState";
 import {
   buildDashboardQuizPayload,
-  type ResolvedDashboardQuizVocabulary,
   DashboardQuizItem as QuizItem,
   DashboardQuizType as QuizType,
+  type ResolvedDashboardQuizVocabulary,
 } from "./utils/quizHelpers";
-import { normalizeSynonyms } from "../../src/utils/synonyms";
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -589,9 +588,6 @@ export function DashboardPopQuiz() {
   if (loading || !quizItem || rolloverLoadingVisible) {
     return (
       <View style={styles.section}>
-        <ThemedText type="subtitle" style={styles.sectionTitle}>
-          {t("dashboard.popQuiz.title")}
-        </ThemedText>
         <View
           style={[
             styles.card,
@@ -606,9 +602,6 @@ export function DashboardPopQuiz() {
 
   return (
     <View style={styles.section}>
-      <ThemedText type="subtitle" style={styles.sectionTitle}>
-        {t("dashboard.popQuiz.title")}
-      </ThemedText>
       <View
         style={[
           styles.card,
@@ -712,9 +705,6 @@ export function DashboardPopQuiz() {
 const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
-  },
-  sectionTitle: {
-    marginBottom: 16,
   },
   card: {
     borderRadius: 16,

@@ -35,7 +35,6 @@ import { LearningLanguageSection } from "../../components/settings/LearningLangu
 import { NotificationsSection } from "../../components/settings/NotificationsSection"; // Push notification settings
 import { SettingsHeader } from "../../components/settings/SettingsHeader"; // Header component
 import { SignOutSection } from "../../components/settings/SignOutSection"; // Sign out button
-import { DashboardSection } from "../../components/settings/DashboardSection"; // Dashboard widget settings
 
 // ============================================================================
 // CONTEXT & STATE MANAGEMENT
@@ -471,14 +470,7 @@ export default function SettingsScreen() {
           t={t}
         />
 
-        {/* ================================================================
-            DASHBOARD SECTION
-            ================================================================
-            Dashboard widget toggles and layout ordering
-        */}
-        <DashboardSection styles={styles} isDark={isDark} t={t} />
-
-        {/* ================================================================
+{/* ================================================================
             NOTIFICATIONS SECTION
             ================================================================
             Push notification preferences:
