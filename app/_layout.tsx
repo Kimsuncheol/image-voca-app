@@ -27,6 +27,7 @@ import {
   useTheme as useAppTheme,
 } from "../src/context/ThemeContext";
 import { useAuthenticatedDeviceRegistration } from "../src/hooks/useAuthenticatedDeviceRegistration";
+import { useDeviceDeletionEnforcement } from "../src/hooks/useDeviceDeletionEnforcement";
 import { useNotificationTapNavigation } from "../src/hooks/useNotificationTapNavigation";
 import { usePushNotifications } from "../src/hooks/usePushNotifications";
 import { hydrateLanguage } from "../src/i18n";
@@ -59,6 +60,7 @@ export function RootLayoutNav() {
   const { t } = useTranslation();
 
   useAuthenticatedDeviceRegistration();
+  useDeviceDeletionEnforcement();
   usePushNotifications();
   useNotificationTapNavigation();
 

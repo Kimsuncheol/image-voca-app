@@ -362,6 +362,7 @@ const ja = {
       loginFailed: "サインインできません。再試行してください。",
       deviceLimitReached:
         "登録デバイス数の上限に達しました。このデバイスでサインインするには、古いデバイスを削除してください。",
+      deviceRemoved: "このデバイスは削除されました。ログアウトされました。",
       permissionTitle: "許可が必要",
       permissionMessage: "カメラロールへのアクセス許可が必要です。",
       missingFields: "すべての項目を入力してください。",

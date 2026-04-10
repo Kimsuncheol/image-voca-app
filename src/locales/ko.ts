@@ -368,6 +368,7 @@ const ko = {
       loginFailed: "로그인할 수 없습니다. 다시 시도하세요.",
       deviceLimitReached:
         "등록 가능한 기기 수를 초과했습니다. 이 기기에서 로그인하려면 기존 기기 하나를 먼저 제거하세요.",
+      deviceRemoved: "이 기기가 삭제되었습니다. 로그아웃 처리되었습니다.",
       permissionTitle: "권한 필요",
       permissionMessage: "사진 라이브러리 접근 권한이 필요합니다.",
       missingFields: "모든 항목을 입력하세요.",

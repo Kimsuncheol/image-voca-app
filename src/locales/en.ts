@@ -367,6 +367,7 @@ const en = {
       loginFailed: "Unable to sign in. Please try again.",
       deviceLimitReached:
         "You have reached the maximum number of registered devices. Remove an old device before signing in here.",
+      deviceRemoved: "This device has been removed. You have been logged out.",
       permissionTitle: "Permission Required",
       permissionMessage: "Permission to access camera roll is required!",
       missingFields: "Please fill in all fields.",
