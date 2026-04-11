@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { getDoc, setDoc } from "firebase/firestore";
 import React from "react";
+import { Alert } from "react-native";
 import { SpeechSection } from "../components/settings/SpeechSection";
 import {
   __resetSpeechPreferencesForTests,
@@ -39,6 +40,9 @@ const translations: Record<string, string> = {
   "settings.speech.slow": "Slow",
   "settings.speech.normal": "Normal",
   "settings.speech.fast": "Fast",
+  "settings.speech.saveFailed":
+    "Speech speed changed for now, but could not be saved on this device.",
+  "common.error": "Error",
 };
 
 jest.mock("react-i18next", () => ({
@@ -219,5 +223,35 @@ describe("SpeechSection", () => {
       },
       { merge: true },
     );
+  });
+
+  it("updates the visible preset and shows an alert when local persistence fails", async () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+    const setItemSpy = jest
+      .spyOn(AsyncStorage, "setItem")
+      .mockRejectedValueOnce(new Error("database or disk is full (code 13 SQLITE_FULL[13])"));
+    const screen = render(<SpeechSection styles={styles} isDark={false} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("English pronunciation speed")).toBeTruthy();
+      expect(screen.getByText("Normal")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId("speech-speed-preset-toggle"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Fast")).toBeTruthy();
+    });
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith(
+        "Error",
+        "Speech speed changed for now, but could not be saved on this device.",
+      );
+    });
+
+    setItemSpy.mockRestore();
+    alertSpy.mockRestore();
+    warnSpy.mockRestore();
   });
 });

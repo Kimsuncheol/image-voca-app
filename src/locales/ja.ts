@@ -85,6 +85,8 @@ const ja = {
       slow: "遅い",
       normal: "標準",
       fast: "速い",
+      saveFailed:
+        "発音速度は今すぐ反映されましたが、この端末には保存できませんでした。",
     },
     dashboard: {
       title: "ダッシュボード",

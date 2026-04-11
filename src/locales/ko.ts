@@ -85,6 +85,8 @@ const ko = {
       slow: "느림",
       normal: "보통",
       fast: "빠름",
+      saveFailed:
+        "발음 속도는 지금 바로 적용되었지만 이 기기에는 저장하지 못했습니다.",
     },
     dashboard: {
       title: "대시보드",

@@ -13,6 +13,7 @@ import {
   resolveSpeechSpeedPreset,
   setSpeechSpeedPreference,
   setSpeechSpeedPreferenceForUser,
+  subscribeToSpeechSpeedPreferences,
 } from "../src/services/speechPreferences";
 
 const mockServerTimestamp = { __type: "serverTimestamp" };
@@ -173,8 +174,11 @@ describe("speechPreferences", () => {
     await expect(
       setSpeechSpeedPreferenceForUser("user-1", "en", "fast"),
     ).resolves.toEqual({
-      en: "fast",
-      ja: "slow",
+      preferences: {
+        en: "fast",
+        ja: "slow",
+      },
+      persistedLocally: true,
     });
 
     expect(mockSetDoc).toHaveBeenCalledWith(
@@ -197,6 +201,36 @@ describe("speechPreferences", () => {
     await expect(
       setSpeechSpeedPreferenceForUser("user-1", "en", "fast"),
     ).resolves.toEqual({
+      preferences: {
+        en: "fast",
+        ja: "normal",
+      },
+      persistedLocally: true,
+    });
+    expect(await getSpeechSpeedPreferences()).toEqual({
+      en: "fast",
+      ja: "normal",
+    });
+    warnSpy.mockRestore();
+  });
+
+  it("updates in-memory preferences and notifies listeners when local persistence fails", async () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const listener = jest.fn();
+    const setItemSpy = jest
+      .spyOn(AsyncStorage, "setItem")
+      .mockRejectedValueOnce(new Error("database or disk is full (code 13 SQLITE_FULL[13])"));
+    const unsubscribe = subscribeToSpeechSpeedPreferences(listener);
+
+    await expect(setSpeechSpeedPreference("en", "fast")).resolves.toEqual({
+      preferences: {
+        en: "fast",
+        ja: "normal",
+      },
+      persistedLocally: false,
+    });
+
+    expect(listener).toHaveBeenCalledWith({
       en: "fast",
       ja: "normal",
     });
@@ -204,6 +238,41 @@ describe("speechPreferences", () => {
       en: "fast",
       ja: "normal",
     });
+
+    unsubscribe();
+    setItemSpy.mockRestore();
+    warnSpy.mockRestore();
+  });
+
+  it("still syncs to Firestore when local persistence fails for signed-in users", async () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const setItemSpy = jest
+      .spyOn(AsyncStorage, "setItem")
+      .mockRejectedValueOnce(new Error("database or disk is full (code 13 SQLITE_FULL[13])"));
+
+    await expect(
+      setSpeechSpeedPreferenceForUser("user-1", "en", "fast"),
+    ).resolves.toEqual({
+      preferences: {
+        en: "fast",
+        ja: "normal",
+      },
+      persistedLocally: false,
+    });
+
+    expect(mockSetDoc).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pathSegments: ["users", "user-1", "pronunciation_speed", "preferences"],
+      }),
+      {
+        en: "fast",
+        ja: "normal",
+        updatedAt: mockServerTimestamp,
+      },
+      { merge: true },
+    );
+
+    setItemSpy.mockRestore();
     warnSpy.mockRestore();
   });
 });

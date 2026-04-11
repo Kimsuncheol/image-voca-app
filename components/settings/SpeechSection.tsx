@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useSpeechPreferences } from "../../src/hooks/useSpeechPreferences";
@@ -26,8 +26,15 @@ export function SpeechSection({ styles, isDark }: SpeechSectionProps) {
       ? "settings.speech.japaneseSpeed"
       : "settings.speech.englishSpeed";
 
-  const togglePreset = () => {
-    void setPreset(speechLanguage, getNextSpeechSpeedPreset(selectedPreset));
+  const togglePreset = async () => {
+    const result = await setPreset(
+      speechLanguage,
+      getNextSpeechSpeedPreset(selectedPreset),
+    );
+
+    if (!result.persistedLocally) {
+      Alert.alert(t("common.error"), t("settings.speech.saveFailed"));
+    }
   };
 
   return (
@@ -60,13 +67,14 @@ export function SpeechSection({ styles, isDark }: SpeechSectionProps) {
                 backgroundColor: isDark ? "#0a84ff" : "#007AFF",
               },
             ]}
-            onPress={togglePreset}
+            onPress={() => {
+              void togglePreset();
+            }}
           >
             <Ionicons name="speedometer-outline" size={16} color="#fff" />
             <Text style={localStyles.presetText}>
               {t(`settings.speech.${selectedPreset}`)}
             </Text>
-            <Ionicons name="chevron-forward" size={14} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>

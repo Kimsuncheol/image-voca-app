@@ -86,6 +86,8 @@ const en = {
       slow: "Slow",
       normal: "Normal",
       fast: "Fast",
+      saveFailed:
+        "Speech speed changed for now, but could not be saved on this device.",
     },
     dashboard: {
       title: "Dashboard",

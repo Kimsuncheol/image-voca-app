@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import {
   DEFAULT_SPEECH_SPEED_PREFERENCES,
   SpeechPreferenceLanguage,
+  SpeechSpeedPreferenceMutationResult,
   SpeechSpeedPreset,
   SpeechSpeedPreferences,
   getDefaultSpeechSpeedPreset,
@@ -20,7 +21,7 @@ export interface UseSpeechPreferencesReturn {
   setPreset: (
     language: SpeechPreferenceLanguage,
     preset: SpeechSpeedPreset,
-  ) => Promise<void>;
+  ) => Promise<SpeechSpeedPreferenceMutationResult>;
   getPreset: (language: SpeechPreferenceLanguage) => SpeechSpeedPreset;
   getRate: (language: SpeechPreferenceLanguage) => number;
 }
@@ -77,11 +78,10 @@ export const useSpeechPreferences = (): UseSpeechPreferencesReturn => {
   const setPreset = useCallback(
     async (language: SpeechPreferenceLanguage, preset: SpeechSpeedPreset) => {
       if (user?.uid) {
-        await setSpeechSpeedPreferenceForUser(user.uid, language, preset);
-        return;
+        return setSpeechSpeedPreferenceForUser(user.uid, language, preset);
       }
 
-      await setSpeechSpeedPreference(language, preset);
+      return setSpeechSpeedPreference(language, preset);
     },
     [user?.uid],
   );

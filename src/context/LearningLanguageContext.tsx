@@ -175,7 +175,7 @@ export function LearningLanguageProvider({
       nextLanguage: LearningLanguage,
       nextRecentCourseByLanguage: RecentCourseByLanguage,
     ) => {
-      await Promise.all([
+      const results = await Promise.allSettled([
         AsyncStorage.setItem(LEARNING_LANGUAGE_STORAGE_KEY, nextLanguage),
         AsyncStorage.setItem(
           RECENT_COURSE_BY_LANGUAGE_STORAGE_KEY,
@@ -183,6 +183,12 @@ export function LearningLanguageProvider({
         ),
         AsyncStorage.removeItem(LEGACY_LEARNING_LANGUAGES_KEY),
       ]);
+
+      results.forEach((result) => {
+        if (result.status === "rejected") {
+          console.warn("AsyncStorage failed", result.reason);
+        }
+      });
     },
     [],
   );

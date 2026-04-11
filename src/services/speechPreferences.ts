@@ -8,6 +8,11 @@ export interface SpeechSpeedPreferences {
   ja: SpeechSpeedPreset;
 }
 
+export interface SpeechSpeedPreferenceMutationResult {
+  preferences: SpeechSpeedPreferences;
+  persistedLocally: boolean;
+}
+
 export const SPEECH_SPEED_PREFERENCES_STORAGE_KEY =
   "@speech_speed_preferences";
 
@@ -29,7 +34,7 @@ export const SPEECH_SPEED_PRESET_RATES: Record<
   ja: {
     slow: 0.7,
     normal: 0.85,
-    fast: 1.05,
+    fast: 1.1,
   },
 };
 
@@ -121,15 +126,24 @@ const notifySpeechPreferenceListeners = (preferences: SpeechSpeedPreferences) =>
   speechPreferenceListeners.forEach((listener) => listener(preferences));
 };
 
+const applySpeechSpeedPreferences = (preferences: SpeechSpeedPreferences) => {
+  cachedSpeechSpeedPreferences = preferences;
+  notifySpeechPreferenceListeners(preferences);
+};
+
 const persistSpeechSpeedPreferences = async (
   preferences: SpeechSpeedPreferences,
 ) => {
-  cachedSpeechSpeedPreferences = preferences;
-  await AsyncStorage.setItem(
-    SPEECH_SPEED_PREFERENCES_STORAGE_KEY,
-    JSON.stringify(preferences),
-  );
-  notifySpeechPreferenceListeners(preferences);
+  try {
+    await AsyncStorage.setItem(
+      SPEECH_SPEED_PREFERENCES_STORAGE_KEY,
+      JSON.stringify(preferences),
+    );
+    return true;
+  } catch (error) {
+    console.warn("Failed to persist speech speed preferences", error);
+    return false;
+  }
 };
 
 const writeSpeechSpeedPreferencesForUser = async (
@@ -164,14 +178,12 @@ export const getSpeechSpeedPreferences =
       const parsedPreferences = rawPreferences
         ? JSON.parse(rawPreferences)
         : undefined;
-      cachedSpeechSpeedPreferences =
+      const normalizedPreferencesObject =
         normalizeSpeechSpeedPreferences(parsedPreferences);
-      const normalizedPreferences = JSON.stringify(cachedSpeechSpeedPreferences);
+      cachedSpeechSpeedPreferences = normalizedPreferencesObject;
+      const normalizedPreferences = JSON.stringify(normalizedPreferencesObject);
       if (rawPreferences && rawPreferences !== normalizedPreferences) {
-        await AsyncStorage.setItem(
-          SPEECH_SPEED_PREFERENCES_STORAGE_KEY,
-          normalizedPreferences,
-        );
+        await persistSpeechSpeedPreferences(normalizedPreferencesObject);
       }
     } catch (error) {
       console.warn("Failed to load speech speed preferences", error);
@@ -191,14 +203,18 @@ export const getSpeechRatePreference = async (
 export const setSpeechSpeedPreference = async (
   language: SpeechPreferenceLanguage,
   preset: SpeechSpeedPreset,
-) => {
+): Promise<SpeechSpeedPreferenceMutationResult> => {
   const preferences = await getSpeechSpeedPreferences();
   const nextPreferences = {
     ...preferences,
     [language]: resolveSpeechSpeedPreset(language, preset),
   };
-  await persistSpeechSpeedPreferences(nextPreferences);
-  return nextPreferences;
+  applySpeechSpeedPreferences(nextPreferences);
+  const persistedLocally = await persistSpeechSpeedPreferences(nextPreferences);
+  return {
+    preferences: nextPreferences,
+    persistedLocally,
+  };
 };
 
 export const hydrateSpeechSpeedPreferencesForUser = async (userId: string) => {
@@ -224,6 +240,7 @@ export const hydrateSpeechSpeedPreferencesForUser = async (userId: string) => {
     }
 
     const remotePreferences = normalizeSpeechSpeedPreferences(snapshot.data());
+    applySpeechSpeedPreferences(remotePreferences);
     await persistSpeechSpeedPreferences(remotePreferences);
     return remotePreferences;
   } catch (error) {
@@ -236,16 +253,16 @@ export const setSpeechSpeedPreferenceForUser = async (
   userId: string,
   language: SpeechPreferenceLanguage,
   preset: SpeechSpeedPreset,
-) => {
-  const nextPreferences = await setSpeechSpeedPreference(language, preset);
+): Promise<SpeechSpeedPreferenceMutationResult> => {
+  const result = await setSpeechSpeedPreference(language, preset);
 
   try {
-    await writeSpeechSpeedPreferencesForUser(userId, nextPreferences);
+    await writeSpeechSpeedPreferencesForUser(userId, result.preferences);
   } catch (error) {
     console.warn("Failed to sync speech speed preferences", error);
   }
 
-  return nextPreferences;
+  return result;
 };
 
 export const subscribeToSpeechSpeedPreferences = (

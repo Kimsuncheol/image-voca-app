@@ -108,4 +108,39 @@ describe("useSpeech", () => {
       );
     });
   });
+
+  it("uses the in-memory preference even when local persistence fails", async () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const setItemSpy = jest
+      .spyOn(AsyncStorage, "setItem")
+      .mockRejectedValueOnce(new Error("database or disk is full (code 13 SQLITE_FULL[13])"));
+
+    await expect(setSpeechSpeedPreference("en", "slow")).resolves.toEqual({
+      preferences: {
+        en: "slow",
+        ja: "normal",
+      },
+      persistedLocally: false,
+    });
+
+    const screen = render(<SpeechButton language="en-US" rate={0.9} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByText("Speak"));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(speakMock).toHaveBeenCalledWith(
+        "sample",
+        expect.objectContaining({
+          language: "en-US",
+          rate: 0.75,
+        }),
+      );
+    });
+
+    setItemSpy.mockRestore();
+    warnSpy.mockRestore();
+  });
 });
