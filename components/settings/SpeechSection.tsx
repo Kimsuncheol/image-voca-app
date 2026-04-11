@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useSpeechPreferences } from "../../src/hooks/useSpeechPreferences";
 import {
@@ -21,11 +21,6 @@ export function SpeechSection({ styles, isDark }: SpeechSectionProps) {
   const speechLanguage: SpeechPreferenceLanguage =
     learningLanguage === "ja" ? "ja" : "en";
   const selectedPreset = getPreset(speechLanguage);
-  const labelKey =
-    speechLanguage === "ja"
-      ? "settings.speech.japaneseSpeed"
-      : "settings.speech.englishSpeed";
-
   const togglePreset = async () => {
     const result = await setPreset(
       speechLanguage,
@@ -53,14 +48,14 @@ export function SpeechSection({ styles, isDark }: SpeechSectionProps) {
               style={styles.optionText}
               numberOfLines={2}
             >
-              {t(labelKey)}
+              {t("settings.speech.title")}
             </Text>
           </View>
 
           <TouchableOpacity
             testID="speech-speed-preset-toggle"
             accessibilityRole="button"
-            accessibilityLabel={t(labelKey)}
+            accessibilityLabel={t("settings.speech.title")}
             style={[
               localStyles.presetToggle,
               {
@@ -92,9 +87,8 @@ const localStyles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
     flexShrink: 0,
-    minWidth: 104,
     minHeight: 34,
-    paddingHorizontal: 12,
+    paddingHorizontal: 15,
     borderRadius: 17,
   },
   presetText: {

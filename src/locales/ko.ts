@@ -656,6 +656,10 @@ const ko = {
     watching: "광고 시청 중... ({{seconds}}초)",
     claimButton: "무료 열기",
   },
+  manga: {
+    emptyTitle: "만화가 준비되지 않았어요",
+    emptySubtitle: "다음에 다시 확인하거나 다른 날짜를 선택해보세요!",
+  },
   course: {
     days: "일차",
     selectDay: "학습할 일차를 선택하세요",

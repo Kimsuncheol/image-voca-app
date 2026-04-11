@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import PagerView from "react-native-pager-view";
+import { MangaEmptyState } from "../../components/manga/MangaEmptyState";
 import { MangaPageView } from "../../components/manga/MangaPageView";
 import { MangaReaderControls } from "../../components/manga/MangaReaderControls";
 import { useTheme } from "../../src/context/ThemeContext";
@@ -62,12 +63,22 @@ export default function MangaReaderScreen() {
   if (loading) {
     return (
       <View
+        style={[styles.centered, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      >
+        <ActivityIndicator size="large" color={isDark ? "#fff" : "#000"} />
+      </View>
+    );
+  }
+
+  if (pageUrls.length === 0) {
+    return (
+      <View
         style={[
-          styles.centered,
+          styles.container,
           { backgroundColor: isDark ? "#000" : "#fff" },
         ]}
       >
-        <ActivityIndicator size="large" color={isDark ? "#fff" : "#000"} />
+        <MangaEmptyState isDark={isDark} onBack={() => router.back()} />
       </View>
     );
   }

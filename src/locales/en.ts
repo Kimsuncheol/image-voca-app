@@ -663,6 +663,10 @@ const en = {
     watching: "Watch ad to continue ({{seconds}}s)",
     claimButton: "Claim Free Access",
   },
+  manga: {
+    emptyTitle: "No Manga Available",
+    emptySubtitle: "Check back later or explore other days!",
+  },
   course: {
     days: "Days",
     selectDay: "Select a day to start learning",
