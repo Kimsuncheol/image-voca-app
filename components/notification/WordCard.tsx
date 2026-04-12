@@ -193,8 +193,8 @@ export default function WordCard({
           value={resolved.example}
           isDark={isDark}
           multiline={true}
-          onPress={isJapanese && data.exampleHurigana
-            ? () => { void speak(data.exampleHurigana!, { language: "ja-JP" }); }
+          onPress={isJapanese && resolved.exampleHurigana
+            ? () => { void speak(resolved.exampleHurigana!, { language: "ja-JP" }); }
             : undefined}
         />
         <SectionRow

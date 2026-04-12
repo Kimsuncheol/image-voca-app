@@ -207,6 +207,27 @@ export function JlptVocabularyCard({
     () => resolveVocabularyContent(item, i18n.language),
     [i18n.language, item],
   );
+  React.useEffect(() => {
+    console.log("[JlptVocabularyCard] fields", {
+      image: resolved.imageUrl ?? "(none)",
+      word: resolved.word,
+      pronunciation: resolved.sharedPronunciation ?? "(none)",
+      meaning: resolved.meaning,
+      example: resolved.example || "(none)",
+      exampleHurigana: resolved.exampleHurigana ?? "(none)",
+      translation: resolved.translation ?? "(none)",
+      showKana,
+    });
+  }, [
+    resolved.example,
+    resolved.exampleHurigana,
+    resolved.imageUrl,
+    resolved.meaning,
+    resolved.sharedPronunciation,
+    resolved.translation,
+    resolved.word,
+    showKana,
+  ]);
   const displayWord = toDisplayValue(item.word);
   const pronunciation = React.useMemo(() => {
     const candidate = toDisplayValue(resolved.sharedPronunciation);

@@ -27,6 +27,7 @@ jest.mock("../src/services/vocaService", () => ({
 
 import { setLanguage } from "../src/i18n";
 import {
+  buildPopWordNotificationData,
   buildPopWordNotificationContent,
   schedulePopWordNotifications,
 } from "../src/utils/notifications";
@@ -122,6 +123,24 @@ describe("notification localization", () => {
     expect(prefetchVocabularyCards).toHaveBeenCalledWith(
       "EXTREMELY_ADVANCED",
       1,
+    );
+  });
+
+  it("preserves exampleHurigana in notification payload data", () => {
+    expect(
+      buildPopWordNotificationData({
+        course: "JLPT_N5",
+        word: "雨戸",
+        meaning: "storm shutter",
+        example: "雨(あま)戸(ど)を閉(し)める。",
+        exampleHurigana: "あまどをしめる。",
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        course: "JLPT_N5",
+        example: "雨(あま)戸(ど)を閉(し)める。",
+        exampleHurigana: "あまどをしめる。",
+      }),
     );
   });
 });

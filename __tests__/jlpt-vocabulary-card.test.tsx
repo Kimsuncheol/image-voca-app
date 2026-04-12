@@ -4,6 +4,7 @@ import { JlptVocabularyCard } from "../components/course/vocabulary/JlptVocabula
 import { VocabularyCard } from "../src/types/vocabulary";
 
 let mockLanguage = "en";
+const mockSpeak = jest.fn();
 
 jest.mock("../src/context/ThemeContext", () => ({
   useTheme: () => ({ isDark: false }),
@@ -19,6 +20,18 @@ jest.mock("react-i18next", () => ({
 
 jest.mock("expo-speech", () => ({
   speak: jest.fn(),
+}));
+
+jest.mock("../src/hooks/useSpeech", () => ({
+  useSpeech: () => ({
+    speak: mockSpeak,
+    stop: jest.fn(),
+    pause: jest.fn(),
+    resume: jest.fn(),
+    isSpeaking: false,
+    isPaused: false,
+    error: null,
+  }),
 }));
 
 jest.mock("../components/swipe/SwipeCardItemImageSection", () => ({
@@ -73,6 +86,8 @@ function buildCard(overrides: Partial<VocabularyCard> = {}): VocabularyCard {
 describe("JlptVocabularyCard", () => {
   beforeEach(() => {
     mockLanguage = "en";
+    mockSpeak.mockClear();
+    mockSpeak.mockResolvedValue(undefined);
   });
 
   it("renders English meaning and translation for English UI", () => {
@@ -388,6 +403,58 @@ describe("JlptVocabularyCard", () => {
 
     expect(getByTestId("jlpt-card-kana-toggle-pill")).toHaveStyle({
       backgroundColor: "transparent",
+    });
+  });
+
+  it("uses exampleHurigana for TTS when the example is tapped", () => {
+    const { getByText } = render(
+      <JlptVocabularyCard
+        item={buildCard({
+          example: "雨(あま)戸(ど)を閉(し)める。",
+          exampleHurigana: "あまどをしめる。",
+        })}
+      />,
+    );
+
+    fireEvent.press(getByText("雨戸を閉める。"));
+
+    expect(mockSpeak).toHaveBeenCalledWith("あまどをしめる。", {
+      language: "ja-JP",
+    });
+  });
+
+  it("falls back to stripped example text for TTS when exampleHurigana is missing", () => {
+    const { getByText } = render(
+      <JlptVocabularyCard
+        item={buildCard({
+          example: "雨(あま)戸(ど)を閉(し)める。",
+          exampleHurigana: undefined,
+        })}
+      />,
+    );
+
+    fireEvent.press(getByText("雨戸を閉める。"));
+
+    expect(mockSpeak).toHaveBeenCalledWith("雨戸を閉める。", {
+      language: "ja-JP",
+    });
+  });
+
+  it("keeps exampleHurigana hidden while showKana only changes visible text", () => {
+    const { getByText } = render(
+      <JlptVocabularyCard
+        item={buildCard({
+          example: "雨(あま)戸(ど)を閉(し)める。",
+          exampleHurigana: "あまどをしめる。",
+        })}
+        showKana={true}
+      />,
+    );
+
+    fireEvent.press(getByText("雨(あま)戸(ど)を閉(し)める。"));
+
+    expect(mockSpeak).toHaveBeenCalledWith("あまどをしめる。", {
+      language: "ja-JP",
     });
   });
 });

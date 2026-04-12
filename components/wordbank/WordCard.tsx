@@ -60,6 +60,25 @@ export function WordCard({
     () => resolveVocabularyContent(word, i18n.language),
     [i18n.language, word],
   );
+  React.useEffect(() => {
+    console.log("[WordCard] fields", {
+      image: resolved.imageUrl ?? "(none)",
+      word: resolved.word,
+      pronunciation: resolved.sharedPronunciation ?? "(none)",
+      meaning: resolved.meaning,
+      example: resolved.example || "(none)",
+      exampleHurigana: resolved.exampleHurigana ?? "(none)",
+      translation: resolved.translation ?? "(none)",
+    });
+  }, [
+    resolved.example,
+    resolved.exampleHurigana,
+    resolved.imageUrl,
+    resolved.meaning,
+    resolved.sharedPronunciation,
+    resolved.translation,
+    resolved.word,
+  ]);
 
   const handleSpeakWord = React.useCallback(async () => {
     try {
@@ -120,7 +139,7 @@ export function WordCard({
 
       <WordCardExample
         example={resolved.example}
-        exampleHurigana={word.exampleHurigana}
+        exampleHurigana={resolved.exampleHurigana}
         translation={resolved.translation}
         synonyms={word.synonyms}
         pronunciation={

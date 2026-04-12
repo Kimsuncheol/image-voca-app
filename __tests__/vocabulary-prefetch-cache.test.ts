@@ -93,7 +93,7 @@ describe("vocabulary prefetch caching", () => {
 
   it("returns fresh cached cards without a Firestore read", async () => {
     await AsyncStorage.setItem(
-      "vocab_cache_v3:TOEIC-Day1",
+      "vocab_cache_v5:TOEIC-Day1",
       JSON.stringify({
         updatedAt: Date.now(),
         cards: [
@@ -117,7 +117,7 @@ describe("vocabulary prefetch caching", () => {
 
   it("returns stale cached cards immediately and revalidates in the background", async () => {
     await AsyncStorage.setItem(
-      "vocab_cache_v3:TOEIC-Day1",
+      "vocab_cache_v5:TOEIC-Day1",
       JSON.stringify({
         updatedAt: Date.now() - 1000 * 60 * 60 * 7,
         cards: [

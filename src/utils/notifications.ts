@@ -144,6 +144,7 @@ type NotificationCardSelection = {
   pronunciation?: string;
   pronunciationRoman?: string;
   example?: string;
+  exampleHurigana?: string;
   translation?: string;
   synonyms?: string[];
   imageUrl?: string;
@@ -151,7 +152,7 @@ type NotificationCardSelection = {
   course?: CourseType | string;
 };
 
-const buildPopWordNotificationData = (
+export const buildPopWordNotificationData = (
   selection: NotificationCardSelection,
 ): NotificationCardPayload => {
   const isCollocation = selection.course === "COLLOCATION";
@@ -166,6 +167,7 @@ const buildPopWordNotificationData = (
     pronunciation: selection.pronunciation ?? "",
     pronunciationRoman: selection.pronunciationRoman ?? "",
     example: selection.example ?? "",
+    exampleHurigana: selection.exampleHurigana,
     translation: selection.translation ?? "",
     synonyms: selection.synonyms,
     imageUrl: selection.imageUrl ?? "",
@@ -186,6 +188,7 @@ export const buildPopWordNotificationContent = async (
       pronunciation: selection.pronunciation,
       pronunciationRoman: selection.pronunciationRoman,
       example: selection.example,
+      exampleHurigana: selection.exampleHurigana,
       imageUrl: selection.imageUrl,
       localized: selection.localized,
     },

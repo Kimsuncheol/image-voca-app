@@ -115,6 +115,23 @@ describe("vocabulary image normalization", () => {
     expect(card.example).toBe("駅とホテルの間");
   });
 
+  it("maps exampleHurigana for JLPT documents", () => {
+    const card = mapVocabularyDocToCard(
+      "jlpt-2",
+      {
+        word: "雨戸",
+        meaningEnglish: "storm shutter",
+        pronunciation: "あまど",
+        example: "雨(あま)戸(ど)を閉(し)める。",
+        exampleHurigana: "あまどをしめる。",
+      },
+      "JLPT_N5",
+    );
+
+    expect(card.example).toBe("雨(あま)戸(ど)を閉(し)める。");
+    expect(card.exampleHurigana).toBe("あまどをしめる。");
+  });
+
   it("leaves imageUrl undefined when no image fields exist", () => {
     const card = mapVocabularyDocToCard(
       "doc-4",
@@ -172,18 +189,20 @@ describe("vocabulary image normalization", () => {
       meaning: "construct",
       example: "Build carefully.",
       exampleRoman: "build carefully",
+      exampleHurigana: "  hidden reading  ",
       course: "TOEIC",
       image: "https://cdn.example.com/build.jpg",
     } as VocabularyCard & { image?: string });
 
     expect(normalized.imageUrl).toBe("https://cdn.example.com/build.jpg");
     expect(normalized.exampleRoman).toBe("build carefully");
+    expect(normalized.exampleHurigana).toBe("hidden reading");
     expect("image" in normalized).toBe(false);
   });
 
   it("hydrates legacy cached cards into imageUrl", async () => {
     await AsyncStorage.setItem(
-      "vocab_cache_v4:TOEIC-Day1",
+      "vocab_cache_v5:TOEIC-Day1",
       JSON.stringify({
         updatedAt: Date.now(),
         cards: [
@@ -208,7 +227,7 @@ describe("vocabulary image normalization", () => {
 
   it("hydrates localized cache entries", async () => {
     await AsyncStorage.setItem(
-      "vocab_cache_v4:TOEIC-Day2",
+      "vocab_cache_v5:TOEIC-Day2",
       JSON.stringify({
         updatedAt: Date.now(),
         cards: [

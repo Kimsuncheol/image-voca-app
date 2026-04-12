@@ -35,6 +35,7 @@ import {
   fetchVocabularyCards,
   hydrateVocabularyCache,
   isVocabularyCacheFresh,
+  pruneVocabularyCaches,
 } from "../src/services/vocabularyPrefetch";
 import { AppSplashScreen } from "../components/common/AppSplashScreen";
 import { NetworkErrorOverlay } from "../components/common/NetworkErrorOverlay";
@@ -220,6 +221,7 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
 
     const prepare = async () => {
       try {
+        void pruneVocabularyCaches();
         const languagePromise = hydrateLanguage();
 
         const legacyRecentCourse = (await AsyncStorage.getItem(

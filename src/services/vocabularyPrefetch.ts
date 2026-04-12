@@ -29,10 +29,11 @@ type CourseConfig = {
 };
 
 // Bump the cache version so older persisted cards without newly added fields
-// like `exampleRoman` or normalized legacy TOEFL synonyms do not mask fresh data.
-const STORAGE_PREFIX = "vocab_cache_v4";
+// like `exampleHurigana` do not mask fresh Firestore data.
+const STORAGE_PREFIX = "vocab_cache_v5";
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const METADATA_TTL_MS = 1000 * 60 * 10;
+const VOCAB_CACHE_MAX_ENTRIES = 50;
 
 const vocabularyCache = new Map<string, VocabularyCard[]>();
 const vocabularyCacheUpdatedAt = new Map<string, number>();
@@ -157,6 +158,10 @@ export const normalizeVocabularyCard = (
       typeof rest.exampleRoman === "string"
         ? rest.exampleRoman.trim() || undefined
         : undefined,
+    exampleHurigana:
+      typeof rest.exampleHurigana === "string"
+        ? rest.exampleHurigana.trim() || undefined
+        : undefined,
     pronunciationRoman:
       typeof rest.pronunciationRoman === "string"
         ? rest.pronunciationRoman.trim() || undefined
@@ -178,6 +183,10 @@ export const mapVocabularyDocToCard = (
   const imageUrl =
     normalizeVocabularyImageUrl(data.imageUrl) ??
     normalizeVocabularyImageUrl(data.image);
+  const exampleHurigana =
+    typeof data.exampleHurigana === "string"
+      ? data.exampleHurigana
+      : undefined;
 
   if (isJlptLevelCourseId(courseId)) {
     return {
@@ -194,6 +203,7 @@ export const mapVocabularyDocToCard = (
       example: typeof data.example === "string" ? data.example : "",
       exampleRoman:
         typeof data.exampleRoman === "string" ? data.exampleRoman : undefined,
+      exampleHurigana,
       imageUrl,
       localized: {
         en: {
@@ -235,6 +245,7 @@ export const mapVocabularyDocToCard = (
           ? data.pronunciationRoman
           : undefined,
       example: typeof data.example === "string" ? data.example : "",
+      exampleHurigana,
       imageUrl,
       localized: normalizeVocabularyLocalizationMap(data.localized),
       course: courseId,
@@ -249,6 +260,7 @@ export const mapVocabularyDocToCard = (
       translation:
         typeof data.translation === "string" ? data.translation : "",
       example: typeof data.example === "string" ? data.example : "",
+      exampleHurigana,
       imageUrl,
       localized: normalizeVocabularyLocalizationMap(data.localized),
       course: courseId,
@@ -268,6 +280,7 @@ export const mapVocabularyDocToCard = (
         ? data.pronunciationRoman
         : undefined,
     example: typeof data.example === "string" ? data.example : "",
+    exampleHurigana,
     imageUrl,
     localized: normalizeVocabularyLocalizationMap(data.localized),
     course: courseId,
@@ -311,20 +324,70 @@ export const isVocabularyCacheFresh = (
   return isCacheEntryFresh(updatedAt);
 };
 
+/**
+ * Removes expired and over-limit vocabulary cache entries from AsyncStorage.
+ * Call at app startup or when a write fails due to storage pressure.
+ */
+export const pruneVocabularyCaches = async (): Promise<void> => {
+  try {
+    const allKeys = await AsyncStorage.getAllKeys();
+    const vocabKeys = allKeys.filter((k) => k.startsWith(`${STORAGE_PREFIX}:`));
+    if (vocabKeys.length === 0) return;
+
+    const pairs = await AsyncStorage.multiGet(vocabKeys);
+    const now = Date.now();
+
+    const entries = pairs.map(([key, raw]) => {
+      try {
+        const parsed = JSON.parse(raw ?? "{}") as { updatedAt?: number };
+        return { key, updatedAt: parsed.updatedAt ?? 0 };
+      } catch {
+        return { key, updatedAt: 0 };
+      }
+    });
+
+    // Sort oldest first so the slice below keeps the newest VOCAB_CACHE_MAX_ENTRIES
+    entries.sort((a, b) => a.updatedAt - b.updatedAt);
+
+    const keysToRemove = entries
+      .filter(
+        (e, i) =>
+          now - e.updatedAt >= CACHE_TTL_MS ||
+          i < entries.length - VOCAB_CACHE_MAX_ENTRIES,
+      )
+      .map((e) => e.key);
+
+    if (keysToRemove.length === 0) return;
+
+    await AsyncStorage.multiRemove(keysToRemove);
+    console.log(`Pruned ${keysToRemove.length} vocabulary cache entries`);
+  } catch (error) {
+    console.warn("Failed to prune vocabulary caches:", error);
+  }
+};
+
 const persistVocabularyCache = async (
   courseId: CourseType,
   dayNumber: number,
   cards: VocabularyCard[],
   updatedAt: number,
 ) => {
-  try {
-    const payload = JSON.stringify({
+  const buildPayload = () =>
+    JSON.stringify({
       updatedAt,
       cards: cards.map((card) => normalizeVocabularyCard(card)),
     });
-    await AsyncStorage.setItem(makeStorageKey(courseId, dayNumber), payload);
+
+  try {
+    await AsyncStorage.setItem(makeStorageKey(courseId, dayNumber), buildPayload());
   } catch (error) {
-    console.warn("Failed to persist vocabulary cache:", error);
+    console.warn("Failed to persist vocabulary cache, freeing space and retrying:", error);
+    try {
+      await pruneVocabularyCaches();
+      await AsyncStorage.setItem(makeStorageKey(courseId, dayNumber), buildPayload());
+    } catch (retryError) {
+      console.warn("Failed to persist vocabulary cache after pruning:", retryError);
+    }
   }
 };
 

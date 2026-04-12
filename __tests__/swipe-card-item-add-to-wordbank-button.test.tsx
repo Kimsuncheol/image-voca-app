@@ -169,6 +169,35 @@ describe("SwipeCardItemAddToWordBankButton", () => {
     expect(writtenWord).not.toHaveProperty("day");
   });
 
+  it("persists exampleHurigana when the card includes it", async () => {
+    const transaction = createTransactionMock();
+    mockRunTransaction.mockImplementation(async (_db, handler) =>
+      handler(transaction),
+    );
+    mockRecordWordLearned.mockResolvedValue(undefined);
+
+    const screen = render(
+      <SwipeCardItemAddToWordBankButton
+        item={buildItem({
+          course: "JLPT_N5",
+          example: "雨(あま)戸(ど)を閉(し)める。",
+          exampleHurigana: "あまどをしめる。",
+        })}
+        isDark={false}
+        onSavedWordChange={mockOnSavedWordChange}
+      />,
+    );
+
+    fireEvent.press(screen.UNSAFE_getByType(TouchableOpacity));
+
+    await waitFor(() => {
+      expect(mockRunTransaction).toHaveBeenCalled();
+    });
+
+    const writtenWord = transaction.set.mock.calls[0][1].words[0];
+    expect(writtenWord).toHaveProperty("exampleHurigana", "あまどをしめる。");
+  });
+
   it("persists synonyms for TOEFL_IELTS words while trimming undefined fields", async () => {
     const transaction = createTransactionMock();
     mockRunTransaction.mockImplementation(async (_db, handler) =>

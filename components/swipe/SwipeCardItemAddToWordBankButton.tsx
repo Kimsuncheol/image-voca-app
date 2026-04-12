@@ -70,6 +70,7 @@ export function SwipeCardItemAddToWordBankButton({
           pronunciation: item.pronunciation || "",
           pronunciationRoman: item.pronunciationRoman,
           example: item.example,
+          exampleHurigana: item.exampleHurigana,
           course: item.course,
           day,
           addedAt: new Date().toISOString(),
