@@ -126,6 +126,34 @@ describe("notification localization", () => {
     );
   });
 
+  it("does not schedule Word of the Day notifications during night hours (22:00–07:59)", async () => {
+    // Fake system time to 23:00 so the first candidate hour is midnight
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2025-01-01T23:00:00"));
+
+    (getTotalDaysForCourse as jest.Mock).mockResolvedValue(1);
+    (prefetchVocabularyCards as jest.Mock).mockResolvedValue([
+      { word: "test", meaning: "test meaning", course: "TOEIC" },
+    ]);
+
+    const { scheduleNotificationAsync } = jest.requireMock("expo-notifications");
+    (scheduleNotificationAsync as jest.Mock).mockClear();
+
+    await schedulePopWordNotifications("user-1", 1);
+
+    const triggeredDates: Date[] = (scheduleNotificationAsync as jest.Mock).mock.calls.map(
+      ([{ trigger }]: [{ trigger: { date: Date } }]) => trigger.date,
+    );
+
+    for (const date of triggeredDates) {
+      const hour = date.getHours();
+      expect(hour).toBeGreaterThanOrEqual(8);
+      expect(hour).toBeLessThan(22);
+    }
+
+    jest.useRealTimers();
+  });
+
   it("preserves exampleHurigana in notification payload data", () => {
     expect(
       buildPopWordNotificationData({

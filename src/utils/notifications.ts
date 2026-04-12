@@ -29,6 +29,8 @@ const DEFAULT_REMINDER_MINUTE = 0;
 const SCHEDULE_WINDOW_DAYS = 7;
 const HOURLY_NOTIFICATION_COUNT = 55;
 const ANDROID_CHANNEL_ID = "voca-daily";
+const NIGHT_MUTE_START_HOUR = 22;
+const NIGHT_MUTE_END_HOUR = 8;
 
 let cachedNotifications: NotificationsModule | null = null;
 let handlerConfigured = false;
@@ -73,16 +75,19 @@ const getScheduleDates = (
   return dates;
 };
 
-const getHourlyScheduleDates = (hours: number) => {
-  const dates: Date[] = [];
-  const now = new Date();
-  const start = new Date(now);
-  start.setHours(start.getHours() + 1, 0, 0, 0);
+const isNightHour = (hour: number): boolean =>
+  hour >= NIGHT_MUTE_START_HOUR || hour < NIGHT_MUTE_END_HOUR;
 
-  for (let i = 0; i < hours; i++) {
-    const next = new Date(start);
-    next.setHours(start.getHours() + i);
-    dates.push(next);
+const getHourlyScheduleDates = (count: number) => {
+  const dates: Date[] = [];
+  const candidate = new Date();
+  candidate.setHours(candidate.getHours() + 1, 0, 0, 0);
+
+  while (dates.length < count) {
+    if (!isNightHour(candidate.getHours())) {
+      dates.push(new Date(candidate));
+    }
+    candidate.setHours(candidate.getHours() + 1);
   }
   return dates;
 };
