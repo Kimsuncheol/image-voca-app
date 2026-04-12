@@ -23,6 +23,7 @@ const LAST_STUDY_DATE_KEY = "voca_last_study_date";
 const NOTIFICATIONS_ENABLED_KEY = "voca_notifications_enabled";
 const POP_WORD_ENABLED_KEY = "voca_pop_word_enabled";
 const STUDY_REMINDER_ENABLED_KEY = "voca_study_reminder_enabled";
+const MUTE_AT_NIGHT_ENABLED_KEY = "voca_mute_at_night_enabled";
 
 const DEFAULT_REMINDER_HOUR = 19;
 const DEFAULT_REMINDER_MINUTE = 0;
@@ -78,13 +79,16 @@ const getScheduleDates = (
 const isNightHour = (hour: number): boolean =>
   hour >= NIGHT_MUTE_START_HOUR || hour < NIGHT_MUTE_END_HOUR;
 
-const getHourlyScheduleDates = (count: number) => {
+const getHourlyScheduleDates = (
+  count: number,
+  muteAtNight: boolean = true,
+) => {
   const dates: Date[] = [];
   const candidate = new Date();
   candidate.setHours(candidate.getHours() + 1, 0, 0, 0);
 
   while (dates.length < count) {
-    if (!isNightHour(candidate.getHours())) {
+    if (!muteAtNight || !isNightHour(candidate.getHours())) {
       dates.push(new Date(candidate));
     }
     candidate.setHours(candidate.getHours() + 1);
@@ -350,6 +354,19 @@ export const setStudyReminderEnabledPreference = async (enabled: boolean) => {
   );
 };
 
+export const getMuteAtNightPreference = async () => {
+  const value = await AsyncStorage.getItem(MUTE_AT_NIGHT_ENABLED_KEY);
+  if (value === null) return true;
+  return value === "true";
+};
+
+export const setMuteAtNightPreference = async (enabled: boolean) => {
+  await AsyncStorage.setItem(
+    MUTE_AT_NIGHT_ENABLED_KEY,
+    enabled ? "true" : "false",
+  );
+};
+
 export const cancelTodayStudyReminder = async (): Promise<void> => {
   const Notifications = getNotificationsModule();
   if (!Notifications) return;
@@ -404,6 +421,7 @@ export const schedulePopWordNotifications = async (
   if (!Notifications) return;
 
   await cancelStoredNotifications(POP_WORD_NOTIFICATION_IDS_KEY);
+  const muteAtNight = await getMuteAtNightPreference();
 
   const COURSES: CourseType[] = [
     "수능",
@@ -441,7 +459,10 @@ export const schedulePopWordNotifications = async (
 
   if (allCards.length === 0) return;
 
-  const dates = getHourlyScheduleDates(HOURLY_NOTIFICATION_COUNT);
+  const dates = getHourlyScheduleDates(
+    HOURLY_NOTIFICATION_COUNT,
+    muteAtNight,
+  );
   const scheduledIds: string[] = [];
   const shuffledCards = allCards.sort(() => 0.5 - Math.random());
 

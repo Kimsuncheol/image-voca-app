@@ -29,7 +29,9 @@ import { setLanguage } from "../src/i18n";
 import {
   buildPopWordNotificationData,
   buildPopWordNotificationContent,
+  getMuteAtNightPreference,
   schedulePopWordNotifications,
+  setMuteAtNightPreference,
 } from "../src/utils/notifications";
 import {
   getTotalDaysForCourse,
@@ -154,6 +156,36 @@ describe("notification localization", () => {
     jest.useRealTimers();
   });
 
+  it("defaults mute at night preference to enabled", async () => {
+    expect(await getMuteAtNightPreference()).toBe(true);
+  });
+
+  it("allows Word of the Day notifications during night hours when mute at night is disabled", async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2025-01-01T23:00:00"));
+
+    await setMuteAtNightPreference(false);
+    (getTotalDaysForCourse as jest.Mock).mockResolvedValue(1);
+    (prefetchVocabularyCards as jest.Mock).mockResolvedValue([
+      { word: "test", meaning: "test meaning", course: "TOEIC" },
+    ]);
+
+    const { scheduleNotificationAsync } = jest.requireMock("expo-notifications");
+    (scheduleNotificationAsync as jest.Mock).mockClear();
+
+    await schedulePopWordNotifications("user-1", 1);
+
+    const triggeredDates: Date[] = (scheduleNotificationAsync as jest.Mock).mock.calls.map(
+      ([{ trigger }]: [{ trigger: { date: Date } }]) => trigger.date,
+    );
+
+    expect(triggeredDates.some((date) => isNightHour(date.getHours()))).toBe(
+      true,
+    );
+
+    jest.useRealTimers();
+  });
+
   it("preserves exampleHurigana in notification payload data", () => {
     expect(
       buildPopWordNotificationData({
@@ -172,3 +204,5 @@ describe("notification localization", () => {
     );
   });
 });
+
+const isNightHour = (hour: number) => hour >= 22 || hour < 8;

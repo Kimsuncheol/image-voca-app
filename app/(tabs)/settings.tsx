@@ -54,6 +54,7 @@ import { useDashboardSettingsStore } from "../../src/stores/dashboardSettingsSto
 import {
   cancelAllScheduledNotifications, // Cancel all pending notifications
   configureNotifications, // Request notification permissions
+  getMuteAtNightPreference, // Get mute at night preference
   getNotificationPermissions, // Check current permissions status
   getNotificationsEnabledPreference, // Get master notification toggle state
   getPopWordEnabledPreference, // Get pop word notification preference
@@ -61,6 +62,7 @@ import {
   isPermissionGranted, // Check if permission is granted
   markStudyDate, // Mark today as a study date
   scheduleDailyNotifications, // Schedule daily notifications
+  setMuteAtNightPreference, // Save mute at night preference
   setNotificationsEnabledPreference, // Save master notification toggle
   setPopWordEnabledPreference, // Save pop word preference
   setStudyReminderEnabledPreference, // Save study reminder preference
@@ -90,6 +92,7 @@ export default function SettingsScreen() {
   const [notificationPermissionDenied, setNotificationPermissionDenied] = useState(false); // True when user wants notifications but system permission is denied
   const [studyReminderEnabled, setStudyReminderEnabled] = useState(true); // Daily study reminder notifications
   const [popWordEnabled, setPopWordEnabled] = useState(true); // Pop word quiz notifications
+  const [muteAtNightEnabled, setMuteAtNightEnabled] = useState(true); // Suppress pop word notifications overnight
 
   // ============================================================================
   // NAVIGATION & INTERNATIONALIZATION
@@ -143,11 +146,18 @@ export default function SettingsScreen() {
   const checkNotificationStatus = async () => {
     try {
       // Load all preferences and permissions in parallel for efficiency
-      const [preferencesEnabled, studyEnabled, popEnabled, permissions] =
+      const [
+        preferencesEnabled,
+        studyEnabled,
+        popEnabled,
+        muteAtNight,
+        permissions,
+      ] =
         await Promise.all([
           getNotificationsEnabledPreference(), // Master notification toggle
           getStudyReminderEnabledPreference(), // Study reminder preference
           getPopWordEnabledPreference(), // Pop word notification preference
+          getMuteAtNightPreference(), // Overnight mute preference
           getNotificationPermissions(), // System-level permissions
         ]);
 
@@ -163,6 +173,7 @@ export default function SettingsScreen() {
       // Individual notification types reflect saved preferences
       setStudyReminderEnabled(studyEnabled);
       setPopWordEnabled(popEnabled);
+      setMuteAtNightEnabled(muteAtNight);
     } catch (e) {
       console.warn("Error checking notification status", e);
     }
@@ -206,7 +217,6 @@ export default function SettingsScreen() {
       await markStudyDate(); // Track that user studied today (for streak calculation)
       await setNotificationsEnabledPreference(true); // Save preference to AsyncStorage
       setPushEnabled(true); // Update local state
-      await scheduleDailyNotifications(user?.uid); // Schedule recurring notifications
       return true;
     }
 
@@ -244,9 +254,17 @@ export default function SettingsScreen() {
    * @returns {Promise<void>}
    */
   const disablePushNotifications = async () => {
-    await setNotificationsEnabledPreference(false); // Save preference
+    await Promise.all([
+      setNotificationsEnabledPreference(false),
+      setStudyReminderEnabledPreference(false),
+      setPopWordEnabledPreference(false),
+      setMuteAtNightPreference(false),
+    ]);
     await cancelAllScheduledNotifications(); // Clear notification queue
-    setPushEnabled(false); // Update local state
+    setPushEnabled(false);
+    setStudyReminderEnabled(false);
+    setPopWordEnabled(false);
+    setMuteAtNightEnabled(false);
   };
 
   // ============================================================================
@@ -273,13 +291,15 @@ export default function SettingsScreen() {
       const enabled = await enablePushNotifications();
       if (!enabled) return; // Abort if permissions denied
 
-      // Enable both notification types by default
+      // Enable all notification-related settings by default
       await Promise.all([
         setStudyReminderEnabledPreference(true),
         setPopWordEnabledPreference(true),
+        setMuteAtNightPreference(true),
       ]);
       setStudyReminderEnabled(true);
       setPopWordEnabled(true);
+      setMuteAtNightEnabled(true);
 
       // Schedule notifications
       await scheduleDailyNotifications(user?.uid);
@@ -368,6 +388,28 @@ export default function SettingsScreen() {
 
     // Reschedule notifications with new preferences
     await scheduleDailyNotifications(user?.uid);
+  };
+
+  // ============================================================================
+  // MUTE AT NIGHT TOGGLE
+  // ============================================================================
+  /**
+   * Toggles the overnight mute preference for hourly pop-word notifications.
+   *
+   * When pop-word notifications are currently active, this reschedules them so the
+   * mute window takes effect immediately.
+   *
+   * @async
+   * @param {boolean} value - True to mute pop-word notifications at night
+   * @returns {Promise<void>}
+   */
+  const toggleMuteAtNight = async (value: boolean) => {
+    await setMuteAtNightPreference(value);
+    setMuteAtNightEnabled(value);
+
+    if (user?.uid && pushEnabled && popWordEnabled) {
+      await scheduleDailyNotifications(user.uid);
+    }
   };
 
   // ============================================================================
@@ -486,9 +528,11 @@ export default function SettingsScreen() {
           notificationPermissionDenied={notificationPermissionDenied}
           studyReminderEnabled={studyReminderEnabled}
           popWordEnabled={popWordEnabled}
+          muteAtNightEnabled={muteAtNightEnabled}
           onTogglePush={togglePushNotifications}
           onToggleStudyReminder={toggleStudyReminder}
           onTogglePopWord={togglePopWord}
+          onToggleMuteAtNight={toggleMuteAtNight}
           onOpenPermissionSettings={() => Linking.openSettings()}
           t={t}
         />

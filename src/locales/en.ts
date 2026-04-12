@@ -55,6 +55,7 @@ const en = {
       push: "Push Notifications",
       studyReminder: "Study Reminder",
       wordOfTheDay: "Word of the Day",
+      muteAtNight: "Mute at Night",
       notSupportedTitle: "Not Supported",
       notSupportedMessage:
         "Push notifications are not supported in Expo Go on Android.",

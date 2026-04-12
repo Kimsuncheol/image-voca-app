@@ -8,16 +8,17 @@ export interface ToggleSwitchProps {
   trackColor?: { false: string; true: string };
 }
 
-const TOGGLE_WIDTH = 50;
-const TOGGLE_HEIGHT = 30;
-const TOGGLE_PADDING = 2;
-const TOGGLE_THUMB = TOGGLE_HEIGHT - TOGGLE_PADDING * 2;
+const TOGGLE_WIDTH = 42;
+const TOGGLE_HEIGHT = 20;
+const TOGGLE_THUMB = 28;
+const TOGGLE_OVERLAP = 2;
+const TOGGLE_TOP_OFFSET = (TOGGLE_HEIGHT - TOGGLE_THUMB) / 2;
 
 export function ToggleSwitch({
   value,
   onValueChange,
   disabled = false,
-  trackColor = { false: "#767577", true: "#34C759" },
+  trackColor = { false: "#767577", true: "#007AFF" },
 }: ToggleSwitchProps) {
   const translateX = useRef(new Animated.Value(value ? 1 : 0)).current;
   const animatedStyle = useMemo(
@@ -27,8 +28,8 @@ export function ToggleSwitch({
           translateX: translateX.interpolate({
             inputRange: [0, 1],
             outputRange: [
-              TOGGLE_PADDING,
-              TOGGLE_WIDTH - TOGGLE_THUMB - TOGGLE_PADDING,
+              -TOGGLE_OVERLAP,
+              TOGGLE_WIDTH - TOGGLE_THUMB + TOGGLE_OVERLAP,
             ],
           }),
         },
@@ -69,17 +70,22 @@ const styles = StyleSheet.create({
     height: TOGGLE_HEIGHT,
     borderRadius: TOGGLE_HEIGHT / 2,
     justifyContent: "center",
+    overflow: "visible",
   },
   thumb: {
     width: TOGGLE_THUMB,
     height: TOGGLE_THUMB,
     borderRadius: TOGGLE_THUMB / 2,
+    position: "absolute",
+    top: TOGGLE_TOP_OFFSET,
     backgroundColor: "#fff",
     shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 2,
+    shadowOpacity: 0.14,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(255,255,255,0.55)",
   },
   disabled: {
     opacity: 0.5,

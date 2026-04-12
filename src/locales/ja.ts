@@ -54,6 +54,7 @@ const ja = {
       push: "プッシュ通知",
       studyReminder: "学習リマインダー",
       wordOfTheDay: "今日の単語",
+      muteAtNight: "夜間はミュート",
       notSupportedTitle: "非対応",
       notSupportedMessage:
         "Android Expo GoではPush通知はサポートされていません。",
