@@ -24,3 +24,4 @@ export { QuizTypeHeader } from "./QuizTypeHeader";
 export { RecentCourseSection } from "./RecentCourseSection";
 export { SynonymMatchingGame } from "./SynonymMatchingGame";
 export { VocaHeader } from "./VocaHeader";
+export { EmptyDayView } from "./EmptyDayView";

@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
-import { DayGrid } from "../../../components/course";
+import { DayGrid, EmptyDayView } from "../../../components/course";
 import { ThemedText } from "../../../components/themed-text";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useLearningLanguage } from "../../../src/context/LearningLanguageContext";
@@ -89,10 +89,7 @@ export default function DayPickerScreen() {
   // ---------------------------------------------------------------------------
   // Derived State & Constants
   // ---------------------------------------------------------------------------
-  const course = useMemo(
-    () => findRuntimeCourse(courseId),
-    [courseId],
-  );
+  const course = useMemo(() => findRuntimeCourse(courseId), [courseId]);
   const courseLanguage = useMemo(
     () => getLearningLanguageForCourse(courseId),
     [courseId],
@@ -136,9 +133,11 @@ export default function DayPickerScreen() {
         return;
       }
 
-      void setRecentCourseForLanguage(courseLanguage, courseId).catch((error) => {
-        console.error("Failed to persist recent course:", error);
-      });
+      void setRecentCourseForLanguage(courseLanguage, courseId).catch(
+        (error) => {
+          console.error("Failed to persist recent course:", error);
+        },
+      );
     }, [
       course,
       courseId,
@@ -353,7 +352,7 @@ export default function DayPickerScreen() {
     >
       <Stack.Screen
         options={{
-          headerShown: loadingDay === null,
+          headerShown: loadingDay === null && totalDays > 0,
           title:
             loadingDay !== null
               ? ""
@@ -373,15 +372,22 @@ export default function DayPickerScreen() {
           <TouchableOpacity
             style={[
               styles.continueBanner,
-              { backgroundColor: (course?.color ?? "#007AFF") + "18",
-                borderColor: course?.color ?? "#007AFF" },
+              {
+                backgroundColor: (course?.color ?? "#007AFF") + "18",
+                borderColor: course?.color ?? "#007AFF",
+              },
             ]}
             onPress={() => handleDayPress(firstIncompleteDay)}
             disabled={loadingDay !== null}
             activeOpacity={0.75}
           >
             <View style={styles.continueBannerLeft}>
-              <ThemedText style={[styles.continueBannerLabel, { color: course?.color ?? "#007AFF" }]}>
+              <ThemedText
+                style={[
+                  styles.continueBannerLabel,
+                  { color: course?.color ?? "#007AFF" },
+                ]}
+              >
                 {t("course.continueFrom", { defaultValue: "Continue" })}
               </ThemedText>
               <ThemedText style={styles.continueBannerDay}>
@@ -400,18 +406,22 @@ export default function DayPickerScreen() {
         {!hasUnlimitedAccess && <SubscriptionBadge />}
 
         {/* Main Grid: Days 1-N */}
-        <DayGrid
-          totalDays={totalDays}
-          dayProgress={dayProgress}
-          courseColor={course?.color}
-          canAccessUnlimitedVoca={hasUnlimitedAccess}
-          canAccessFeature={canAccessFeature}
-          courseId={courseId!}
-          freeDayLimit={freeDayLimit}
-          onDayPress={handleDayPress}
-          onQuizPress={handleQuizPress}
-          onMangaPress={handleMangaPress}
-        />
+        {totalDays === 0 ? (
+          <EmptyDayView />
+        ) : (
+          <DayGrid
+            totalDays={totalDays}
+            dayProgress={dayProgress}
+            courseColor={course?.color}
+            canAccessUnlimitedVoca={hasUnlimitedAccess}
+            canAccessFeature={canAccessFeature}
+            courseId={courseId!}
+            freeDayLimit={freeDayLimit}
+            onDayPress={handleDayPress}
+            onQuizPress={handleQuizPress}
+            onMangaPress={handleMangaPress}
+          />
+        )}
       </ScrollView>
 
       {loadingDay !== null && (

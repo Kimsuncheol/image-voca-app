@@ -437,8 +437,9 @@ export default function VocabularyScreen() {
       <Stack.Screen
         options={{
           title: "",
+          headerShown: hasCards(),
           headerBackTitle: t("common.back"),
-          // headerBackVisible: !loading,
+          // headerTitle: `Day ${dayNumber}`,
           headerBackVisible: !splashVisible && hasCards() ? true : false,
           gestureEnabled: !loading,
           headerLeft: loading ? () => null : undefined,

@@ -200,7 +200,7 @@ export function JlptVocabularyCard({
   onToggleKana = () => {},
 }: JlptVocabularyCardProps) {
   const { isDark } = useTheme();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { speak } = useSpeech();
   useCardSpeechCleanup(isActive);
   const resolved = React.useMemo(
@@ -283,6 +283,27 @@ export function JlptVocabularyCard({
         >
           <View style={styles.titleContainer}>
             <View style={styles.leftRow}>
+              {typeof day === "number" ? (
+                <View
+                  testID="jlpt-card-day-badge"
+                  style={[
+                    styles.dayBadge,
+                    {
+                      backgroundColor: isDark ? "#2a2a2a" : "#f2f4f7",
+                      borderColor: isDark ? "#3a3a3a" : "#d9dde3",
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.dayBadgeText,
+                      { color: isDark ? "#d0d0d0" : "#5f6670" },
+                    ]}
+                  >
+                    {t("course.dayTitle", { day })}
+                  </Text>
+                </View>
+              ) : null}
               <TouchableOpacity onPress={handlePressWord} activeOpacity={0.7}>
                 <Text
                   style={[
@@ -412,10 +433,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   leftRow: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "flex-start",
     flexShrink: 1,
     minWidth: 0,
+  },
+  dayBadge: {
+    alignSelf: "flex-start",
+    borderRadius: 999,
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  dayBadgeText: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.2,
   },
   cardTitle: {
     fontSize: 32,
