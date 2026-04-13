@@ -3,8 +3,8 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ThemedText } from "../components/themed-text";
 import { CountersTabs } from "../components/counters/CountersTabs";
+import { ThemedText } from "../components/themed-text";
 import { useTheme } from "../src/context/ThemeContext";
 import type { CounterTabId } from "../src/types/counters";
 
@@ -50,7 +50,9 @@ export default function CountersScreen() {
         <View style={[styles.heroCard, { backgroundColor: heroCardBg }]}>
           <View style={styles.heroTopRow}>
             <View style={[styles.accentPill, { backgroundColor: accentBg }]}>
-              <ThemedText style={[styles.accentPillText, { color: accentText }]}>
+              <ThemedText
+                style={[styles.accentPillText, { color: accentText }]}
+              >
                 {t("elementaryJapanese.title", {
                   defaultValue: "Elementary Japanese",
                 })}
@@ -86,7 +88,9 @@ export default function CountersScreen() {
         </View>
 
         <View style={styles.sectionHeader}>
-          <ThemedText style={[styles.sectionLabel, { color: sectionLabelColor }]}>
+          <ThemedText
+            style={[styles.sectionLabel, { color: sectionLabelColor }]}
+          >
             {t("counters.gridLabel", {
               defaultValue: "Counter groups",
             })}
@@ -109,7 +113,7 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
   },
   heroCard: {
-    borderRadius: 28,
+    borderRadius: 12,
     gap: 18,
     padding: 20,
   },

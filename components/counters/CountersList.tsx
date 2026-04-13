@@ -66,6 +66,7 @@ export function CountersList({ data, loading, error, showFurigana }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginHorizontal: 16,
   },
   section: {
     marginTop: 12,

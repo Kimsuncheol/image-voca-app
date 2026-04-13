@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import type { CounterTabId } from "../../src/types/counters";
 import { COUNTER_TAB_IDS } from "../../src/types/counters";
@@ -11,27 +11,28 @@ interface Props {
   onSelect: (tab: CounterTabId) => void;
 }
 
-const COUNTER_TAB_ICONS: Record<CounterTabId, keyof typeof Ionicons.glyphMap> = {
-  numbers: "calculator-outline",
-  counter_tsuu: "mail-open-outline",
-  counter_ko: "cube-outline",
-  counter_kai_floor: "business-outline",
-  counter_kai_times: "refresh-outline",
-  counter_ban: "bookmark-outline",
-  counter_years: "calendar-outline",
-  counter_months: "moon-outline",
-  counter_days: "sunny-outline",
-  counter_hours: "time-outline",
-  counter_minutes: "timer-outline",
-  counter_weekdays: "today-outline",
-  counter_hai: "wine-outline",
-  counter_bai: "git-compare-outline",
-  counter_hon: "pause-outline",
-  counter_mai: "copy-outline",
-  counter_nin: "people-outline",
-  counter_hiki: "paw-outline",
-  counter_ens: "cash-outline",
-};
+const COUNTER_TAB_ICONS: Record<CounterTabId, keyof typeof Ionicons.glyphMap> =
+  {
+    numbers: "calculator-outline",
+    counter_tsuu: "mail-open-outline",
+    counter_ko: "cube-outline",
+    counter_kai_floor: "business-outline",
+    counter_kai_times: "refresh-outline",
+    counter_ban: "bookmark-outline",
+    counter_years: "calendar-outline",
+    counter_months: "moon-outline",
+    counter_days: "sunny-outline",
+    counter_hours: "time-outline",
+    counter_minutes: "timer-outline",
+    counter_weekdays: "today-outline",
+    counter_hai: "wine-outline",
+    counter_bai: "git-compare-outline",
+    counter_hon: "pause-outline",
+    counter_mai: "copy-outline",
+    counter_nin: "people-outline",
+    counter_hiki: "paw-outline",
+    counter_ens: "cash-outline",
+  };
 
 export function CountersTabs({ onSelect }: Props) {
   const { isDark } = useTheme();
@@ -62,10 +63,7 @@ export function CountersTabs({ onSelect }: Props) {
               activeOpacity={0.75}
             >
               <View
-                style={[
-                  styles.iconShell,
-                  { backgroundColor: iconShellBg },
-                ]}
+                style={[styles.iconShell, { backgroundColor: iconShellBg }]}
               >
                 <Ionicons
                   name={COUNTER_TAB_ICONS[id]}
@@ -101,13 +99,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
     rowGap: 12,
   },
   tabTile: {
     alignItems: "center",
     aspectRatio: 1,
-    borderRadius: 24,
+    borderRadius: 12,
     justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingVertical: 14,

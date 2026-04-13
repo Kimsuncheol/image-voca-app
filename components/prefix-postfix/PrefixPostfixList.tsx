@@ -67,7 +67,7 @@ export function PrefixPostfixList({ tab, data, loading, error }: Props) {
 const styles = StyleSheet.create({
   tableWrapper: {
     flex: 1,
-    marginHorizontal: 0,
+    marginHorizontal: 16,
   },
   wordColumn: {
     flex: 0.85,
