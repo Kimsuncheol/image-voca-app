@@ -8,6 +8,7 @@ export interface CalendarDayCell {
   dayNumber: number;
   isCurrentMonth: boolean;
   isToday: boolean;
+  isFuture: boolean;
   isSelected: boolean;
   stats?: DailyStats;
   activityLevel: CalendarActivityLevel;
@@ -150,6 +151,7 @@ export const buildCalendarMonth = ({
       dayNumber: date.getDate(),
       isCurrentMonth: date.getMonth() === monthStart.getMonth(),
       isToday: dateKey === todayKey,
+      isFuture: dateKey > todayKey,
       isSelected: dateKey === selectedDateKey,
       stats,
       activityLevel: getActivityLevel(stats),

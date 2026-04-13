@@ -20,7 +20,6 @@ import {
   buildDailyStatsLookup,
   buildMonthSummary,
   formatDateKey,
-  getMonthPreferredSelectedDate,
   parseDateKey,
   startOfMonth,
 } from "../src/utils/calendarStats";
@@ -68,11 +67,7 @@ export default function CalendarScreen() {
     setHistoryLoadingByDate({});
   }, [user?.uid]);
 
-  React.useEffect(() => {
-    setSelectedDateKey(
-      getMonthPreferredSelectedDate(visibleMonth, dailyStatsByDate, todayKey),
-    );
-  }, [dailyStatsByDate, todayKey, visibleMonth]);
+
 
   const selectedHistory = historyByDate[selectedDateKey];
   const selectedHistoryLoading = historyLoadingByDate[selectedDateKey] ?? false;

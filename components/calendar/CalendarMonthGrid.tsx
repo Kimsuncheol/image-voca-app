@@ -21,7 +21,7 @@ const getBackgroundColor = (isDark: boolean, cell: CalendarDayCell) => {
   }
 
   if (cell.isToday) {
-    return isDark ? "#2F6A4F" : "#CFF3D7";
+    return isDark ? "#0A84FF" : "#007AFF";
   }
 
   switch (cell.activityLevel) {
@@ -41,7 +41,7 @@ const getTextColor = (isDark: boolean, cell: CalendarDayCell) => {
     return isDark ? "#4B5563" : "#9AA4B2";
   }
   if (cell.isToday) {
-    return isDark ? "#F3FFF6" : "#14532D";
+    return "#FFFFFF";
   }
   if (cell.activityLevel === 3) {
     return isDark ? "#FFF7DB" : "#6A4300";
@@ -114,20 +114,16 @@ export function CalendarMonthGrid({
         {cells.map((cell) => (
           <Pressable
             key={cell.dateKey}
-            onPress={() => onSelectDate(cell.dateKey)}
+            onPress={cell.isFuture ? undefined : () => onSelectDate(cell.dateKey)}
+            disabled={cell.isFuture}
             style={[
               styles.cell,
               { backgroundColor: getBackgroundColor(isDark, cell) },
-              cell.isSelected && {
+              cell.isSelected && !cell.isFuture && {
                 borderColor: isDark ? "#FFFFFF" : "#111827",
                 borderWidth: 1.5,
               },
-              cell.isToday && {
-                shadowColor: isDark ? "#FFFFFF" : "#0A7EA4",
-                shadowOpacity: 0.18,
-                shadowRadius: 6,
-                elevation: 2,
-              },
+              cell.isFuture && { opacity: 0.5 },
             ]}
           >
             <ThemedText style={[styles.dayNumber, { color: getTextColor(isDark, cell) }]}>
