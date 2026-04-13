@@ -13,6 +13,7 @@ type UserProfileOverrides = {
   role?: UserRole;
   learningLanguage?: LearningLanguage;
   recentCourseByLanguage?: Partial<Record<LearningLanguage, CourseType>>;
+  tutorialCompletedAt?: string | null;
 };
 
 type StoredUserProfile = {
@@ -26,6 +27,7 @@ type StoredUserProfile = {
   recentCourse?: string | null;
   learningLanguage?: LearningLanguage;
   recentCourseByLanguage?: Partial<Record<LearningLanguage, CourseType>>;
+  tutorialCompletedAt?: string | null;
 };
 
 export const getDefaultUserRole = (email?: string | null): UserRole =>
@@ -69,8 +71,30 @@ export const ensureUserProfileDocument = async (
       existing?.learningLanguage ?? overrides.learningLanguage ?? "en",
     recentCourseByLanguage:
       existing?.recentCourseByLanguage ?? overrides.recentCourseByLanguage ?? {},
+    tutorialCompletedAt:
+      existing?.tutorialCompletedAt ?? overrides.tutorialCompletedAt ?? null,
   };
 
   await setDoc(userRef, nextProfile, { merge: true });
   return nextProfile;
+};
+
+export const getHasCompletedTutorial = async (uid: string) => {
+  const userRef = doc(db, "users", uid);
+  const snapshot = await getDoc(userRef);
+
+  if (!snapshot.exists()) {
+    return false;
+  }
+
+  const data = snapshot.data() as StoredUserProfile;
+  return typeof data.tutorialCompletedAt === "string" &&
+    data.tutorialCompletedAt.length > 0;
+};
+
+export const markTutorialCompleted = async (uid: string) => {
+  const userRef = doc(db, "users", uid);
+  const tutorialCompletedAt = new Date().toISOString();
+  await setDoc(userRef, { tutorialCompletedAt }, { merge: true });
+  return tutorialCompletedAt;
 };

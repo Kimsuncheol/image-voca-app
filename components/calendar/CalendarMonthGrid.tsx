@@ -15,25 +15,23 @@ interface CalendarMonthGridProps {
   onSelectDate: (dateKey: string) => void;
 }
 
+const STUDIED_FILL_LIGHT = "#DBEAFE";
+const STUDIED_FILL_DARK = "#1E3A5F";
+
 const getBackgroundColor = (isDark: boolean, cell: CalendarDayCell) => {
   if (!cell.isCurrentMonth) {
-    return isDark ? "#101216" : "#EEF2F7";
+    return "transparent";
   }
 
   if (cell.isToday) {
     return isDark ? "#0A84FF" : "#007AFF";
   }
 
-  switch (cell.activityLevel) {
-    case 1:
-      return isDark ? "#1F3354" : "#D7E8FF";
-    case 2:
-      return isDark ? "#1D5E43" : "#DDF6E7";
-    case 3:
-      return isDark ? "#5C4A11" : "#FFE8A3";
-    default:
-      return isDark ? "#171A1F" : "#FFFFFF";
+  if (cell.isFuture || cell.activityLevel === 0) {
+    return "transparent";
   }
+
+  return isDark ? STUDIED_FILL_DARK : STUDIED_FILL_LIGHT;
 };
 
 const getTextColor = (isDark: boolean, cell: CalendarDayCell) => {
@@ -43,10 +41,10 @@ const getTextColor = (isDark: boolean, cell: CalendarDayCell) => {
   if (cell.isToday) {
     return "#FFFFFF";
   }
-  if (cell.activityLevel === 3) {
-    return isDark ? "#FFF7DB" : "#6A4300";
+  if (cell.isFuture || cell.activityLevel === 0) {
+    return isDark ? "#FFFFFF" : "#111827";
   }
-  return isDark ? "#FFFFFF" : "#111827";
+  return isDark ? "#D7E8FF" : "#0B4B96";
 };
 
 export function CalendarMonthGrid({
@@ -116,6 +114,7 @@ export function CalendarMonthGrid({
             key={cell.dateKey}
             onPress={cell.isFuture ? undefined : () => onSelectDate(cell.dateKey)}
             disabled={cell.isFuture}
+            testID={`calendar-cell-${cell.dateKey}`}
             style={[
               styles.cell,
               { backgroundColor: getBackgroundColor(isDark, cell) },

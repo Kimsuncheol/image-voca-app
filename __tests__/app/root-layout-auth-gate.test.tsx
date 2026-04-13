@@ -7,6 +7,10 @@ const mockReplace = jest.fn();
 const mockFetchSubscription = jest.fn();
 const mockResetSubscription = jest.fn();
 const mockUseAuth = jest.fn();
+const mockSetTutorialStatus = jest.fn();
+const mockResetTutorialStatus = jest.fn();
+const mockGetHasCompletedTutorial = jest.fn();
+let mockTutorialStatus = "idle";
 
 jest.mock("expo-router", () => {
   const Stack = ({ children }: { children: React.ReactNode }) => children;
@@ -81,6 +85,10 @@ jest.mock("../../src/hooks/useNotificationTapNavigation", () => ({
   useNotificationTapNavigation: jest.fn(),
 }));
 
+jest.mock("../../src/hooks/useDeviceDeletionEnforcement", () => ({
+  useDeviceDeletionEnforcement: jest.fn(),
+}));
+
 jest.mock("../../src/i18n", () => ({
   hydrateLanguage: jest.fn().mockResolvedValue(undefined),
 }));
@@ -99,6 +107,10 @@ jest.mock("../../components/common/NetworkStatusBanner", () => ({
   NetworkStatusBanner: () => null,
 }));
 
+jest.mock("../../components/common/NetworkErrorOverlay", () => ({
+  NetworkErrorOverlay: () => null,
+}));
+
 jest.mock("../../src/stores", () => ({
   useSubscriptionStore: {
     getState: () => ({
@@ -106,6 +118,19 @@ jest.mock("../../src/stores", () => ({
       resetSubscription: mockResetSubscription,
     }),
   },
+}));
+
+jest.mock("../../src/stores/tutorialStore", () => ({
+  useTutorialStore: () => ({
+    tutorialStatus: mockTutorialStatus,
+    setTutorialStatus: mockSetTutorialStatus,
+    resetTutorialStatus: mockResetTutorialStatus,
+  }),
+}));
+
+jest.mock("../../src/services/userProfileService", () => ({
+  getHasCompletedTutorial: (...args: unknown[]) =>
+    mockGetHasCompletedTutorial(...args),
 }));
 
 jest.mock("react-i18next", () => ({
@@ -117,6 +142,7 @@ jest.mock("react-i18next", () => ({
 describe("RootLayoutNav auth gating", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTutorialStatus = "idle";
     (useRouter as jest.Mock).mockReturnValue({
       replace: mockReplace,
     });
@@ -136,6 +162,7 @@ describe("RootLayoutNav auth gating", () => {
       expect(mockReplace).toHaveBeenCalledWith("/(auth)/login");
     });
     expect(mockResetSubscription).toHaveBeenCalled();
+    expect(mockResetTutorialStatus).toHaveBeenCalled();
   });
 
   it("redirects pending-verification users to the verify-email screen", async () => {
@@ -155,12 +182,14 @@ describe("RootLayoutNav auth gating", () => {
     expect(mockResetSubscription).toHaveBeenCalled();
   });
 
-  it("redirects fully signed-in users out of auth routes and fetches subscription", async () => {
+  it("redirects fully signed-in users with completed tutorial out of auth routes and fetches subscription", async () => {
     mockUseAuth.mockReturnValue({
       user: { uid: "user-2" },
       loading: false,
       authStatus: "signed_in",
     });
+    mockGetHasCompletedTutorial.mockResolvedValue(true);
+    mockTutorialStatus = "completed";
     (useSegments as jest.Mock).mockReturnValue(["(auth)", "login"]);
 
     render(<RootLayoutNav />);
@@ -168,6 +197,24 @@ describe("RootLayoutNav auth gating", () => {
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith("/(tabs)");
       expect(mockFetchSubscription).toHaveBeenCalledWith("user-2");
+    });
+  });
+
+  it("redirects signed-in users with incomplete tutorial to the tutorial screen", async () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-3" },
+      loading: false,
+      authStatus: "signed_in",
+    });
+    mockGetHasCompletedTutorial.mockResolvedValue(false);
+    mockTutorialStatus = "required";
+    (useSegments as jest.Mock).mockReturnValue(["(tabs)"]);
+
+    render(<RootLayoutNav />);
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("/tutorial");
+      expect(mockFetchSubscription).toHaveBeenCalledWith("user-3");
     });
   });
 });

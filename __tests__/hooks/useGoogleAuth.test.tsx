@@ -30,6 +30,12 @@ jest.mock("../../src/services/firebase", () => ({
   auth: {},
 }));
 
+jest.mock("../../src/context/LearningLanguageContext", () => ({
+  useLearningLanguage: () => ({
+    learningLanguage: "en",
+  }),
+}));
+
 jest.mock("../../src/services/userProfileService", () => ({
   ensureUserProfileDocument: jest.fn(),
 }));
@@ -71,6 +77,9 @@ describe("useGoogleAuth", () => {
       expect(ensureUserProfileDocument).toHaveBeenCalledWith(
         expect.objectContaining({
           uid: "google-user",
+        }),
+        expect.objectContaining({
+          learningLanguage: "en",
         }),
       );
     });

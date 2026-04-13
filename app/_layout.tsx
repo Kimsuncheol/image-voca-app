@@ -40,6 +40,8 @@ import {
 import { AppSplashScreen } from "../components/common/AppSplashScreen";
 import { NetworkErrorOverlay } from "../components/common/NetworkErrorOverlay";
 import { useSubscriptionStore } from "../src/stores";
+import { useTutorialStore } from "../src/stores/tutorialStore";
+import { getHasCompletedTutorial } from "../src/services/userProfileService";
 import { CourseType, isCourseAvailableForLanguage } from "../src/types/vocabulary";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -56,6 +58,8 @@ export function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { isDark } = useAppTheme();
   const { user, loading, authStatus } = useAuth();
+  const { tutorialStatus, setTutorialStatus, resetTutorialStatus } =
+    useTutorialStore();
   const segments = useSegments();
   const router = useRouter();
   const { t } = useTranslation();
@@ -92,9 +96,49 @@ export function RootLayoutNav() {
   }, [authStatus, loading, user]);
 
   useEffect(() => {
+    if (loading) {
+      return;
+    }
+
+    if (authStatus !== "signed_in" || !user) {
+      resetTutorialStatus();
+      return;
+    }
+
+    let isMounted = true;
+    setTutorialStatus("loading");
+
+    void getHasCompletedTutorial(user.uid)
+      .then((hasCompletedTutorial) => {
+        if (!isMounted) {
+          return;
+        }
+        setTutorialStatus(hasCompletedTutorial ? "completed" : "required");
+      })
+      .catch((error) => {
+        console.warn("Failed to resolve tutorial status:", error);
+        if (!isMounted) {
+          return;
+        }
+        setTutorialStatus("completed");
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    authStatus,
+    loading,
+    resetTutorialStatus,
+    setTutorialStatus,
+    user,
+  ]);
+
+  useEffect(() => {
     if (loading) return;
 
     const inAuthGroup = segments[0] === "(auth)";
+    const isTutorialRoute = segments[0] === "tutorial";
     const isPasswordResetRoute =
       inAuthGroup && segments[1] === "reset-password";
     const isVerifyEmailRoute =
@@ -115,13 +159,28 @@ export function RootLayoutNav() {
     }
 
     if (authStatus === "signed_in" && inAuthGroup && !isPasswordResetRoute) {
-      // Redirect to the home page if they are fully signed in.
+      if (tutorialStatus === "loading") {
+        return;
+      }
+      if (tutorialStatus === "required") {
+        router.replace("/tutorial");
+        return;
+      }
       router.replace("/(tabs)");
+    } else if (authStatus === "signed_in" && isTutorialRoute) {
+      if (tutorialStatus === "loading") {
+        return;
+      }
+      if (tutorialStatus === "completed") {
+        router.replace("/(tabs)");
+      }
+    } else if (authStatus === "signed_in" && tutorialStatus === "required") {
+      router.replace("/tutorial");
     } else if (!user && !inAuthGroup) {
       // Redirect to the login page if they are not logged in.
       router.replace("/(auth)/login");
     }
-  }, [authStatus, loading, router, segments, user]);
+  }, [authStatus, loading, router, segments, tutorialStatus, user]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -133,6 +192,7 @@ export function RootLayoutNav() {
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="tutorial" options={{ headerShown: false }} />
             <Stack.Screen name="wordbank" options={{ headerShown: false }} />
             <Stack.Screen name="course" options={{ headerShown: false }} />
             <Stack.Screen name="billing" options={{ headerShown: false }} />

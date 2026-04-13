@@ -105,6 +105,8 @@ describe("CalendarScreen history loading", () => {
   let consoleErrorSpy: jest.SpyInstance;
 
   beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 3, 8));
     jest.clearAllMocks();
     consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
     consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
@@ -126,6 +128,7 @@ describe("CalendarScreen history loading", () => {
   afterEach(() => {
     consoleLogSpy.mockRestore();
     consoleErrorSpy.mockRestore();
+    jest.useRealTimers();
   });
 
   it("clears the loading state and renders studied courses when history resolves", async () => {
