@@ -259,38 +259,6 @@ const en = {
         'Swipe through vocabulary cards and tap "Add to Word Bank" to save words here.',
     },
   },
-  tutorial: {
-    title: "Tutorial",
-    skip: "Skip",
-    next: "Next",
-    getStarted: "Get Started",
-    slides: {
-      dashboard: {
-        title: "Start from your dashboard",
-        body: "See your daily study overview, jump into quick activities, and keep your momentum visible from one place.",
-      },
-      days: {
-        title: "Choose a day and progress step by step",
-        body: "Open any course, review the day grid, and move through the curriculum in order as you complete each day.",
-      },
-      vocabulary: {
-        title: "Learn by swiping through cards",
-        body: "Study vocabulary and collocations one card at a time, save important items, and build a steady learning rhythm.",
-      },
-      wordBank: {
-        title: "Revisit saved words in Word Bank",
-        body: "Open your saved courses, review collected words, and come back to difficult vocabulary whenever you need a refresher.",
-      },
-      calendar: {
-        title: "Track your study history in Calendar",
-        body: "Check which days you studied, review streak progress, and open completed vocabulary sessions from your history.",
-      },
-      elementaryJapanese: {
-        title: "Explore Elementary Japanese modules",
-        body: "Use kana, counters, greetings, and prefix-postfix modules to build a stronger foundation for Japanese study.",
-      },
-    },
-  },
   courses: {
     vocabularyTitle: "Vocabulary",
     selectCourse: "Select a course to start learning",

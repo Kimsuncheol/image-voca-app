@@ -1,8 +1,4 @@
-import {
-  ensureUserProfileDocument,
-  getHasCompletedTutorial,
-  markTutorialCompleted,
-} from "../../src/services/userProfileService";
+import { ensureUserProfileDocument } from "../../src/services/userProfileService";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
 jest.mock("firebase/firestore", () => ({
@@ -47,7 +43,6 @@ describe("ensureUserProfileDocument", () => {
         role: "student",
         wordBank: [],
         recentCourse: null,
-        tutorialCompletedAt: null,
       }),
       { merge: true },
     );
@@ -111,27 +106,6 @@ describe("ensureUserProfileDocument", () => {
         createdAt: "2026-01-01T00:00:00.000Z",
         wordBank: ["already-saved"],
         recentCourse: "TOEIC",
-        tutorialCompletedAt: null,
-      }),
-      { merge: true },
-    );
-  });
-
-  it("returns tutorial completion state from the stored profile", async () => {
-    (getDoc as jest.Mock).mockResolvedValueOnce(
-      mockSnapshot({ tutorialCompletedAt: "2026-04-14T00:00:00.000Z" }),
-    );
-
-    await expect(getHasCompletedTutorial("user-3")).resolves.toBe(true);
-  });
-
-  it("marks tutorial completion with a merged timestamp", async () => {
-    await markTutorialCompleted("user-4");
-
-    expect(setDoc).toHaveBeenCalledWith(
-      "users/user-4",
-      expect.objectContaining({
-        tutorialCompletedAt: expect.any(String),
       }),
       { merge: true },
     );
