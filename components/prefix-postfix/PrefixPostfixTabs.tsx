@@ -9,10 +9,9 @@ export type Tab = "prefix" | "postfix";
 interface Props {
   tab: Tab;
   setTab: (tab: Tab) => void;
-  setSearch: (text: string) => void;
 }
 
-export function PrefixPostfixTabs({ tab, setTab, setSearch }: Props) {
+export function PrefixPostfixTabs({ tab, setTab }: Props) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
 
@@ -41,7 +40,6 @@ export function PrefixPostfixTabs({ tab, setTab, setSearch }: Props) {
             ]}
             onPress={() => {
               setTab(id);
-              setSearch("");
             }}
             activeOpacity={0.75}
           >

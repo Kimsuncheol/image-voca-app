@@ -7,14 +7,12 @@ import { useTheme } from "../src/context/ThemeContext";
 import { getPrefixPostfixData } from "../src/services/prefixPostfixService";
 import type { PostfixWord, PrefixWord } from "../src/types/prefixPostfix";
 
-import { PrefixPostfixSearch } from "../components/prefix-postfix/PrefixPostfixSearch";
 import { PrefixPostfixTabs } from "../components/prefix-postfix/PrefixPostfixTabs";
 import { PrefixPostfixList } from "../components/prefix-postfix/PrefixPostfixList";
 import type { Tab } from "../components/prefix-postfix/PrefixPostfixTabs";
 
 export default function PrefixPostfixScreen() {
   const [tab, setTab] = useState<Tab>("prefix");
-  const [search, setSearch] = useState("");
   const [prefixes, setPrefixes] = useState<PrefixWord[]>([]);
   const [postfixes, setPostfixes] = useState<PostfixWord[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -74,13 +72,10 @@ export default function PrefixPostfixScreen() {
         }}
       />
 
-      <PrefixPostfixSearch search={search} setSearch={setSearch} />
-      
-      <PrefixPostfixTabs tab={tab} setTab={setTab} setSearch={setSearch} />
+      <PrefixPostfixTabs tab={tab} setTab={setTab} />
 
       <PrefixPostfixList 
         tab={tab} 
-        search={search} 
         data={data} 
         loading={loading} 
         error={error} 

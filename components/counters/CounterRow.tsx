@@ -1,11 +1,13 @@
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
 import type { CounterWord } from "../../src/types/counters";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { splitJapaneseTextSegments, stripKanaParens } from "../../src/utils/japaneseText";
 import { speakWordVariants } from "../../src/utils/wordVariants";
+import { ElementaryTableRow } from "../elementary-japanese/ElementaryTable";
 import { buildGroupedLines } from "../prefix-postfix/utils";
 import { ThemedText } from "../themed-text";
 
@@ -23,14 +25,6 @@ export function CounterRow({ item, index, showFurigana }: Props) {
 
   const primaryText = isDark ? "#fff" : "#2a3437";
   const mutedText = isDark ? "#8e8e93" : "#6e6e73";
-  const rowBg =
-    index % 2 === 0
-      ? isDark
-        ? "#000"
-        : "#fff"
-      : isDark
-        ? "#111"
-        : "#f0f4f6";
 
   const word = item.word;
   const meaning = isKorean ? item.meaningKorean : item.meaningEnglish;
@@ -78,7 +72,7 @@ export function CounterRow({ item, index, showFurigana }: Props) {
   );
 
   return (
-    <View style={[styles.row, { backgroundColor: rowBg }]}>
+    <ElementaryTableRow index={index}>
       <View style={[styles.cell, styles.counterColumn]}>
         <TouchableOpacity onPress={() => void handleSpeakWord()} activeOpacity={0.7}>
           <ThemedText style={[styles.wordText, { color: primaryText }]}>
@@ -184,16 +178,11 @@ export function CounterRow({ item, index, showFurigana }: Props) {
           </>
         )}
       </View>
-    </View>
+    </ElementaryTableRow>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
   cell: {
     paddingRight: 4,
   },

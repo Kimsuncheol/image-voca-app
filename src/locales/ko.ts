@@ -39,7 +39,18 @@ const ko = {
       counters: {
         description: "예문과 함께 일본어 조수사를 카테고리별로 살펴보세요.",
       },
+      greeting: {
+        description: "일상 대화에서 자주 쓰는 일본어 인사를 학습하세요.",
+      },
     },
+  },
+  greetings: {
+    title: "인사",
+    subtitle:
+      "기본 일본어 인사를 익히고 문장을 눌러 발음을 들어보세요.",
+    colWord: "단어",
+    colMeaning: "뜻",
+    colPronunciation: "발음",
   },
   settings: {
     title: "설정",

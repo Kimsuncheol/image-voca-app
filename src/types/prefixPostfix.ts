@@ -4,9 +4,7 @@ export interface PrefixWord {
   meaningEnglish: string;
   meaningKorean: string;
   pronunciation: string;
-  pronunciationRoman: string;
   example: string;
-  exampleRoman: string;
   translationEnglish: string;
   translationKorean: string;
 }
@@ -17,9 +15,7 @@ export interface PostfixWord {
   meaningEnglish: string;
   meaningKorean: string;
   pronunciation: string;
-  pronunciationRoman: string;
   example: string;
-  exampleRoman: string;
   translationEnglish: string;
   translationKorean: string;
 }

@@ -40,7 +40,18 @@ const en = {
       counters: {
         description: "Browse Japanese counters by category with examples.",
       },
+      greeting: {
+        description: "Study essential Japanese greetings used in daily conversation.",
+      },
     },
+  },
+  greetings: {
+    title: "Greetings",
+    subtitle:
+      "Study essential everyday Japanese greetings and tap any phrase to hear it spoken.",
+    colWord: "WORD",
+    colMeaning: "MEANING",
+    colPronunciation: "PRONUNCIATION",
   },
   settings: {
     title: "Settings",

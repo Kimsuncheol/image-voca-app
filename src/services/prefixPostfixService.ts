@@ -45,11 +45,7 @@ const mapPrefixWord = (
     typeof data.meaningKorean === "string" ? data.meaningKorean : "",
   pronunciation:
     typeof data.pronunciation === "string" ? data.pronunciation : "",
-  pronunciationRoman:
-    typeof data.pronunciationRoman === "string" ? data.pronunciationRoman : "",
   example: typeof data.example === "string" ? data.example : "",
-  exampleRoman:
-    typeof data.exampleRoman === "string" ? data.exampleRoman : "",
   translationEnglish:
     typeof data.translationEnglish === "string" ? data.translationEnglish : "",
   translationKorean:
@@ -68,11 +64,7 @@ const mapPostfixWord = (
     typeof data.meaningKorean === "string" ? data.meaningKorean : "",
   pronunciation:
     typeof data.pronunciation === "string" ? data.pronunciation : "",
-  pronunciationRoman:
-    typeof data.pronunciationRoman === "string" ? data.pronunciationRoman : "",
   example: typeof data.example === "string" ? data.example : "",
-  exampleRoman:
-    typeof data.exampleRoman === "string" ? data.exampleRoman : "",
   translationEnglish:
     typeof data.translationEnglish === "string" ? data.translationEnglish : "",
   translationKorean:

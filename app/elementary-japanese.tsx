@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "../components/themed-text";
@@ -63,10 +63,20 @@ export default function ElementaryJapaneseScreen() {
   const { isDark } = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
+  const bg = isDark ? "#000" : "#f2f2f7";
+  const heroCardBg = isDark ? "#121318" : "#ffffff";
+  const accentBg = isDark ? "#1f2f4c" : "#dbeafe";
+  const accentText = isDark ? "#c6dbff" : "#1d4ed8";
+  const subtitleColor = isDark
+    ? "rgba(255,255,255,0.66)"
+    : "rgba(17,24,39,0.65)";
+  const sectionLabelColor = isDark
+    ? "rgba(255,255,255,0.54)"
+    : "rgba(17,24,39,0.5)";
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      style={[styles.container, { backgroundColor: bg }]}
       edges={["bottom"]}
     >
       <Stack.Screen
@@ -78,7 +88,54 @@ export default function ElementaryJapaneseScreen() {
         }}
       />
 
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={[styles.heroCard, { backgroundColor: heroCardBg }]}>
+          <View style={styles.heroTopRow}>
+            <View style={[styles.accentPill, { backgroundColor: accentBg }]}>
+              <ThemedText style={[styles.accentPillText, { color: accentText }]}>
+                {t("elementaryJapanese.title", {
+                  defaultValue: "Elementary Japanese",
+                })}
+              </ThemedText>
+            </View>
+            <View style={styles.heroDots}>
+              <View
+                style={[
+                  styles.heroDotLarge,
+                  { backgroundColor: isDark ? "#2563eb" : "#60a5fa" },
+                ]}
+              />
+              <View
+                style={[
+                  styles.heroDotSmall,
+                  { backgroundColor: isDark ? "#1d4ed8" : "#bfdbfe" },
+                ]}
+              />
+            </View>
+          </View>
+
+          <View style={styles.heroTextGroup}>
+            <ThemedText type="title">
+              {t("elementaryJapanese.title", {
+                defaultValue: "Elementary Japanese",
+              })}
+            </ThemedText>
+            <ThemedText style={[styles.subtitle, { color: subtitleColor }]}>
+              {t("elementaryJapanese.subtitle", {
+                defaultValue: "Start with characters and core building blocks",
+              })}
+            </ThemedText>
+          </View>
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <ThemedText style={[styles.sectionLabel, { color: sectionLabelColor }]}>
+            {t("elementaryJapanese.title", {
+              defaultValue: "Elementary Japanese",
+            })}
+          </ThemedText>
+        </View>
+
         <View style={styles.list}>
           <ModuleCard
             title={t("kana.title", { defaultValue: "Hiragana & Katakana" })}
@@ -107,8 +164,17 @@ export default function ElementaryJapaneseScreen() {
             onPress={() => router.push("/counters")}
             isDark={isDark}
           />
+          <ModuleCard
+            title={t("greetings.title", { defaultValue: "Greetings" })}
+            description={t("elementaryJapanese.modules.greeting.description", {
+              defaultValue: "Study essential Japanese greetings used in daily conversation.",
+            })}
+            icon="chatbubble-ellipses-outline"
+            onPress={() => router.push("/japanese-greetings" as never)}
+            isDark={isDark}
+          />
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -118,8 +184,61 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 28,
+  },
+  heroCard: {
+    borderRadius: 28,
+    gap: 18,
     padding: 20,
-    gap: 24,
+  },
+  heroTopRow: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  accentPill: {
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  accentPillText: {
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  heroDots: {
+    alignItems: "flex-end",
+    gap: 8,
+    minWidth: 44,
+  },
+  heroDotLarge: {
+    borderRadius: 999,
+    height: 14,
+    width: 14,
+  },
+  heroDotSmall: {
+    borderRadius: 999,
+    height: 8,
+    width: 28,
+  },
+  heroTextGroup: {
+    gap: 10,
+  },
+  subtitle: {
+    fontSize: 15,
+    lineHeight: 22,
+    maxWidth: "92%",
+  },
+  sectionHeader: {
+    paddingTop: 18,
+    paddingBottom: 8,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
   },
   list: {
     gap: 16,

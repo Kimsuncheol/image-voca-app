@@ -1,13 +1,15 @@
-import React, { useCallback } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { ThemedText } from '../themed-text';
-import { useTheme } from '../../src/context/ThemeContext';
-import { useTranslation } from 'react-i18next';
-import type { PrefixWord, PostfixWord } from '../../src/types/prefixPostfix';
-import { buildGroupedLines } from './utils';
-import type { Tab } from './PrefixPostfixTabs';
-import { useSpeech } from '../../src/hooks/useSpeech';
-import { speakWordVariants } from '../../src/utils/wordVariants';
+import React, { useCallback } from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
+
+import { useTheme } from "../../src/context/ThemeContext";
+import { useSpeech } from "../../src/hooks/useSpeech";
+import type { PostfixWord, PrefixWord } from "../../src/types/prefixPostfix";
+import { speakWordVariants } from "../../src/utils/wordVariants";
+import { ElementaryTableRow } from "../elementary-japanese/ElementaryTable";
+import { ThemedText } from "../themed-text";
+import type { Tab } from "./PrefixPostfixTabs";
+import { buildGroupedLines } from "./utils";
 
 interface Props {
   item: PrefixWord | PostfixWord;
@@ -23,10 +25,6 @@ export function PrefixPostfixRow({ item, tab, index }: Props) {
 
   const primaryText = isDark ? "#fff" : "#2a3437";
   const mutedText = isDark ? "#8e8e93" : "#6e6e73";
-  const rowBg =
-    index % 2 === 0
-      ? isDark ? "#000" : "#fff"
-      : isDark ? "#111" : "#f0f4f6";
 
   const word =
     tab === "prefix"
@@ -34,13 +32,8 @@ export function PrefixPostfixRow({ item, tab, index }: Props) {
       : (item as PostfixWord).postfix;
   const meaning = isKorean ? item.meaningKorean : item.meaningEnglish;
   const translation = `${item.translationEnglish}(${item.translationKorean})`;
-  const pronunciationGroups = buildGroupedLines(
-    item.pronunciation,
-  );
-  const exampleGroups = buildGroupedLines(
-    item.example,
-    item.translationEnglish,
-  );
+  const pronunciationGroups = buildGroupedLines(item.pronunciation);
+  const exampleGroups = buildGroupedLines(item.example, item.translationEnglish);
 
   const handleSpeak = useCallback(async () => {
     try {
@@ -51,7 +44,7 @@ export function PrefixPostfixRow({ item, tab, index }: Props) {
   }, [speak, word]);
 
   return (
-    <View style={[styles.row, { backgroundColor: rowBg }]}>
+    <ElementaryTableRow index={index}>
       {/* Prefix / Postfix */}
       <View style={[styles.cell, styles.wordColumn]}>
         <TouchableOpacity onPress={handleSpeak} activeOpacity={0.7}>
@@ -88,11 +81,15 @@ export function PrefixPostfixRow({ item, tab, index }: Props) {
             </View>
           ))
         ) : (
-          <>
-            <ThemedText style={[styles.bodyText, styles.leftAlignedText, { color: primaryText }]}>
-              {item.pronunciation}
-            </ThemedText>
-          </>
+          <ThemedText
+            style={[
+              styles.bodyText,
+              styles.leftAlignedText,
+              { color: primaryText },
+            ]}
+          >
+            {item.pronunciation}
+          </ThemedText>
         )}
       </View>
 
@@ -126,7 +123,13 @@ export function PrefixPostfixRow({ item, tab, index }: Props) {
           ))
         ) : (
           <>
-            <ThemedText style={[styles.exampleText, styles.leftAlignedText, { color: primaryText }]}>
+            <ThemedText
+              style={[
+                styles.exampleText,
+                styles.leftAlignedText,
+                { color: primaryText },
+              ]}
+            >
               {item.example}
             </ThemedText>
             <ThemedText style={[styles.subText, styles.leftAlignedText, { color: mutedText }]}>
@@ -135,16 +138,11 @@ export function PrefixPostfixRow({ item, tab, index }: Props) {
           </>
         )}
       </View>
-    </View>
+    </ElementaryTableRow>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
   cell: {
     paddingRight: 4,
   },

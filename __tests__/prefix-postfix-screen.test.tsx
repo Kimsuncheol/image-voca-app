@@ -48,7 +48,6 @@ jest.mock("react-i18next", () => ({
         "prefixPostfix.loadError":
           options?.defaultValue ?? "Unable to load prefix/postfix data.",
         "prefixPostfix.loading": options?.defaultValue ?? "Loading...",
-        "prefixPostfix.searchPlaceholder": "Search prefixes & postfixes...",
         "prefixPostfix.tabPostfix": "Postfix",
         "prefixPostfix.tabPrefix": "Prefix",
         "prefixPostfix.title": "Prefix & Postfix",
@@ -70,9 +69,7 @@ describe("PrefixPostfixScreen", () => {
           meaningEnglish: "nature / property / -ness",
           meaningKorean: "~성, 성질",
           pronunciation: "1. せい\n2. しょう",
-          pronunciationRoman: "1. sei\n2. shō",
           example: "1. 安全性\n2. 可能性",
-          exampleRoman: "1. anzensei\n2. kanōsei",
           translationEnglish: "1. safety\n2. possibility",
           translationKorean: "1. 안전성\n2. 가능성",
         },
@@ -84,9 +81,7 @@ describe("PrefixPostfixScreen", () => {
           meaningEnglish: "absence / lack",
           meaningKorean: "없음·무",
           pronunciation: "1. む\n2. ぶ",
-          pronunciationRoman: "1. mu\n2. bu",
           example: "1. 無料\n2. 無関係",
-          exampleRoman: "1. muryō\n2. mukankei",
           translationEnglish: "1. free of charge\n2. unrelated",
           translationKorean: "1. 무료\n2. 무관계",
         },
@@ -101,7 +96,6 @@ describe("PrefixPostfixScreen", () => {
       expect(screen.getByText("無-")).toBeTruthy();
       expect(screen.getByText("absence / lack")).toBeTruthy();
       expect(screen.getByText("1. 無料")).toBeTruthy();
-      expect(screen.getByText("1. muryō")).toBeTruthy();
       expect(screen.getByText("1. free of charge")).toBeTruthy();
       expect(screen.getByText("2. 無関係")).toBeTruthy();
     });
@@ -111,7 +105,6 @@ describe("PrefixPostfixScreen", () => {
     await waitFor(() => {
       expect(screen.getByText("-性")).toBeTruthy();
       expect(screen.getByText("1. 安全性")).toBeTruthy();
-      expect(screen.getByText("1. anzensei")).toBeTruthy();
       expect(screen.getByText("1. safety")).toBeTruthy();
       expect(screen.getByText("2. 可能性")).toBeTruthy();
     });
@@ -130,26 +123,14 @@ describe("PrefixPostfixScreen", () => {
     expect(screen.getByText("1. free of charge")).toBeTruthy();
   });
 
-  it("filters loaded data using the search input", async () => {
+  it("does not render the search input", async () => {
     const screen = render(<PrefixPostfixScreen />);
 
     await waitFor(() => {
       expect(screen.getByText("無-")).toBeTruthy();
     });
 
-    fireEvent.changeText(
-      screen.getByPlaceholderText("Search prefixes & postfixes..."),
-      "lack",
-    );
-
-    expect(screen.getByText("無-")).toBeTruthy();
-
-    fireEvent.changeText(
-      screen.getByPlaceholderText("Search prefixes & postfixes..."),
-      "missing-result",
-    );
-
-    expect(screen.queryByText("無-")).toBeNull();
+    expect(screen.queryByPlaceholderText("Search prefixes & postfixes...")).toBeNull();
   });
 
   it("shows an error message instead of fallback content when the Firestore fetch fails", async () => {
@@ -181,7 +162,7 @@ describe("PrefixPostfixScreen", () => {
     });
   });
 
-  it("falls back to raw multiline blocks when numbering is missing or mismatched", async () => {
+  it("renders grouped numbered example and translation lines without romanization fields", async () => {
     mockGetPrefixPostfixData.mockResolvedValueOnce({
       postfixes: [],
       prefixes: [
@@ -191,9 +172,7 @@ describe("PrefixPostfixScreen", () => {
           meaningEnglish: "polite",
           meaningKorean: "공손",
           pronunciation: "お / ご",
-          pronunciationRoman: "o / go",
           example: "1. お名前\n2. ご案内",
-          exampleRoman: "onamae",
           translationEnglish: "1. name\n2. guidance",
           translationKorean: "1. 이름\n2. 안내",
         },
@@ -204,9 +183,10 @@ describe("PrefixPostfixScreen", () => {
 
     await waitFor(() => {
       expect(screen.getByText("お / ご")).toBeTruthy();
-      expect(screen.getByText("o / go")).toBeTruthy();
-      expect(screen.getByText("1. お名前\n2. ご案内")).toBeTruthy();
-      expect(screen.getByText("1. name\n2. guidance(1. 이름\n2. 안내)")).toBeTruthy();
+      expect(screen.getByText("1. お名前")).toBeTruthy();
+      expect(screen.getByText("2. ご案内")).toBeTruthy();
+      expect(screen.getByText("1. name")).toBeTruthy();
+      expect(screen.getByText("2. guidance")).toBeTruthy();
     });
   });
 });

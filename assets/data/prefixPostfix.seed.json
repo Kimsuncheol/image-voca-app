@@ -6,9 +6,7 @@
       "meaningEnglish": "polite / honorific",
       "meaningKorean": "공손·존칭",
       "pronunciation": "お / ご",
-      "pronunciationRoman": "o / go",
       "example": "お名前",
-      "exampleRoman": "onamae",
       "translationEnglish": "name (honorific)",
       "translationKorean": "성함"
     },
@@ -18,9 +16,7 @@
       "meaningEnglish": "absence / lack",
       "meaningKorean": "없음·무",
       "pronunciation": "む",
-      "pronunciationRoman": "mu",
       "example": "無料",
-      "exampleRoman": "muryō",
       "translationEnglish": "free of charge",
       "translationKorean": "무료"
     },
@@ -30,9 +26,7 @@
       "meaningEnglish": "non- / un-",
       "meaningKorean": "불·부정",
       "pronunciation": "ふ",
-      "pronunciationRoman": "fu",
       "example": "不便",
-      "exampleRoman": "fuben",
       "translationEnglish": "inconvenient",
       "translationKorean": "불편"
     },
@@ -42,9 +36,7 @@
       "meaningEnglish": "not yet",
       "meaningKorean": "미·아직 ~않음",
       "pronunciation": "み",
-      "pronunciationRoman": "mi",
       "example": "未完成",
-      "exampleRoman": "mikansei",
       "translationEnglish": "incomplete",
       "translationKorean": "미완성"
     },
@@ -54,9 +46,7 @@
       "meaningEnglish": "again / re-",
       "meaningKorean": "재·다시",
       "pronunciation": "さい",
-      "pronunciationRoman": "sai",
       "example": "再利用",
-      "exampleRoman": "sairiyō",
       "translationEnglish": "reuse",
       "translationKorean": "재이용"
     },
@@ -66,9 +56,7 @@
       "meaningEnglish": "super / ultra-",
       "meaningKorean": "초·매우",
       "pronunciation": "ちょう",
-      "pronunciationRoman": "chō",
       "example": "超満員",
-      "exampleRoman": "chōman'in",
       "translationEnglish": "overcrowded",
       "translationKorean": "초만원"
     },
@@ -78,9 +66,7 @@
       "meaningEnglish": "new",
       "meaningKorean": "신·새로운",
       "pronunciation": "しん",
-      "pronunciationRoman": "shin",
       "example": "新商品",
-      "exampleRoman": "shinshōhin",
       "translationEnglish": "new product",
       "translationKorean": "신상품"
     },
@@ -90,9 +76,7 @@
       "meaningEnglish": "former / old",
       "meaningKorean": "구·옛",
       "pronunciation": "きゅう",
-      "pronunciationRoman": "kyū",
       "example": "旧友",
-      "exampleRoman": "kyūyū",
       "translationEnglish": "old friend",
       "translationKorean": "옛 친구"
     },
@@ -102,9 +86,7 @@
       "meaningEnglish": "first / initial",
       "meaningKorean": "초·처음",
       "pronunciation": "はつ",
-      "pronunciationRoman": "hatsu",
       "example": "初公開",
-      "exampleRoman": "hatsukōkai",
       "translationEnglish": "first public showing",
       "translationKorean": "첫 공개"
     },
@@ -114,9 +96,7 @@
       "meaningEnglish": "each / every",
       "meaningKorean": "각·각각의",
       "pronunciation": "かく",
-      "pronunciationRoman": "kaku",
       "example": "各国",
-      "exampleRoman": "kakkoku",
       "translationEnglish": "each country",
       "translationKorean": "각국"
     },
@@ -126,9 +106,7 @@
       "meaningEnglish": "whole / all",
       "meaningKorean": "전·전체",
       "pronunciation": "ぜん",
-      "pronunciationRoman": "zen",
       "example": "全国",
-      "exampleRoman": "zenkoku",
       "translationEnglish": "the whole country",
       "translationKorean": "전국"
     },
@@ -138,9 +116,7 @@
       "meaningEnglish": "half / semi-",
       "meaningKorean": "반·절반",
       "pronunciation": "はん",
-      "pronunciationRoman": "han",
       "example": "半額",
-      "exampleRoman": "hangaku",
       "translationEnglish": "half price",
       "translationKorean": "반값"
     },
@@ -150,9 +126,7 @@
       "meaningEnglish": "anti- / counter-",
       "meaningKorean": "반·대항",
       "pronunciation": "はん",
-      "pronunciationRoman": "han",
       "example": "反対",
-      "exampleRoman": "hantai",
       "translationEnglish": "opposition",
       "translationKorean": "반대"
     }
@@ -164,9 +138,7 @@
       "meaningEnglish": "-al / -like",
       "meaningKorean": "~적, ~다운",
       "pronunciation": "てき",
-      "pronunciationRoman": "teki",
       "example": "具体的",
-      "exampleRoman": "gutaiteki",
       "translationEnglish": "concrete / specific",
       "translationKorean": "구체적인"
     },
@@ -176,9 +148,7 @@
       "meaningEnglish": "change / -ization",
       "meaningKorean": "~화, ~하게 함",
       "pronunciation": "か",
-      "pronunciationRoman": "ka",
       "example": "国際化",
-      "exampleRoman": "kokusaika",
       "translationEnglish": "internationalization",
       "translationKorean": "국제화"
     },
@@ -188,9 +158,7 @@
       "meaningEnglish": "nature / property / -ness",
       "meaningKorean": "~성, 성질",
       "pronunciation": "せい",
-      "pronunciationRoman": "sei",
       "example": "安全性",
-      "exampleRoman": "anzensei",
       "translationEnglish": "safety",
       "translationKorean": "안전성"
     },
@@ -200,9 +168,7 @@
       "meaningEnglish": "ability / power",
       "meaningKorean": "~력, 능력",
       "pronunciation": "りょく",
-      "pronunciationRoman": "ryoku",
       "example": "想像力",
-      "exampleRoman": "sōzōryoku",
       "translationEnglish": "imagination",
       "translationKorean": "상상력"
     },
@@ -212,9 +178,7 @@
       "meaningEnglish": "feeling / sense",
       "meaningKorean": "~감, 느낌",
       "pronunciation": "かん",
-      "pronunciationRoman": "kan",
       "example": "存在感",
-      "exampleRoman": "sonzaikan",
       "translationEnglish": "presence",
       "translationKorean": "존재감"
     },
@@ -224,9 +188,7 @@
       "meaningEnglish": "during / in the middle of",
       "meaningKorean": "~중, 한창 ~하는 중",
       "pronunciation": "ちゅう",
-      "pronunciationRoman": "chū",
       "example": "会議中",
-      "exampleRoman": "kaigichū",
       "translationEnglish": "in a meeting",
       "translationKorean": "회의 중"
     },
@@ -236,9 +198,7 @@
       "meaningEnglish": "for / intended for",
       "meaningKorean": "~용, ~을 위한",
       "pronunciation": "よう",
-      "pronunciationRoman": "yō",
       "example": "家庭用",
-      "exampleRoman": "kateiyō",
       "translationEnglish": "for household use",
       "translationKorean": "가정용"
     },
@@ -248,9 +208,7 @@
       "meaningEnglish": "style / system",
       "meaningKorean": "~식, 방식",
       "pronunciation": "しき",
-      "pronunciationRoman": "shiki",
       "example": "日本式",
-      "exampleRoman": "nihonshiki",
       "translationEnglish": "Japanese style",
       "translationKorean": "일본식"
     },
@@ -260,9 +218,7 @@
       "meaningEnglish": "person / practitioner",
       "meaningKorean": "~자, ~하는 사람",
       "pronunciation": "しゃ",
-      "pronunciationRoman": "sha",
       "example": "経験者",
-      "exampleRoman": "keikensha",
       "translationEnglish": "experienced person",
       "translationKorean": "경험자"
     },
@@ -272,9 +228,7 @@
       "meaningEnglish": "specialist / professional",
       "meaningKorean": "~가, 전문가",
       "pronunciation": "か",
-      "pronunciationRoman": "ka",
       "example": "音楽家",
-      "exampleRoman": "ongakuka",
       "translationEnglish": "musician",
       "translationKorean": "음악가"
     },
@@ -284,9 +238,7 @@
       "meaningEnglish": "shop / seller",
       "meaningKorean": "가게, ~파는 사람",
       "pronunciation": "や",
-      "pronunciationRoman": "ya",
       "example": "本屋",
-      "exampleRoman": "honya",
       "translationEnglish": "bookstore",
       "translationKorean": "서점"
     },
@@ -296,9 +248,7 @@
       "meaningEnglish": "fee / charge",
       "meaningKorean": "요금, 비용",
       "pronunciation": "りょう",
-      "pronunciationRoman": "ryō",
       "example": "参加料",
-      "exampleRoman": "sankaryō",
       "translationEnglish": "participation fee",
       "translationKorean": "참가비"
     }

@@ -174,6 +174,14 @@ export function RootLayoutNav() {
               }}
             />
             <Stack.Screen
+              name="japanese-greetings"
+              options={{
+                title: t("greetings.title", {
+                  defaultValue: "Greetings",
+                }),
+              }}
+            />
+            <Stack.Screen
               name="counter-category"
               options={{
                 title: t("counters.title", {

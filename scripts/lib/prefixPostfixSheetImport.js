@@ -30,9 +30,7 @@ function mapPrefixRows(rows) {
       meaningEnglish: row["meaning(english)"] ?? "",
       meaningKorean: row["meaning(korean)"] ?? "",
       pronunciation: row["pronunciation"] ?? "",
-      pronunciationRoman: row["pronunciation(roman)"] ?? "",
       example: row["example"] ?? "",
-      exampleRoman: row["example(roman)"] ?? "",
       translationEnglish: row["translation(english)"] ?? "",
       translationKorean: row["translation(korean)"] ?? "",
     };
@@ -49,9 +47,7 @@ function mapPostfixRows(rows) {
       meaningEnglish: row["meaning(english)"] ?? "",
       meaningKorean: row["meaning(korean)"] ?? "",
       pronunciation: row["pronunciation"] ?? "",
-      pronunciationRoman: row["pronunciation(roman)"] ?? "",
       example: row["example"] ?? "",
-      exampleRoman: row["example(roman)"] ?? "",
       translationEnglish: row["translation(english)"] ?? "",
       translationKorean: row["translation(korean)"] ?? "",
     };

@@ -39,7 +39,18 @@ const ja = {
       counters: {
         description: "日本語の助数詞をカテゴリ別に例文と一緒に確認します。",
       },
+      greeting: {
+        description: "日常会話でよく使う日本語の挨拶を学習します。",
+      },
     },
+  },
+  greetings: {
+    title: "あいさつ",
+    subtitle:
+      "基本的な日本語のあいさつを確認し、タップして発音を聞きましょう。",
+    colWord: "単語",
+    colMeaning: "意味",
+    colPronunciation: "発音",
   },
   settings: {
     title: "設定",
