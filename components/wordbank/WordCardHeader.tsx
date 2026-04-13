@@ -55,7 +55,7 @@ export function WordCardHeader({
             isMultilineWord && styles.wordTitleMultiline,
             { fontSize: titleFontSize, lineHeight: titleLineHeight },
           ]}
-          numberOfLines={isMultilineWord ? undefined : 1}
+          numberOfLines={undefined}
         >
           {variant}
         </ThemedText>
@@ -98,18 +98,20 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     gap: 8,
     flex: 1,
+    minWidth: 0,
   },
   wordTitleButton: {
-    flexShrink: 1,
+    flex: 1,
     minWidth: 0,
   },
   wordTitleTextContainer: {
-    flexShrink: 1,
+    flex: 1,
     minWidth: 0,
   },
   wordTitle: {
     fontSize: 22,
     flexShrink: 1,
+    flexWrap: "wrap",
   },
   wordTitleMultiline: {
     lineHeight: 28,
@@ -121,6 +123,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 8,
     backgroundColor: "rgba(0, 122, 255, 0.1)",
+    flexShrink: 0,
   },
   pronunciation: {
     fontSize: 14,

@@ -14,6 +14,13 @@ jest.mock("../src/hooks/useSpeech", () => ({
   }),
 }));
 
+jest.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string, options?: { defaultValue?: string }) =>
+      options?.defaultValue ?? key,
+  }),
+}));
+
 jest.mock("../components/themed-text", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");

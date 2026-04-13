@@ -18,6 +18,8 @@ const ko = {
     retry: "다시하기",
     loading: "로딩중...",
     delete: "삭제",
+    expand: "펼치기",
+    collapse: "접기",
   },
   tabs: {
     dashboard: "대시보드",

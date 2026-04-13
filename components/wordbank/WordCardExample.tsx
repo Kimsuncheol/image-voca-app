@@ -1,10 +1,40 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
+import { toDialogueTurns } from "../../src/utils/roleplayUtils";
 import { formatSynonyms } from "../../src/utils/synonyms";
 import { ThemedText } from "../themed-text";
+
+const LEGACY_COLLAPSE_THRESHOLD = 4;
+const COLLAPSED_VISIBLE_COUNT = 3;
+const CHARACTER_MIN_WIDTH = 88;
+const CHARACTER_MAX_WIDTH = 120;
+const CHARACTER_WIDTH_PER_CHAR = 8;
+const CHARACTER_BASE_WIDTH = 20;
+
+function splitExampleLines(content?: string): string[] {
+  return content
+    ? content
+        .split("\n")
+        .filter((line) => line.trim())
+        .map((line) => line.replace(/^\d+\.\s*/, "").trim())
+    : [];
+}
+
+function splitCharacterWords(character: string): string[] {
+  return character.trim().split(/\s+/).filter(Boolean);
+}
+
+function formatCharacterLabel(character: string): string {
+  return splitCharacterWords(character).join("\n");
+}
 
 interface WordCardExampleProps {
   example: string;
@@ -15,12 +45,9 @@ interface WordCardExampleProps {
   course?: string;
   isDark?: boolean;
   speakLanguage?: string;
+  expandToContent?: boolean;
 }
 
-/**
- * Example section of the word card
- * Displays example sentences and translations with TTS support
- */
 export function WordCardExample({
   example,
   exampleHurigana,
@@ -30,42 +57,97 @@ export function WordCardExample({
   course,
   isDark = false,
   speakLanguage = "en-US",
+  expandToContent = false,
 }: WordCardExampleProps) {
   const { speak } = useSpeech();
   useCardSpeechCleanup();
   const { t } = useTranslation();
+  const isCollocation = course === "COLLOCATION";
+  const [isExpanded, setIsExpanded] = React.useState(false);
 
-  const examples = example
-    ? example
-        .split("\n")
-        .filter((e) => e.trim())
-        .map((e) => e.replace(/^\d+\.\s*/, "").trim())
-    : [];
-  const huriganaLines = exampleHurigana
-    ? exampleHurigana
-        .split("\n")
-        .filter((e) => e.trim())
-        .map((e) => e.replace(/^\d+\.\s*/, "").trim())
-    : [];
-  const translations = translation
-    ? translation
-        .split("\n")
-        .filter((t) => t.trim())
-        .map((t) => t.replace(/^\d+\.\s*/, "").trim())
-    : [];
-  const formattedSynonyms =
-    course === "TOEFL_IELTS" ? formatSynonyms(synonyms) : undefined;
+  const examples = React.useMemo(() => splitExampleLines(example), [example]);
+  const huriganaLines = React.useMemo(
+    () => splitExampleLines(exampleHurigana),
+    [exampleHurigana],
+  );
+  const translations = React.useMemo(
+    () => splitExampleLines(translation),
+    [translation],
+  );
+  const formattedSynonyms = React.useMemo(
+    () => (course === "TOEFL_IELTS" ? formatSynonyms(synonyms) : undefined),
+    [course, synonyms],
+  );
 
-  const handleSpeak = async (text: string) => {
-    try {
-      await speak(text, { language: speakLanguage, pitch: 1.0 });
-    } catch (error) {
-      console.error("TTS error:", error);
-    }
-  };
+  const exampleTurns = React.useMemo(
+    () => (isCollocation ? toDialogueTurns(example) : []),
+    [example, isCollocation],
+  );
+  const translationTurns = React.useMemo(
+    () => (isCollocation ? toDialogueTurns(translation || "") : []),
+    [isCollocation, translation],
+  );
+  const huriganaTurns = React.useMemo(
+    () => (isCollocation ? toDialogueTurns(exampleHurigana || "") : []),
+    [exampleHurigana, isCollocation],
+  );
 
-  return (
-    <View testID="word-card-example-content" style={styles.container}>
+  const collocationItems = React.useMemo(
+    () =>
+      exampleTurns.map((turn, index) => ({
+        character: turn.role || "",
+        characterLabel: formatCharacterLabel(turn.role || ""),
+        exampleText: turn.text,
+        speakText: huriganaTurns[index]?.text || turn.text,
+        translationText: translationTurns[index]?.text || "",
+      })),
+    [exampleTurns, huriganaTurns, translationTurns],
+  );
+
+  const characterColumnWidth = React.useMemo(() => {
+    const longestWordLength = collocationItems.reduce((maxLength, item) => {
+      const longestInItem = splitCharacterWords(item.character).reduce(
+        (innerMax, word) => Math.max(innerMax, word.length),
+        0,
+      );
+      return Math.max(maxLength, longestInItem);
+    }, 0);
+
+    const estimatedWidth =
+      longestWordLength * CHARACTER_WIDTH_PER_CHAR + CHARACTER_BASE_WIDTH;
+
+    return Math.max(
+      CHARACTER_MIN_WIDTH,
+      Math.min(CHARACTER_MAX_WIDTH, estimatedWidth),
+    );
+  }, [collocationItems]);
+
+  const shouldCollapseStandard =
+    !isCollocation && !expandToContent && examples.length >= LEGACY_COLLAPSE_THRESHOLD;
+  const displayedExamples =
+    shouldCollapseStandard && !isExpanded
+      ? examples.slice(0, COLLAPSED_VISIBLE_COUNT)
+      : examples;
+  const shouldCollapseCollocation =
+    isCollocation && collocationItems.length > COLLAPSED_VISIBLE_COUNT;
+  const displayedCollocationItems =
+    shouldCollapseCollocation && !isExpanded
+      ? collocationItems.slice(0, COLLAPSED_VISIBLE_COUNT)
+      : collocationItems;
+
+  const handleSpeak = React.useCallback(
+    async (text: string) => {
+      try {
+        await speak(text, { language: speakLanguage, pitch: 1.0 });
+      } catch (error) {
+        console.error("TTS error:", error);
+      }
+    },
+    [speak, speakLanguage],
+  );
+
+  const renderMeta = () => (
+    <>
       {pronunciation ? (
         <ThemedText style={styles.metaText}>
           {`${t("notifications.labels.pronunciation", {
@@ -73,40 +155,185 @@ export function WordCardExample({
           })}: ${pronunciation}`}
         </ThemedText>
       ) : null}
-      {examples.map((exampleText, index) => (
-        <View key={index} style={styles.exampleGroup}>
-          <TouchableOpacity
-            onPress={() => handleSpeak((huriganaLines[index] ?? exampleText).trim())}
-            activeOpacity={0.7}
-          >
-            <ThemedText style={styles.example}>{exampleText.trim()}</ThemedText>
-          </TouchableOpacity>
-          {translations[index] && (
-            <ThemedText style={styles.translation}>
-              {translations[index].trim()}
-            </ThemedText>
-          )}
+    </>
+  );
+
+  const renderSynonyms = () =>
+    formattedSynonyms ? (
+      <View testID="word-card-synonyms-section" style={styles.exampleGroup}>
+        <ThemedText style={styles.metaText}>
+          {`${t("notifications.labels.synonyms", {
+            defaultValue: "Synonyms",
+          })}:`}
+        </ThemedText>
+        <ThemedText
+          testID="word-card-synonyms"
+          style={[
+            styles.synonyms,
+            { color: isDark ? "#BDBDBD" : "#2F2F2F" },
+          ]}
+        >
+          {formattedSynonyms}
+        </ThemedText>
+      </View>
+    ) : null;
+
+  const renderStandardContent = () =>
+    displayedExamples.map((exampleText, index) => (
+      <View key={index} style={styles.exampleGroup}>
+        <TouchableOpacity
+          onPress={() => handleSpeak((huriganaLines[index] ?? exampleText).trim())}
+          activeOpacity={0.7}
+        >
+          <ThemedText style={styles.example}>{exampleText.trim()}</ThemedText>
+        </TouchableOpacity>
+        {translations[index] ? (
+          <ThemedText style={styles.translation}>
+            {translations[index].trim()}
+          </ThemedText>
+        ) : null}
+      </View>
+    ));
+
+  const renderCollocationContent = () => (
+    <View style={styles.collocationList}>
+      {displayedCollocationItems.map((item, index) => (
+        <View key={`collocation-item-${index}`} style={styles.collocationItem}>
+          <View style={styles.collocationRow}>
+            {item.character ? (
+              <View
+                style={[
+                  styles.characterColumn,
+                  { width: characterColumnWidth },
+                ]}
+              >
+                <View style={styles.characterChip}>
+                  <ThemedText
+                    style={[
+                      styles.characterText,
+                      isDark && styles.characterTextDark,
+                    ]}
+                  >
+                    {item.characterLabel}
+                  </ThemedText>
+                </View>
+              </View>
+            ) : (
+              <View
+                testID="word-card-collocation-empty-character-cell"
+                style={[
+                  styles.characterColumn,
+                  { width: characterColumnWidth },
+                ]}
+              />
+            )}
+            <View
+              testID="word-card-collocation-content-cell"
+              style={styles.contentColumn}
+            >
+              <TouchableOpacity
+                onPress={() => handleSpeak(item.speakText.trim())}
+                activeOpacity={0.7}
+              >
+                <ThemedText style={styles.example}>{item.exampleText.trim()}</ThemedText>
+              </TouchableOpacity>
+              {item.translationText ? (
+                <ThemedText style={styles.translation}>
+                  {item.translationText.trim()}
+                </ThemedText>
+              ) : null}
+            </View>
+          </View>
         </View>
       ))}
-      {formattedSynonyms ? (
-        <View testID="word-card-synonyms-section" style={styles.exampleGroup}>
-          <ThemedText style={styles.metaText}>
-            {`${t("notifications.labels.synonyms", {
-              defaultValue: "Synonyms",
-            })}:`}
-          </ThemedText>
-          <ThemedText
-            testID="word-card-synonyms"
+    </View>
+  );
+
+  if (isCollocation) {
+    return (
+      <View>
+        <View testID="word-card-example-content" style={styles.container}>
+          {renderMeta()}
+          {renderCollocationContent()}
+        </View>
+        {shouldCollapseCollocation ? (
+          <TouchableOpacity
+            testID="word-card-example-toggle"
             style={[
-              styles.synonyms,
-              { color: isDark ? "#BDBDBD" : "#2F2F2F" },
+              styles.collocationToggle,
+              isDark
+                ? styles.collocationToggleDark
+                : styles.collocationToggleLight,
+            ]}
+            onPress={() => setIsExpanded((current) => !current)}
+            activeOpacity={0.7}
+          >
+            <ThemedText
+              style={[
+                styles.collocationToggleText,
+                isDark
+                  ? styles.collocationToggleTextDark
+                  : styles.collocationToggleTextLight,
+              ]}
+            >
+              {isExpanded
+                ? t("common.collapse", { defaultValue: "Collapse" })
+                : t("common.expand", { defaultValue: "Expand" })}
+            </ThemedText>
+          </TouchableOpacity>
+        ) : null}
+        {renderSynonyms()}
+      </View>
+    );
+  }
+
+  const standardContent = (
+    <>
+      {renderMeta()}
+      {renderStandardContent()}
+      {renderSynonyms()}
+    </>
+  );
+
+  return (
+    <>
+      {expandToContent ? (
+        <View testID="word-card-example-content" style={styles.container}>
+          {standardContent}
+        </View>
+      ) : (
+        <ScrollView
+          testID="word-card-example-scroll"
+          style={[styles.container, styles.containerCapped]}
+          showsVerticalScrollIndicator={true}
+          nestedScrollEnabled={true}
+        >
+          {standardContent}
+        </ScrollView>
+      )}
+
+      {shouldCollapseStandard ? (
+        <TouchableOpacity
+          style={[
+            styles.expandButton,
+            { backgroundColor: isDark ? "#1a1a1a" : "#f5f5f5" },
+          ]}
+          onPress={() => setIsExpanded((current) => !current)}
+          activeOpacity={0.7}
+        >
+          <ThemedText
+            style={[
+              styles.expandButtonText,
+              { color: isDark ? "#0a84ff" : "#007AFF" },
             ]}
           >
-            {formattedSynonyms}
+            {isExpanded
+              ? "Show less"
+              : `Show ${examples.length - COLLAPSED_VISIBLE_COUNT} more`}
           </ThemedText>
-        </View>
+        </TouchableOpacity>
       ) : null}
-    </View>
+    </>
   );
 }
 
@@ -116,6 +343,9 @@ const styles = StyleSheet.create({
     borderLeftColor: "#007AFF",
     paddingLeft: 12,
     marginTop: 4,
+  },
+  containerCapped: {
+    maxHeight: 200,
   },
   exampleGroup: {
     marginTop: 8,
@@ -128,17 +358,98 @@ const styles = StyleSheet.create({
   },
   example: {
     fontSize: 16,
+    lineHeight: 22,
     opacity: 0.8,
+    flexShrink: 1,
   },
   translation: {
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: 14,
+    lineHeight: 19,
     marginTop: 4,
-    opacity: 0.8,
+    opacity: 0.92,
+    color: "#4B5563",
+    flexShrink: 1,
   },
   synonyms: {
     fontSize: 15,
     lineHeight: 19,
     marginTop: 4,
+  },
+  expandButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginTop: 8,
+    borderRadius: 8,
+  },
+  expandButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  collocationList: {
+    gap: 10,
+    marginTop: 8,
+  },
+  collocationItem: {
+    gap: 4,
+  },
+  collocationRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  characterColumn: {
+    paddingRight: 10,
+  },
+  characterChip: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(0, 122, 255, 0.10)",
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  characterText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "600",
+    color: "#007AFF",
+  },
+  characterTextDark: {
+    color: "#8FC2FF",
+  },
+  contentColumn: {
+    flex: 1,
+    minWidth: 0,
+    flexShrink: 1,
+  },
+  collocationToggle: {
+    alignSelf: "stretch",
+    marginTop: 12,
+    minHeight: 44,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    justifyContent: "center",
+  },
+  collocationToggleLight: {
+    backgroundColor: "#F6F8FB",
+    borderColor: "rgba(17, 24, 39, 0.06)",
+  },
+  collocationToggleDark: {
+    backgroundColor: "#15181C",
+    borderColor: "rgba(255, 255, 255, 0.08)",
+  },
+  collocationToggleText: {
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0.1,
+    textAlign: "center",
+  },
+  collocationToggleTextLight: {
+    color: "#2563EB",
+  },
+  collocationToggleTextDark: {
+    color: "#93C5FD",
   },
 });

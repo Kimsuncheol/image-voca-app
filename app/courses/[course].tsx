@@ -1,6 +1,6 @@
 // React and React Native imports
-import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
+import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { doc, getDoc, setDoc } from "firebase/firestore"; // Firestore database operations
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next"; // Internationalization
@@ -57,6 +57,7 @@ export default function CourseWordBankScreen() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const showPronunciation = course !== "COLLOCATION";
+  const expandExampleToContent = course === "COLLOCATION";
 
   // Generate filter options dynamically based on available days
   const filterOptions = useMemo(() => {
@@ -193,7 +194,7 @@ export default function CourseWordBankScreen() {
   // === Render ===
 
   const listHeader = words.length > 0 ? (
-    <View>
+    <View style={styles.listHeader}>
       <TextInput
         style={[
           styles.searchInput,
@@ -248,6 +249,7 @@ export default function CourseWordBankScreen() {
                 courseColor={courseData?.color}
                 isDark={isDark}
                 showPronunciation={showPronunciation}
+                expandExampleToContent={expandExampleToContent}
               />
             </SwipeToDeleteRow>
           )}
@@ -283,6 +285,9 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 20,
     paddingBottom: 40,
+  },
+  listHeader: {
+    marginBottom: 16,
   },
   searchInput: {
     borderRadius: 12,

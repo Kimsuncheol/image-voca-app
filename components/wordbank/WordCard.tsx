@@ -39,6 +39,7 @@ interface WordCardProps {
   courseColor?: string;
   isDark: boolean;
   showPronunciation?: boolean;
+  expandExampleToContent?: boolean;
 }
 
 /**
@@ -50,6 +51,7 @@ export function WordCard({
   word,
   isDark,
   showPronunciation = true,
+  expandExampleToContent = false,
 }: WordCardProps) {
   const { speak } = useSpeech();
   useCardSpeechCleanup();
@@ -150,6 +152,7 @@ export function WordCard({
         course={word.course}
         isDark={isDark}
         speakLanguage={speakLanguage}
+        expandToContent={expandExampleToContent}
       />
     </View>
   );

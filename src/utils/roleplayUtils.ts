@@ -8,15 +8,16 @@ export interface DialogueTurn {
   text: string;
 }
 
+const ROLE_PREFIX_REGEX = /(^|[,.?!/\\])\s*([^,.?!/\\:\n]+)\s*:/g;
+
 export function parseRoleplaySegments(text: string): RoleplaySegment[] | null {
   if (!text) return null;
 
   const segments: RoleplaySegment[] = [];
-  const regex = /([.?!]|^)\s*([^.?!:\n]+)(:)/g;
   let lastIndex = 0;
   let match;
 
-  while ((match = regex.exec(text)) !== null) {
+  while ((match = ROLE_PREFIX_REGEX.exec(text)) !== null) {
     const fullMatchStart = match.index;
     const delimiter = match[1];
     const roleName = match[2].trim();

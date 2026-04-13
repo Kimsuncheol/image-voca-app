@@ -18,6 +18,8 @@ const en = {
     retry: "Retry",
     loading: "Loading...",
     delete: "Delete",
+    expand: "Expand",
+    collapse: "Collapse",
   },
   tabs: {
     dashboard: "Dashboard",

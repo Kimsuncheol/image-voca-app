@@ -18,6 +18,8 @@ const ja = {
     retry: "再試行",
     loading: "読み込み中...",
     delete: "削除",
+    expand: "展開",
+    collapse: "折りたたむ",
   },
   tabs: {
     dashboard: "ダッシュボード",

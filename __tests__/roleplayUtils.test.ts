@@ -34,4 +34,23 @@ describe("roleplayUtils", () => {
 
     expect(stripRoleLabels(text)).toBe("역할 이름 없이 한 줄 번역입니다.");
   });
+
+  test("toDialogueTurns parses role labels after supported punctuation delimiters", () => {
+    const text =
+      "Intro, Chip: First line. Next? Dale: Second line. Slash / Gadget: Third line. Path \\ Monterey: Fourth line.";
+
+    expect(toDialogueTurns(text)).toEqual([
+      { role: null, text: "Intro," },
+      { role: "Chip", text: "First line. Next?" },
+      { role: "Dale", text: "Second line. Slash /" },
+      { role: "Gadget", text: "Third line. Path \\" },
+      { role: "Monterey", text: "Fourth line." },
+    ]);
+  });
+
+  test("toDialogueTurns parses a role label at the start of the string", () => {
+    expect(toDialogueTurns("Chip: We should go now.")).toEqual([
+      { role: "Chip", text: "We should go now." },
+    ]);
+  });
 });
