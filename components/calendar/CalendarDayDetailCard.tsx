@@ -6,6 +6,7 @@ import { useTheme } from "../../src/context/ThemeContext";
 import type { VocabularyDayStudyEntry } from "../../src/services/dailyStudyHistory";
 import { findRuntimeCourse } from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
+import { DayBadge } from "../common/DayBadge";
 
 interface CalendarDayDetailCardProps {
   title: string;
@@ -133,9 +134,9 @@ export function CalendarDayDetailCard({
                       })}
                     </ThemedText>
                   </View>
-                  <ThemedText style={styles.historyDayLabel}>
-                    {t("calendar.detail.dayLabel", { count: entry.dayNumber })}
-                  </ThemedText>
+                  <View style={styles.badgeWrapper}>
+                    <DayBadge day={entry.dayNumber} isDark={isDark} />
+                  </View>
                 </Pressable>
               );
             })}
@@ -210,8 +211,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     opacity: 0.62,
   },
-  historyDayLabel: {
-    fontSize: 14,
-    fontWeight: "700",
+  badgeWrapper: {
+    marginTop: -6,
   },
 });

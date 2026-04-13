@@ -16,13 +16,13 @@ export function EmptyDayView() {
       <View
         style={[
           styles.emptyIconContainer,
-          { backgroundColor: isDark ? "#1C1C1E" : "#F2F2F7" },
+          { backgroundColor: isDark ? "rgba(10, 132, 255, 0.15)" : "rgba(0, 122, 255, 0.1)" },
         ]}
       >
         <Ionicons
-          name="book-outline"
-          size={32}
-          color={isDark ? "#636366" : "#AEAEB2"}
+          name="book"
+          size={36}
+          color={isDark ? "#0A84FF" : "#007AFF"}
         />
       </View>
       <ThemedText style={styles.emptyStateText}>
@@ -50,17 +50,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   emptyIconContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
   },
   emptyStateText: {
-    fontSize: 16,
-    fontWeight: "500",
-    opacity: 0.5,
+    fontSize: 18,
+    fontWeight: "600",
     textAlign: "center",
   },
   backButton: {

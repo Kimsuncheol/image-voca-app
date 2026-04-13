@@ -95,12 +95,12 @@ describe("Collocation FaceSide word bank toggle", () => {
 
     const screen = render(buildFaceSide());
 
-    fireEvent.press(screen.getByText("bookmark-outline"));
+    fireEvent.press(screen.getByText("star-outline"));
 
     await waitFor(() => {
       expect(mockRecordWordLearned).toHaveBeenCalledWith("user-1");
       expect(mockOnSavedStateChange).toHaveBeenCalledWith("1", true);
-      expect(screen.getByText("bookmark")).toBeTruthy();
+      expect(screen.getByText("star")).toBeTruthy();
     });
 
     expect(Alert.alert).not.toHaveBeenCalledWith(
@@ -120,11 +120,11 @@ describe("Collocation FaceSide word bank toggle", () => {
 
     const screen = render(buildFaceSide(true));
 
-    fireEvent.press(screen.getByText("bookmark"));
+    fireEvent.press(screen.getByText("star"));
 
     await waitFor(() => {
       expect(mockOnSavedStateChange).toHaveBeenCalledWith("1", false);
-      expect(screen.getByText("bookmark-outline")).toBeTruthy();
+      expect(screen.getByText("star-outline")).toBeTruthy();
     });
 
     expect(mockRecordWordLearned).not.toHaveBeenCalled();

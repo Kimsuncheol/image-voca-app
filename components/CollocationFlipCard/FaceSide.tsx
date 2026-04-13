@@ -40,7 +40,7 @@ const getDynamicFontSize = (text: string): number => {
   const textLength = text.length;
 
   // Base font size
-  const baseFontSize = 42;
+  const baseFontSize = 36;
   const minFontSize = 24;
 
   // Approximate character width ratio (adjusted for bold text)
@@ -286,27 +286,32 @@ export default React.memo(function FaceSide({
         )}
 
         <View style={styles.textContainer}>
-          {/* Section: Day chip */}
-          {wordBankConfig?.day !== undefined && (
-            <View style={styles.dayBadgeContainer}>
-              <DayBadge day={wordBankConfig.day} isDark={isDark} />
+          {/* Top Row: Collocation + Day Badge */}
+          <View style={styles.collocationRow}>
+            <View style={styles.collocationWrapper}>
+              {/* Section: Collocation Text */}
+              {isDeleteMode ? (
+                <View>{renderCollocationText()}</View>
+              ) : (
+                <TouchableOpacity
+                  onPress={() => {
+                    void speak();
+                  }}
+                  onLongPress={handleStartDeleteMode}
+                  activeOpacity={0.7}
+                >
+                  {renderCollocationText()}
+                </TouchableOpacity>
+              )}
             </View>
-          )}
 
-          {/* Section: Collocation Text */}
-          {isDeleteMode ? (
-            <View>{renderCollocationText()}</View>
-          ) : (
-            <TouchableOpacity
-              onPress={() => {
-                void speak();
-              }}
-              onLongPress={handleStartDeleteMode}
-              activeOpacity={0.7}
-            >
-              {renderCollocationText()}
-            </TouchableOpacity>
-          )}
+            {/* Section: Day chip */}
+            {wordBankConfig?.day !== undefined && (
+              <View style={styles.dayBadgeContainerRow}>
+                <DayBadge day={wordBankConfig.day} isDark={isDark} />
+              </View>
+            )}
+          </View>
 
           {/* Section: Meaning */}
           <View style={styles.meaningContainer}>
@@ -378,34 +383,45 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
     flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 32,
-    gap: 20,
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
+    paddingTop: 24,
+    paddingHorizontal: 16,
+    gap: 8,
     width: "100%",
   },
-  dayBadgeContainer: {
-    alignSelf: "flex-end",
-    marginBottom: 16,
+  collocationRow: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 16,
+  },
+  collocationWrapper: {
+    flex: 1,
+    alignItems: "flex-start",
+  },
+  dayBadgeContainerRow: {
+    flexShrink: 0,
   },
   meaningContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     width: "100%",
   },
   meaningTextContainer: {
     flexDirection: "column",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "center",
     gap: 4,
   },
   collocationText: {
-    fontSize: 42,
+    fontSize: 48,
     fontWeight: "700",
-    textAlign: "center",
+    textAlign: "left",
     color: "#111",
-    lineHeight: 52,
+    lineHeight: 56,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     letterSpacing: -0.5,
   },
@@ -413,14 +429,14 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   collocationTextVariant: {
-    lineHeight: 46,
+    lineHeight: 50,
   },
   meaningText: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "400",
-    textAlign: "center",
+    textAlign: "left",
     color: "#666",
-    lineHeight: 30,
+    lineHeight: 26,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
   textDark: {
