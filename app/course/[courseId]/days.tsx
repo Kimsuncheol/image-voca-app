@@ -54,8 +54,6 @@ import {
  * - Handle navigation to learning (Vocabulary) or testing (Quiz).
  * - Support Ad-based unlocking for specific days.
  */
-const MIN_TOTAL_DAYS = 30;
-
 export default function DayPickerScreen() {
   // ---------------------------------------------------------------------------
   // Hooks & Context
@@ -68,7 +66,10 @@ export default function DayPickerScreen() {
     useLearningLanguage();
 
   // Route params: Identify which course we are viewing
-  const { courseId } = useLocalSearchParams<{ courseId: CourseType }>();
+  const { courseId, initialTotalDays } = useLocalSearchParams<{
+    courseId: CourseType;
+    initialTotalDays?: string;
+  }>();
 
   // Stores: Access stats and subscription logic
   const { courseProgress, fetchCourseProgress } = useUserStatsStore();
@@ -96,7 +97,10 @@ export default function DayPickerScreen() {
     () => getLearningLanguageForCourse(courseId),
     [courseId],
   );
-  const [totalDays, setTotalDays] = useState(MIN_TOTAL_DAYS);
+  const [totalDays, setTotalDays] = useState(() => {
+    const parsed = initialTotalDays ? parseInt(initialTotalDays, 10) : NaN;
+    return isNaN(parsed) ? 0 : parsed;
+  });
   const [loadingDay, setLoadingDay] = useState<number | null>(null);
   const freeDayLimit = 3; // Days 1-3 are always free
 
@@ -168,10 +172,9 @@ export default function DayPickerScreen() {
       try {
         // Fetch totalDays from course metadata
         const days = await getTotalDaysForCourse(courseId);
-        const resolvedTotalDays = Math.max(MIN_TOTAL_DAYS, days);
 
         if (isActive) {
-          setTotalDays(resolvedTotalDays);
+          setTotalDays(days);
         }
 
         console.log(
@@ -179,14 +182,9 @@ export default function DayPickerScreen() {
           courseId,
           "totalDays from metadata:",
           days,
-          "resolved totalDays:",
-          resolvedTotalDays,
         );
       } catch (error) {
         console.error("[Days] Failed to load day count:", error);
-        if (isActive) {
-          setTotalDays(MIN_TOTAL_DAYS);
-        }
       }
     };
 

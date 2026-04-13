@@ -52,7 +52,10 @@ export default function JlptLevelsScreen() {
     try {
       router.push({
         pathname: "/course/[courseId]/days",
-        params: { courseId: level.id },
+        params: {
+          courseId: level.id,
+          initialTotalDays: totalDaysByLevel[level.id]?.toString(),
+        },
       });
     } catch (error) {
       console.error("Error selecting JLPT level:", error);
