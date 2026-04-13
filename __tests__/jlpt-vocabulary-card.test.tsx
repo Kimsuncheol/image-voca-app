@@ -13,12 +13,8 @@ jest.mock("../src/context/ThemeContext", () => ({
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
     i18n: { language: mockLanguage },
-    t: (key: string, options?: { defaultValue?: string; day?: number }) => {
-      if (key === "course.dayTitle" && typeof options?.day === "number") {
-        return `Day ${options.day}`;
-      }
-      return options?.defaultValue ?? key;
-    },
+    t: (_key: string, options?: { defaultValue?: string }) =>
+      options?.defaultValue ?? _key,
   }),
 }));
 
@@ -103,8 +99,6 @@ describe("JlptVocabularyCard", () => {
     expect(getByTestId("jlpt-card-image-shell").props.children).toBe(
       "https://cdn.example.com/jlpt.jpg",
     );
-    expect(getByTestId("jlpt-card-day-badge")).toBeTruthy();
-    expect(getByText("Day 1")).toBeTruthy();
     expect(getByTestId("jlpt-card-info")).toBeTruthy();
     expect(getByTestId("jlpt-card-info-scroll")).toBeTruthy();
     expect(getByText("間")).toBeTruthy();
@@ -236,15 +230,6 @@ describe("JlptVocabularyCard", () => {
     expect(getByText("あいだ")).toBeTruthy();
     expect(queryByTestId("jlpt-card-pronunciation-roman")).toBeNull();
     expect(queryByTestId("jlpt-card-example-roman")).toBeNull();
-  });
-
-  it("does not render the day badge when the day prop is omitted", () => {
-    const { queryByTestId, queryByText } = render(
-      <JlptVocabularyCard item={buildCard()} initialIsSaved={true} />,
-    );
-
-    expect(queryByTestId("jlpt-card-day-badge")).toBeNull();
-    expect(queryByText("Day 1")).toBeNull();
   });
 
   it("hides the pronunciation row when word and pronunciation are identical", () => {

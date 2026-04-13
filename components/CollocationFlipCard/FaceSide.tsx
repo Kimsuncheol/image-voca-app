@@ -11,7 +11,11 @@ import {
   View,
 } from "react-native";
 import { useSpeech } from "../../src/hooks/useSpeech";
-import { parseWordVariants, speakWordVariants } from "../../src/utils/wordVariants";
+import {
+  parseWordVariants,
+  speakWordVariants,
+} from "../../src/utils/wordVariants";
+import { DayBadge } from "../common/DayBadge";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { AddToWordBankButton } from "../wordbank/AddToWordBankButton";
 import { SavedWord } from "../wordbank/WordCard";
@@ -49,7 +53,7 @@ const getDynamicFontSize = (text: string): number => {
   }
 
   // Calculate scaled font size
-  const scaledFontSize = (availableWidth / (textLength * charWidthRatio));
+  const scaledFontSize = availableWidth / (textLength * charWidthRatio);
 
   // Return font size clamped between min and base
   return Math.max(minFontSize, Math.min(baseFontSize, scaledFontSize));
@@ -208,11 +212,16 @@ export default React.memo(function FaceSide({
         isDark && styles.faceDark,
         isDeleteMode &&
           (isDark ? styles.faceDeleteModeDark : styles.faceDeleteModeLight),
-        isSelected && (isDark ? styles.faceSelectedDark : styles.faceSelectedLight),
+        isSelected &&
+          (isDark ? styles.faceSelectedDark : styles.faceSelectedLight),
       ]}
       onPress={handleCardPress}
       onLongPress={handleStartDeleteMode}
-      disabled={isDeleteMode ? !canToggleSelection && !canStartDeleteMode : !onFlip && !canStartDeleteMode}
+      disabled={
+        isDeleteMode
+          ? !canToggleSelection && !canStartDeleteMode
+          : !onFlip && !canStartDeleteMode
+      }
     >
       {isDeleteMode ? (
         <View
@@ -244,20 +253,20 @@ export default React.memo(function FaceSide({
             onSavedStateChange={wordBankConfig?.onSavedStateChange}
             onRemoved={wordBankConfig?.onDelete}
             variant="star"
-          buildSavedWord={() =>
-            ({
-              id: wordBankConfig!.id,
-              word: data.collocation,
-              meaning: data.meaning,
-              translation: data.translation || "",
-              pronunciation: data.explanation || "",
-              example: data.example,
-              course: wordBankConfig!.course,
-              day: wordBankConfig?.day,
-              addedAt: new Date().toISOString(),
-            }) as SavedWord
-          }
-        />
+            buildSavedWord={() =>
+              ({
+                id: wordBankConfig!.id,
+                word: data.collocation,
+                meaning: data.meaning,
+                translation: data.translation || "",
+                pronunciation: data.explanation || "",
+                example: data.example,
+                course: wordBankConfig!.course,
+                day: wordBankConfig?.day,
+                addedAt: new Date().toISOString(),
+              }) as SavedWord
+            }
+          />
         </View>
       )}
 
@@ -277,6 +286,13 @@ export default React.memo(function FaceSide({
         )}
 
         <View style={styles.textContainer}>
+          {/* Section: Day chip */}
+          {wordBankConfig?.day !== undefined && (
+            <View style={styles.dayBadgeContainer}>
+              <DayBadge day={wordBankConfig.day} isDark={isDark} />
+            </View>
+          )}
+
           {/* Section: Collocation Text */}
           {isDeleteMode ? (
             <View>{renderCollocationText()}</View>
@@ -295,19 +311,20 @@ export default React.memo(function FaceSide({
           {/* Section: Meaning */}
           <View style={styles.meaningContainer}>
             <View style={styles.meaningTextContainer}>
-              {data.meaning.length >= 10
-                ? data.meaning.split(',').map((part, index) => (
-                    <Text
-                      key={index}
-                      style={[styles.meaningText, isDark && styles.textDark]}
-                    >
-                      {part.trim()}
-                    </Text>
-                  ))
-                : <Text style={[styles.meaningText, isDark && styles.textDark]}>
-                    {data.meaning}
+              {data.meaning.length >= 10 ? (
+                data.meaning.split(",").map((part, index) => (
+                  <Text
+                    key={index}
+                    style={[styles.meaningText, isDark && styles.textDark]}
+                  >
+                    {part.trim()}
                   </Text>
-              }
+                ))
+              ) : (
+                <Text style={[styles.meaningText, isDark && styles.textDark]}>
+                  {data.meaning}
+                </Text>
+              )}
             </View>
           </View>
         </View>
@@ -368,22 +385,8 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   dayBadgeContainer: {
-    alignSelf: "center",
+    alignSelf: "flex-end",
     marginBottom: 16,
-  },
-  dayBadge: {
-    fontSize: 13,
-    opacity: 0.6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    backgroundColor: "rgba(0, 122, 255, 0.1)",
-    color: "#007AFF",
-    fontWeight: "600",
-  },
-  dayBadgeDark: {
-    backgroundColor: "rgba(10, 132, 255, 0.2)",
-    color: "#0a84ff",
   },
   meaningContainer: {
     flexDirection: "row",

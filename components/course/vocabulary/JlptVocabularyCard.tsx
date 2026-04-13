@@ -18,6 +18,7 @@ import {
   stripKanaParens,
 } from "../../../src/utils/japaneseText";
 import { resolveVocabularyContent } from "../../../src/utils/localizedVocabulary";
+import { DayBadge } from "../../common/DayBadge";
 import { InlineMeaningWithChips } from "../../common/InlineMeaningWithChips";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
 import { SwipeCardItemImageSection } from "../../swipe/SwipeCardItemImageSection";
@@ -200,7 +201,7 @@ export function JlptVocabularyCard({
   onToggleKana = () => {},
 }: JlptVocabularyCardProps) {
   const { isDark } = useTheme();
-  const { i18n, t } = useTranslation();
+  const { i18n } = useTranslation();
   const { speak } = useSpeech();
   useCardSpeechCleanup(isActive);
   const resolved = React.useMemo(
@@ -283,27 +284,6 @@ export function JlptVocabularyCard({
         >
           <View style={styles.titleContainer}>
             <View style={styles.leftRow}>
-              {typeof day === "number" ? (
-                <View
-                  testID="jlpt-card-day-badge"
-                  style={[
-                    styles.dayBadge,
-                    {
-                      backgroundColor: isDark ? "#2a2a2a" : "#f2f4f7",
-                      borderColor: isDark ? "#3a3a3a" : "#d9dde3",
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.dayBadgeText,
-                      { color: isDark ? "#d0d0d0" : "#5f6670" },
-                    ]}
-                  >
-                    {t("course.dayTitle", { day })}
-                  </Text>
-                </View>
-              ) : null}
               <TouchableOpacity onPress={handlePressWord} activeOpacity={0.7}>
                 <Text
                   style={[
@@ -316,6 +296,7 @@ export function JlptVocabularyCard({
                 </Text>
               </TouchableOpacity>
             </View>
+            {day !== undefined && <DayBadge day={day} isDark={isDark} />}
           </View>
 
           {pronunciation ? (
@@ -430,26 +411,14 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: "row",
     alignItems: "flex-start",
+    justifyContent: "space-between",
     marginBottom: 8,
   },
   leftRow: {
-    flexDirection: "column",
+    flexDirection: "row",
     alignItems: "flex-start",
     flexShrink: 1,
     minWidth: 0,
-  },
-  dayBadge: {
-    alignSelf: "flex-start",
-    borderRadius: 999,
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  dayBadgeText: {
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.2,
   },
   cardTitle: {
     fontSize: 32,

@@ -5,6 +5,7 @@ import { useSpeech } from "../../src/hooks/useSpeech";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { speakWordVariants } from "../../src/utils/wordVariants";
+import { DayBadge } from "../common/DayBadge";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 
 interface SwipeCardItemWordMeaningSectionProps {
@@ -104,6 +105,7 @@ export function SwipeCardItemWordMeaningSection({
             {renderWord()}
           </TouchableOpacity>
         </View>
+        {day !== undefined && <DayBadge day={day} isDark={isDark} />}
       </View>
       {normalizedPronunciation ? (
         <Text
@@ -134,6 +136,7 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: "row",
     alignItems: "flex-start",
+    justifyContent: "space-between",
     marginBottom: 8,
   },
   leftRow: {
