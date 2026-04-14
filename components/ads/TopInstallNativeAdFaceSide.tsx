@@ -1,14 +1,31 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Image as NativeImage, StyleSheet, Text, View } from "react-native";
-import {
+import type {
   NativeAd,
-  NativeAdView,
-  NativeAsset,
-  NativeAssetType,
+  NativeAdView as NativeAdViewT,
+  NativeAsset as NativeAssetT,
+  NativeAssetType as NativeAssetTypeT,
 } from "react-native-google-mobile-ads";
+import { NativeAdCtaButton } from "./NativeAdCtaButton";
+import { NativeAdDisclosureButton } from "./NativeAdDisclosureButton";
 
 type LoadedNativeAd = Awaited<ReturnType<typeof NativeAd.createForAdRequest>>;
+
+// Lazy require so the module crash is caught gracefully in environments
+// where the native binary is not available (e.g. Expo Go).
+const adsSDK = (() => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require("react-native-google-mobile-ads") as {
+      NativeAdView: typeof NativeAdViewT;
+      NativeAsset: typeof NativeAssetT;
+      NativeAssetType: typeof NativeAssetTypeT;
+    };
+  } catch {
+    return null;
+  }
+})();
 
 interface TopInstallNativeAdFaceSideProps {
   ctaLabel: string;
@@ -19,7 +36,6 @@ interface TopInstallNativeAdFaceSideProps {
 }
 
 const BANNER_HEIGHT = 48;
-const DISCLOSURE_COLOR = "#9ca3af";
 
 export function TopInstallNativeAdFaceSide({
   ctaLabel,
@@ -28,6 +44,12 @@ export function TopInstallNativeAdFaceSide({
   testID,
   onToggleDisclosure,
 }: TopInstallNativeAdFaceSideProps) {
+  if (!adsSDK) {
+    return null;
+  }
+
+  const { NativeAdView, NativeAsset, NativeAssetType } = adsSDK;
+
   return (
     <>
       <NativeAdView nativeAd={nativeAd} style={styles.banner} testID={testID}>
@@ -85,19 +107,18 @@ export function TopInstallNativeAdFaceSide({
                 <Text
                   numberOfLines={1}
                   style={styles.metadataText}
-                  testID="top-install-native-ad-store"
+                  testID="metadataRow"
                 >
                   {nativeAd.store}
                 </Text>
               </NativeAsset>
             ) : null}
-
             {nativeAd.price ? (
               <NativeAsset assetType={NativeAssetType.PRICE}>
                 <Text
                   numberOfLines={1}
                   style={styles.metadataText}
-                  testID="top-install-native-ad-price"
+                  testID="top-install-native-ad-headline"
                 >
                   {nativeAd.price}
                 </Text>
@@ -105,32 +126,15 @@ export function TopInstallNativeAdFaceSide({
             ) : null}
           </View>
         </View>
-        <NativeAsset assetType={NativeAssetType.CALL_TO_ACTION}>
-          <View
-            accessible={true}
-            accessibilityRole="button"
-            collapsable={false}
-            style={styles.ctaButton}
-            testID="top-install-native-ad-cta"
-          >
-            <Text style={styles.ctaText}>{ctaLabel}</Text>
-          </View>
-        </NativeAsset>
-
-        <NativeAsset assetType={NativeAssetType.CALL_TO_ACTION}>
-          <View
-            accessibilityLabel="Open ad disclosure panel"
-            accessibilityRole="button"
-            style={styles.disclosureTrigger}
-            testID="top-install-native-ad-disclosure-trigger"
-          >
-            <Ionicons
-              name="ellipsis-vertical"
-              size={12}
-              color={DISCLOSURE_COLOR}
-            />
-          </View>
-        </NativeAsset>
+        <NativeAdCtaButton
+          label={ctaLabel}
+          NativeAsset={NativeAsset}
+          NativeAssetType={NativeAssetType}
+        />
+        <NativeAdDisclosureButton
+          bannerHeight={BANNER_HEIGHT}
+          onPress={onToggleDisclosure}
+        />
       </NativeAdView>
     </>
   );
@@ -143,23 +147,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     height: BANNER_HEIGHT,
     justifyContent: "space-between",
-    paddingLeft: 38,
+    paddingLeft: 28,
     paddingRight: 12,
     width: "100%",
-  },
-  disclosureTrigger: {
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderRadius: 9,
-    borderWidth: 1,
-    borderColor: DISCLOSURE_COLOR,
-    height: 18,
-    justifyContent: "center",
-    left: 12,
-    position: "absolute",
-    top: (BANNER_HEIGHT - 18) / 2,
-    width: 18,
-    zIndex: 2,
   },
   iconSlot: {
     justifyContent: "center",
@@ -199,21 +189,5 @@ const styles = StyleSheet.create({
     color: "#4b5563",
     fontSize: 10,
     lineHeight: 12,
-  },
-  ctaButton: {
-    alignItems: "center",
-    backgroundColor: "#2563eb",
-    borderRadius: 999,
-    justifyContent: "center",
-    minWidth: 64,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-  },
-  ctaText: {
-    color: "#ffffff",
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
   },
 });

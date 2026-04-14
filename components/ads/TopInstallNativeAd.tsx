@@ -1,12 +1,6 @@
 import React from "react";
-import {
-  Platform,
-  StyleProp,
-  StyleSheet,
-  View,
-  ViewStyle,
-} from "react-native";
-import {
+import { Platform, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import type {
   NativeAd,
   NativeAdEventType,
 } from "react-native-google-mobile-ads";
@@ -16,17 +10,28 @@ import { TopInstallNativeAdFaceSide } from "./TopInstallNativeAdFaceSide";
 
 type LoadedNativeAd = Awaited<ReturnType<typeof NativeAd.createForAdRequest>>;
 
+// Lazy require so the module crash is caught gracefully in environments
+// where the native binary is not available (e.g. Expo Go).
+const adsSDK = (() => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require("react-native-google-mobile-ads") as {
+      NativeAd: typeof NativeAd;
+      NativeAdEventType: typeof NativeAdEventType;
+    };
+  } catch {
+    return null;
+  }
+})();
+
 interface TopInstallNativeAdProps {
-  variant?: "light";
   containerStyle?: StyleProp<ViewStyle>;
   testID?: string;
 }
 
-const BANNER_HEIGHT = 48;
 const AD_CHOICES_PLACEMENT_BOTTOM_LEFT = 3;
 
 export function TopInstallNativeAd({
-  variant = "light",
   containerStyle,
   testID = "top-install-native-ad",
 }: TopInstallNativeAdProps) {
@@ -38,7 +43,7 @@ export function TopInstallNativeAd({
   const nativeAdOpenedRef = React.useRef(false);
 
   React.useEffect(() => {
-    if (Platform.OS === "web") {
+    if (Platform.OS === "web" || !adsSDK) {
       return;
     }
 
@@ -49,7 +54,7 @@ export function TopInstallNativeAd({
 
     let cancelled = false;
 
-    void NativeAd.createForAdRequest(unitId, {
+    void adsSDK.NativeAd.createForAdRequest(unitId, {
       adChoicesPlacement: AD_CHOICES_PLACEMENT_BOTTOM_LEFT,
     })
       .then((ad) => {
@@ -73,7 +78,7 @@ export function TopInstallNativeAd({
   }, []);
 
   React.useEffect(() => {
-    if (!nativeAd) {
+    if (!nativeAd || !adsSDK) {
       return;
     }
 
@@ -81,13 +86,13 @@ export function TopInstallNativeAd({
     nativeAdOpenedRef.current = false;
 
     const clickSubscription = nativeAd.addAdEventListener?.(
-      NativeAdEventType.CLICKED,
+      adsSDK.NativeAdEventType.CLICKED,
       () => {
         nativeAdClickSeenRef.current = true;
       },
     );
     const openedSubscription = nativeAd.addAdEventListener?.(
-      NativeAdEventType.OPENED,
+      adsSDK.NativeAdEventType.OPENED,
       () => {
         nativeAdOpenedRef.current = true;
       },
@@ -105,23 +110,16 @@ export function TopInstallNativeAd({
   }, []);
 
   const toggleDisclosurePanel = React.useCallback(() => {
-    if (isDisclosureVisible) {
-      closeDisclosurePanel();
-      return;
-    }
-
-    setIsDisclosureVisible(true);
-  }, [closeDisclosurePanel, isDisclosureVisible]);
+    setIsDisclosureVisible((prev) => !prev);
+    console.log("toggleDisclosurePanel");
+  }, []);
 
   if (Platform.OS === "web" || !nativeAd) {
     return null;
   }
 
-  const bannerStyle =
-    variant === "light" ? styles.bannerLight : styles.bannerLight;
-  const rating = nativeAd.starRating != null
-    ? Number(nativeAd.starRating).toFixed(1)
-    : null;
+  const rating =
+    nativeAd.starRating != null ? Number(nativeAd.starRating).toFixed(1) : null;
   const ctaLabel = nativeAd.callToAction?.trim()
     ? nativeAd.callToAction.trim().toUpperCase()
     : "INSTALL";

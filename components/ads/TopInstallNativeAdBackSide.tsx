@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -27,6 +28,13 @@ export function TopInstallNativeAdBackSide({
         ]}
         testID="top-install-native-ad-disclosure-panel"
       >
+        <Pressable
+          onPress={onClose}
+          style={styles.backButton}
+          testID="top-install-native-ad-back-button"
+        >
+          <Ionicons name="arrow-back" size={20} color="#4b5563" />
+        </Pressable>
         <Text style={styles.disclosureTitle}>Ads By Google</Text>
         <View style={styles.disclosureActionsRow}>
           <View style={styles.disclosureGoogleBadge}>
@@ -65,6 +73,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 2,
     elevation: 2,
+  },
+  backButton: {
+    padding: 8,
+    position: "absolute",
+    left: 4,
+    zIndex: 10,
   },
   disclosureTitle: {
     color: "#1f2937",
