@@ -139,10 +139,6 @@ export function RootLayoutNav() {
               name="notification-card"
               options={{ headerShown: false }}
             />
-            <Stack.Screen
-              name="advertisement-modal"
-              options={{ presentation: "fullScreenModal", headerShown: false }}
-            />
             <Stack.Screen name="modal" options={{ presentation: "modal" }} />
             <Stack.Screen
               name="profile"

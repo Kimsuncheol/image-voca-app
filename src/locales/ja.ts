@@ -653,15 +653,6 @@ const ja = {
     },
   },
 
-  ad: {
-    label: "広告",
-    placeholder: "広告が再生されます",
-    rewardTitle: "無料アンロック",
-    rewardSubtitle: "広告を視聴すると{{day}}日目が無料で解放されます",
-    rewardSubtitleGeneric: "広告を視聴するとこの日が無料で解放されます",
-    watching: "広告を視聴中... ({{seconds}}秒)",
-    claimButton: "無料でアクセスする",
-  },
   course: {
     days: "日",
     selectDay: "学習する日を選択してください",

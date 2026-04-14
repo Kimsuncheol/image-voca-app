@@ -52,7 +52,6 @@ import {
  * - Load and display progress for each day (learned status, quiz status).
  * - Manage access control based on user subscription (Free vs Premium).
  * - Handle navigation to learning (Vocabulary) or testing (Quiz).
- * - Support Ad-based unlocking for specific days.
  */
 export default function DayPickerScreen() {
   // ---------------------------------------------------------------------------
@@ -76,9 +75,7 @@ export default function DayPickerScreen() {
   const {
     canAccessUnlimitedVoca,
     canAccessFeature,
-    canUnlockViaAd,
     fetchSubscription,
-    loadUnlockedIds,
     currentPlan,
   } = useSubscriptionStore();
 
@@ -120,7 +117,7 @@ export default function DayPickerScreen() {
   // ---------------------------------------------------------------------------
   /**
    * Refetch subscription and progress whenever the screen gains focus.
-   * This ensures that if a user buys a sub or watches an ad, the UI updates immediately.
+   * This ensures the UI reflects the latest access state immediately.
    */
   useFocusEffect(
     useCallback(() => {
@@ -152,15 +149,8 @@ export default function DayPickerScreen() {
       if (!user || !courseId) return;
 
       fetchSubscription(user.uid);
-      loadUnlockedIds(user.uid); // Load persisted ad unlocks for this user
       fetchCourseProgress(user.uid, courseId);
-    }, [
-      user,
-      courseId,
-      fetchSubscription,
-      loadUnlockedIds,
-      fetchCourseProgress,
-    ]),
+    }, [user, courseId, fetchSubscription, fetchCourseProgress]),
   );
 
   useEffect(() => {
@@ -229,46 +219,17 @@ export default function DayPickerScreen() {
       const featureId = `${courseId}_day_${day}`;
       const isDayUnlocked = canAccessFeature(featureId);
 
-      // Access Check Logic
       if (!hasUnlimitedAccess && !isDayUnlocked && day > freeDayLimit) {
-        // Scenario: User is Free, Day is locked, and beyond free limit.
-
-        // Check if this day is eligible for ad-unlock (e.g. Days 4-10)
-        const canUseAd = canUnlockViaAd(day);
-
-        const alertButtons: any[] = [
-          { text: t("common.cancel"), style: "cancel" },
-        ];
-
-        // Option 1: Watch Ad (if eligible)
-        if (canUseAd) {
-          alertButtons.push({
-            text: t("course.watchAd", {
-              defaultValue: "Watch Ad (Free Access)",
-            }),
-            onPress: () =>
-              router.push({
-                pathname: "/advertisement-modal",
-                params: { featureId },
-              }),
-          });
-        }
-
-        // Option 2: Upgrade to Premium
-        alertButtons.push({
-          text: t("common.upgrade"),
-          onPress: () => router.push("/billing"),
-        });
-
-        // Show Alert
         Alert.alert(
           t("alerts.premiumFeature.title"),
-          canUseAd
-            ? t("course.premiumLimitMessage", { day: freeDayLimit })
-            : t("course.premiumOnlyMessage", {
-                defaultValue: "Days beyond 10 require a premium subscription.",
-              }),
-          alertButtons,
+          t("course.premiumLimitMessage", { day: freeDayLimit }),
+          [
+            { text: t("common.cancel"), style: "cancel" },
+            {
+              text: t("common.upgrade"),
+              onPress: () => router.push("/billing"),
+            },
+          ],
         );
         return;
       }
@@ -305,7 +266,6 @@ export default function DayPickerScreen() {
     [
       canAccessFeature,
       canAccessUnlimitedVoca,
-      canUnlockViaAd,
       courseId,
       dayProgress,
       freeDayLimit,

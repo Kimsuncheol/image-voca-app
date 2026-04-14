@@ -1,13 +1,8 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { arrayUnion, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { create } from "zustand";
 import { db } from "../services/firebase";
 import type { UserRole } from "../types/userRole";
 import { normalizeUserRole } from "../utils/role";
-
-// Ad unlock is allowed for Days 4-10 only (Days 1-3 are free)
-export const AD_UNLOCK_LIMIT = 10;
-const UNLOCKED_IDS_KEY = "@unlocked_ids";
 
 export type PlanType = "free" | "voca_unlimited";
 type LegacyStoredPlanId = PlanType | "voca_speaking";
@@ -51,15 +46,10 @@ interface SubscriptionState {
   role: UserRole;
   loading: boolean;
   error: string | null;
-  unlockedIds: string[];
-  currentUserId: string | null;
   fetchSubscription: (userId: string) => Promise<void>;
   applyConfirmedSubscription: (subscription: SubscriptionData) => void;
-  loadUnlockedIds: (userId: string) => Promise<void>;
-  unlockViaAd: (userId: string, featureId: string) => Promise<void>;
   canAccessUnlimitedVoca: () => boolean;
   canAccessFeature: (featureId: string) => boolean;
-  canUnlockViaAd: (day: number) => boolean;
   isAdmin: () => boolean;
   resetSubscription: () => void;
 }
@@ -86,8 +76,6 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   role: "student", // Default role for new users is 'student'
   loading: false,
   error: null,
-  unlockedIds: [],
-  currentUserId: null,
 
   fetchSubscription: async (userId: string) => {
     set({ loading: true, error: null });
@@ -156,104 +144,6 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     });
   },
 
-  loadUnlockedIds: async (userId: string) => {
-    if (!userId) {
-      console.warn("loadUnlockedIds called without userId");
-      return;
-    }
-
-    set({ currentUserId: userId });
-    const userCacheKey = `${UNLOCKED_IDS_KEY}_${userId}`;
-
-    try {
-      // First, try to load from Firestore (source of truth)
-      const userRef = doc(db, "users", userId);
-      const userDoc = await getDoc(userRef);
-
-      let unlockedDays: string[] = [];
-
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        unlockedDays = data.unlockedDays || [];
-      }
-
-      // Filter out any unlocks beyond Day 10 (enforce limit)
-      const validUnlocks = unlockedDays.filter((id) => {
-        const match = id.match(/_day_(\d+)$/);
-        if (match) {
-          const day = parseInt(match[1], 10);
-          return day <= AD_UNLOCK_LIMIT;
-        }
-        return true; // Keep non-day unlocks
-      });
-
-      set({ unlockedIds: validUnlocks });
-
-      // Cache to AsyncStorage for offline access
-      await AsyncStorage.setItem(userCacheKey, JSON.stringify(validUnlocks));
-    } catch (error) {
-      console.error("Failed to load unlocked IDs from Firestore:", error);
-      // Fallback to cached AsyncStorage data
-      try {
-        const cached = await AsyncStorage.getItem(userCacheKey);
-        if (cached) {
-          set({ unlockedIds: JSON.parse(cached) });
-        }
-      } catch (cacheError) {
-        console.error("Failed to load cached unlocked IDs:", cacheError);
-      }
-    }
-  },
-
-  unlockViaAd: async (userId: string, featureId: string) => {
-    if (!userId) {
-      console.warn("unlockViaAd called without userId");
-      return;
-    }
-
-    // Validate the day is within ad unlock limit
-    const match = featureId.match(/_day_(\d+)$/);
-    if (match) {
-      const day = parseInt(match[1], 10);
-      if (day > AD_UNLOCK_LIMIT) {
-        console.warn(
-          `Cannot unlock Day ${day} via ad. Max is Day ${AD_UNLOCK_LIMIT}.`,
-        );
-        return;
-      }
-    }
-
-    const currentIds = get().unlockedIds;
-    if (currentIds.includes(featureId)) return; // Already unlocked
-
-    const newUnlockedIds = [...currentIds, featureId];
-    set({ unlockedIds: newUnlockedIds });
-
-    const userCacheKey = `${UNLOCKED_IDS_KEY}_${userId}`;
-
-    try {
-      // Save to Firestore (source of truth)
-      const userRef = doc(db, "users", userId);
-      await updateDoc(userRef, {
-        unlockedDays: arrayUnion(featureId),
-      });
-
-      // Also cache locally
-      await AsyncStorage.setItem(userCacheKey, JSON.stringify(newUnlockedIds));
-    } catch (error) {
-      console.error("Failed to persist unlocked ID to Firestore:", error);
-      // Still try to cache locally as fallback
-      try {
-        await AsyncStorage.setItem(
-          userCacheKey,
-          JSON.stringify(newUnlockedIds),
-        );
-      } catch (cacheError) {
-        console.error("Failed to cache unlocked ID:", cacheError);
-      }
-    }
-  },
-
   canAccessUnlimitedVoca: () => {
     const { currentPlan, role } = get();
     // Admins have free premium access
@@ -261,16 +151,12 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     return currentPlan !== "free";
   },
 
-  canAccessFeature: (featureId: string) => {
-    const { currentPlan, unlockedIds, role } = get();
+  canAccessFeature: () => {
+    const { currentPlan, role } = get();
     // Admins have free premium access
     if (role.includes("admin")) return true;
     if (currentPlan !== "free") return true;
-    return unlockedIds.includes(featureId);
-  },
-
-  canUnlockViaAd: (day: number) => {
-    return day > 3 && day <= AD_UNLOCK_LIMIT;
+    return false;
   },
 
   isAdmin: () => {
@@ -289,7 +175,5 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       role: "student", // Reset to default 'student' role
       loading: false,
       error: null,
-      unlockedIds: [],
-      currentUserId: null,
     }),
 }));

@@ -661,15 +661,6 @@ const ko = {
     },
   },
 
-  ad: {
-    label: "광고",
-    placeholder: "광고가 재생됩니다",
-    rewardTitle: "무료 잠금 해제",
-    rewardSubtitle: "광고를 시청하면 {{day}}일차를 무료로 열 수 있습니다",
-    rewardSubtitleGeneric: "광고를 시청하면 해당 일차를 무료로 열 수 있습니다",
-    watching: "광고 시청 중... ({{seconds}}초)",
-    claimButton: "무료 열기",
-  },
   manga: {
     emptyTitle: "만화가 준비되지 않았어요",
     emptySubtitle: "다음에 다시 확인하거나 다른 날짜를 선택해보세요!",

@@ -668,15 +668,6 @@ const en = {
     },
   },
 
-  ad: {
-    label: "Advertisement",
-    placeholder: "Ad content plays here",
-    rewardTitle: "Free Day Unlock",
-    rewardSubtitle: "Watch to unlock Day {{day}} for free",
-    rewardSubtitleGeneric: "Watch to unlock this day for free",
-    watching: "Watch ad to continue ({{seconds}}s)",
-    claimButton: "Claim Free Access",
-  },
   manga: {
     emptyTitle: "No Manga Available",
     emptySubtitle: "Check back later or explore other days!",
