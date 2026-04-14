@@ -1,22 +1,18 @@
-import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
-  Image as NativeImage,
   Platform,
-  Pressable,
   StyleProp,
   StyleSheet,
-  Text,
   View,
   ViewStyle,
 } from "react-native";
 import {
   NativeAd,
-  NativeAdView,
-  NativeAsset,
-  NativeAssetType,
+  NativeAdEventType,
 } from "react-native-google-mobile-ads";
 import { resolveTopInstallNativeAdUnitId } from "../../src/services/mobileAds";
+import { TopInstallNativeAdBackSide } from "./TopInstallNativeAdBackSide";
+import { TopInstallNativeAdFaceSide } from "./TopInstallNativeAdFaceSide";
 
 type LoadedNativeAd = Awaited<ReturnType<typeof NativeAd.createForAdRequest>>;
 
@@ -26,7 +22,8 @@ interface TopInstallNativeAdProps {
   testID?: string;
 }
 
-const BANNER_HEIGHT = 40;
+const BANNER_HEIGHT = 48;
+const AD_CHOICES_PLACEMENT_BOTTOM_LEFT = 3;
 
 export function TopInstallNativeAd({
   variant = "light",
@@ -34,7 +31,11 @@ export function TopInstallNativeAd({
   testID = "top-install-native-ad",
 }: TopInstallNativeAdProps) {
   const [nativeAd, setNativeAd] = React.useState<LoadedNativeAd | null>(null);
+  const [isDisclosureVisible, setIsDisclosureVisible] = React.useState(false);
+  const [overlayWidth, setOverlayWidth] = React.useState<number>(0);
   const nativeAdRef = React.useRef<LoadedNativeAd | null>(null);
+  const nativeAdClickSeenRef = React.useRef(false);
+  const nativeAdOpenedRef = React.useRef(false);
 
   React.useEffect(() => {
     if (Platform.OS === "web") {
@@ -48,7 +49,9 @@ export function TopInstallNativeAd({
 
     let cancelled = false;
 
-    void NativeAd.createForAdRequest(unitId)
+    void NativeAd.createForAdRequest(unitId, {
+      adChoicesPlacement: AD_CHOICES_PLACEMENT_BOTTOM_LEFT,
+    })
       .then((ad) => {
         if (cancelled) {
           ad.destroy?.();
@@ -63,10 +66,52 @@ export function TopInstallNativeAd({
 
     return () => {
       cancelled = true;
+      setIsDisclosureVisible(false);
       nativeAdRef.current?.destroy?.();
       nativeAdRef.current = null;
     };
   }, []);
+
+  React.useEffect(() => {
+    if (!nativeAd) {
+      return;
+    }
+
+    nativeAdClickSeenRef.current = false;
+    nativeAdOpenedRef.current = false;
+
+    const clickSubscription = nativeAd.addAdEventListener?.(
+      NativeAdEventType.CLICKED,
+      () => {
+        nativeAdClickSeenRef.current = true;
+      },
+    );
+    const openedSubscription = nativeAd.addAdEventListener?.(
+      NativeAdEventType.OPENED,
+      () => {
+        nativeAdOpenedRef.current = true;
+      },
+    );
+
+    return () => {
+      clickSubscription?.remove?.();
+      openedSubscription?.remove?.();
+      nativeAd.removeAllAdEventListeners?.();
+    };
+  }, [nativeAd]);
+
+  const closeDisclosurePanel = React.useCallback(() => {
+    setIsDisclosureVisible(false);
+  }, []);
+
+  const toggleDisclosurePanel = React.useCallback(() => {
+    if (isDisclosureVisible) {
+      closeDisclosurePanel();
+      return;
+    }
+
+    setIsDisclosureVisible(true);
+  }, [closeDisclosurePanel, isDisclosureVisible]);
 
   if (Platform.OS === "web" || !nativeAd) {
     return null;
@@ -77,166 +122,43 @@ export function TopInstallNativeAd({
   const rating = nativeAd.starRating != null
     ? Number(nativeAd.starRating).toFixed(1)
     : null;
+  const ctaLabel = nativeAd.callToAction?.trim()
+    ? nativeAd.callToAction.trim().toUpperCase()
+    : "INSTALL";
 
   return (
-    <NativeAdView
-      nativeAd={nativeAd}
-      style={[styles.banner, bannerStyle, containerStyle]}
-      testID={testID}
-    >
-      <View style={styles.leftCluster}>
-        {nativeAd.icon?.url ? (
-          <NativeAsset assetType={NativeAssetType.ICON}>
-            <NativeImage
-              source={{ uri: nativeAd.icon.url }}
-              style={styles.icon}
-              testID="top-install-native-ad-icon"
-            />
-          </NativeAsset>
+    <>
+      <View
+        onLayout={(event) => {
+          const nextWidth = event.nativeEvent.layout.width;
+          if (nextWidth > 0 && nextWidth !== overlayWidth) {
+            setOverlayWidth(nextWidth);
+          }
+        }}
+        style={[styles.wrapper, containerStyle]}
+        testID={testID}
+      >
+        {isDisclosureVisible ? (
+          <TopInstallNativeAdBackSide
+            onClose={closeDisclosurePanel}
+            overlayWidth={overlayWidth}
+          />
         ) : (
-          <View style={styles.iconPlaceholder} testID="top-install-native-ad-icon" />
+          <TopInstallNativeAdFaceSide
+            ctaLabel={ctaLabel}
+            nativeAd={nativeAd}
+            onToggleDisclosure={toggleDisclosurePanel}
+            rating={rating}
+            testID={`${testID}-face`}
+          />
         )}
-
-        <View style={styles.textCluster}>
-          <NativeAsset assetType={NativeAssetType.HEADLINE}>
-            <Text
-              numberOfLines={1}
-              style={styles.headline}
-              testID="top-install-native-ad-headline"
-            >
-              {nativeAd.headline}
-            </Text>
-          </NativeAsset>
-
-          <View style={styles.metadataRow}>
-            {rating ? (
-              <>
-                <Ionicons
-                  name="star"
-                  size={10}
-                  color="#f4b400"
-                  testID="top-install-native-ad-star"
-                />
-                <NativeAsset assetType={NativeAssetType.STAR_RATING}>
-                  <Text
-                    numberOfLines={1}
-                    style={styles.metadataText}
-                    testID="top-install-native-ad-rating"
-                  >
-                    {rating}
-                  </Text>
-                </NativeAsset>
-              </>
-            ) : null}
-
-            {nativeAd.store ? (
-              <NativeAsset assetType={NativeAssetType.STORE}>
-                <Text
-                  numberOfLines={1}
-                  style={styles.metadataText}
-                  testID="top-install-native-ad-store"
-                >
-                  {nativeAd.store}
-                </Text>
-              </NativeAsset>
-            ) : null}
-
-            {nativeAd.price ? (
-              <NativeAsset assetType={NativeAssetType.PRICE}>
-                <Text
-                  numberOfLines={1}
-                  style={styles.metadataText}
-                  testID="top-install-native-ad-price"
-                >
-                  {nativeAd.price}
-                </Text>
-              </NativeAsset>
-            ) : null}
-          </View>
-        </View>
       </View>
-
-      <NativeAsset assetType={NativeAssetType.CALL_TO_ACTION}>
-        <Pressable
-          accessibilityRole="button"
-          style={styles.ctaButton}
-          testID="top-install-native-ad-cta"
-        >
-          <Text style={styles.ctaText}>OPEN</Text>
-        </Pressable>
-      </NativeAsset>
-    </NativeAdView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  banner: {
-    alignItems: "center",
-    flexDirection: "row",
-    height: BANNER_HEIGHT,
-    justifyContent: "space-between",
-    paddingHorizontal: 12,
+  wrapper: {
     width: "100%",
-  },
-  bannerLight: {
-    backgroundColor: "#ffffff",
-  },
-  leftCluster: {
-    alignItems: "center",
-    flex: 1,
-    flexDirection: "row",
-    minWidth: 0,
-  },
-  icon: {
-    backgroundColor: "#e5e7eb",
-    borderRadius: 8,
-    height: 24,
-    marginRight: 8,
-    width: 24,
-  },
-  iconPlaceholder: {
-    backgroundColor: "#e5e7eb",
-    borderRadius: 8,
-    height: 24,
-    marginRight: 8,
-    width: 24,
-  },
-  textCluster: {
-    flex: 1,
-    justifyContent: "center",
-    minWidth: 0,
-  },
-  headline: {
-    color: "#111827",
-    fontSize: 12,
-    fontWeight: "700",
-    lineHeight: 14,
-  },
-  metadataRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 4,
-    marginTop: 1,
-  },
-  metadataText: {
-    color: "#4b5563",
-    fontSize: 10,
-    lineHeight: 12,
-  },
-  ctaButton: {
-    alignItems: "center",
-    backgroundColor: "#2563eb",
-    borderRadius: 999,
-    justifyContent: "center",
-    minWidth: 56,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
-  ctaText: {
-    color: "#ffffff",
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
   },
 });

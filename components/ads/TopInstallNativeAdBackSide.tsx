@@ -1,0 +1,118 @@
+import React from "react";
+import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+
+const WHY_THIS_AD_URL = "https://adssettings.google.com/whythisad";
+
+interface TopInstallNativeAdBackSideProps {
+  overlayWidth: number;
+  onClose: () => void;
+}
+
+const BANNER_HEIGHT = 48;
+
+export function TopInstallNativeAdBackSide({
+  overlayWidth,
+  onClose,
+}: TopInstallNativeAdBackSideProps) {
+  return (
+    <Pressable
+      onPress={onClose}
+      style={styles.inlineDisclosureLayer}
+      testID="top-install-native-ad-disclosure-backdrop"
+    >
+      <View
+        style={[
+          styles.disclosurePanel,
+          overlayWidth > 0 ? { width: overlayWidth } : null,
+        ]}
+        testID="top-install-native-ad-disclosure-panel"
+      >
+        <Text style={styles.disclosureTitle}>Ads By Google</Text>
+        <View style={styles.disclosureActionsRow}>
+          <View style={styles.disclosureGoogleBadge}>
+            <Text style={styles.disclosureGoogleBadgeText}>
+              Google AdChoices
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => Linking.openURL(WHY_THIS_AD_URL)}
+            style={styles.disclosureWhyButton}
+          >
+            <Text style={styles.disclosureWhyButtonText}>Why this ad?</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  inlineDisclosureLayer: {
+    height: BANNER_HEIGHT,
+    justifyContent: "center",
+    width: "100%",
+    zIndex: 3,
+  },
+  disclosurePanel: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    height: BANNER_HEIGHT,
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    width: "100%",
+    shadowColor: "#0f172a",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  disclosureTitle: {
+    color: "#1f2937",
+    fontSize: 10,
+    fontWeight: "600",
+    lineHeight: 12,
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  disclosureActionsRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "center",
+    width: "100%",
+  },
+  disclosureGoogleBadge: {
+    alignItems: "center",
+    backgroundColor: "#dbeafe",
+    borderRadius: 10,
+    height: 20,
+    justifyContent: "center",
+    paddingHorizontal: 10,
+  },
+  disclosureGoogleBadgeText: {
+    color: "#1d4ed8",
+    fontSize: 9,
+    fontWeight: "600",
+    lineHeight: 11,
+  },
+  disclosureWhyButton: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderColor: "#d1d5db",
+    borderRadius: 10,
+    borderWidth: 1,
+    height: 20,
+    justifyContent: "center",
+    paddingHorizontal: 10,
+    shadowColor: "#0f172a",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 1,
+  },
+  disclosureWhyButtonText: {
+    color: "#374151",
+    fontSize: 9,
+    fontWeight: "600",
+    lineHeight: 11,
+  },
+});

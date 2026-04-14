@@ -68,25 +68,70 @@ jest.mock("react-native-google-mobile-ads", () => {
   const React = require("react");
   const { View } = require("react-native");
 
-  const createNativeAd = jest.fn(async () => ({
-    responseId: "test-response-id",
-    advertiser: "Mock Advertiser",
-    body: "Mock Body",
-    callToAction: "Open",
-    headline: "Mock App",
-    price: "Free",
-    store: "App Store",
-    starRating: 4.8,
-    icon: { url: "https://cdn.example.com/icon.png", scale: 1 },
-    images: null,
-    mediaContent: {
-      aspectRatio: 1,
-      hasVideoContent: false,
-      duration: 0,
+  const NativeAdEventType = {
+    CLICKED: "clicked",
+    OPENED: "opened",
+  };
+
+  const mockNativeAdState = {
+    current: null,
+    lastRequest: null,
+    emit(type, payload) {
+      this.current?.__listeners?.get(type)?.(payload);
     },
-    extras: null,
-    destroy: jest.fn(),
-  }));
+  };
+
+  const buildNativeAd = (overrides = {}) => {
+    const listeners = new Map();
+
+    const ad = {
+      responseId: "test-response-id",
+      advertiser: "Mock Advertiser",
+      body: "Mock Body",
+      callToAction: "Open",
+      headline: "Mock App",
+      price: "Free",
+      store: "App Store",
+      starRating: 4.8,
+      icon: { url: "https://cdn.example.com/icon.png", scale: 1 },
+      images: null,
+      mediaContent: {
+        aspectRatio: 1,
+        hasVideoContent: false,
+        duration: 0,
+      },
+      extras: null,
+      addAdEventListener: jest.fn((type, listener) => {
+        listeners.set(type, listener);
+        const subscription = {
+          remove: jest.fn(() => {
+            listeners.delete(type);
+          }),
+        };
+
+        if (!ad.__subscriptions) {
+          ad.__subscriptions = {};
+        }
+        ad.__subscriptions[type] = subscription;
+        return subscription;
+      }),
+      removeAllAdEventListeners: jest.fn(() => {
+        listeners.clear();
+      }),
+      destroy: jest.fn(),
+      __listeners: listeners,
+      __subscriptions: {},
+      ...overrides,
+    };
+
+    mockNativeAdState.current = ad;
+    return ad;
+  };
+
+  const createNativeAd = jest.fn(async (adUnitId, options) => {
+    mockNativeAdState.lastRequest = { adUnitId, options };
+    return buildNativeAd();
+  });
 
   const NativeAdView = ({ children, ...props }) =>
     React.createElement(View, props, children);
@@ -106,6 +151,7 @@ jest.mock("react-native-google-mobile-ads", () => {
     NativeAd: {
       createForAdRequest: createNativeAd,
     },
+    NativeAdEventType,
     NativeAdView,
     NativeAsset,
     NativeAssetType: {
@@ -116,6 +162,7 @@ jest.mock("react-native-google-mobile-ads", () => {
       PRICE: "price",
       CALL_TO_ACTION: "callToAction",
     },
+    __mockNativeAd: mockNativeAdState,
   };
 });
 
