@@ -227,6 +227,8 @@ export default function CourseWordBankScreen() {
 
   return (
     <SafeAreaView
+      // header
+
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
       edges={["left", "right", "bottom"]}
     >
@@ -237,7 +239,7 @@ export default function CourseWordBankScreen() {
             ? t(courseData.titleKey, { defaultValue: courseData.title })
             : t("wordBank.title"),
           headerBackTitle: t("common.back"),
-          headerShown: !loading,
+          headerShown: false,
         }}
       />
 

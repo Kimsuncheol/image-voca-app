@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { TopInstallNativeAd } from "../../components/ads/TopInstallNativeAd";
 import { JlptLevelList } from "../../components/course/JlptLevelList";
 import { ThemedText } from "../../components/themed-text";
 import { useTheme } from "../../src/context/ThemeContext";
@@ -22,10 +23,10 @@ export default function JlptLevelsScreen() {
 
     const loadTotals = async () => {
       const entries = await Promise.all(
-        JLPT_LEVELS.map(async (level) => [
-          level.id,
-          await getTotalDaysForCourse(level.id),
-        ] as const),
+        JLPT_LEVELS.map(
+          async (level) =>
+            [level.id, await getTotalDaysForCourse(level.id)] as const,
+        ),
       );
 
       if (!active) return;
@@ -73,6 +74,7 @@ export default function JlptLevelsScreen() {
           headerBackTitle: t("common.back"),
         }}
       />
+      <TopInstallNativeAd containerStyle={styles.topInstallAd} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -99,8 +101,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 0,
     paddingBottom: 40,
+  },
+  topInstallAd: {
+    marginHorizontal: 0,
+    marginTop: 0,
+    marginBottom: 24,
+    overflow: "hidden",
   },
   header: {
     marginBottom: 24,

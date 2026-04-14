@@ -90,6 +90,7 @@ export default function ElementaryJapaneseScreen() {
       />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <TopInstallNativeAd containerStyle={styles.topInstallAd} />
         <View style={[styles.heroCard, { backgroundColor: heroCardBg }]}>
           <View style={styles.heroTopRow}>
             <View style={[styles.accentPill, { backgroundColor: accentBg }]}>
@@ -129,7 +130,7 @@ export default function ElementaryJapaneseScreen() {
           </View>
         </View>
 
-        <TopInstallNativeAd containerStyle={styles.topInstallAd} />
+
 
         <View style={styles.sectionHeader}>
           <ThemedText style={[styles.sectionLabel, { color: sectionLabelColor }]}>
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
   },
   topInstallAd: {
     borderRadius: 16,
-    marginTop: 18,
+    marginBottom: 16,
     overflow: "hidden",
   },
   sectionLabel: {

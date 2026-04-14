@@ -139,16 +139,6 @@ jest.mock("../components/common/StreakMilestoneModal", () => ({
   StreakMilestoneModal: () => null,
 }));
 
-jest.mock("../components/ads/TopInstallNativeAd", () => ({
-  __esModule: true,
-  TopInstallNativeAd: () => {
-    const React = require("react");
-    const { View } = require("react-native");
-
-    return <View testID="mock-top-install-native-ad" />;
-  },
-}));
-
 jest.mock("../components/course/vocabulary/VocabularyEmptyState", () => ({
   VocabularyEmptyState: () => {
     const { Text } = require("react-native");
@@ -157,11 +147,7 @@ jest.mock("../components/course/vocabulary/VocabularyEmptyState", () => ({
 }));
 
 jest.mock("../components/course/vocabulary/VocabularyFinishView", () => ({
-  VocabularyFinishView: ({
-    onManga,
-  }: {
-    onManga: () => void;
-  }) => {
+  VocabularyFinishView: ({ onManga }: { onManga: () => void }) => {
     const { Text, TouchableOpacity, View } = require("react-native");
     return (
       <View>
@@ -204,14 +190,13 @@ describe("VocabularyScreen deck state", () => {
     mockCards = cards;
   });
 
-  it("renders the deck with one top native ad when cards exist", async () => {
+  it("renders the deck when cards exist", async () => {
     const screen = render(<VocabularyScreen />);
 
     await Promise.resolve();
     await Promise.resolve();
 
     expect(screen.getByText("Vocabulary Deck")).toBeTruthy();
-    expect(screen.getByTestId("mock-top-install-native-ad")).toBeTruthy();
   });
 
   it("keeps the deck active when the index changes in the same session", async () => {
@@ -244,10 +229,9 @@ describe("VocabularyScreen deck state", () => {
     await Promise.resolve();
 
     expect(secondRender.getByText("Vocabulary Deck")).toBeTruthy();
-    expect(secondRender.getByTestId("mock-top-install-native-ad")).toBeTruthy();
   });
 
-  it("hides the top native ad when the screen is in the empty state", async () => {
+  it("hides the deck when the screen is in the empty state", async () => {
     mockCards = [];
 
     const screen = render(<VocabularyScreen />);
@@ -256,10 +240,9 @@ describe("VocabularyScreen deck state", () => {
     await Promise.resolve();
 
     expect(screen.getByText("No words found for this day.")).toBeTruthy();
-    expect(screen.queryByTestId("mock-top-install-native-ad")).toBeNull();
   });
 
-  it("hides the top native ad when the finish view is shown", async () => {
+  it("shows the finish view when the deck is finished", async () => {
     const screen = render(<VocabularyScreen />);
 
     await Promise.resolve();
@@ -273,7 +256,6 @@ describe("VocabularyScreen deck state", () => {
 
     await Promise.resolve();
     expect(screen.getByText("Finish View")).toBeTruthy();
-    expect(screen.queryByTestId("mock-top-install-native-ad")).toBeNull();
   });
 
   it("does not mount the deck when the empty state is shown", async () => {
@@ -286,7 +268,6 @@ describe("VocabularyScreen deck state", () => {
 
     expect(screen.getByText("No words found for this day.")).toBeTruthy();
     expect(screen.queryByText("Vocabulary Deck")).toBeNull();
-    expect(screen.queryByTestId("mock-top-install-native-ad")).toBeNull();
   });
 
   it("navigates to the manga reader with courseId and day params", async () => {

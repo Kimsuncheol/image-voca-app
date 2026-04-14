@@ -131,16 +131,6 @@ jest.mock("../components/common/StreakMilestoneModal", () => ({
   StreakMilestoneModal: () => null,
 }));
 
-jest.mock("../components/ads/TopInstallNativeAd", () => ({
-  __esModule: true,
-  TopInstallNativeAd: () => {
-    const React = require("react");
-    const { View } = require("react-native");
-
-    return <View testID="mock-top-install-native-ad" />;
-  },
-}));
-
 jest.mock("../components/course/vocabulary/VocabularyEmptyState", () => ({
   VocabularyEmptyState: () => {
     const { Text } = require("react-native");
@@ -237,23 +227,5 @@ describe("VocabularyScreen completion persistence", () => {
         totalWords: 1,
       }),
     });
-  });
-
-  it("hides the top native ad when the finish view is shown", async () => {
-    const screen = render(<VocabularyScreen />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Swipe Right Then Finish")).toBeTruthy();
-    });
-
-    expect(screen.getByTestId("mock-top-install-native-ad")).toBeTruthy();
-
-    fireEvent.press(screen.getByText("Swipe Right Then Finish"));
-
-    await waitFor(() => {
-      expect(screen.getByText("Finish View")).toBeTruthy();
-    });
-
-    expect(screen.queryByTestId("mock-top-install-native-ad")).toBeNull();
   });
 });

@@ -15,6 +15,8 @@ import {
   MD3LightTheme,
   Provider as PaperProvider,
 } from "react-native-paper";
+import { AppSplashScreen } from "../components/common/AppSplashScreen";
+import { NetworkErrorOverlay } from "../components/common/NetworkErrorOverlay";
 import { useColorScheme } from "../hooks/use-color-scheme";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import {
@@ -38,10 +40,11 @@ import {
   isVocabularyCacheFresh,
   pruneVocabularyCaches,
 } from "../src/services/vocabularyPrefetch";
-import { AppSplashScreen } from "../components/common/AppSplashScreen";
-import { NetworkErrorOverlay } from "../components/common/NetworkErrorOverlay";
 import { useSubscriptionStore } from "../src/stores";
-import { CourseType, isCourseAvailableForLanguage } from "../src/types/vocabulary";
+import {
+  CourseType,
+  isCourseAvailableForLanguage,
+} from "../src/types/vocabulary";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -98,8 +101,7 @@ export function RootLayoutNav() {
     const inAuthGroup = segments[0] === "(auth)";
     const isPasswordResetRoute =
       inAuthGroup && segments[1] === "reset-password";
-    const isVerifyEmailRoute =
-      inAuthGroup && segments[1] === "verify-email";
+    const isVerifyEmailRoute = inAuthGroup && segments[1] === "verify-email";
 
     if (authStatus === "signed_out") {
       if (!inAuthGroup || isVerifyEmailRoute) {
@@ -213,11 +215,7 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
   const hasBootstrapped = useRef(false);
 
   useEffect(() => {
-    if (
-      hasBootstrapped.current ||
-      loading ||
-      !learningLanguageReady
-    ) {
+    if (hasBootstrapped.current || loading || !learningLanguageReady) {
       return;
     }
 
@@ -278,7 +276,12 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
     };
 
     prepare();
-  }, [learningLanguage, learningLanguageReady, loading, recentCourseByLanguage]);
+  }, [
+    learningLanguage,
+    learningLanguageReady,
+    loading,
+    recentCourseByLanguage,
+  ]);
 
   return (
     <>

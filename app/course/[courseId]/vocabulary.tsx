@@ -23,7 +23,6 @@ import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
 import { formatDateKey } from "../../../src/utils/calendarStats";
 
 // Components
-import { TopInstallNativeAd } from "../../../components/ads/TopInstallNativeAd";
 import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
 import { StreakMilestoneModal } from "../../../components/common/StreakMilestoneModal";
 import { VocabularyEmptyState } from "../../../components/course/vocabulary/VocabularyEmptyState";
@@ -429,7 +428,6 @@ export default function VocabularyScreen() {
   );
 
   const hasCards = () => cards.length > 0;
-  const shouldShowTopInstallAd = hasCards() && !isFinished;
 
   return (
     <SafeAreaView
@@ -450,9 +448,6 @@ export default function VocabularyScreen() {
         }}
       />
       <View style={styles.swipeContainer}>
-        {shouldShowTopInstallAd ? (
-          <TopInstallNativeAd containerStyle={styles.topInstallAd} />
-        ) : null}
         <View style={styles.deckContainer}>
           {hasCards() ? (
             isFinished && courseId !== "COLLOCATION" ? (
@@ -507,12 +502,6 @@ const styles = StyleSheet.create({
     width: width,
     alignItems: "center",
     justifyContent: "flex-start",
-  },
-  topInstallAd: {
-    borderRadius: 16,
-    marginBottom: 12,
-    overflow: "hidden",
-    width: width,
   },
   deckContainer: {
     flex: 1,
