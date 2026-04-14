@@ -29,6 +29,16 @@ jest.mock("../components/themed-text", () => ({
   },
 }));
 
+jest.mock("../components/ads/TopInstallNativeAd", () => ({
+  __esModule: true,
+  TopInstallNativeAd: () => {
+    const React = require("react");
+    const { View } = require("react-native");
+
+    return <View testID="mock-top-install-native-ad" />;
+  },
+}));
+
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, options?: { defaultValue?: string }) => {
@@ -63,6 +73,7 @@ describe("ElementaryJapaneseScreen", () => {
   it("renders the elementary Japanese hub with four module entries", () => {
     const screen = render(<ElementaryJapaneseScreen />);
 
+    expect(screen.getAllByTestId("mock-top-install-native-ad")).toHaveLength(1);
     expect(screen.getAllByText("Elementary Japanese").length).toBeGreaterThan(0);
     expect(
       screen.getByText("Start with characters and core building blocks"),

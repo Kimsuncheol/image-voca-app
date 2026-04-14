@@ -1,4 +1,4 @@
-import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { setDoc } from "firebase/firestore";
 import React, * as ReactModule from "react";
 import { Alert } from "react-native";
@@ -17,7 +17,9 @@ jest.mock("react", () => {
 
 const mockSetWords = jest.fn();
 const mockSetLoading = jest.fn();
+const mockSetSplashMounted = jest.fn();
 const mockSetSelectedFilter = jest.fn();
+const mockSetSearchQuery = jest.fn();
 
 jest.mock("expo-router", () => ({
   Stack: {
@@ -32,8 +34,18 @@ jest.mock("expo-router", () => ({
 jest.mock("firebase/firestore", () => ({
   doc: jest.fn(() => "mock-doc-ref"),
   getDoc: jest.fn(),
-  setDoc: jest.fn(),
+  setDoc: jest.fn(async () => undefined),
 }));
+
+jest.mock("react-native-safe-area-context", () => {
+  const { View } = jest.requireActual("react-native");
+
+  return {
+    SafeAreaView: ({ children }: { children: React.ReactNode }) => (
+      <View>{children}</View>
+    ),
+  };
+});
 
 jest.mock("../src/context/AuthContext", () => ({
   useAuth: () => ({
@@ -58,33 +70,60 @@ jest.mock("../src/services/firebase", () => ({
   db: {},
 }));
 
+jest.mock("../components/common/AppSplashScreen", () => ({
+  AppSplashScreen: () => null,
+}));
+
 jest.mock("../components/common/FilterChips", () => ({
   FilterChips: () => null,
 }));
 
-jest.mock("../components/course-wordbank", () => ({
-  EmptyWordBankView: () => null,
-  SkeletonList: () => null,
-  WordList: ({
-    words,
-    onDeleteWord,
-  }: {
-    words: { id: string; word: string }[];
-    onDeleteWord: (wordId: string) => void;
-  }) => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+jest.mock("../components/ads/TopInstallNativeAd", () => ({
+  __esModule: true,
+  TopInstallNativeAd: () => {
     const React = require("react");
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { View } = require("react-native");
+
+    return <View testID="mock-top-install-native-ad" />;
+  },
+}));
+
+jest.mock("../components/course-wordbank", () => ({
+  EmptyWordBankView: () => {
+    const React = require("react");
+    const { View } = require("react-native");
+
+    return <View testID="mock-empty-word-bank-view" />;
+  },
+  SwipeToDeleteRow: ({
+    itemId,
+    onDelete,
+    children,
+  }: {
+    itemId: string;
+    onDelete: (itemId: string) => void;
+    children: React.ReactNode;
+  }) => {
+    const React = require("react");
     const { Text, TouchableOpacity, View } = require("react-native");
 
     return (
       <View>
-        <Text>{`words:${words.length}`}</Text>
-        <TouchableOpacity onPress={() => onDeleteWord("1")}>
-          <Text>Delete first</Text>
+        {children}
+        <TouchableOpacity onPress={() => onDelete(itemId)}>
+          <Text>{`Delete ${itemId}`}</Text>
         </TouchableOpacity>
       </View>
     );
+  },
+}));
+
+jest.mock("../components/wordbank/WordCard", () => ({
+  WordCard: ({ word }: { word: { word: string } }) => {
+    const React = require("react");
+    const { Text } = require("react-native");
+
+    return <Text>{word.word}</Text>;
   },
 }));
 
@@ -111,30 +150,42 @@ const initialWords = [
   },
 ];
 
-describe("CourseWordBankScreen swipe deletion", () => {
+function mockScreenState(words: typeof initialWords) {
+  (ReactModule.useState as jest.Mock)
+    .mockImplementationOnce(() => [words, mockSetWords])
+    .mockImplementationOnce(() => [false, mockSetLoading])
+    .mockImplementationOnce(() => [false, mockSetSplashMounted])
+    .mockImplementationOnce(() => ["all", mockSetSelectedFilter])
+    .mockImplementationOnce(() => ["", mockSetSearchQuery]);
+}
+
+describe("CourseWordBankScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (setDoc as jest.Mock).mockResolvedValue(undefined);
     jest.spyOn(Alert, "alert").mockImplementation(() => {});
     jest.spyOn(console, "error").mockImplementation(() => {});
-    (ReactModule.useState as jest.Mock)
-      .mockImplementationOnce(() => [initialWords, mockSetWords])
-      .mockImplementationOnce(() => [false, mockSetLoading])
-      .mockImplementationOnce(() => ["all", mockSetSelectedFilter]);
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  it("deletes a single item after the list requests removal", async () => {
+  it("renders one top native ad when saved words exist", () => {
+    mockScreenState(initialWords);
+
     const screen = render(<CourseWordBankScreen />);
 
-    expect(screen.getByText("words:2")).toBeTruthy();
+    expect(screen.getByTestId("mock-top-install-native-ad")).toBeTruthy();
+    expect(screen.getByText("abandon")).toBeTruthy();
+    expect(screen.getByText("retain")).toBeTruthy();
+  });
 
-    await act(async () => {
-      fireEvent.press(screen.getByText("Delete first"));
-    });
+  it("deletes a word through the screen-level list row", async () => {
+    mockScreenState(initialWords);
+
+    const screen = render(<CourseWordBankScreen />);
+
+    fireEvent.press(screen.getByText("Delete 1"));
 
     await waitFor(() => {
       expect(setDoc).toHaveBeenCalledWith("mock-doc-ref", {
@@ -153,20 +204,15 @@ describe("CourseWordBankScreen swipe deletion", () => {
         word: "retain",
       }),
     ]);
-    expect(screen.queryByText("1 item selected")).toBeNull();
-    expect(screen.queryByText("2 items selected")).toBeNull();
   });
 
-  it("shows the existing error alert and does not update local words when delete fails", async () => {
+  it("shows the existing error alert when delete fails", async () => {
+    mockScreenState(initialWords);
     (setDoc as jest.Mock).mockRejectedValueOnce(new Error("write failed"));
 
     const screen = render(<CourseWordBankScreen />);
 
-    expect(screen.getByText("words:2")).toBeTruthy();
-
-    await act(async () => {
-      fireEvent.press(screen.getByText("Delete first"));
-    });
+    fireEvent.press(screen.getByText("Delete 1"));
 
     await waitFor(() => {
       expect(setDoc).toHaveBeenCalled();
@@ -177,5 +223,14 @@ describe("CourseWordBankScreen swipe deletion", () => {
       "Failed to delete word. Please try again.",
     );
     expect(mockSetWords).not.toHaveBeenCalled();
+  });
+
+  it("hides the top native ad when the word bank is empty", () => {
+    mockScreenState([]);
+
+    const screen = render(<CourseWordBankScreen />);
+
+    expect(screen.getByTestId("mock-empty-word-bank-view")).toBeTruthy();
+    expect(screen.queryByTestId("mock-top-install-native-ad")).toBeNull();
   });
 });

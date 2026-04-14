@@ -3,6 +3,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { TopInstallNativeAd } from "../components/ads/TopInstallNativeAd";
 import { AppSplashScreen } from "../components/common/AppSplashScreen";
 import CollocationCardSection from "../components/notification/CollocationCardSection";
 import EmptyState from "../components/notification/EmptyState";
@@ -68,6 +69,9 @@ export default function NotificationCardScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {payload ? (
+          <TopInstallNativeAd containerStyle={styles.topInstallAd} />
+        ) : null}
         {/* Empty state when there is no pending notification payload */}
         {!payload ? (
           <EmptyState isDark={isDark} onGoDashboard={handleGoDashboard} />
@@ -95,6 +99,12 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 32,
     flexGrow: 1,
+  },
+  topInstallAd: {
+    borderRadius: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    overflow: "hidden",
   },
   cardContainer: {
     width: "100%",

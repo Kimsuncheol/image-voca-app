@@ -3,6 +3,7 @@ import { collection, getDocs } from "firebase/firestore";
 import React, { useCallback, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
+import { TopInstallNativeAd } from "../../components/ads/TopInstallNativeAd";
 import { WordBankCourseGrid, WordBankHeader } from "../../components/wordbank";
 import { useAuth } from "../../src/context/AuthContext";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
@@ -54,6 +55,7 @@ export default function WordBankScreen() {
     <View
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
     >
+      <TopInstallNativeAd />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

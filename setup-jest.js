@@ -64,6 +64,61 @@ jest.mock("expo-crypto", () => ({
   digestStringAsync: jest.fn(async (_algorithm, value) => `hash:${value}`),
 }));
 
+jest.mock("react-native-google-mobile-ads", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+
+  const createNativeAd = jest.fn(async () => ({
+    responseId: "test-response-id",
+    advertiser: "Mock Advertiser",
+    body: "Mock Body",
+    callToAction: "Open",
+    headline: "Mock App",
+    price: "Free",
+    store: "App Store",
+    starRating: 4.8,
+    icon: { url: "https://cdn.example.com/icon.png", scale: 1 },
+    images: null,
+    mediaContent: {
+      aspectRatio: 1,
+      hasVideoContent: false,
+      duration: 0,
+    },
+    extras: null,
+    destroy: jest.fn(),
+  }));
+
+  const NativeAdView = ({ children, ...props }) =>
+    React.createElement(View, props, children);
+  const NativeAsset = ({ children, assetType }) =>
+    React.createElement(View, { testID: `native-asset-${assetType}` }, children);
+
+  const mobileAds = () => ({
+    initialize: jest.fn(async () => ({ adapterStatuses: [] })),
+  });
+
+  return {
+    __esModule: true,
+    default: mobileAds,
+    TestIds: {
+      NATIVE: "test-native-unit-id",
+    },
+    NativeAd: {
+      createForAdRequest: createNativeAd,
+    },
+    NativeAdView,
+    NativeAsset,
+    NativeAssetType: {
+      ICON: "icon",
+      HEADLINE: "headline",
+      STAR_RATING: "starRating",
+      STORE: "store",
+      PRICE: "price",
+      CALL_TO_ACTION: "callToAction",
+    },
+  };
+});
+
 jest.mock('firebase/app', () => {
   return {
     initializeApp: jest.fn(),

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { TopInstallNativeAd } from "../components/ads/TopInstallNativeAd";
 import { ThemedText } from "../components/themed-text";
 import { useTheme } from "../src/context/ThemeContext";
 
@@ -128,6 +129,8 @@ export default function ElementaryJapaneseScreen() {
           </View>
         </View>
 
+        <TopInstallNativeAd containerStyle={styles.topInstallAd} />
+
         <View style={styles.sectionHeader}>
           <ThemedText style={[styles.sectionLabel, { color: sectionLabelColor }]}>
             {t("elementaryJapanese.title", {
@@ -233,6 +236,11 @@ const styles = StyleSheet.create({
   sectionHeader: {
     paddingTop: 18,
     paddingBottom: 8,
+  },
+  topInstallAd: {
+    borderRadius: 16,
+    marginTop: 18,
+    overflow: "hidden",
   },
   sectionLabel: {
     fontSize: 12,

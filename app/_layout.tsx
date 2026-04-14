@@ -31,6 +31,7 @@ import { useDeviceDeletionEnforcement } from "../src/hooks/useDeviceDeletionEnfo
 import { useNotificationTapNavigation } from "../src/hooks/useNotificationTapNavigation";
 import { usePushNotifications } from "../src/hooks/usePushNotifications";
 import { hydrateLanguage } from "../src/i18n";
+import { initializeMobileAds } from "../src/services/mobileAds";
 import {
   fetchVocabularyCards,
   hydrateVocabularyCache,
@@ -266,6 +267,7 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
           }
         }
 
+        await initializeMobileAds();
         await languagePromise;
       } catch (error) {
         console.warn("App bootstrap failed:", error);

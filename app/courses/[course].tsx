@@ -8,6 +8,7 @@ import { Alert, FlatList, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Custom components
+import { TopInstallNativeAd } from "../../components/ads/TopInstallNativeAd";
 import { AppSplashScreen } from "../../components/common/AppSplashScreen";
 import { FilterChips } from "../../components/common/FilterChips";
 import {
@@ -170,53 +171,59 @@ export default function CourseWordBankScreen() {
 
   // === Event Handlers ===
 
-  const handleDeleteWord = useCallback(async (wordId: string) => {
-    if (!user || !course) {
-      return;
-    }
+  const handleDeleteWord = useCallback(
+    async (wordId: string) => {
+      if (!user || !course) {
+        return;
+      }
 
-    try {
-      const updatedWords = words.filter((word) => word.id !== wordId);
-      const courseRef = doc(db, "vocabank", user.uid, "course", course);
-      await setDoc(courseRef, { words: updatedWords });
-      setWords(updatedWords);
-    } catch (error) {
-      console.error("Error deleting word:", error);
-      Alert.alert(
-        t("common.error", { defaultValue: "Error" }),
-        t("wordBank.delete.error", {
-          defaultValue: "Failed to delete word. Please try again.",
-        }),
-      );
-    }
-  }, [course, t, user, words]);
+      try {
+        const updatedWords = words.filter((word) => word.id !== wordId);
+        const courseRef = doc(db, "vocabank", user.uid, "course", course);
+        await setDoc(courseRef, { words: updatedWords });
+        setWords(updatedWords);
+      } catch (error) {
+        console.error("Error deleting word:", error);
+        Alert.alert(
+          t("common.error", { defaultValue: "Error" }),
+          t("wordBank.delete.error", {
+            defaultValue: "Failed to delete word. Please try again.",
+          }),
+        );
+      }
+    },
+    [course, t, user, words],
+  );
 
   // === Render ===
 
-  const listHeader = words.length > 0 ? (
-    <View style={styles.listHeader}>
-      <TextInput
-        style={[
-          styles.searchInput,
-          {
-            backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5",
-            color: isDark ? "#fff" : "#111827",
-          },
-        ]}
-        placeholder={t("wordBank.searchPlaceholder")}
-        placeholderTextColor={isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.35)"}
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        returnKeyType="search"
-        clearButtonMode="while-editing"
-      />
-      <FilterChips
-        options={filterOptions}
-        selectedId={selectedFilter}
-        onSelect={setSelectedFilter}
-      />
-    </View>
-  ) : null;
+  const listHeader =
+    words.length > 0 ? (
+      <View style={styles.listHeader}>
+        <TextInput
+          style={[
+            styles.searchInput,
+            {
+              backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5",
+              color: isDark ? "#fff" : "#111827",
+            },
+          ]}
+          placeholder={t("wordBank.searchPlaceholder")}
+          placeholderTextColor={
+            isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.35)"
+          }
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          returnKeyType="search"
+          clearButtonMode="while-editing"
+        />
+        <FilterChips
+          options={filterOptions}
+          selectedId={selectedFilter}
+          onSelect={setSelectedFilter}
+        />
+      </View>
+    ) : null;
 
   return (
     <SafeAreaView
@@ -230,40 +237,45 @@ export default function CourseWordBankScreen() {
             ? t(courseData.titleKey, { defaultValue: courseData.title })
             : t("wordBank.title"),
           headerBackTitle: t("common.back"),
-          headerShown: false,
+          headerShown: !loading,
         }}
       />
 
       {!loading && (
-        <FlatList
-          data={filteredWords}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <SwipeToDeleteRow
-              itemId={item.id}
-              isDark={isDark}
-              onDelete={handleDeleteWord}
-            >
-              <WordCard
-                word={item}
+        <>
+          {words.length > 0 ? (
+            <TopInstallNativeAd containerStyle={styles.topInstallAd} />
+          ) : null}
+          <FlatList
+            data={filteredWords}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <SwipeToDeleteRow
+                itemId={item.id}
+                isDark={isDark}
+                onDelete={handleDeleteWord}
+              >
+                <WordCard
+                  word={item}
+                  courseColor={courseData?.color}
+                  isDark={isDark}
+                  showPronunciation={showPronunciation}
+                  expandExampleToContent={expandExampleToContent}
+                />
+              </SwipeToDeleteRow>
+            )}
+            ListHeaderComponent={listHeader}
+            ListEmptyComponent={
+              <EmptyWordBankView
+                courseId={course}
                 courseColor={courseData?.color}
                 isDark={isDark}
-                showPronunciation={showPronunciation}
-                expandExampleToContent={expandExampleToContent}
               />
-            </SwipeToDeleteRow>
-          )}
-          ListHeaderComponent={listHeader}
-          ListEmptyComponent={
-            <EmptyWordBankView
-              courseId={course}
-              courseColor={courseData?.color}
-              isDark={isDark}
-            />
-          }
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
+            }
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        </>
       )}
 
       {splashMounted && (
@@ -281,6 +293,10 @@ export default function CourseWordBankScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  topInstallAd: {
+    marginBottom: -4,
+    overflow: "hidden",
   },
   listContent: {
     padding: 20,

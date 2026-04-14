@@ -9,6 +9,7 @@ import {
   RecentCourseSection,
   VocaHeader,
 } from "../../components/course";
+import { TopInstallNativeAd } from "../../components/ads/TopInstallNativeAd";
 import { ThemedText } from "../../components/themed-text";
 import { useAuth } from "../../src/context/AuthContext";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
@@ -62,6 +63,7 @@ export default function CourseSelectionScreen() {
     <View
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
     >
+      <TopInstallNativeAd />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

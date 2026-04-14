@@ -139,6 +139,16 @@ jest.mock("../components/common/StreakMilestoneModal", () => ({
   StreakMilestoneModal: () => null,
 }));
 
+jest.mock("../components/ads/TopInstallNativeAd", () => ({
+  __esModule: true,
+  TopInstallNativeAd: () => {
+    const React = require("react");
+    const { View } = require("react-native");
+
+    return <View testID="mock-top-install-native-ad" />;
+  },
+}));
+
 jest.mock("../components/course/vocabulary/VocabularyEmptyState", () => ({
   VocabularyEmptyState: () => {
     const { Text } = require("react-native");
@@ -188,64 +198,43 @@ jest.mock("../components/course/vocabulary/VocabularySwipeDeck", () => ({
   },
 }));
 
-describe("VocabularyScreen stopwatch", () => {
+describe("VocabularyScreen deck state", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
     mockCards = cards;
   });
 
-  afterEach(() => {
-    jest.clearAllTimers();
-    jest.useRealTimers();
-  });
-
-  it("renders the timer above the deck and advances over time", async () => {
+  it("renders the deck with one top native ad when cards exist", async () => {
     const screen = render(<VocabularyScreen />);
 
     await Promise.resolve();
     await Promise.resolve();
 
     expect(screen.getByText("Vocabulary Deck")).toBeTruthy();
-    expect(screen.getByText("Study Time")).toBeTruthy();
-    expect(screen.getByTestId("swipe-study-timer-value").props.children).toBe("00:00");
-
-    act(() => {
-      jest.advanceTimersByTime(3000);
-    });
-
-    expect(screen.getByTestId("swipe-study-timer-value").props.children).toBe("00:03");
+    expect(screen.getByTestId("mock-top-install-native-ad")).toBeTruthy();
   });
 
-  it("does not reset the timer when the deck index changes in the same session", async () => {
+  it("keeps the deck active when the index changes in the same session", async () => {
     const screen = render(<VocabularyScreen />);
 
     await Promise.resolve();
     await Promise.resolve();
 
     expect(screen.getByText("Advance Deck")).toBeTruthy();
-    act(() => {
-      jest.advanceTimersByTime(2000);
-    });
 
     fireEvent.press(screen.getByText("Advance Deck"));
 
-    expect(screen.getByTestId("swipe-study-timer-value").props.children).toBe("00:02");
+    expect(screen.getByText("Vocabulary Deck")).toBeTruthy();
     expect(mockBufferWordLearned).not.toHaveBeenCalled();
   });
 
-  it("resets the timer when the screen remounts", async () => {
+  it("renders the deck again when the screen remounts", async () => {
     const firstRender = render(<VocabularyScreen />);
 
     await Promise.resolve();
     await Promise.resolve();
 
     expect(firstRender.getByText("Vocabulary Deck")).toBeTruthy();
-    act(() => {
-      jest.advanceTimersByTime(4000);
-    });
-
-    expect(firstRender.getByTestId("swipe-study-timer-value").props.children).toBe("00:04");
 
     firstRender.unmount();
 
@@ -255,31 +244,10 @@ describe("VocabularyScreen stopwatch", () => {
     await Promise.resolve();
 
     expect(secondRender.getByText("Vocabulary Deck")).toBeTruthy();
-    expect(secondRender.getByTestId("swipe-study-timer-value").props.children).toBe("00:00");
+    expect(secondRender.getByTestId("mock-top-install-native-ad")).toBeTruthy();
   });
 
-  it("hides the timer when the finish view is shown", async () => {
-    const screen = render(<VocabularyScreen />);
-
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(screen.getByText("Finish Deck")).toBeTruthy();
-    act(() => {
-      jest.advanceTimersByTime(5000);
-    });
-
-    act(() => {
-      fireEvent.press(screen.getByText("Finish Deck"));
-    });
-
-    await Promise.resolve();
-    expect(screen.getByText("Finish View")).toBeTruthy();
-    expect(screen.queryByText("Study Time")).toBeNull();
-    expect(screen.queryByTestId("swipe-study-timer-value")).toBeNull();
-  });
-
-  it("does not mount the timer when the empty state is shown", async () => {
+  it("hides the top native ad when the screen is in the empty state", async () => {
     mockCards = [];
 
     const screen = render(<VocabularyScreen />);
@@ -288,9 +256,37 @@ describe("VocabularyScreen stopwatch", () => {
     await Promise.resolve();
 
     expect(screen.getByText("No words found for this day.")).toBeTruthy();
-    expect(screen.queryByText("Study Time")).toBeNull();
-    expect(screen.queryByTestId("swipe-study-timer")).toBeNull();
-    expect(screen.queryByTestId("swipe-study-timer-value")).toBeNull();
+    expect(screen.queryByTestId("mock-top-install-native-ad")).toBeNull();
+  });
+
+  it("hides the top native ad when the finish view is shown", async () => {
+    const screen = render(<VocabularyScreen />);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(screen.getByText("Finish Deck")).toBeTruthy();
+
+    act(() => {
+      fireEvent.press(screen.getByText("Finish Deck"));
+    });
+
+    await Promise.resolve();
+    expect(screen.getByText("Finish View")).toBeTruthy();
+    expect(screen.queryByTestId("mock-top-install-native-ad")).toBeNull();
+  });
+
+  it("does not mount the deck when the empty state is shown", async () => {
+    mockCards = [];
+
+    const screen = render(<VocabularyScreen />);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(screen.getByText("No words found for this day.")).toBeTruthy();
+    expect(screen.queryByText("Vocabulary Deck")).toBeNull();
+    expect(screen.queryByTestId("mock-top-install-native-ad")).toBeNull();
   });
 
   it("navigates to the manga reader with courseId and day params", async () => {

@@ -23,13 +23,14 @@ import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
 import { formatDateKey } from "../../../src/utils/calendarStats";
 
 // Components
+import { TopInstallNativeAd } from "../../../components/ads/TopInstallNativeAd";
 import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
 import { StreakMilestoneModal } from "../../../components/common/StreakMilestoneModal";
 import { VocabularyEmptyState } from "../../../components/course/vocabulary/VocabularyEmptyState";
 import { VocabularyFinishView } from "../../../components/course/vocabulary/VocabularyFinishView";
 import { VocabularySwipeDeck } from "../../../components/course/vocabulary/VocabularySwipeDeck";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 /**
  * Vocabulary Learning Screen
@@ -428,16 +429,19 @@ export default function VocabularyScreen() {
   );
 
   const hasCards = () => cards.length > 0;
+  const shouldShowTopInstallAd = hasCards() && !isFinished;
 
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
-      edges={["top", "bottom"]}
+      edges={hasCards() ? ["bottom"] : ["top", "bottom"]}
     >
       <Stack.Screen
         options={{
           title: "",
           headerShown: hasCards(),
+          headerShadowVisible: false,
+          headerTintColor: isDark ? "#fff" : "#000",
           headerBackTitle: t("common.back"),
           // headerTitle: `Day ${dayNumber}`,
           headerBackVisible: !splashVisible && hasCards() ? true : false,
@@ -446,6 +450,9 @@ export default function VocabularyScreen() {
         }}
       />
       <View style={styles.swipeContainer}>
+        {shouldShowTopInstallAd ? (
+          <TopInstallNativeAd containerStyle={styles.topInstallAd} />
+        ) : null}
         <View style={styles.deckContainer}>
           {hasCards() ? (
             isFinished && courseId !== "COLLOCATION" ? (
@@ -493,16 +500,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
   },
   swipeContainer: {
-    height: height * 0.76,
+    flex: 1,
     width: width,
     alignItems: "center",
     justifyContent: "flex-start",
   },
+  topInstallAd: {
+    borderRadius: 16,
+    marginBottom: 12,
+    overflow: "hidden",
+    width: width,
+  },
   deckContainer: {
     flex: 1,
     width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

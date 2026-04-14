@@ -17,6 +17,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { TopInstallNativeAd } from "../../../components/ads/TopInstallNativeAd";
 import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
 import { DayGrid, EmptyDayView } from "../../../components/course";
 import { ThemedText } from "../../../components/themed-text";
@@ -96,6 +97,12 @@ export default function DayPickerScreen() {
     return isNaN(parsed) ? 0 : parsed;
   });
   const [loadingDay, setLoadingDay] = useState<number | null>(null);
+  const [initialLoading, setInitialLoading] = useState(
+    !initialTotalDays || isNaN(parseInt(initialTotalDays, 10)),
+  );
+  const [splashVisible, setSplashVisible] = useState(
+    !initialTotalDays || isNaN(parseInt(initialTotalDays, 10)),
+  );
   const freeDayLimit = 3; // Days 1-3 are always free
 
   // Progress data for this specific course
@@ -164,6 +171,7 @@ export default function DayPickerScreen() {
 
         if (isActive) {
           setTotalDays(days);
+          setInitialLoading(false);
         }
 
         console.log(
@@ -174,6 +182,9 @@ export default function DayPickerScreen() {
         );
       } catch (error) {
         console.error("[Days] Failed to load day count:", error);
+        if (isActive) {
+          setInitialLoading(false);
+        }
       }
     };
 
@@ -323,6 +334,7 @@ export default function DayPickerScreen() {
           headerBackVisible: loadingDay === null ? true : false,
         }}
       />
+      <TopInstallNativeAd />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -386,6 +398,12 @@ export default function DayPickerScreen() {
 
       {loadingDay !== null && (
         <AppSplashScreen visible={true} onHidden={() => {}} />
+      )}
+      {splashVisible && (
+        <AppSplashScreen
+          visible={initialLoading}
+          onHidden={() => setSplashVisible(false)}
+        />
       )}
     </SafeAreaView>
   );
