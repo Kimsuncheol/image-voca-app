@@ -29,7 +29,7 @@ type CourseConfig = {
 };
 
 // Bump the cache version so older persisted cards without newly added fields
-// like `exampleHurigana` do not mask fresh Firestore data.
+// like `exampleFurigana` do not mask fresh Firestore data.
 const STORAGE_PREFIX = "vocab_cache_v5";
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const METADATA_TTL_MS = 1000 * 60 * 10;
@@ -158,9 +158,9 @@ export const normalizeVocabularyCard = (
       typeof rest.exampleRoman === "string"
         ? rest.exampleRoman.trim() || undefined
         : undefined,
-    exampleHurigana:
-      typeof rest.exampleHurigana === "string"
-        ? rest.exampleHurigana.trim() || undefined
+    exampleFurigana:
+      typeof rest.exampleFurigana === "string"
+        ? rest.exampleFurigana.trim() || undefined
         : undefined,
     pronunciationRoman:
       typeof rest.pronunciationRoman === "string"
@@ -183,9 +183,9 @@ export const mapVocabularyDocToCard = (
   const imageUrl =
     normalizeVocabularyImageUrl(data.imageUrl) ??
     normalizeVocabularyImageUrl(data.image);
-  const exampleHurigana =
-    typeof data.exampleHurigana === "string"
-      ? data.exampleHurigana
+  const exampleFurigana =
+    typeof data.exampleFurigana === "string"
+      ? data.exampleFurigana
       : undefined;
 
   if (isJlptLevelCourseId(courseId)) {
@@ -203,7 +203,7 @@ export const mapVocabularyDocToCard = (
       example: typeof data.example === "string" ? data.example : "",
       exampleRoman:
         typeof data.exampleRoman === "string" ? data.exampleRoman : undefined,
-      exampleHurigana,
+      exampleFurigana,
       imageUrl,
       localized: {
         en: {
@@ -245,7 +245,7 @@ export const mapVocabularyDocToCard = (
           ? data.pronunciationRoman
           : undefined,
       example: typeof data.example === "string" ? data.example : "",
-      exampleHurigana,
+      exampleFurigana,
       imageUrl,
       localized: normalizeVocabularyLocalizationMap(data.localized),
       course: courseId,
@@ -260,7 +260,7 @@ export const mapVocabularyDocToCard = (
       translation:
         typeof data.translation === "string" ? data.translation : "",
       example: typeof data.example === "string" ? data.example : "",
-      exampleHurigana,
+      exampleFurigana,
       imageUrl,
       localized: normalizeVocabularyLocalizationMap(data.localized),
       course: courseId,
@@ -280,7 +280,7 @@ export const mapVocabularyDocToCard = (
         ? data.pronunciationRoman
         : undefined,
     example: typeof data.example === "string" ? data.example : "",
-    exampleHurigana,
+    exampleFurigana,
     imageUrl,
     localized: normalizeVocabularyLocalizationMap(data.localized),
     course: courseId,

@@ -37,7 +37,7 @@ export function SwipeCardItemAddToWordBankButton({
           pronunciation: item.pronunciation || "",
           pronunciationRoman: item.pronunciationRoman,
           example: item.example,
-          exampleHurigana: item.exampleHurigana,
+          exampleFurigana: item.exampleFurigana,
           course: item.course,
           day,
           addedAt: new Date().toISOString(),

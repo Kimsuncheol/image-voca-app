@@ -3,6 +3,11 @@ export type NumberedLine = {
   value: string;
 };
 
+export type GroupedLine = {
+  index: string;
+  values: string[];
+};
+
 const NUMBERED_LINE_REGEX = /^(\d+)\.\s*(.*)$/;
 
 export const parseNumberedLines = (value: string): NumberedLine[] =>
@@ -21,7 +26,7 @@ export const parseNumberedLines = (value: string): NumberedLine[] =>
     })
     .filter((line): line is NumberedLine => line !== null);
 
-export const buildGroupedLines = (...values: string[]) => {
+export const buildGroupedLines = (...values: string[]): GroupedLine[] | null => {
   const parsedGroups = values.map(parseNumberedLines);
 
   if (parsedGroups.some((group) => group.length === 0)) {
@@ -32,14 +37,15 @@ export const buildGroupedLines = (...values: string[]) => {
   const hasMatchingIndexes = parsedGroups.every(
     (group) =>
       group.length === expectedIndexes.length &&
-      group.every((line, index) => line.index === expectedIndexes[index]),
+      group.every((line, i) => line.index === expectedIndexes[i]),
   );
 
   if (!hasMatchingIndexes) {
     return null;
   }
 
-  return expectedIndexes.map((index, groupIndex) =>
-    parsedGroups.map((group) => `${index}. ${group[groupIndex].value}`),
-  );
+  return expectedIndexes.map((index, groupIndex) => ({
+    index,
+    values: parsedGroups.map((group) => group[groupIndex].value),
+  }));
 };

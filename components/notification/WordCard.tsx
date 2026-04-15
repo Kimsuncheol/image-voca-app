@@ -21,7 +21,7 @@ interface WordCardProps {
     | "meaning"
     | "pronunciation"
     | "example"
-    | "exampleHurigana"
+    | "exampleFurigana"
     | "translation"
     | "synonyms"
     | "imageUrl"
@@ -193,8 +193,8 @@ export default function WordCard({
           value={resolved.example}
           isDark={isDark}
           multiline={true}
-          onPress={isJapanese && resolved.exampleHurigana
-            ? () => { void speak(resolved.exampleHurigana!, { language: "ja-JP" }); }
+          onPress={isJapanese && resolved.exampleFurigana
+            ? () => { void speak(resolved.exampleFurigana!, { language: "ja-JP" }); }
             : undefined}
         />
         <SectionRow

@@ -38,7 +38,7 @@ function formatCharacterLabel(character: string): string {
 
 interface WordCardExampleProps {
   example: string;
-  exampleHurigana?: string;
+  exampleFurigana?: string;
   translation?: string;
   synonyms?: string[];
   pronunciation?: string;
@@ -50,7 +50,7 @@ interface WordCardExampleProps {
 
 export function WordCardExample({
   example,
-  exampleHurigana,
+  exampleFurigana,
   translation,
   synonyms,
   pronunciation,
@@ -66,9 +66,9 @@ export function WordCardExample({
   const [isExpanded, setIsExpanded] = React.useState(false);
 
   const examples = React.useMemo(() => splitExampleLines(example), [example]);
-  const huriganaLines = React.useMemo(
-    () => splitExampleLines(exampleHurigana),
-    [exampleHurigana],
+  const furiganaLines = React.useMemo(
+    () => splitExampleLines(exampleFurigana),
+    [exampleFurigana],
   );
   const translations = React.useMemo(
     () => splitExampleLines(translation),
@@ -87,9 +87,9 @@ export function WordCardExample({
     () => (isCollocation ? toDialogueTurns(translation || "") : []),
     [isCollocation, translation],
   );
-  const huriganaTurns = React.useMemo(
-    () => (isCollocation ? toDialogueTurns(exampleHurigana || "") : []),
-    [exampleHurigana, isCollocation],
+  const furiganaTurns = React.useMemo(
+    () => (isCollocation ? toDialogueTurns(exampleFurigana || "") : []),
+    [exampleFurigana, isCollocation],
   );
 
   const collocationItems = React.useMemo(
@@ -98,10 +98,10 @@ export function WordCardExample({
         character: turn.role || "",
         characterLabel: formatCharacterLabel(turn.role || ""),
         exampleText: turn.text,
-        speakText: huriganaTurns[index]?.text || turn.text,
+        speakText: furiganaTurns[index]?.text || turn.text,
         translationText: translationTurns[index]?.text || "",
       })),
-    [exampleTurns, huriganaTurns, translationTurns],
+    [exampleTurns, furiganaTurns, translationTurns],
   );
 
   const characterColumnWidth = React.useMemo(() => {
@@ -182,7 +182,7 @@ export function WordCardExample({
     displayedExamples.map((exampleText, index) => (
       <View key={index} style={styles.exampleGroup}>
         <TouchableOpacity
-          onPress={() => handleSpeak((huriganaLines[index] ?? exampleText).trim())}
+          onPress={() => handleSpeak((furiganaLines[index] ?? exampleText).trim())}
           activeOpacity={0.7}
         >
           <ThemedText style={styles.example}>{exampleText.trim()}</ThemedText>

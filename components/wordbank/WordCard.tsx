@@ -26,7 +26,7 @@ export interface SavedWord {
   pronunciation: string;
   pronunciationRoman?: string;
   example: string;
-  exampleHurigana?: string;
+  exampleFurigana?: string;
   course: string;
   day?: number;
   addedAt: string;
@@ -69,12 +69,12 @@ export function WordCard({
       pronunciation: resolved.sharedPronunciation ?? "(none)",
       meaning: resolved.meaning,
       example: resolved.example || "(none)",
-      exampleHurigana: resolved.exampleHurigana ?? "(none)",
+      exampleFurigana: resolved.exampleFurigana ?? "(none)",
       translation: resolved.translation ?? "(none)",
     });
   }, [
     resolved.example,
-    resolved.exampleHurigana,
+    resolved.exampleFurigana,
     resolved.imageUrl,
     resolved.meaning,
     resolved.sharedPronunciation,
@@ -141,7 +141,7 @@ export function WordCard({
 
       <WordCardExample
         example={resolved.example}
-        exampleHurigana={resolved.exampleHurigana}
+        exampleFurigana={resolved.exampleFurigana}
         translation={resolved.translation}
         synonyms={word.synonyms}
         pronunciation={

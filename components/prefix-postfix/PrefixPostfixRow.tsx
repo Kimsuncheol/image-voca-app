@@ -31,9 +31,11 @@ export function PrefixPostfixRow({ item, tab, index }: Props) {
       ? (item as PrefixWord).prefix
       : (item as PostfixWord).postfix;
   const meaning = isKorean ? item.meaningKorean : item.meaningEnglish;
-  const translation = `${item.translationEnglish}(${item.translationKorean})`;
+  const translation = isKorean ? item.translationKorean : item.translationEnglish;
   const pronunciationGroups = buildGroupedLines(item.pronunciation);
-  const exampleGroups = buildGroupedLines(item.example, item.translationEnglish);
+  const exampleGroups = item.exampleFurigana
+    ? buildGroupedLines(item.example, item.exampleFurigana, translation)
+    : buildGroupedLines(item.example, translation);
 
   const handleSpeak = useCallback(async () => {
     try {
@@ -66,27 +68,19 @@ export function PrefixPostfixRow({ item, tab, index }: Props) {
         {pronunciationGroups ? (
           pronunciationGroups.map((group, groupIndex) => (
             <View
-              key={`${item.id}-pron-${group[0]}`}
+              key={`${item.id}-pron-${group.index}`}
               style={groupIndex > 0 ? styles.groupBlock : undefined}
             >
               <ThemedText
-                style={[
-                  styles.bodyText,
-                  styles.leftAlignedText,
-                  { color: primaryText },
-                ]}
+                style={[styles.bodyText, styles.leftAlignedText, { color: primaryText }]}
               >
-                {group[0]}
+                {group.values[0]}
               </ThemedText>
             </View>
           ))
         ) : (
           <ThemedText
-            style={[
-              styles.bodyText,
-              styles.leftAlignedText,
-              { color: primaryText },
-            ]}
+            style={[styles.bodyText, styles.leftAlignedText, { color: primaryText }]}
           >
             {item.pronunciation}
           </ThemedText>
@@ -96,46 +90,58 @@ export function PrefixPostfixRow({ item, tab, index }: Props) {
       {/* Example */}
       <View style={[styles.cell, styles.exampleColumn]}>
         {exampleGroups ? (
-          exampleGroups.map((group, groupIndex) => (
-            <View
-              key={`${item.id}-example-${group[0]}`}
-              style={groupIndex > 0 ? styles.groupBlock : undefined}
-            >
-              <ThemedText
-                style={[
-                  styles.exampleText,
-                  styles.leftAlignedText,
-                  { color: primaryText },
-                ]}
+          exampleGroups.map((group, groupIndex) => {
+            const hasFurigana = group.values.length === 3;
+            return (
+              <View
+                key={`${item.id}-example-${group.index}`}
+                style={[styles.exampleGroupRow, groupIndex > 0 ? styles.groupBlock : undefined]}
               >
-                {group[0]}
+                <ThemedText style={[styles.indexText, { color: primaryText }]}>
+                  {group.index}.
+                </ThemedText>
+                <View style={styles.exampleContent}>
+                  <ThemedText
+                    style={[styles.exampleText, styles.leftAlignedText, { color: primaryText }]}
+                  >
+                    {group.values[0]}
+                  </ThemedText>
+                  {hasFurigana && (
+                    <ThemedText
+                      style={[styles.furiganaText, styles.leftAlignedText, { color: mutedText }]}
+                    >
+                      {group.values[1]}
+                    </ThemedText>
+                  )}
+                  <ThemedText
+                    style={[styles.subText, styles.leftAlignedText, { color: mutedText }]}
+                  >
+                    {hasFurigana ? group.values[2] : group.values[1]}
+                  </ThemedText>
+                </View>
+              </View>
+            );
+          })
+        ) : (
+          <View style={styles.exampleGroupRow}>
+            <View style={styles.exampleContent}>
+              <ThemedText
+                style={[styles.exampleText, styles.leftAlignedText, { color: primaryText }]}
+              >
+                {item.example}
               </ThemedText>
-              <ThemedText
-                style={[
-                  styles.subText,
-                  styles.leftAlignedText,
-                  { color: mutedText },
-                ]}
-              >
-                {group[1]}
+              {item.exampleFurigana && (
+                <ThemedText
+                  style={[styles.furiganaText, styles.leftAlignedText, { color: mutedText }]}
+                >
+                  {item.exampleFurigana}
+                </ThemedText>
+              )}
+              <ThemedText style={[styles.subText, styles.leftAlignedText, { color: mutedText }]}>
+                {translation}
               </ThemedText>
             </View>
-          ))
-        ) : (
-          <>
-            <ThemedText
-              style={[
-                styles.exampleText,
-                styles.leftAlignedText,
-                { color: primaryText },
-              ]}
-            >
-              {item.example}
-            </ThemedText>
-            <ThemedText style={[styles.subText, styles.leftAlignedText, { color: mutedText }]}>
-              {translation}
-            </ThemedText>
-          </>
+          </View>
         )}
       </View>
     </ElementaryTableRow>
@@ -166,6 +172,19 @@ const styles = StyleSheet.create({
     marginTop: 8,
     width: "100%",
   },
+  exampleGroupRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  indexText: {
+    fontSize: 10,
+    lineHeight: 16,
+    marginRight: 3,
+    minWidth: 13,
+  },
+  exampleContent: {
+    flex: 1,
+  },
   wordText: {
     fontSize: 14,
     fontWeight: "700",
@@ -179,6 +198,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
     lineHeight: 16,
+  },
+  furiganaText: {
+    fontSize: 10,
+    lineHeight: 15,
+    marginTop: 1,
   },
   subText: {
     fontSize: 10,

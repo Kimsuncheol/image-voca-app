@@ -15,7 +15,7 @@ interface NotificationCardPayloadBase {
   pronunciation?: string;
   pronunciationRoman?: string;
   example?: string;
-  exampleHurigana?: string;
+  exampleFurigana?: string;
   translation?: string;
   synonyms?: string[];
   imageUrl?: string;
@@ -62,7 +62,7 @@ export const isNotificationCardPayload = (
   if (!isStringOrUndefined(data.pronunciation)) return false;
   if (!isStringOrUndefined(data.pronunciationRoman)) return false;
   if (!isStringOrUndefined(data.example)) return false;
-  if (!isStringOrUndefined(data.exampleHurigana)) return false;
+  if (!isStringOrUndefined(data.exampleFurigana)) return false;
   if (!isStringOrUndefined(data.translation)) return false;
   if (!isStringArrayOrUndefined(data.synonyms)) return false;
   if (!isStringOrUndefined(data.imageUrl)) return false;

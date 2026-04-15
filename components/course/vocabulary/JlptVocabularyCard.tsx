@@ -43,7 +43,7 @@ interface LabeledMeaningRowProps {
 
 interface ExampleBlockProps {
   example?: string;
-  exampleHurigana?: string;
+  exampleFurigana?: string;
   translation?: string;
   isDark: boolean;
   isActive: boolean;
@@ -92,7 +92,7 @@ function LabeledMeaningRow({
 
 const ExampleBlock = React.memo(function ExampleBlock({
   example,
-  exampleHurigana,
+  exampleFurigana,
   translation,
   isDark,
   isActive,
@@ -106,7 +106,7 @@ const ExampleBlock = React.memo(function ExampleBlock({
   );
   const processedExample = showKana ? example : hiddenExample;
   const examples = React.useMemo(() => splitLines(processedExample), [processedExample]);
-  const huriganaLines = React.useMemo(() => splitLines(exampleHurigana), [exampleHurigana]);
+  const furiganaLines = React.useMemo(() => splitLines(exampleFurigana), [exampleFurigana]);
   const translations = React.useMemo(() => splitLines(translation), [translation]);
 
   const rowCount = Math.max(
@@ -122,9 +122,9 @@ const ExampleBlock = React.memo(function ExampleBlock({
     if (!isActive) {
       return;
     }
-    const ttsText = huriganaLines[index] ?? stripKanaParens(text);
+    const ttsText = furiganaLines[index] ?? stripKanaParens(text);
     void speak(ttsText, { language: "ja-JP" });
-  }, [isActive, speak, huriganaLines]);
+  }, [isActive, speak, furiganaLines]);
 
   if (rowCount === 0) {
     return null;
@@ -215,13 +215,13 @@ export function JlptVocabularyCard({
       pronunciation: resolved.sharedPronunciation ?? "(none)",
       meaning: resolved.meaning,
       example: resolved.example || "(none)",
-      exampleHurigana: resolved.exampleHurigana ?? "(none)",
+      exampleFurigana: resolved.exampleFurigana ?? "(none)",
       translation: resolved.translation ?? "(none)",
       showKana,
     });
   }, [
     resolved.example,
-    resolved.exampleHurigana,
+    resolved.exampleFurigana,
     resolved.imageUrl,
     resolved.meaning,
     resolved.sharedPronunciation,
@@ -318,7 +318,7 @@ export function JlptVocabularyCard({
 
           <ExampleBlock
             example={resolved.example}
-            exampleHurigana={resolved.exampleHurigana}
+            exampleFurigana={resolved.exampleFurigana}
             translation={resolved.translation}
             isDark={isDark}
             isActive={isActive}

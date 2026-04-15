@@ -5,6 +5,7 @@ export interface PrefixWord {
   meaningKorean: string;
   pronunciation: string;
   example: string;
+  exampleFurigana?: string;
   translationEnglish: string;
   translationKorean: string;
 }
@@ -16,6 +17,7 @@ export interface PostfixWord {
   meaningKorean: string;
   pronunciation: string;
   example: string;
+  exampleFurigana?: string;
   translationEnglish: string;
   translationKorean: string;
 }

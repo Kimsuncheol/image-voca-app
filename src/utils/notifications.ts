@@ -153,7 +153,7 @@ type NotificationCardSelection = {
   pronunciation?: string;
   pronunciationRoman?: string;
   example?: string;
-  exampleHurigana?: string;
+  exampleFurigana?: string;
   translation?: string;
   synonyms?: string[];
   imageUrl?: string;
@@ -176,7 +176,7 @@ export const buildPopWordNotificationData = (
     pronunciation: selection.pronunciation ?? "",
     pronunciationRoman: selection.pronunciationRoman ?? "",
     example: selection.example ?? "",
-    exampleHurigana: selection.exampleHurigana,
+    exampleFurigana: selection.exampleFurigana,
     translation: selection.translation ?? "",
     synonyms: selection.synonyms,
     imageUrl: selection.imageUrl ?? "",
@@ -197,7 +197,7 @@ export const buildPopWordNotificationContent = async (
       pronunciation: selection.pronunciation,
       pronunciationRoman: selection.pronunciationRoman,
       example: selection.example,
-      exampleHurigana: selection.exampleHurigana,
+      exampleFurigana: selection.exampleFurigana,
       imageUrl: selection.imageUrl,
       localized: selection.localized,
     },
