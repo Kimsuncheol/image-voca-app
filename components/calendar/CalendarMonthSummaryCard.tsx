@@ -20,7 +20,6 @@ export function CalendarMonthSummaryCard({
   const stats = [
     { label: t("calendar.summary.studyDays"), value: summary.studyDays },
     { label: t("calendar.summary.wordsLearned"), value: summary.wordsLearned },
-    { label: t("calendar.summary.minutesSpent"), value: summary.minutesSpent },
     { label: t("calendar.summary.currentStreak"), value: currentStreak },
   ];
 

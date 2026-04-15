@@ -84,7 +84,6 @@ jest.mock("../src/stores", () => ({
           learnedWordIds: [],
           correctAnswers: 0,
           totalAnswers: 0,
-          timeSpentMinutes: 1424,
         },
       ],
     },

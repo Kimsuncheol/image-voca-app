@@ -181,7 +181,6 @@ const ja = {
       days: "日",
       accuracy: "正確率",
       last7Days: "過去7日間",
-      timeSpent: "学習時間",
     },
   },
   calendar: {
@@ -204,13 +203,11 @@ const ja = {
       title: "月間サマリー",
       studyDays: "学習日数",
       wordsLearned: "学習単語",
-      minutesSpent: "学習時間",
       currentStreak: "連続日数",
     },
     detail: {
       noStudy: "この日の学習記録はありません。",
       wordsLearned: "学習単語",
-      minutesSpent: "学習時間",
       quizAccuracy: "クイズ正答率",
       streakContribution: "連続学習に反映",
       studiedCourses: "学習したコース",

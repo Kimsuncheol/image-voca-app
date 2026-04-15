@@ -80,31 +80,22 @@ export function CalendarDayDetailCard({
           {t("calendar.detail.noStudy")}
         </ThemedText>
       ) : (
-        <View style={styles.metricsGrid}>
-          <View style={styles.metricsRow}>
-            <MetricBox
-              label={t("calendar.detail.wordsLearned")}
-              value={String(stats.wordsLearned)}
-              isDark={isDark}
-            />
-            <MetricBox
-              label={t("calendar.detail.minutesSpent")}
-              value={String(stats.timeSpentMinutes)}
-              isDark={isDark}
-            />
-          </View>
-          <View style={styles.metricsRow}>
-            <MetricBox
-              label={t("calendar.detail.quizAccuracy")}
-              value={formatAccuracy(stats) ?? t("calendar.detail.noQuiz")}
-              isDark={isDark}
-            />
-            <MetricBox
-              label={t("calendar.detail.streakContribution")}
-              value={contributedToStreak ? t("calendar.detail.yes") : t("calendar.detail.no")}
-              isDark={isDark}
-            />
-          </View>
+        <View style={styles.metricsRow}>
+          <MetricBox
+            label={t("calendar.detail.wordsLearned")}
+            value={String(stats.wordsLearned)}
+            isDark={isDark}
+          />
+          <MetricBox
+            label={t("calendar.detail.quizAccuracy")}
+            value={formatAccuracy(stats) ?? t("calendar.detail.noQuiz")}
+            isDark={isDark}
+          />
+          <MetricBox
+            label={t("calendar.detail.streakContribution")}
+            value={contributedToStreak ? t("calendar.detail.yes") : t("calendar.detail.no")}
+            isDark={isDark}
+          />
         </View>
       )}
       <View
@@ -181,9 +172,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     opacity: 0.7,
-  },
-  metricsGrid: {
-    gap: 10,
   },
   metricsRow: {
     flexDirection: "row",

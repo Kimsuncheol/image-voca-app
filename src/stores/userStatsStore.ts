@@ -10,7 +10,6 @@ export interface DailyStats {
   learnedWordIds: string[];
   correctAnswers: number;
   totalAnswers: number;
-  timeSpentMinutes: number;
 }
 
 export interface UserStats {
@@ -54,12 +53,9 @@ interface UserStatsState {
   recordWordLearned: (userId: string) => Promise<void>;
   recordUniqueWordLearned: (userId: string, wordId: string) => Promise<boolean>;
   recordQuizAnswer: (userId: string, correct: boolean) => Promise<void>;
-  recordTimeSpent: (userId: string, minutes: number) => Promise<void>;
-
   // Computed getters
   getWordsLearnedForPeriod: (days: number) => number;
   getAccuracyForPeriod: (days: number) => number;
-  getTimeSpentForPeriod: (days: number) => number;
   getTodayProgress: () => { current: number; goal: number };
 
   // Buffering
@@ -338,7 +334,7 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
         learnedWordIds: [],
         correctAnswers: 0,
         totalAnswers: 0,
-        timeSpentMinutes: 0,
+
       };
       dailyStats.push(todayStats);
     }
@@ -410,7 +406,7 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
         learnedWordIds: [],
         correctAnswers: 0,
         totalAnswers: 0,
-        timeSpentMinutes: 0,
+
       };
       dailyStats.push(todayStats);
     }
@@ -486,7 +482,7 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
             learnedWordIds: [],
             correctAnswers: 0,
             totalAnswers: 0,
-            timeSpentMinutes: 0,
+    
           };
           serverDailyStats.push(serverTodayStats);
         }
@@ -554,7 +550,7 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
         learnedWordIds: [],
         correctAnswers: 0,
         totalAnswers: 0,
-        timeSpentMinutes: 0,
+
       };
       dailyStats.push(todayStats);
     }
@@ -602,7 +598,7 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
             learnedWordIds: [],
             correctAnswers: 0,
             totalAnswers: 0,
-            timeSpentMinutes: 0,
+    
           };
           serverDailyStats.push(serverTodayStats);
         }
@@ -623,37 +619,6 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
           correct: state.pendingQuizStats.correct + pendingQuizStats.correct,
         },
       }));
-    }
-  },
-
-  recordTimeSpent: async (userId: string, minutes: number) => {
-    const { stats } = get();
-    if (!stats) return;
-    markStudyDate().catch(() => {});
-
-    const today = getToday();
-    const dailyStats = [...stats.dailyStats];
-    let todayStats = dailyStats.find((d) => d.date === today);
-
-    if (!todayStats) {
-      todayStats = {
-        date: today,
-        wordsLearned: 0,
-        learnedWordIds: [],
-        correctAnswers: 0,
-        totalAnswers: 0,
-        timeSpentMinutes: 0,
-      };
-      dailyStats.push(todayStats);
-    }
-
-    todayStats.timeSpentMinutes += minutes;
-
-    try {
-      await updateDoc(doc(db, "users", userId), { dailyStats });
-      set({ stats: { ...stats, dailyStats } });
-    } catch (error: any) {
-      set({ error: error.message });
     }
   },
 
@@ -691,19 +656,6 @@ export const useUserStatsStore = create<UserStatsState>((set, get) => ({
     return totalAnswers > 0
       ? Math.round((totalCorrect / totalAnswers) * 100)
       : 0;
-  },
-
-  getTimeSpentForPeriod: (days: number) => {
-    const { stats } = get();
-    if (!stats) return 0;
-
-    const cutoffDate = new Date(Date.now() - days * 86400000)
-      .toISOString()
-      .split("T")[0];
-
-    return stats.dailyStats
-      .filter((d) => d.date >= cutoffDate)
-      .reduce((sum, d) => sum + d.timeSpentMinutes, 0);
   },
 
   getTodayProgress: () => {

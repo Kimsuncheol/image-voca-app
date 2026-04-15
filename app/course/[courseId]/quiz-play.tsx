@@ -38,7 +38,6 @@ import {
 } from "../../../src/course/quizUtils";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
-import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
 import { db } from "../../../src/services/firebase";
 import { prefetchVocabularyCards } from "../../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../../src/stores";
@@ -79,7 +78,6 @@ export default function QuizPlayScreen() {
     fetchCourseProgress,
     updateCourseDayProgress,
   } = useUserStatsStore();
-  useTimeTracking(); // Track time spent on this screen
   const { courseId, day, quizType } = useLocalSearchParams<{
     courseId: CourseType;
     day: string;

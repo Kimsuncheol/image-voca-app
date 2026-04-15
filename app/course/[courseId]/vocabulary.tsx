@@ -9,7 +9,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 // Contexts & Service
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
-import { useTimeTracking } from "../../../src/hooks/useTimeTracking";
 import { upsertVocabularyDayStudyHistory } from "../../../src/services/dailyStudyHistory";
 import { db } from "../../../src/services/firebase";
 import {
@@ -59,8 +58,6 @@ export default function VocabularyScreen() {
     fetchCourseProgress,
   } = useUserStatsStore();
 
-  // Custom hook to track time spent learning based on screen focus
-  useTimeTracking();
 
   // Navigation parameters: courseId (e.g., 'TOEIC') and day (e.g., '1')
   const { courseId, day } = useLocalSearchParams<{

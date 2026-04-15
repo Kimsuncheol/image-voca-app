@@ -182,7 +182,6 @@ const en = {
       days: "Days",
       accuracy: "Accuracy",
       last7Days: "Last 7 days",
-      timeSpent: "Time Spent",
     },
   },
   calendar: {
@@ -205,13 +204,11 @@ const en = {
       title: "This Month",
       studyDays: "Study days",
       wordsLearned: "Words learned",
-      minutesSpent: "Minutes spent",
       currentStreak: "Current streak",
     },
     detail: {
       noStudy: "No study activity recorded for this date.",
       wordsLearned: "Words learned",
-      minutesSpent: "Minutes spent",
       quizAccuracy: "Quiz accuracy",
       streakContribution: "Part of streak",
       studiedCourses: "Studied courses",

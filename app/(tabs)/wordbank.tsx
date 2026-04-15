@@ -8,7 +8,6 @@ import { WordBankCourseGrid, WordBankHeader } from "../../components/wordbank";
 import { useAuth } from "../../src/context/AuthContext";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
-import { useTimeTracking } from "../../src/hooks/useTimeTracking";
 import { db } from "../../src/services/firebase";
 import { CourseType, getTopLevelCoursesForLanguage } from "../../src/types/vocabulary";
 
@@ -17,7 +16,6 @@ export default function WordBankScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const { learningLanguage } = useLearningLanguage();
-  useTimeTracking(); // Track time spent on this screen
 
   const [wordCounts, setWordCounts] = useState<Record<string, number>>({});
 

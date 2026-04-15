@@ -58,10 +58,6 @@ jest.mock("../src/context/ThemeContext", () => ({
   }),
 }));
 
-jest.mock("../src/hooks/useTimeTracking", () => ({
-  useTimeTracking: jest.fn(),
-}));
-
 jest.mock("../src/services/firebase", () => ({
   db: {},
 }));

@@ -15,7 +15,6 @@ describe("calendarStats", () => {
       learnedWordIds: ["a", "b"],
       correctAnswers: 8,
       totalAnswers: 10,
-      timeSpentMinutes: 12,
     },
     {
       date: "2026-04-18",
@@ -23,7 +22,6 @@ describe("calendarStats", () => {
       learnedWordIds: ["c"],
       correctAnswers: 0,
       totalAnswers: 0,
-      timeSpentMinutes: 4,
     },
   ]);
 
@@ -32,7 +30,6 @@ describe("calendarStats", () => {
 
     expect(summary.studyDays).toBe(2);
     expect(summary.wordsLearned).toBe(23);
-    expect(summary.minutesSpent).toBe(16);
     expect(summary.quizzesTaken).toBe(1);
   });
 

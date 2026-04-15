@@ -18,7 +18,6 @@ export interface CalendarDayCell {
 export interface CalendarMonthSummary {
   studyDays: number;
   wordsLearned: number;
-  minutesSpent: number;
   quizzesTaken: number;
 }
 
@@ -55,7 +54,7 @@ const getActivityLevel = (stats?: DailyStats): CalendarActivityLevel => {
   }
 
   const score =
-    stats.wordsLearned + stats.timeSpentMinutes * 0.5 + (stats.totalAnswers > 0 ? 5 : 0);
+    stats.wordsLearned + (stats.totalAnswers > 0 ? 5 : 0);
 
   if (score <= 0) {
     return 0;
@@ -110,13 +109,11 @@ export const buildMonthSummary = (
     (summary, entry) => ({
       studyDays: summary.studyDays + 1,
       wordsLearned: summary.wordsLearned + entry.wordsLearned,
-      minutesSpent: summary.minutesSpent + entry.timeSpentMinutes,
       quizzesTaken: summary.quizzesTaken + (entry.totalAnswers > 0 ? 1 : 0),
     }),
     {
       studyDays: 0,
       wordsLearned: 0,
-      minutesSpent: 0,
       quizzesTaken: 0,
     },
   );

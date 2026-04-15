@@ -185,7 +185,6 @@ const ko = {
       days: "일",
       accuracy: "정확도",
       last7Days: "최근 7일",
-      timeSpent: "학습 시간",
     },
   },
   calendar: {
@@ -208,13 +207,11 @@ const ko = {
       title: "이번 달",
       studyDays: "학습한 날",
       wordsLearned: "학습한 단어",
-      minutesSpent: "학습 시간(분)",
       currentStreak: "연속 학습",
     },
     detail: {
       noStudy: "이 날짜에는 기록된 학습 활동이 없습니다.",
       wordsLearned: "학습한 단어",
-      minutesSpent: "학습 시간",
       quizAccuracy: "퀴즈 정확도",
       streakContribution: "연속 학습 포함",
       studiedCourses: "학습한 코스",
