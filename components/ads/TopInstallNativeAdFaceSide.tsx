@@ -55,13 +55,11 @@ export function TopInstallNativeAdFaceSide({
       <NativeAdView nativeAd={nativeAd} style={styles.banner} testID={testID}>
         <View style={styles.iconSlot}>
           {nativeAd.icon?.url ? (
-            <NativeAsset assetType={NativeAssetType.ICON}>
-              <NativeImage
-                source={{ uri: nativeAd.icon.url }}
-                style={styles.icon}
-                testID="top-install-native-ad-icon"
-              />
-            </NativeAsset>
+            <NativeImage
+              source={{ uri: nativeAd.icon.url }}
+              style={styles.icon}
+              testID="top-install-native-ad-icon"
+            />
           ) : (
             <View
               style={styles.iconPlaceholder}
@@ -71,15 +69,13 @@ export function TopInstallNativeAdFaceSide({
         </View>
 
         <View style={styles.textCluster}>
-          <NativeAsset assetType={NativeAssetType.HEADLINE}>
-            <Text
-              numberOfLines={1}
-              style={styles.headline}
-              testID="top-install-native-ad-headline"
-            >
-              {nativeAd.headline}
-            </Text>
-          </NativeAsset>
+          <Text
+            numberOfLines={1}
+            style={styles.headline}
+            testID="top-install-native-ad-headline"
+          >
+            {nativeAd.headline}
+          </Text>
 
           <View style={styles.metadataRow}>
             {rating ? (
@@ -90,39 +86,33 @@ export function TopInstallNativeAdFaceSide({
                   color="#f4b400"
                   testID="top-install-native-ad-star"
                 />
-                <NativeAsset assetType={NativeAssetType.STAR_RATING}>
-                  <Text
-                    numberOfLines={1}
-                    style={styles.metadataText}
-                    testID="top-install-native-ad-rating"
-                  >
-                    {rating}
-                  </Text>
-                </NativeAsset>
+                <Text
+                  numberOfLines={1}
+                  style={styles.metadataText}
+                  testID="top-install-native-ad-rating"
+                >
+                  {rating}
+                </Text>
               </>
             ) : null}
 
             {nativeAd.store ? (
-              <NativeAsset assetType={NativeAssetType.STORE}>
-                <Text
-                  numberOfLines={1}
-                  style={styles.metadataText}
-                  testID="metadataRow"
-                >
-                  {nativeAd.store}
-                </Text>
-              </NativeAsset>
+              <Text
+                numberOfLines={1}
+                style={styles.metadataText}
+                testID="metadataRow"
+              >
+                {nativeAd.store}
+              </Text>
             ) : null}
             {nativeAd.price ? (
-              <NativeAsset assetType={NativeAssetType.PRICE}>
-                <Text
-                  numberOfLines={1}
-                  style={styles.metadataText}
-                  testID="top-install-native-ad-headline"
-                >
-                  {nativeAd.price}
-                </Text>
-              </NativeAsset>
+              <Text
+                numberOfLines={1}
+                style={styles.metadataText}
+                testID="top-install-native-ad-headline"
+              >
+                {nativeAd.price}
+              </Text>
             ) : null}
           </View>
         </View>
