@@ -3,11 +3,16 @@ import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
+import {
+  splitJapaneseTextSegments,
+  stripKanaParens,
+} from "../../src/utils/japaneseText";
 import { toDialogueTurns } from "../../src/utils/roleplayUtils";
 import { formatSynonyms } from "../../src/utils/synonyms";
 import { ThemedText } from "../themed-text";
@@ -46,6 +51,7 @@ interface WordCardExampleProps {
   isDark?: boolean;
   speakLanguage?: string;
   expandToContent?: boolean;
+  showKana?: boolean;
 }
 
 export function WordCardExample({
@@ -58,6 +64,7 @@ export function WordCardExample({
   isDark = false,
   speakLanguage = "en-US",
   expandToContent = false,
+  showKana = true,
 }: WordCardExampleProps) {
   const { speak } = useSpeech();
   useCardSpeechCleanup();
@@ -65,7 +72,11 @@ export function WordCardExample({
   const isCollocation = course === "COLLOCATION";
   const [isExpanded, setIsExpanded] = React.useState(false);
 
-  const examples = React.useMemo(() => splitExampleLines(example), [example]);
+  const processedExample = React.useMemo(
+    () => (showKana ? example : stripKanaParens(example)),
+    [example, showKana],
+  );
+  const examples = React.useMemo(() => splitExampleLines(processedExample), [processedExample]);
   const furiganaLines = React.useMemo(
     () => splitExampleLines(exampleFurigana),
     [exampleFurigana],
@@ -179,13 +190,31 @@ export function WordCardExample({
     ) : null;
 
   const renderStandardContent = () =>
-    displayedExamples.map((exampleText, index) => (
+    displayedExamples.map((exampleText, index) => {
+      const segments = splitJapaneseTextSegments(exampleText.trim());
+      return (
       <View key={index} style={styles.exampleGroup}>
         <TouchableOpacity
           onPress={() => handleSpeak((furiganaLines[index] ?? exampleText).trim())}
           activeOpacity={0.7}
         >
-          <ThemedText style={styles.example}>{exampleText.trim()}</ThemedText>
+          <ThemedText style={styles.example}>
+            {segments.map((segment, segIndex) =>
+              segment.isKanaParen ? (
+                <Text
+                  key={segIndex}
+                  style={[
+                    styles.exampleFurigana,
+                    { color: isDark ? "#999" : "#606060" },
+                  ]}
+                >
+                  {segment.text}
+                </Text>
+              ) : (
+                <Text key={segIndex}>{segment.text}</Text>
+              )
+            )}
+          </ThemedText>
         </TouchableOpacity>
         {translations[index] ? (
           <ThemedText style={styles.translation}>
@@ -193,7 +222,8 @@ export function WordCardExample({
           </ThemedText>
         ) : null}
       </View>
-    ));
+      );
+    });
 
   const renderCollocationContent = () => (
     <View style={styles.collocationList}>
@@ -361,6 +391,9 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     opacity: 0.8,
     flexShrink: 1,
+  },
+  exampleFurigana: {
+    fontSize: 12,
   },
   translation: {
     fontSize: 14,

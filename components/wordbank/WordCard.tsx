@@ -1,14 +1,15 @@
 import { Image } from "expo-image";
 import React from "react";
-import { StyleSheet, View } from "react-native";
-import { ImagePlaceholder } from "../common/ImagePlaceholder";
+import { useTranslation } from "react-i18next";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
-import { useTranslation } from "react-i18next";
-import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
-import { speakWordVariants } from "../../src/utils/wordVariants";
-import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
 import type { VocabularyLocalizationMap } from "../../src/types/vocabulary";
+import { isJlptCourseId } from "../../src/types/vocabulary";
+import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
+import { speakWordVariants } from "../../src/utils/wordVariants";
+import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { WordCardExample } from "./WordCardExample";
 import { WordCardHeader } from "./WordCardHeader";
 import { WordCardMeaning } from "./WordCardMeaning";
@@ -58,6 +59,7 @@ export function WordCard({
   const { i18n } = useTranslation();
   const { learningLanguage } = useLearningLanguage();
   const speakLanguage = learningLanguage === "ja" ? "ja-JP" : "en-US";
+  const [showKana, setShowKana] = React.useState(false);
   const resolved = React.useMemo(
     () => resolveVocabularyContent(word, i18n.language),
     [i18n.language, word],
@@ -81,6 +83,10 @@ export function WordCard({
     resolved.translation,
     resolved.word,
   ]);
+
+  const hasFurigana =
+    isJlptCourseId(word.course) &&
+    resolved.exampleFurigana !== resolved.example;
 
   const handleSpeakWord = React.useCallback(async () => {
     try {
@@ -153,7 +159,36 @@ export function WordCard({
         isDark={isDark}
         speakLanguage={speakLanguage}
         expandToContent={expandExampleToContent}
+        showKana={showKana}
       />
+
+      {hasFurigana ? (
+        <View style={styles.kanaToggleBar}>
+          <Pressable
+            onPress={() => setShowKana((prev) => !prev)}
+            style={[
+              styles.kanaTogglePill,
+              showKana && styles.kanaTogglePillActive,
+              {
+                borderColor: showKana
+                  ? "rgba(46, 160, 67, 0.95)"
+                  : isDark
+                    ? "rgba(255,255,255,0.22)"
+                    : "rgba(17,24,28,0.16)",
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.kanaToggleText,
+                { color: showKana ? "#FFFFFF" : isDark ? "#8e8e93" : "#666" },
+              ]}
+            >
+              がな
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -182,5 +217,28 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     marginVertical: 12,
+  },
+  kanaToggleBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginTop: 10,
+  },
+  kanaTogglePill: {
+    minHeight: 20,
+    paddingHorizontal: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+  },
+  kanaTogglePillActive: {
+    backgroundColor: "#2EA043",
+  },
+  kanaToggleText: {
+    fontSize: 11,
+    fontWeight: "600",
+    letterSpacing: 0.5,
   },
 });

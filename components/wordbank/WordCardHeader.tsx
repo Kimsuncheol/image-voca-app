@@ -127,7 +127,6 @@ const styles = StyleSheet.create({
   },
   pronunciation: {
     fontSize: 14,
-    fontStyle: "italic",
     opacity: 0.6,
     marginTop: 2,
   },

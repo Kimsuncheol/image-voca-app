@@ -326,32 +326,34 @@ export function JlptVocabularyCard({
           />
         </ScrollView>
 
-        <View testID="jlpt-card-kana-toggle-bar" style={styles.kanaToggleBar}>
-          <Pressable
-            testID="jlpt-card-kana-toggle-pill"
-            onPress={onToggleKana}
-            style={[
-              styles.kanaTogglePill,
-              showKana && styles.kanaTogglePillActive,
-              {
-                borderColor: showKana
-                  ? "rgba(46, 160, 67, 0.95)"
-                  : isDark
-                    ? "rgba(255,255,255,0.22)"
-                    : "rgba(17,24,28,0.16)",
-              },
-            ]}
-          >
-            <Text
+        {resolved.exampleFurigana !== resolved.example ? (
+          <View testID="jlpt-card-kana-toggle-bar" style={styles.kanaToggleBar}>
+            <Pressable
+              testID="jlpt-card-kana-toggle-pill"
+              onPress={onToggleKana}
               style={[
-                styles.kanaToggleText,
-                { color: showKana ? "#FFFFFF" : isDark ? "#8e8e93" : "#666" },
+                styles.kanaTogglePill,
+                showKana && styles.kanaTogglePillActive,
+                {
+                  borderColor: showKana
+                    ? "rgba(46, 160, 67, 0.95)"
+                    : isDark
+                      ? "rgba(255,255,255,0.22)"
+                      : "rgba(17,24,28,0.16)",
+                },
               ]}
             >
-              がな
-            </Text>
-          </Pressable>
-        </View>
+              <Text
+                style={[
+                  styles.kanaToggleText,
+                  { color: showKana ? "#FFFFFF" : isDark ? "#8e8e93" : "#666" },
+                ]}
+              >
+                がな
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
       </View>
     </View>
   );
