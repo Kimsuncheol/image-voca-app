@@ -1,5 +1,4 @@
-export { PLANS, useSubscriptionStore } from "./subscriptionStore";
-export type { Plan, PlanType } from "./subscriptionStore";
+export { useSubscriptionStore } from "./subscriptionStore";
 export type { UserRole } from "../types/userRole";
 export { useDashboardSettingsStore } from "./dashboardSettingsStore";
 export type { DashboardElement } from "./dashboardSettingsStore";

@@ -44,7 +44,6 @@ import { useAuth } from "../../src/context/AuthContext"; // User authentication 
 import { useTheme } from "../../src/context/ThemeContext"; // Theme preferences context
 import { setLanguage, SupportedLanguage } from "../../src/i18n"; // Language configuration
 import { auth } from "../../src/services/firebase"; // Firebase auth instance
-import { useSubscriptionStore } from "../../src/stores"; // Zustand stores
 import { useDashboardSettingsStore } from "../../src/stores/dashboardSettingsStore";
 
 // ============================================================================
@@ -104,7 +103,6 @@ export default function SettingsScreen() {
   // USER DATA & STORES
   // ============================================================================
   const { user } = useAuth(); // Current authenticated user
-  const { fetchSubscription } = useSubscriptionStore(); // User subscription status
   const { loadSettings: loadDashboardSettings } = useDashboardSettingsStore();
 
   // ============================================================================
@@ -119,10 +117,7 @@ export default function SettingsScreen() {
     useCallback(() => {
       checkNotificationStatus(); // Load notification preferences
       loadDashboardSettings(); // Load dashboard display settings
-      if (user) {
-        fetchSubscription(user.uid); // Fetch subscription status
-      }
-    }, [user, fetchSubscription, loadDashboardSettings]),
+    }, [loadDashboardSettings]),
   );
 
   // ============================================================================

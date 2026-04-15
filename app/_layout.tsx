@@ -40,7 +40,6 @@ import {
   isVocabularyCacheFresh,
   pruneVocabularyCaches,
 } from "../src/services/vocabularyPrefetch";
-import { useSubscriptionStore } from "../src/stores";
 import {
   CourseType,
   isCourseAvailableForLanguage,
@@ -85,15 +84,6 @@ export function RootLayoutNav() {
         },
       };
 
-  // Fetch user subscription (including admin role) when user is loaded
-  useEffect(() => {
-    if (user && authStatus === "signed_in" && !loading) {
-      useSubscriptionStore.getState().fetchSubscription(user.uid);
-    } else if (!loading) {
-      // Reset subscription when user logs out or is blocked on verification
-      useSubscriptionStore.getState().resetSubscription();
-    }
-  }, [authStatus, loading, user]);
 
   useEffect(() => {
     if (loading) return;
@@ -137,7 +127,6 @@ export function RootLayoutNav() {
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="wordbank" options={{ headerShown: false }} />
             <Stack.Screen name="course" options={{ headerShown: false }} />
-            <Stack.Screen name="billing" options={{ headerShown: false }} />
             <Stack.Screen
               name="notification-card"
               options={{ headerShown: false }}

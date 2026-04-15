@@ -10,7 +10,6 @@ import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useTimeTracking } from "../../src/hooks/useTimeTracking";
 import { db } from "../../src/services/firebase";
-import { useSubscriptionStore } from "../../src/stores";
 import { CourseType, getTopLevelCoursesForLanguage } from "../../src/types/vocabulary";
 
 export default function WordBankScreen() {
@@ -18,7 +17,6 @@ export default function WordBankScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const { learningLanguage } = useLearningLanguage();
-  const { fetchSubscription } = useSubscriptionStore();
   useTimeTracking(); // Track time spent on this screen
 
   const [wordCounts, setWordCounts] = useState<Record<string, number>>({});
@@ -26,7 +24,6 @@ export default function WordBankScreen() {
   useFocusEffect(
     useCallback(() => {
       if (user) {
-        fetchSubscription(user.uid);
         getDocs(collection(db, "vocabank", user.uid, "course")).then((snap) => {
           const counts: Record<string, number> = {};
           snap.forEach((doc) => {
@@ -35,7 +32,7 @@ export default function WordBankScreen() {
           setWordCounts(counts);
         });
       }
-    }, [fetchSubscription, user])
+    }, [user])
   );
 
   const handleCoursePress = (courseId: CourseType) => {

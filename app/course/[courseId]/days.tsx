@@ -1,4 +1,3 @@
-import { SubscriptionBadge } from "@/components/subscription";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import {
@@ -73,16 +72,7 @@ export default function DayPickerScreen() {
 
   // Stores: Access stats and subscription logic
   const { courseProgress, fetchCourseProgress } = useUserStatsStore();
-  const {
-    canAccessUnlimitedVoca,
-    canAccessFeature,
-    fetchSubscription,
-    currentPlan,
-  } = useSubscriptionStore();
-
-  useEffect(() => {
-    console.log("[Days] currentPlan:", currentPlan);
-  }, [currentPlan]);
+  const { fetchSubscription } = useSubscriptionStore();
 
   // ---------------------------------------------------------------------------
   // Derived State & Constants
@@ -103,8 +93,6 @@ export default function DayPickerScreen() {
   const [splashVisible, setSplashVisible] = useState(
     !initialTotalDays || isNaN(parseInt(initialTotalDays, 10)),
   );
-  const freeDayLimit = 3; // Days 1-3 are always free
-
   // Progress data for this specific course
   const dayProgress: Record<number, DayProgress> = useMemo(() => {
     if (!courseId) return {};
@@ -225,26 +213,6 @@ export default function DayPickerScreen() {
         }
       }
 
-      // Check 2: Subscription Access
-      const hasUnlimitedAccess = canAccessUnlimitedVoca();
-      const featureId = `${courseId}_day_${day}`;
-      const isDayUnlocked = canAccessFeature(featureId);
-
-      if (!hasUnlimitedAccess && !isDayUnlocked && day > freeDayLimit) {
-        Alert.alert(
-          t("alerts.premiumFeature.title"),
-          t("course.premiumLimitMessage", { day: freeDayLimit }),
-          [
-            { text: t("common.cancel"), style: "cancel" },
-            {
-              text: t("common.upgrade"),
-              onPress: () => router.push("/billing"),
-            },
-          ],
-        );
-        return;
-      }
-
       // Access Granted: Prefetch cards + images, then navigate
       setLoadingDay(day);
       const PREFETCH_TIMEOUT_MS = 8000;
@@ -274,15 +242,7 @@ export default function DayPickerScreen() {
         params: { courseId, day: day.toString() },
       });
     },
-    [
-      canAccessFeature,
-      canAccessUnlimitedVoca,
-      courseId,
-      dayProgress,
-      freeDayLimit,
-      router,
-      t,
-    ],
+    [courseId, dayProgress, router, t],
   );
 
   /**
@@ -314,8 +274,6 @@ export default function DayPickerScreen() {
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
-  const hasUnlimitedAccess = canAccessUnlimitedVoca();
-
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
@@ -374,9 +332,6 @@ export default function DayPickerScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Subscription Status Banner - Show only for free users */}
-        {!hasUnlimitedAccess && <SubscriptionBadge />}
-
         {/* Main Grid: Days 1-N */}
         {totalDays === 0 ? (
           <EmptyDayView />
@@ -385,10 +340,7 @@ export default function DayPickerScreen() {
             totalDays={totalDays}
             dayProgress={dayProgress}
             courseColor={course?.color}
-            canAccessUnlimitedVoca={hasUnlimitedAccess}
-            canAccessFeature={canAccessFeature}
             courseId={courseId!}
-            freeDayLimit={freeDayLimit}
             onDayPress={handleDayPress}
             onQuizPress={handleQuizPress}
             onMangaPress={handleMangaPress}

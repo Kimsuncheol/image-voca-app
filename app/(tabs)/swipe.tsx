@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback } from "react";
+import { useRouter } from "expo-router";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
@@ -11,10 +11,8 @@ import {
 } from "../../components/course";
 import { TopInstallNativeAd } from "../../components/ads/TopInstallNativeAd";
 import { ThemedText } from "../../components/themed-text";
-import { useAuth } from "../../src/context/AuthContext";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
-import { useSubscriptionStore } from "../../src/stores";
 import {
   Course,
   findRuntimeCourse,
@@ -24,19 +22,9 @@ import {
 
 export default function CourseSelectionScreen() {
   const { isDark } = useTheme();
-  const { user } = useAuth();
   const router = useRouter();
   const { learningLanguage, recentCourseByLanguage } = useLearningLanguage();
-  const { fetchSubscription } = useSubscriptionStore();
   const { t } = useTranslation();
-
-  useFocusEffect(
-    useCallback(() => {
-      if (user) {
-        fetchSubscription(user.uid);
-      }
-    }, [fetchSubscription, user])
-  );
 
   const handleCourseSelect = (course: Course) => {
     try {
