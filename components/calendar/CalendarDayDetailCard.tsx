@@ -25,6 +25,33 @@ const formatAccuracy = (stats: DailyStats) => {
   return `${Math.round((stats.correctAnswers / stats.totalAnswers) * 100)}%`;
 };
 
+function MetricBox({
+  label,
+  value,
+  isDark,
+}: {
+  label: string;
+  value: string;
+  isDark: boolean;
+}) {
+  const [borderRad, setBorderRad] = React.useState(16);
+  return (
+    <View
+      style={[
+        styles.metricBox,
+        {
+          backgroundColor: isDark ? "#1D2129" : "#FFFFFF",
+          borderRadius: borderRad,
+        },
+      ]}
+      onLayout={(e) => setBorderRad(e.nativeEvent.layout.width * 0.2)}
+    >
+      <ThemedText style={styles.metricBoxLabel}>{label}</ThemedText>
+      <ThemedText style={styles.metricBoxValue}>{value}</ThemedText>
+    </View>
+  );
+}
+
 export function CalendarDayDetailCard({
   title,
   stats,
@@ -53,34 +80,30 @@ export function CalendarDayDetailCard({
           {t("calendar.detail.noStudy")}
         </ThemedText>
       ) : (
-        <View style={styles.metrics}>
-          <View style={styles.metricRow}>
-            <ThemedText style={styles.label}>
-              {t("calendar.detail.wordsLearned")}
-            </ThemedText>
-            <ThemedText style={styles.value}>{stats.wordsLearned}</ThemedText>
+        <View style={styles.metricsGrid}>
+          <View style={styles.metricsRow}>
+            <MetricBox
+              label={t("calendar.detail.wordsLearned")}
+              value={String(stats.wordsLearned)}
+              isDark={isDark}
+            />
+            <MetricBox
+              label={t("calendar.detail.minutesSpent")}
+              value={String(stats.timeSpentMinutes)}
+              isDark={isDark}
+            />
           </View>
-          <View style={styles.metricRow}>
-            <ThemedText style={styles.label}>
-              {t("calendar.detail.minutesSpent")}
-            </ThemedText>
-            <ThemedText style={styles.value}>{stats.timeSpentMinutes}</ThemedText>
-          </View>
-          <View style={styles.metricRow}>
-            <ThemedText style={styles.label}>
-              {t("calendar.detail.quizAccuracy")}
-            </ThemedText>
-            <ThemedText style={styles.value}>
-              {formatAccuracy(stats) ?? t("calendar.detail.noQuiz")}
-            </ThemedText>
-          </View>
-          <View style={styles.metricRow}>
-            <ThemedText style={styles.label}>
-              {t("calendar.detail.streakContribution")}
-            </ThemedText>
-            <ThemedText style={styles.value}>
-              {contributedToStreak ? t("calendar.detail.yes") : t("calendar.detail.no")}
-            </ThemedText>
+          <View style={styles.metricsRow}>
+            <MetricBox
+              label={t("calendar.detail.quizAccuracy")}
+              value={formatAccuracy(stats) ?? t("calendar.detail.noQuiz")}
+              isDark={isDark}
+            />
+            <MetricBox
+              label={t("calendar.detail.streakContribution")}
+              value={contributedToStreak ? t("calendar.detail.yes") : t("calendar.detail.no")}
+              isDark={isDark}
+            />
           </View>
         </View>
       )}
@@ -159,22 +182,30 @@ const styles = StyleSheet.create({
   emptyText: {
     opacity: 0.7,
   },
-  metrics: {
-    gap: 14,
+  metricsGrid: {
+    gap: 10,
   },
-  metricRow: {
+  metricsRow: {
     flexDirection: "row",
+    gap: 10,
+  },
+  metricBox: {
+    flex: 1,
+    aspectRatio: 1,
     alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
+    justifyContent: "center",
+    padding: 12,
+    gap: 8,
   },
-  label: {
-    fontSize: 14,
+  metricBoxLabel: {
+    fontSize: 13,
     opacity: 0.66,
+    textAlign: "center",
   },
-  value: {
-    fontSize: 16,
+  metricBoxValue: {
+    fontSize: 22,
     fontWeight: "700",
+    textAlign: "center",
   },
   historySection: {
     marginTop: 18,

@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,7 @@ import {
   DashboardHeader,
   DashboardPopFamousQuote,
   DashboardPopQuiz,
+  DashboardStats,
 } from "../../components/dashboard";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
@@ -21,7 +22,10 @@ export default function DashboardScreen() {
 
   const { t } = useTranslation();
 
+  const router = useRouter();
+
   const {
+    stats,
     fetchStats,
     streakBrokenAt,
     clearStreakBroken,
@@ -68,6 +72,10 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         )}
         {elementOrder.map((id) => elementMap[id])}
+        <DashboardStats
+          streak={stats?.currentStreak ?? 0}
+          onCalendarPress={() => router.push("/calendar")}
+        />
       </ScrollView>
     </View>
   );
