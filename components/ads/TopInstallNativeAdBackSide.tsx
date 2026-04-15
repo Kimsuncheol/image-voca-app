@@ -9,7 +9,7 @@ interface TopInstallNativeAdBackSideProps {
   onClose: () => void;
 }
 
-const BANNER_HEIGHT = 48;
+const BANNER_HEIGHT = 56;
 
 export function TopInstallNativeAdBackSide({
   overlayWidth,
@@ -28,14 +28,18 @@ export function TopInstallNativeAdBackSide({
         ]}
         testID="top-install-native-ad-disclosure-panel"
       >
-        <Pressable
-          onPress={onClose}
-          style={styles.backButton}
-          testID="top-install-native-ad-back-button"
-        >
-          <Ionicons name="arrow-back" size={20} color="#4b5563" />
-        </Pressable>
-        <Text style={styles.disclosureTitle}>Ads By Google</Text>
+        <View style={styles.titleRow}>
+          <Pressable
+            onPress={onClose}
+            style={styles.backButton}
+            testID="top-install-native-ad-back-button"
+          >
+            <Ionicons name="arrow-back" size={12} color="#4b5563" />
+          </Pressable>
+          <Text style={styles.disclosureTitle}>Ads By Google</Text>
+          {/* Spacer mirrors the back button width to keep title truly centred */}
+          <View style={styles.titleSpacer} />
+        </View>
         <View style={styles.disclosureActionsRow}>
           <View style={styles.disclosureGoogleBadge}>
             <Text style={styles.disclosureGoogleBadgeText}>
@@ -66,7 +70,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     height: BANNER_HEIGHT,
     justifyContent: "center",
-    paddingHorizontal: 12,
+    paddingVertical: 12,
+
     width: "100%",
     shadowColor: "#0f172a",
     shadowOffset: { width: 0, height: 1 },
@@ -74,18 +79,24 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
+  titleRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    width: "100%",
+    marginBottom: 4,
+  },
   backButton: {
-    padding: 8,
-    position: "absolute",
-    left: 4,
-    zIndex: 10,
+    padding: 4,
+  },
+  titleSpacer: {
+    width: 22, // matches back button hit area width
   },
   disclosureTitle: {
     color: "#1f2937",
+    flex: 1,
     fontSize: 10,
     fontWeight: "600",
     lineHeight: 12,
-    marginBottom: 4,
     textAlign: "center",
   },
   disclosureActionsRow: {

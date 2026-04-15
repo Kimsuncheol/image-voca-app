@@ -35,7 +35,7 @@ interface TopInstallNativeAdFaceSideProps {
   onToggleDisclosure: () => void;
 }
 
-const BANNER_HEIGHT = 48;
+const BANNER_HEIGHT = 56;
 
 export function TopInstallNativeAdFaceSide({
   ctaLabel,
@@ -51,7 +51,8 @@ export function TopInstallNativeAdFaceSide({
   const { NativeAdView, NativeAsset, NativeAssetType } = adsSDK;
 
   return (
-    <>
+    <View style={styles.wrapper}>
+      {/* NativeAdView intercepts all touches on Android — keep NativeAdDisclosureButton OUTSIDE */}
       <NativeAdView nativeAd={nativeAd} style={styles.banner} testID={testID}>
         <View style={styles.iconSlot}>
           {nativeAd.icon?.url ? (
@@ -121,16 +122,21 @@ export function TopInstallNativeAdFaceSide({
           NativeAsset={NativeAsset}
           NativeAssetType={NativeAssetType}
         />
-        <NativeAdDisclosureButton
-          bannerHeight={BANNER_HEIGHT}
-          onPress={onToggleDisclosure}
-        />
       </NativeAdView>
-    </>
+
+      {/* Rendered outside NativeAdView so Android doesn't swallow its onPress */}
+      <NativeAdDisclosureButton
+        bannerHeight={BANNER_HEIGHT}
+        onPress={onToggleDisclosure}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    width: "100%",
+  },
   banner: {
     alignItems: "center",
     backgroundColor: "#ffffff",
