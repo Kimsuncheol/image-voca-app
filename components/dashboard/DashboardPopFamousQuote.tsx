@@ -235,7 +235,9 @@ export function DashboardPopFamousQuote() {
   const mutedColor = isDark ? "#8e8e93" : "#6d6d72";
 
   const quoteSegments = isJapanese
-    ? splitJapaneseTextSegments(showKana ? quote.quote : stripKanaParens(quote.quote))
+    ? splitJapaneseTextSegments(
+        showKana ? quote.quote : stripKanaParens(quote.quote),
+      )
     : null;
 
   return (
@@ -338,8 +340,8 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   kanaTogglePill: {
-    minHeight: 34,
-    paddingHorizontal: 14,
+    minHeight: 20,
+    paddingHorizontal: 6,
     borderRadius: 999,
     borderWidth: 1,
     alignItems: "center",
@@ -350,7 +352,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#2EA043",
   },
   kanaToggleText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "600",
     letterSpacing: 0.5,
   },
