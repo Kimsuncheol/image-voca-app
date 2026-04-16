@@ -254,11 +254,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 10,
     paddingHorizontal: H_PAD,
-    paddingVertical: 14,
+    paddingVertical: 10,
   },
   tabChip: {
-    paddingHorizontal: 28,
-    paddingVertical: 9,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
     borderRadius: 999,
   },
   tabLabel: {
