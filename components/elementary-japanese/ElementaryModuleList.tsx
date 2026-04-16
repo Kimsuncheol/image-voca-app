@@ -64,6 +64,15 @@ export function ElementaryModuleList({ isDark }: ElementaryModuleListProps) {
           onPress={() => router.push("/japanese-greetings" as never)}
           isDark={isDark}
         />
+        <ElementaryModuleCard
+          title={t("prenominalAdjective.title", { defaultValue: "Prenominal Adjectives" })}
+          description={t("elementaryJapanese.modules.prenominalAdjective.description", {
+            defaultValue: "Learn demonstratives, particles, and connectors that precede nouns.",
+          })}
+          icon="git-branch-outline"
+          onPress={() => router.push("/prenominal-adjective" as never)}
+          isDark={isDark}
+        />
       </View>
     </View>
   );

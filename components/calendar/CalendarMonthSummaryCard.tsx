@@ -1,6 +1,6 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { StyleSheet, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import type { CalendarMonthSummary } from "../../src/utils/calendarStats";
 import { ThemedText } from "../themed-text";
@@ -10,6 +10,33 @@ interface CalendarMonthSummaryCardProps {
   currentStreak: number;
 }
 
+function MetricBox({
+  label,
+  value,
+  isDark,
+}: {
+  label: string;
+  value: string | number;
+  isDark: boolean;
+}) {
+  const [borderRad, setBorderRad] = React.useState(16);
+  return (
+    <View
+      style={[
+        styles.metric,
+        {
+          backgroundColor: isDark ? "#1D2129" : "#FFFFFF",
+          borderRadius: borderRad,
+        },
+      ]}
+      onLayout={(e) => setBorderRad(e.nativeEvent.layout.width * 0.2)}
+    >
+      <ThemedText style={styles.metricLabel}>{label}</ThemedText>
+      <ThemedText style={styles.metricValue}>{value}</ThemedText>
+    </View>
+  );
+}
+
 export function CalendarMonthSummaryCard({
   summary,
   currentStreak,
@@ -17,37 +44,29 @@ export function CalendarMonthSummaryCard({
   const { isDark } = useTheme();
   const { t } = useTranslation();
 
-  const stats = [
-    { label: t("calendar.summary.studyDays"), value: summary.studyDays },
-    { label: t("calendar.summary.wordsLearned"), value: summary.wordsLearned },
-    { label: t("calendar.summary.currentStreak"), value: currentStreak },
-  ];
-
   return (
     <View
-      style={[
-        styles.card,
-        { backgroundColor: isDark ? "#13151A" : "#F5F7FB" },
-      ]}
+      style={[styles.card, { backgroundColor: isDark ? "#13151A" : "#F5F7FB" }]}
     >
       <ThemedText type="subtitle" style={styles.title}>
         {t("calendar.summary.title")}
       </ThemedText>
       <View style={styles.grid}>
-        {stats.map((stat) => (
-          <View
-            key={stat.label}
-            style={[
-              styles.metric,
-              { backgroundColor: isDark ? "#1D2129" : "#FFFFFF" },
-            ]}
-          >
-            <ThemedText style={styles.metricLabel}>{stat.label}</ThemedText>
-            <ThemedText type="title" style={styles.metricValue}>
-              {stat.value}
-            </ThemedText>
-          </View>
-        ))}
+        <MetricBox
+          label={t("calendar.summary.studyDays")}
+          value={summary.studyDays}
+          isDark={isDark}
+        />
+        <MetricBox
+          label={t("calendar.summary.wordsLearned")}
+          value={summary.wordsLearned}
+          isDark={isDark}
+        />
+        <MetricBox
+          label={t("calendar.summary.currentStreak")}
+          value={currentStreak}
+          isDark={isDark}
+        />
       </View>
     </View>
   );
@@ -64,22 +83,24 @@ const styles = StyleSheet.create({
   },
   grid: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
+    gap: 10,
   },
   metric: {
-    width: "47%",
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 16,
+    flex: 1,
+    aspectRatio: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 12,
+    gap: 8,
   },
   metricLabel: {
-    fontSize: 12,
-    opacity: 0.62,
-    marginBottom: 6,
+    fontSize: 13,
+    opacity: 0.66,
+    textAlign: "center",
   },
   metricValue: {
-    fontSize: 26,
-    lineHeight: 30,
+    fontSize: 22,
+    fontWeight: "700",
+    textAlign: "center",
   },
 });
