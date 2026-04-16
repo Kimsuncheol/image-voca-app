@@ -182,6 +182,7 @@ const en = {
       days: "Days",
       accuracy: "Accuracy",
       last7Days: "Last 7 days",
+      todayLearned: "Today's learned",
     },
   },
   calendar: {

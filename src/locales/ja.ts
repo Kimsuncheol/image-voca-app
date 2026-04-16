@@ -181,6 +181,7 @@ const ja = {
       days: "日",
       accuracy: "正確率",
       last7Days: "過去7日間",
+      todayLearned: "今日の学習単語",
     },
   },
   calendar: {

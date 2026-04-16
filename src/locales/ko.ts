@@ -185,6 +185,7 @@ const ko = {
       days: "일",
       accuracy: "정확도",
       last7Days: "최근 7일",
+      todayLearned: "오늘 학습한 단어",
     },
   },
   calendar: {

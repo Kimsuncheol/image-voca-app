@@ -6,11 +6,13 @@ import { DashboardCard } from "./DashboardCard";
 
 interface DashboardStatsProps {
   streak: number;
+  todayLearned: number;
   onCalendarPress?: () => void;
 }
 
 export function DashboardStats({
   streak,
+  todayLearned,
   onCalendarPress,
 }: DashboardStatsProps) {
   const { t } = useTranslation();
@@ -29,10 +31,10 @@ export function DashboardStats({
           color="#FFE66D"
         />
         <DashboardCard
-          title={t("calendar.entry.title")}
-          value={t("calendar.entry.value")}
-          subtitle={t("calendar.entry.subtitle")}
-          icon="calendar"
+          title={t("dashboard.stats.todayLearned")}
+          value={todayLearned}
+          subtitle={t("common.words")}
+          icon="book.fill"
           color="#4A90E2"
           onPress={onCalendarPress}
         />

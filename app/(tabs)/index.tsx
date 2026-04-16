@@ -29,6 +29,7 @@ export default function DashboardScreen() {
     fetchStats,
     streakBrokenAt,
     clearStreakBroken,
+    getTodayProgress,
   } = useUserStatsStore();
 
   const { quizEnabled, famousQuoteEnabled, elementOrder, loadSettings } =
@@ -74,6 +75,7 @@ export default function DashboardScreen() {
         {elementOrder.map((id) => elementMap[id])}
         <DashboardStats
           streak={stats?.currentStreak ?? 0}
+          todayLearned={getTodayProgress().current}
           onCalendarPress={() => router.push("/calendar")}
         />
       </ScrollView>
