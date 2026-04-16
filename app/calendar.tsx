@@ -146,6 +146,14 @@ export default function CalendarScreen() {
     [i18n.language],
   );
 
+  const isCurrentMonth = React.useMemo(() => {
+    const today = new Date();
+    return (
+      visibleMonth.getFullYear() === today.getFullYear() &&
+      visibleMonth.getMonth() === today.getMonth()
+    );
+  }, [visibleMonth]);
+
   const monthSummary = React.useMemo(
     () => buildMonthSummary(visibleMonth, dailyStatsByDate),
     [dailyStatsByDate, visibleMonth],
@@ -212,6 +220,7 @@ export default function CalendarScreen() {
           cells={cells}
           onPreviousMonth={() => setVisibleMonth((current) => addMonths(current, -1))}
           onNextMonth={() => setVisibleMonth((current) => addMonths(current, 1))}
+          isNextMonthDisabled={isCurrentMonth}
           onSelectDate={setSelectedDateKey}
         />
 

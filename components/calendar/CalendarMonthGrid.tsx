@@ -13,6 +13,7 @@ interface CalendarMonthGridProps {
   onPreviousMonth: () => void;
   onNextMonth: () => void;
   onSelectDate: (dateKey: string) => void;
+  isNextMonthDisabled?: boolean;
 }
 
 const STUDIED_FILL_LIGHT = "#DBEAFE";
@@ -54,6 +55,7 @@ export function CalendarMonthGrid({
   onPreviousMonth,
   onNextMonth,
   onSelectDate,
+  isNextMonthDisabled = false,
 }: CalendarMonthGridProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -87,10 +89,12 @@ export function CalendarMonthGrid({
           </Pressable>
           <Pressable
             accessibilityLabel={t("calendar.navigation.nextMonth")}
-            onPress={onNextMonth}
+            onPress={isNextMonthDisabled ? undefined : onNextMonth}
+            disabled={isNextMonthDisabled}
             style={[
               styles.navButton,
               { backgroundColor: isDark ? "#1D2129" : "#FFFFFF" },
+              isNextMonthDisabled && { opacity: 0.3 },
             ]}
           >
             <Ionicons
