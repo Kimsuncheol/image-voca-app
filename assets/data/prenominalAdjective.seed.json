@@ -1,0 +1,90 @@
+[
+  {
+    "id": "ano",
+    "word": "あの",
+    "meaningEnglish": "that (over there)",
+    "meaningKorean": "저 <연체사>",
+    "pronunciation": "あの",
+    "example": "あの人(ひと)は誰(だれ)ですか。",
+    "translationEnglish": "Who is that person?",
+    "translationKorean": "저 사람은 누구입니까?",
+    "exampleHiragana": "あのひとはだれですか。"
+  },
+  {
+    "id": "kono",
+    "word": "この",
+    "meaningEnglish": "this",
+    "meaningKorean": "이 <연체사>",
+    "pronunciation": "この",
+    "example": "このかばんは誰(だれ)のですか。",
+    "translationEnglish": "Whose bag is this?",
+    "translationKorean": "이 가방은 누구의 것입니까?",
+    "exampleHiragana": "このかばんはだれのですか。"
+  },
+  {
+    "id": "sono",
+    "word": "その",
+    "meaningEnglish": "that",
+    "meaningKorean": "그 <연체사>",
+    "pronunciation": "その",
+    "example": "その時(と)計(けい)はどこで買(か)いましたか。",
+    "translationEnglish": "Where did you buy that watch?",
+    "translationKorean": "그 시계는 어디서 샀습니까?",
+    "exampleHiragana": "そのとけいはどこでかいましたか。"
+  },
+  {
+    "id": "dono",
+    "word": "どの",
+    "meaningEnglish": "which",
+    "meaningKorean": "어느 <연체사>",
+    "pronunciation": "どの",
+    "example": "どの本(ほん)をか買(か)いましょうか。",
+    "translationEnglish": "Which book should I buy?",
+    "translationKorean": "어느 책을 살까요?",
+    "exampleHiragana": "どのほん을かかいましょうか。"
+  },
+  {
+    "id": "demo",
+    "word": "でも",
+    "meaningEnglish": "but",
+    "meaningKorean": "그렇지만, 하지만 <접속사>",
+    "pronunciation": "でも",
+    "example": "3月(がつ)になった。でも、まだ寒(さむ)い。",
+    "translationEnglish": "It's March now, but it's still cold.",
+    "translationKorean": "3월이 되었다. 그렇지만 아직 춥다.",
+    "exampleHiragana": "3がつになった。でも、まださむい。"
+  },
+  {
+    "id": "kurai-gurai",
+    "word": "〜くらい /\n〜ぐらい",
+    "meaningEnglish": "about / approximately",
+    "meaningKorean": "~정도 <조사>",
+    "pronunciation": "くらい / ぐらい",
+    "example": "時(じ)間(かん)はどれくらいかかりますか。",
+    "translationEnglish": "How long will it take?",
+    "translationKorean": "시간은 어느 정도 걸립니까?",
+    "exampleHiragana": "じかんはどれくらいかかりますか。"
+  },
+  {
+    "id": "zutsu",
+    "word": "〜ずつ",
+    "meaningEnglish": "each",
+    "meaningKorean": "~씩 <조사>",
+    "pronunciation": "ずつ",
+    "example": "子(こ)どもたちにお菓(か)子(し)を二(ふた)つずつあげる。",
+    "translationEnglish": "I'll give the children two pieces of candy each.",
+    "translationKorean": "아이들에게 과자를 두 개씩 주다.",
+    "exampleHiragana": "こどもたちにおかしをふたつずつあげる。"
+  },
+  {
+    "id": "dake",
+    "word": "〜だけ",
+    "meaningEnglish": "only",
+    "meaningKorean": "~만, ~뿐 <조사>",
+    "pronunciation": "だけ",
+    "example": "あなただけに話(はな)す。",
+    "translationEnglish": "I'll tell you this in private.",
+    "translationKorean": "당신에게만 이야기하겠다.",
+    "exampleHiragana": "あなただけにはなす。"
+  }
+]
