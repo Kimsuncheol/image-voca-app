@@ -6,6 +6,34 @@ jest.mock(
   () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
 );
 
+jest.mock("expo-constants", () => {
+  const constants = {
+    appOwnership: null,
+    executionEnvironment: "bare",
+    nativeAppVersion: "1.0.0",
+    nativeBuildVersion: "100",
+    expoConfig: {
+      version: "1.0.0",
+      extra: {
+        eas: {
+          projectId: "project-123",
+        },
+      },
+    },
+  };
+
+  return {
+    __esModule: true,
+    default: constants,
+    ...constants,
+    ExecutionEnvironment: {
+      Bare: "bare",
+      Standalone: "standalone",
+      StoreClient: "storeClient",
+    },
+  };
+});
+
 process.env.EXPO_PUBLIC_COURSE_PATH_CSAT = "courses/csat";
 process.env.EXPO_PUBLIC_COURSE_PATH_CSAT_IDIOMS = "courses/csat-idioms";
 process.env.EXPO_PUBLIC_COURSE_PATH_TOEIC = "courses/toeic";

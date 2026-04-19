@@ -2,7 +2,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import * as Crypto from "expo-crypto";
 import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
 import type { User } from "firebase/auth";
 import {
   collection,
@@ -17,11 +16,16 @@ import type {
   DeviceRegistrationRecord,
   ManageableDeviceRecord,
 } from "../types/deviceRegistration";
+import { isAndroidExpoGoRuntime } from "../utils/runtimeEnvironment";
 import { db } from "./firebase";
 import { getPrimaryAuthProvider } from "./userProfileService";
 
+type NotificationsModule = typeof import("expo-notifications");
+
 const DEVICE_ID_STORAGE_KEY = "@device_registration_id";
 export const MAX_REGISTERED_DEVICES = 3;
+
+let cachedNotificationsModule: NotificationsModule | null | undefined;
 
 export class DeviceRegistrationLimitError extends Error {
   code = "device/limit-exceeded" as const;
@@ -54,7 +58,35 @@ const getDeviceTypeLabel = (): string | null => {
   }
 };
 
+const getNotificationsModule = (): NotificationsModule | null => {
+  if (isAndroidExpoGoRuntime()) {
+    cachedNotificationsModule = null;
+    return cachedNotificationsModule;
+  }
+
+  if (cachedNotificationsModule !== undefined) {
+    return cachedNotificationsModule;
+  }
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    cachedNotificationsModule = require("expo-notifications") as NotificationsModule;
+  } catch {
+    cachedNotificationsModule = null;
+  }
+
+  return cachedNotificationsModule;
+};
+
 const getNotificationPermissionState = async () => {
+  const Notifications = getNotificationsModule();
+  if (!Notifications) {
+    return {
+      notificationPermissionStatus: "unsupported",
+      isGranted: false,
+    };
+  }
+
   const permissions = await Notifications.getPermissionsAsync();
   const notificationPermissionStatus =
     permissions.granted ? "granted" : permissions.canAskAgain ? "undetermined" : "denied";
@@ -65,6 +97,7 @@ const getNotificationPermissionState = async () => {
   return {
     notificationPermissionStatus,
     isGranted,
+    Notifications,
   };
 };
 
@@ -109,12 +142,12 @@ export const buildNativeDevicePayload = async (
   const platform = getPlatform();
   if (!platform) return null;
 
-  const { notificationPermissionStatus, isGranted } =
+  const { notificationPermissionStatus, isGranted, Notifications } =
     await getNotificationPermissionState();
   const projectId = getExpoProjectId();
 
   let expoPushToken: string | null = null;
-  if (isGranted && projectId) {
+  if (isGranted && projectId && Notifications) {
     try {
       const response = await Notifications.getExpoPushTokenAsync({ projectId });
       expoPushToken = response.data;

@@ -2,30 +2,16 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Image as NativeImage, StyleSheet, Text, View } from "react-native";
 import type {
-  NativeAd,
   NativeAdView as NativeAdViewT,
   NativeAsset as NativeAssetT,
   NativeAssetType as NativeAssetTypeT,
 } from "react-native-google-mobile-ads";
+import {
+  getMobileAdsModule,
+  type LoadedNativeAd,
+} from "../../src/services/mobileAds";
 import { NativeAdCtaButton } from "./NativeAdCtaButton";
 import { NativeAdDisclosureButton } from "./NativeAdDisclosureButton";
-
-type LoadedNativeAd = Awaited<ReturnType<typeof NativeAd.createForAdRequest>>;
-
-// Lazy require so the module crash is caught gracefully in environments
-// where the native binary is not available (e.g. Expo Go).
-const adsSDK = (() => {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require("react-native-google-mobile-ads") as {
-      NativeAdView: typeof NativeAdViewT;
-      NativeAsset: typeof NativeAssetT;
-      NativeAssetType: typeof NativeAssetTypeT;
-    };
-  } catch {
-    return null;
-  }
-})();
 
 interface TopInstallNativeAdFaceSideProps {
   ctaLabel: string;
@@ -44,6 +30,12 @@ export function TopInstallNativeAdFaceSide({
   testID,
   onToggleDisclosure,
 }: TopInstallNativeAdFaceSideProps) {
+  const adsSDK = getMobileAdsModule() as {
+    NativeAdView: typeof NativeAdViewT;
+    NativeAsset: typeof NativeAssetT;
+    NativeAssetType: typeof NativeAssetTypeT;
+  } | null;
+
   if (!adsSDK) {
     return null;
   }
@@ -110,7 +102,7 @@ export function TopInstallNativeAdFaceSide({
               <Text
                 numberOfLines={1}
                 style={styles.metadataText}
-                testID="top-install-native-ad-headline"
+                testID="top-install-native-ad-price"
               >
                 {nativeAd.price}
               </Text>

@@ -6,12 +6,18 @@ import {
   isNotificationCardPayload,
   type NotificationCardPayload,
 } from "../types/notificationCard";
+import { isAndroidExpoGoRuntime } from "../utils/runtimeEnvironment";
 
 type NotificationsModule = typeof import("expo-notifications");
 
 let cachedNotificationsModule: NotificationsModule | null | undefined;
 
 const getNotificationsModule = (): NotificationsModule | null => {
+  if (isAndroidExpoGoRuntime()) {
+    cachedNotificationsModule = null;
+    return cachedNotificationsModule;
+  }
+
   if (cachedNotificationsModule !== undefined) {
     return cachedNotificationsModule;
   }

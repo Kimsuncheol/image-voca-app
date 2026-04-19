@@ -1,28 +1,12 @@
 import React from "react";
 import { Platform, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
-import type {
-  NativeAd,
-  NativeAdEventType,
-} from "react-native-google-mobile-ads";
-import { resolveTopInstallNativeAdUnitId } from "../../src/services/mobileAds";
+import {
+  getMobileAdsModule,
+  type LoadedNativeAd,
+  resolveTopInstallNativeAdUnitId,
+} from "../../src/services/mobileAds";
 import { TopInstallNativeAdBackSide } from "./TopInstallNativeAdBackSide";
 import { TopInstallNativeAdFaceSide } from "./TopInstallNativeAdFaceSide";
-
-type LoadedNativeAd = Awaited<ReturnType<typeof NativeAd.createForAdRequest>>;
-
-// Lazy require so the module crash is caught gracefully in environments
-// where the native binary is not available (e.g. Expo Go).
-const adsSDK = (() => {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require("react-native-google-mobile-ads") as {
-      NativeAd: typeof NativeAd;
-      NativeAdEventType: typeof NativeAdEventType;
-    };
-  } catch {
-    return null;
-  }
-})();
 
 interface TopInstallNativeAdProps {
   containerStyle?: StyleProp<ViewStyle>;
@@ -43,6 +27,7 @@ export function TopInstallNativeAd({
   const nativeAdOpenedRef = React.useRef(false);
 
   React.useEffect(() => {
+    const adsSDK = getMobileAdsModule();
     if (Platform.OS === "web" || !adsSDK) {
       return;
     }
@@ -78,6 +63,7 @@ export function TopInstallNativeAd({
   }, []);
 
   React.useEffect(() => {
+    const adsSDK = getMobileAdsModule();
     if (!nativeAd || !adsSDK) {
       return;
     }
@@ -111,7 +97,6 @@ export function TopInstallNativeAd({
 
   const toggleDisclosurePanel = React.useCallback(() => {
     setIsDisclosureVisible((prev) => !prev);
-    console.log("toggleDisclosurePanel");
   }, []);
 
   if (Platform.OS === "web" || !nativeAd) {
@@ -122,7 +107,7 @@ export function TopInstallNativeAd({
     nativeAd.starRating != null ? Number(nativeAd.starRating).toFixed(1) : null;
   const ctaLabel = nativeAd.callToAction?.trim()
     ? nativeAd.callToAction.trim().toUpperCase()
-    : "INSTALL";
+    : "OPEN";
 
   return (
     <>

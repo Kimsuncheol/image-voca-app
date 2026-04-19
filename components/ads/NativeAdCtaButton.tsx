@@ -11,9 +11,15 @@ export function NativeAdCtaButton({
   NativeAsset,
   NativeAssetType,
 }: NativeAdCtaButtonProps) {
+  const nonCollapsableProps = { collapsable: false } as Record<string, unknown>;
+
   return (
     <NativeAsset assetType={NativeAssetType.CALL_TO_ACTION}>
-      <Text style={styles.ctaText} testID="top-install-native-ad-cta">
+      <Text
+        {...nonCollapsableProps}
+        style={styles.ctaText}
+        testID="top-install-native-ad-cta"
+      >
         {label}
       </Text>
     </NativeAsset>

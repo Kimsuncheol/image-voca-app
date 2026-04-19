@@ -1,12 +1,14 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
 import {
-  __mockNativeAd,
   NativeAd,
   NativeAdEventType,
 } from "react-native-google-mobile-ads";
 import { TopInstallNativeAd } from "../components/ads/TopInstallNativeAd";
 
+const { __mockNativeAd } = jest.requireMock("react-native-google-mobile-ads") as {
+  __mockNativeAd: any;
+};
 const mockCreateForAdRequest = NativeAd.createForAdRequest as jest.Mock;
 
 describe("TopInstallNativeAd", () => {
@@ -184,5 +186,19 @@ describe("TopInstallNativeAd", () => {
     });
 
     expect(queryByTestId("top-install-native-ad")).toBeNull();
+  });
+
+  it("renders nothing when the ads native module is unavailable", () => {
+    const mobileAdsService = require("../src/services/mobileAds");
+    const moduleSpy = jest
+      .spyOn(mobileAdsService, "getMobileAdsModule")
+      .mockReturnValue(null);
+
+    const { queryByTestId } = render(<TopInstallNativeAd />);
+
+    expect(queryByTestId("top-install-native-ad")).toBeNull();
+    expect(mockCreateForAdRequest).not.toHaveBeenCalled();
+
+    moduleSpy.mockRestore();
   });
 });

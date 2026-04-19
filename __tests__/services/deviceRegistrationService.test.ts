@@ -16,6 +16,7 @@ import {
   getDocs,
   setDoc,
 } from "firebase/firestore";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
@@ -25,6 +26,28 @@ jest.mock("@react-native-async-storage/async-storage", () => ({
 }));
 
 jest.mock("expo-constants", () => ({
+  __esModule: true,
+  default: {
+    appOwnership: null,
+    executionEnvironment: "bare",
+    nativeAppVersion: "1.0.0",
+    nativeBuildVersion: "100",
+    expoConfig: {
+      version: "1.0.0",
+      extra: {
+        eas: {
+          projectId: "project-123",
+        },
+      },
+    },
+  },
+  ExecutionEnvironment: {
+    Bare: "bare",
+    Standalone: "standalone",
+    StoreClient: "storeClient",
+  },
+  appOwnership: null,
+  executionEnvironment: "bare",
   nativeAppVersion: "1.0.0",
   nativeBuildVersion: "100",
   expoConfig: {
@@ -107,6 +130,8 @@ describe("deviceRegistrationService", () => {
     jest.clearAllMocks();
     consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     Platform.OS = "ios";
+    (Constants as any).appOwnership = null;
+    (Constants as any).executionEnvironment = ExecutionEnvironment.Bare;
     (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
     (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
     (getDoc as jest.Mock).mockResolvedValue(mockSnapshot());
@@ -195,6 +220,36 @@ describe("deviceRegistrationService", () => {
 
     expect(record?.expoPushToken).toBeNull();
     expect(setDoc).toHaveBeenCalled();
+  });
+
+  it("stores unsupported notification state on Android Expo Go without calling notifications", async () => {
+    Platform.OS = "android";
+    (Constants as any).appOwnership = "expo";
+    (Constants as any).executionEnvironment = ExecutionEnvironment.StoreClient;
+
+    const record = await upsertCurrentDeviceRegistration({
+      uid: "user-1",
+      email: "test@example.com",
+      providerData: [{ providerId: "password" }] as any,
+    });
+
+    expect(record).toEqual(
+      expect.objectContaining({
+        platform: "android",
+        notificationPermissionStatus: "unsupported",
+        expoPushToken: null,
+      }),
+    );
+    expect(Notifications.getPermissionsAsync).not.toHaveBeenCalled();
+    expect(Notifications.getExpoPushTokenAsync).not.toHaveBeenCalled();
+    expect(setDoc).toHaveBeenCalledWith(
+      "users/user-1/devices/device_0123456789abcdef01234567",
+      expect.objectContaining({
+        notificationPermissionStatus: "unsupported",
+        expoPushToken: null,
+      }),
+      { merge: true },
+    );
   });
 
   it("skips registration entirely on web", async () => {

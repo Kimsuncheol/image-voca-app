@@ -1,11 +1,46 @@
 import { Platform } from "react-native";
-import mobileAds, { TestIds } from "react-native-google-mobile-ads";
+import type { NativeAd } from "react-native-google-mobile-ads";
+import { isExpoGoRuntime } from "../utils/runtimeEnvironment";
 
+type MobileAdsModule = typeof import("react-native-google-mobile-ads");
+
+let cachedMobileAdsModule: MobileAdsModule | null | undefined;
 let mobileAdsInitialization: Promise<unknown> | null = null;
 
+export const getMobileAdsModule = (): MobileAdsModule | null => {
+  if (Platform.OS === "web" || isExpoGoRuntime()) {
+    cachedMobileAdsModule = null;
+    return cachedMobileAdsModule;
+  }
+
+  if (cachedMobileAdsModule !== undefined) {
+    return cachedMobileAdsModule;
+  }
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    cachedMobileAdsModule = require("react-native-google-mobile-ads") as
+      | MobileAdsModule
+      | null;
+  } catch {
+    cachedMobileAdsModule = null;
+  }
+
+  return cachedMobileAdsModule;
+};
+
 export const resolveTopInstallNativeAdUnitId = (): string | null => {
+  if (Platform.OS === "web" || isExpoGoRuntime()) {
+    return null;
+  }
+
+  const adsSDK = getMobileAdsModule();
+  if (!adsSDK) {
+    return null;
+  }
+
   if (__DEV__) {
-    return TestIds.NATIVE;
+    return adsSDK.TestIds.NATIVE;
   }
 
   if (Platform.OS === "android") {
@@ -22,12 +57,17 @@ export const resolveTopInstallNativeAdUnitId = (): string | null => {
 };
 
 export const initializeMobileAds = async (): Promise<unknown> => {
-  if (Platform.OS === "web") {
+  if (Platform.OS === "web" || isExpoGoRuntime()) {
+    return null;
+  }
+
+  const adsSDK = getMobileAdsModule();
+  if (!adsSDK) {
     return null;
   }
 
   if (!mobileAdsInitialization) {
-    mobileAdsInitialization = mobileAds().initialize().catch((error) => {
+    mobileAdsInitialization = adsSDK.default().initialize().catch((error) => {
       console.warn("Failed to initialize Google Mobile Ads:", error);
       return null;
     });
@@ -35,3 +75,5 @@ export const initializeMobileAds = async (): Promise<unknown> => {
 
   return mobileAdsInitialization;
 };
+
+export type LoadedNativeAd = Awaited<ReturnType<typeof NativeAd.createForAdRequest>>;

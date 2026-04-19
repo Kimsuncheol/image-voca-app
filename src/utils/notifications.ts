@@ -11,6 +11,7 @@ import {
 import { vocaService } from "../services/vocaService";
 import type { NotificationCardPayload } from "../types/notificationCard";
 import { CourseType } from "../types/vocabulary";
+import { isAndroidExpoGoRuntime } from "./runtimeEnvironment";
 import { resolveVocabularyContent } from "./localizedVocabulary";
 
 type NotificationsModule = typeof import("expo-notifications");
@@ -33,16 +34,20 @@ const ANDROID_CHANNEL_ID = "voca-daily";
 const NIGHT_MUTE_START_HOUR = 22;
 const NIGHT_MUTE_END_HOUR = 8;
 
-let cachedNotifications: NotificationsModule | null = null;
+let cachedNotifications: NotificationsModule | null | undefined;
 let handlerConfigured = false;
 
 const getNotificationsModule = (): NotificationsModule | null => {
-  if (cachedNotifications !== null) return cachedNotifications;
-  // Note: While remote push notifications are unsupported in Expo Go on Android (SDK 53+),
-  // local notifications (which we use for Study Reminder and Word of the Day) still work perfectly.
+  if (isAndroidExpoGoRuntime()) {
+    cachedNotifications = null;
+    return cachedNotifications;
+  }
+
+  if (cachedNotifications !== undefined) return cachedNotifications;
+
   try {
     cachedNotifications = require("expo-notifications");
-    return cachedNotifications;
+    return cachedNotifications ?? null;
   } catch {
     cachedNotifications = null;
     return null;
