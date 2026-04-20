@@ -153,6 +153,7 @@ const resolveMatchingWordText = (
 
 const resolveJlptMatchingMeaningText = (
   source: MatchingQuizItem | MatchingQuizChoice,
+  appLanguage?: string,
 ): string | undefined => {
   const meaningObject =
     source.meaning && typeof source.meaning === "object"
@@ -163,16 +164,20 @@ const resolveJlptMatchingMeaningText = (
       ? (source.text as Record<string, unknown>)
       : undefined;
 
-  const meanings = [
-    normalizeString(source.meaningEnglish) ??
-      normalizeString(meaningObject?.meaningEnglish) ??
-      normalizeString(textObject?.meaningEnglish),
-    normalizeString(source.meaningKorean) ??
-      normalizeString(meaningObject?.meaningKorean) ??
-      normalizeString(textObject?.meaningKorean),
-  ].filter((meaning): meaning is string => Boolean(meaning));
-
-  return meanings.length > 0 ? meanings.join("\n") : undefined;
+  return resolveFirestoreQuizText(
+    {
+      meaningEnglish:
+        normalizeString(source.meaningEnglish) ??
+        normalizeString(meaningObject?.meaningEnglish) ??
+        normalizeString(textObject?.meaningEnglish),
+      meaningKorean:
+        normalizeString(source.meaningKorean) ??
+        normalizeString(meaningObject?.meaningKorean) ??
+        normalizeString(textObject?.meaningKorean),
+    },
+    undefined,
+    appLanguage,
+  );
 };
 
 const resolveMatchingChoiceText = (
@@ -183,7 +188,7 @@ const resolveMatchingChoiceText = (
 ) => {
   if (isJlptLevelCourseId(courseId)) {
     return (
-      resolveJlptMatchingMeaningText(choice) ??
+      resolveJlptMatchingMeaningText(choice, appLanguage) ??
       resolveFlexibleMatchingText(choice, meaningLanguage, appLanguage)
     );
   }

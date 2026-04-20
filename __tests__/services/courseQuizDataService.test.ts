@@ -174,7 +174,7 @@ describe("courseQuizDataService", () => {
     expect(result?.matchingChoices).toEqual(["둘째", "첫째"]);
   });
 
-  it("combines JLPT matching choice meanings in English then Korean", () => {
+  it("localizes JLPT matching choice meanings to English", () => {
     const result = normalizeFirestoreCourseQuiz(
       "matching",
       {
@@ -206,21 +206,64 @@ describe("courseQuizDataService", () => {
     expect(result?.questions).toEqual([
       expect.objectContaining({
         word: "間",
-        meaning: "interval; between\n사이",
-        matchChoiceText: "interval; between\n사이",
-        correctAnswer: "interval; between\n사이",
+        meaning: "interval; between",
+        matchChoiceText: "interval; between",
+        correctAnswer: "interval; between",
       }),
       expect.objectContaining({
         word: "入口",
-        meaning: "entrance\n입구",
-        matchChoiceText: "entrance\n입구",
-        correctAnswer: "entrance\n입구",
+        meaning: "entrance",
+        matchChoiceText: "entrance",
+        correctAnswer: "entrance",
       }),
     ]);
-    expect(result?.matchingChoices).toEqual([
-      "entrance\n입구",
-      "interval; between\n사이",
+    expect(result?.matchingChoices).toEqual(["entrance", "interval; between"]);
+  });
+
+  it("localizes JLPT matching choice meanings to Korean", () => {
+    const result = normalizeFirestoreCourseQuiz(
+      "matching",
+      {
+        items: [
+          { id: "i1", word: "間" },
+          { id: "i2", word: "入口" },
+        ],
+        choices: [
+          {
+            id: "c2",
+            meaningEnglish: "entrance",
+            meaningKorean: "입구",
+          },
+          {
+            id: "c1",
+            meaningEnglish: "interval; between",
+            meaningKorean: "사이",
+          },
+        ],
+        answer_key: [
+          { item_id: "i1", choice_id: "c1" },
+          { item_id: "i2", choice_id: "c2" },
+        ],
+      },
+      "ko",
+      "JLPT_N5",
+    );
+
+    expect(result?.questions).toEqual([
+      expect.objectContaining({
+        word: "間",
+        meaning: "사이",
+        matchChoiceText: "사이",
+        correctAnswer: "사이",
+      }),
+      expect.objectContaining({
+        word: "入口",
+        meaning: "입구",
+        matchChoiceText: "입구",
+        correctAnswer: "입구",
+      }),
     ]);
+    expect(result?.matchingChoices).toEqual(["입구", "사이"]);
   });
 
   it("uses available JLPT matching meaning when one localized field is missing", () => {
