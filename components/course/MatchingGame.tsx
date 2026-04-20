@@ -22,6 +22,8 @@ interface MatchingGameProps {
   courseId?: string;
   selectedWord: string | null;
   selectedMeaning: string | null;
+  wrongWord?: string | null;
+  wrongMeaning?: string | null;
   matchedPairs: Record<string, string>;
   onSelectWord: (word: string) => void;
   onSelectMeaning: (meaning: string) => void;
@@ -38,6 +40,8 @@ export function MatchingGame({
   courseId,
   selectedWord,
   selectedMeaning,
+  wrongWord,
+  wrongMeaning,
   matchedPairs,
   onSelectWord,
   onSelectMeaning,
@@ -137,6 +141,7 @@ export function MatchingGame({
                   }
                   isMatched={Boolean(matchedPairs[question.word])}
                   isSelected={selectedWord === question.word}
+                  isIncorrect={wrongWord === question.word}
                   onPress={() => onSelectWord(question.word)}
                   courseColor={courseColor}
                   isDark={isDark}
@@ -152,6 +157,7 @@ export function MatchingGame({
                   }
                   isMatched={Object.values(matchedPairs).includes(meaning)}
                   isSelected={selectedMeaning === meaning}
+                  isIncorrect={wrongMeaning === meaning}
                   onPress={() => onSelectMeaning(meaning)}
                   courseColor={courseColor}
                   isDark={isDark}

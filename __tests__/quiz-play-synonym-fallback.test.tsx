@@ -92,7 +92,17 @@ jest.mock("../components/common/QuizGenerationAnimation", () => ({
   },
 }));
 
+jest.mock("../components/common/AppSplashScreen", () => ({
+  AppSplashScreen: ({ visible }: { visible: boolean }) => {
+    const { Text } = jest.requireActual<typeof import("react-native")>(
+      "react-native",
+    );
+    return visible ? <Text>Preparing quiz...</Text> : null;
+  },
+}));
+
 jest.mock("../components/course", () => ({
+  EmptyQuizScreen: () => null,
   GameBoard: ({
     quizType,
     matchingMode,
@@ -118,6 +128,7 @@ jest.mock("../components/course", () => ({
     );
   },
   QuizFinishView: () => null,
+  QuizHeader: () => null,
   QuizTimer: () => null,
 }));
 

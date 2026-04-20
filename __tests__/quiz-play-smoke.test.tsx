@@ -142,6 +142,7 @@ jest.mock("../components/course", () => ({
     );
   },
   QuizFinishView: () => null,
+  QuizHeader: () => null,
   QuizTimer: () => null,
 }));
 

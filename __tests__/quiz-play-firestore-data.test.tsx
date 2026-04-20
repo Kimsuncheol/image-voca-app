@@ -55,7 +55,7 @@ jest.mock("react-i18next", () => ({
 
 jest.mock("../src/context/AuthContext", () => ({
   useAuth: () => ({
-    user: null,
+    user: { uid: "user-1" },
   }),
 }));
 
@@ -67,7 +67,9 @@ jest.mock("../src/context/ThemeContext", () => ({
 
 jest.mock("firebase/firestore", () => ({
   doc: jest.fn(() => "mock-doc-ref"),
-  getDoc: jest.fn(),
+  getDoc: jest.fn().mockResolvedValue({
+    exists: () => false,
+  }),
   setDoc: jest.fn(),
   updateDoc: jest.fn(),
 }));
@@ -121,6 +123,7 @@ jest.mock("../components/course", () => ({
     currentQuestion,
     onSelectWord,
     onSelectMeaning,
+    onAnswer,
   }: {
     quizType: string;
     matchingMeanings: string[];
@@ -131,6 +134,7 @@ jest.mock("../components/course", () => ({
     };
     onSelectWord: (word: string) => void;
     onSelectMeaning: (meaning: string) => void;
+    onAnswer: (answer: string) => void;
   }) => {
     const { Button, Text, View } = jest.requireActual<typeof import("react-native")>(
       "react-native",
@@ -157,10 +161,35 @@ jest.mock("../components/course", () => ({
           title="select-incorrect-meaning"
           onPress={() => onSelectMeaning("not-the-answer")}
         />
+        <Button
+          title="select-correct-answer"
+          onPress={() => onAnswer(currentQuestion.correctAnswer)}
+        />
+        <Button
+          title="select-incorrect-answer"
+          onPress={() => onAnswer("not-the-answer")}
+        />
       </View>
     );
   },
-  QuizFinishView: () => null,
+  QuizFinishView: ({
+    score,
+    totalQuestions,
+  }: {
+    score: number;
+    totalQuestions: number;
+  }) => {
+    const { Text } = jest.requireActual<typeof import("react-native")>(
+      "react-native",
+    );
+    return <Text>{`QuizFinishView:${score}/${totalQuestions}`}</Text>;
+  },
+  QuizHeader: ({ onQuit }: { onQuit: () => void }) => {
+    const { Button } = jest.requireActual<typeof import("react-native")>(
+      "react-native",
+    );
+    return <Button title="quit-quiz" onPress={onQuit} />;
+  },
   QuizTimer: ({
     isRunning,
     quizKey,
@@ -177,9 +206,15 @@ const getLatestStackScreenOptions = () =>
   mockStackScreenOptions[mockStackScreenOptions.length - 1];
 const getLatestQuizTimerProps = () =>
   mockQuizTimerProps[mockQuizTimerProps.length - 1];
+const advanceAnswerFeedback = () => {
+  act(() => {
+    jest.advanceTimersByTime(1500);
+  });
+};
 
 describe("QuizPlayScreen Firestore quiz data", () => {
   beforeEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
     mockStackScreenOptions.length = 0;
     mockQuizTimerProps.length = 0;
@@ -188,6 +223,10 @@ describe("QuizPlayScreen Firestore quiz data", () => {
       day: "5",
       quizType: "matching",
     };
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it("uses saved Firestore matching data instead of vocabulary prefetch", async () => {
@@ -225,10 +264,7 @@ describe("QuizPlayScreen Firestore quiz data", () => {
       ]),
     );
     expect(getLatestStackScreenOptions()).toEqual(
-      expect.objectContaining({
-        headerShown: true,
-        title: "Matching 0/1",
-      }),
+      expect.objectContaining({ headerShown: false }),
     );
   });
 
@@ -247,7 +283,7 @@ describe("QuizPlayScreen Firestore quiz data", () => {
       matchingChoices: ["first"],
     });
 
-    render(<QuizPlayScreen />);
+    const screen = render(<QuizPlayScreen />);
 
     await waitFor(() => {
       expect(getLatestQuizTimerProps()).toEqual(
@@ -255,10 +291,8 @@ describe("QuizPlayScreen Firestore quiz data", () => {
       );
     });
 
-    const headerLeft = getLatestStackScreenOptions()?.headerLeft as () => React.ReactElement;
-
     act(() => {
-      headerLeft().props.onPress();
+      fireEvent.press(screen.getByText("quit-quiz"));
     });
 
     expect(alertSpy).toHaveBeenCalled();
@@ -283,7 +317,7 @@ describe("QuizPlayScreen Firestore quiz data", () => {
     const quitButton = alertSpy.mock.calls[0][2]?.[1];
 
     act(() => {
-      headerLeft().props.onPress();
+      fireEvent.press(screen.getByText("quit-quiz"));
     });
     act(() => {
       quitButton?.onPress?.();
@@ -322,6 +356,7 @@ describe("QuizPlayScreen Firestore quiz data", () => {
       );
     });
 
+    jest.useFakeTimers();
     act(() => {
       fireEvent.press(screen.getByText("select-current-word"));
     });
@@ -335,6 +370,8 @@ describe("QuizPlayScreen Firestore quiz data", () => {
       );
     });
 
+    advanceAnswerFeedback();
+
     act(() => {
       fireEvent.press(screen.getByText("select-current-word"));
     });
@@ -347,6 +384,53 @@ describe("QuizPlayScreen Firestore quiz data", () => {
         expect.objectContaining({ quizKey: "matching-1" }),
       );
     });
+  });
+
+  it("finishes matching after three incorrect attempts without increasing score", async () => {
+    mockFetchCourseQuizData.mockResolvedValue({
+      questions: [
+        {
+          id: "i1",
+          word: "alpha",
+          meaning: "first",
+          matchChoiceText: "first",
+          correctAnswer: "first",
+        },
+        {
+          id: "i2",
+          word: "beta",
+          meaning: "second",
+          matchChoiceText: "second",
+          correctAnswer: "second",
+        },
+      ],
+      matchingChoices: ["first", "second"],
+    });
+
+    const screen = render(<QuizPlayScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("quizType:matching")).toBeTruthy();
+    });
+
+    jest.useFakeTimers();
+    for (let i = 0; i < 3; i += 1) {
+      act(() => {
+        fireEvent.press(screen.getByText("select-current-word"));
+      });
+      act(() => {
+        fireEvent.press(screen.getByText("select-incorrect-meaning"));
+      });
+      advanceAnswerFeedback();
+    }
+
+    expect(screen.getByText("QuizFinishView:0/2")).toBeTruthy();
+
+    expect(screen.queryByText("quizType:matching")).toBeNull();
+    expect(mockBufferQuizAnswer).toHaveBeenCalledTimes(3);
+    expect(mockBufferQuizAnswer).toHaveBeenNthCalledWith(1, "user-1", false);
+    expect(mockBufferQuizAnswer).toHaveBeenNthCalledWith(2, "user-1", false);
+    expect(mockBufferQuizAnswer).toHaveBeenNthCalledWith(3, "user-1", false);
   });
 
   it("uses saved Firestore fill-in-the-blank data", async () => {
@@ -390,11 +474,68 @@ describe("QuizPlayScreen Firestore quiz data", () => {
       ]),
     );
     expect(getLatestStackScreenOptions()).toEqual(
-      expect.objectContaining({
-        headerShown: true,
-        title: "quiz.questionTitle",
-      }),
+      expect.objectContaining({ headerShown: false }),
     );
+  });
+
+  it("finishes fill-in-the-blank after three incorrect answers without advancing", async () => {
+    mockParams = {
+      courseId: "TOEIC",
+      day: "5",
+      quizType: "fill-in-blank",
+    };
+    mockFetchCourseQuizData.mockResolvedValue({
+      questions: [
+        {
+          id: "q1",
+          word: "alpha",
+          meaning: "alpha",
+          correctAnswer: "alpha",
+          clozeSentence: "Pick ____.",
+          options: [{ word: "alpha" }, { word: "wrong" }],
+        },
+        {
+          id: "q2",
+          word: "beta",
+          meaning: "beta",
+          correctAnswer: "beta",
+          clozeSentence: "Pick ____.",
+          options: [{ word: "beta" }, { word: "wrong" }],
+        },
+        {
+          id: "q3",
+          word: "gamma",
+          meaning: "gamma",
+          correctAnswer: "gamma",
+          clozeSentence: "Pick ____.",
+          options: [{ word: "gamma" }, { word: "wrong" }],
+        },
+      ],
+      matchingChoices: [],
+    });
+
+    const screen = render(<QuizPlayScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("word:alpha")).toBeTruthy();
+    });
+
+    jest.useFakeTimers();
+    for (let i = 0; i < 3; i += 1) {
+      act(() => {
+        fireEvent.press(screen.getByText("select-incorrect-answer"));
+      });
+    }
+
+    advanceAnswerFeedback();
+
+    expect(screen.getByText("QuizFinishView:0/3")).toBeTruthy();
+
+    expect(screen.queryByText("word:beta")).toBeNull();
+    expect(mockBufferQuizAnswer).toHaveBeenCalledTimes(3);
+    expect(mockBufferQuizAnswer).toHaveBeenNthCalledWith(1, "user-1", false);
+    expect(mockBufferQuizAnswer).toHaveBeenNthCalledWith(2, "user-1", false);
+    expect(mockBufferQuizAnswer).toHaveBeenNthCalledWith(3, "user-1", false);
   });
 
   it("mounts EmptyQuizScreen when saved quiz data is unavailable", async () => {

@@ -44,6 +44,8 @@ interface GameBoardProps {
   matchingMeanings: string[];
   selectedWord: string | null;
   selectedMeaning: string | null;
+  wrongWord?: string | null;
+  wrongMeaning?: string | null;
   matchedPairs: Record<string, string>;
   onSelectWord: (word: string) => void;
   onSelectMeaning: (meaning: string) => void;
@@ -67,6 +69,8 @@ export function GameBoard({
   matchingMeanings,
   selectedWord,
   selectedMeaning,
+  wrongWord,
+  wrongMeaning,
   matchedPairs,
   onSelectWord,
   onSelectMeaning,
@@ -102,6 +106,8 @@ export function GameBoard({
           meanings={matchingMeanings}
           selectedWord={selectedWord}
           selectedMeaning={selectedMeaning}
+          wrongWord={wrongWord}
+          wrongMeaning={wrongMeaning}
           matchedPairs={matchedPairs}
           onSelectWord={onSelectWord}
           onSelectMeaning={onSelectMeaning}
@@ -114,6 +120,8 @@ export function GameBoard({
           questions={questions}
           selectedWord={selectedWord}
           selectedMeaning={selectedMeaning}
+          wrongWord={wrongWord}
+          wrongMeaning={wrongMeaning}
           matchedPairs={matchedPairs}
           onSelectWord={onSelectWord}
           onSelectMeaning={onSelectMeaning}
@@ -129,6 +137,8 @@ export function GameBoard({
           meanings={matchingMeanings}
           selectedWord={selectedWord}
           selectedMeaning={selectedMeaning}
+          wrongWord={wrongWord}
+          wrongMeaning={wrongMeaning}
           matchedPairs={matchedPairs}
           onSelectWord={onSelectWord}
           onSelectMeaning={onSelectMeaning}

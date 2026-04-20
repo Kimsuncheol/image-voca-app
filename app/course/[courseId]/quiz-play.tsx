@@ -65,6 +65,8 @@ const shuffleArray = <T,>(items: T[]): T[] => {
 };
 
 const INITIAL_LOADING_MIN_MS = 500;
+const MAX_INCORRECT_ANSWERS = 3;
+const ANSWER_FEEDBACK_MS = 1500;
 
 const sleep = (ms: number) =>
   new Promise((resolve) => {
@@ -102,8 +104,11 @@ export default function QuizPlayScreen() {
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [quizFinished, setQuizFinished] = useState(false);
+  const [incorrectCount, setIncorrectCount] = useState(0);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [selectedMeaning, setSelectedMeaning] = useState<string | null>(null);
+  const [wrongWord, setWrongWord] = useState<string | null>(null);
+  const [wrongMeaning, setWrongMeaning] = useState<string | null>(null);
   const [matchedPairs, setMatchedPairs] = useState<Record<string, string>>({});
   const [matchingMeanings, setMatchingMeanings] = useState<string[]>([]);
   const [matchingTimerResetKey, setMatchingTimerResetKey] = useState(0);
@@ -111,7 +116,41 @@ export default function QuizPlayScreen() {
   const [effectiveQuizType, setEffectiveQuizType] =
     useState<QuizTypeId>(requestedQuizType);
   const retakeMarkedRef = React.useRef(false);
+  const incorrectCountRef = React.useRef(0);
+  const answerAdvanceTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const matchingWrongTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const resolvedQuizType = resolveRuntimeQuizType(effectiveQuizType);
+
+  const clearAnswerAdvanceTimeout = React.useCallback(() => {
+    if (answerAdvanceTimeoutRef.current) {
+      clearTimeout(answerAdvanceTimeoutRef.current);
+      answerAdvanceTimeoutRef.current = null;
+    }
+  }, []);
+
+  const clearMatchingWrongTimeout = React.useCallback(() => {
+    if (matchingWrongTimeoutRef.current) {
+      clearTimeout(matchingWrongTimeoutRef.current);
+      matchingWrongTimeoutRef.current = null;
+    }
+  }, []);
+
+  const resetIncorrectCount = React.useCallback(() => {
+    incorrectCountRef.current = 0;
+    setIncorrectCount(0);
+  }, []);
+
+  React.useEffect(
+    () => () => {
+      clearAnswerAdvanceTimeout();
+      clearMatchingWrongTimeout();
+    },
+    [clearAnswerAdvanceTimeout, clearMatchingWrongTimeout],
+  );
 
   useEffect(() => {
     if (user && courseId) {
@@ -143,17 +182,21 @@ export default function QuizPlayScreen() {
         });
       }
       setLoading(true);
+      clearMatchingWrongTimeout();
       setNoQuizData(false);
       setQuestions([]);
       setMatchingMeanings([]);
       setCurrentIndex(0);
       setScore(0);
+      resetIncorrectCount();
       setUserAnswer("");
       setShowResult(false);
       setIsCorrect(false);
       setQuizFinished(false);
       setSelectedWord(null);
       setSelectedMeaning(null);
+      setWrongWord(null);
+      setWrongMeaning(null);
       setMatchedPairs({});
       setMatchingTimerResetKey(0);
       setIsQuitPromptOpen(false);
@@ -276,7 +319,16 @@ export default function QuizPlayScreen() {
     return () => {
       cancelled = true;
     };
-  }, [courseId, day, dayNumber, i18n.language, quizType, requestedQuizType]);
+  }, [
+    courseId,
+    day,
+    dayNumber,
+    i18n.language,
+    quizType,
+    requestedQuizType,
+    resetIncorrectCount,
+    clearMatchingWrongTimeout,
+  ]);
 
   const currentQuestion = questions[currentIndex];
   const isMatching =
@@ -320,103 +372,6 @@ export default function QuizPlayScreen() {
       updateCourseDayProgress,
     ],
   );
-
-  const handleAnswer = async (answer: string) => {
-    const correct =
-      answer.toLowerCase().trim() ===
-      currentQuestion.correctAnswer.toLowerCase().trim();
-    const nextScore = correct ? score + 1 : score;
-    console.log(
-      `[Quiz] ${effectiveQuizType} answer in handleAnswer`,
-      correct ? "correct" : "incorrect",
-      {
-        questionId: currentQuestion.id,
-        word: currentQuestion.word,
-        answer,
-        correctAnswer: currentQuestion.correctAnswer,
-      },
-      `score: ${nextScore}`,
-    );
-    setIsCorrect(correct);
-    setShowResult(true);
-
-    if (correct) {
-      setScore((prev) => prev + 1);
-      await maybeMarkRetake(nextScore);
-    }
-
-    // Record answer for stats
-    if (user) {
-      bufferQuizAnswer(user.uid, correct);
-    }
-
-    // Auto-advance after showing feedback
-    setTimeout(() => {
-      setShowResult(false);
-      setUserAnswer("");
-
-      if (currentIndex < totalQuestions - 1) {
-        setCurrentIndex((prev) => prev + 1);
-      } else {
-        setQuizFinished(true);
-        saveQuizResult(nextScore);
-      }
-    }, 1500); // 1.5 seconds delay to show feedback
-  };
-
-  const handleMatchingAttempt = async (word: string, meaning: string) => {
-    const correctQuestion = questions.find((q) => q.word === word);
-    const correct =
-      (resolvedQuizType === "synonym-matching"
-        ? correctQuestion?.synonym
-        : resolvedQuizType === "pronunciation-matching"
-          ? correctQuestion?.pronunciation
-          : (correctQuestion?.matchChoiceText ?? correctQuestion?.meaning)) ===
-      meaning;
-
-    if (user) {
-      bufferQuizAnswer(user.uid, correct);
-    }
-
-    console.log("[Quiz] matching attempt", correct ? "correct" : "incorrect", {
-      word,
-      meaning,
-    });
-
-    if (correct) {
-      const nextScore = score + 1;
-      setMatchedPairs((prev) => ({ ...prev, [word]: meaning }));
-      setMatchingTimerResetKey((prev) => prev + 1);
-      setScore((prev) => prev + 1);
-      await maybeMarkRetake(nextScore);
-    }
-
-    setSelectedWord(null);
-    setSelectedMeaning(null);
-
-    if (correct && Object.keys(matchedPairs).length + 1 === totalQuestions) {
-      setQuizFinished(true);
-      saveQuizResult(score + 1);
-    }
-  };
-
-  const handleSelectWord = (word: string) => {
-    if (matchedPairs[word]) return;
-    if (selectedMeaning) {
-      handleMatchingAttempt(word, selectedMeaning);
-      return;
-    }
-    setSelectedWord(word);
-  };
-
-  const handleSelectMeaning = (meaning: string) => {
-    if (Object.values(matchedPairs).includes(meaning)) return;
-    if (selectedWord) {
-      handleMatchingAttempt(selectedWord, meaning);
-      return;
-    }
-    setSelectedMeaning(meaning);
-  };
 
   const saveQuizResult = async (finalScore?: number) => {
     if (!user || !courseId) return;
@@ -484,11 +439,154 @@ export default function QuizPlayScreen() {
     }
   };
 
+  const finishQuiz = (finalScore: number) => {
+    clearAnswerAdvanceTimeout();
+    clearMatchingWrongTimeout();
+    setShowResult(false);
+    setUserAnswer("");
+    setSelectedWord(null);
+    setSelectedMeaning(null);
+    setWrongWord(null);
+    setWrongMeaning(null);
+    setIsQuitPromptOpen(false);
+    setQuizFinished(true);
+    saveQuizResult(finalScore);
+  };
+
+  const recordIncorrectAndMaybeFinish = () => {
+    const nextIncorrectCount = incorrectCountRef.current + 1;
+    incorrectCountRef.current = nextIncorrectCount;
+    setIncorrectCount(nextIncorrectCount);
+
+    return nextIncorrectCount >= MAX_INCORRECT_ANSWERS;
+  };
+
+  const handleAnswer = async (answer: string) => {
+    const correct =
+      answer.toLowerCase().trim() ===
+      currentQuestion.correctAnswer.toLowerCase().trim();
+    const nextScore = correct ? score + 1 : score;
+    console.log(
+      `[Quiz] ${effectiveQuizType} answer in handleAnswer`,
+      correct ? "correct" : "incorrect",
+      {
+        questionId: currentQuestion.id,
+        word: currentQuestion.word,
+        answer,
+        correctAnswer: currentQuestion.correctAnswer,
+      },
+      `score: ${nextScore}`,
+    );
+    setIsCorrect(correct);
+    setShowResult(true);
+
+    if (correct) {
+      setScore((prev) => prev + 1);
+      await maybeMarkRetake(nextScore);
+    }
+
+    // Record answer for stats
+    if (user) {
+      bufferQuizAnswer(user.uid, correct);
+    }
+
+    const shouldFinishAfterFeedback =
+      !correct && recordIncorrectAndMaybeFinish();
+
+    // Auto-advance after showing feedback
+    clearAnswerAdvanceTimeout();
+    answerAdvanceTimeoutRef.current = setTimeout(() => {
+      answerAdvanceTimeoutRef.current = null;
+      setShowResult(false);
+      setUserAnswer("");
+
+      if (shouldFinishAfterFeedback) {
+        finishQuiz(nextScore);
+      } else if (currentIndex < totalQuestions - 1) {
+        setCurrentIndex((prev) => prev + 1);
+      } else {
+        finishQuiz(nextScore);
+      }
+    }, ANSWER_FEEDBACK_MS);
+  };
+
+  const handleMatchingAttempt = async (word: string, meaning: string) => {
+    const correctQuestion = questions.find((q) => q.word === word);
+    const correct =
+      (resolvedQuizType === "synonym-matching"
+        ? correctQuestion?.synonym
+        : resolvedQuizType === "pronunciation-matching"
+          ? correctQuestion?.pronunciation
+          : (correctQuestion?.matchChoiceText ?? correctQuestion?.meaning)) ===
+      meaning;
+
+    if (user) {
+      bufferQuizAnswer(user.uid, correct);
+    }
+
+    console.log("[Quiz] matching attempt", correct ? "correct" : "incorrect", {
+      word,
+      meaning,
+    });
+
+    if (!correct) {
+      const shouldFinishAfterFeedback = recordIncorrectAndMaybeFinish();
+      setWrongWord(word);
+      setWrongMeaning(meaning);
+      clearMatchingWrongTimeout();
+      matchingWrongTimeoutRef.current = setTimeout(() => {
+        matchingWrongTimeoutRef.current = null;
+        setWrongWord(null);
+        setWrongMeaning(null);
+        setSelectedWord(null);
+        setSelectedMeaning(null);
+        if (shouldFinishAfterFeedback) {
+          finishQuiz(score);
+        }
+      }, ANSWER_FEEDBACK_MS);
+      return;
+    }
+
+    if (correct) {
+      const nextScore = score + 1;
+      setMatchedPairs((prev) => ({ ...prev, [word]: meaning }));
+      setMatchingTimerResetKey((prev) => prev + 1);
+      setScore((prev) => prev + 1);
+      await maybeMarkRetake(nextScore);
+    }
+
+    setSelectedWord(null);
+    setSelectedMeaning(null);
+
+    if (correct && Object.keys(matchedPairs).length + 1 === totalQuestions) {
+      finishQuiz(score + 1);
+    }
+  };
+
+  const handleSelectWord = (word: string) => {
+    if (wrongWord || wrongMeaning) return;
+    if (matchedPairs[word]) return;
+    if (selectedMeaning) {
+      handleMatchingAttempt(word, selectedMeaning);
+      return;
+    }
+    setSelectedWord(word);
+  };
+
+  const handleSelectMeaning = (meaning: string) => {
+    if (wrongWord || wrongMeaning) return;
+    if (Object.values(matchedPairs).includes(meaning)) return;
+    if (selectedWord) {
+      handleMatchingAttempt(selectedWord, meaning);
+      return;
+    }
+    setSelectedMeaning(meaning);
+  };
+
   const handleTimeUp = () => {
     if (isMatching) {
       // Matching game ends on time up
-      setQuizFinished(true);
-      saveQuizResult(score);
+      finishQuiz(score);
       return;
     }
 
@@ -542,13 +640,18 @@ export default function QuizPlayScreen() {
   };
 
   const handleRetry = () => {
+    clearAnswerAdvanceTimeout();
+    clearMatchingWrongTimeout();
     setCurrentIndex(0);
     setScore(0);
+    resetIncorrectCount();
     setUserAnswer("");
     setShowResult(false);
     setQuizFinished(false);
     setSelectedWord(null);
     setSelectedMeaning(null);
+    setWrongWord(null);
+    setWrongMeaning(null);
     setMatchedPairs({});
     setMatchingTimerResetKey(0);
     setIsQuitPromptOpen(false);
@@ -626,7 +729,14 @@ export default function QuizPlayScreen() {
         <QuizTimer
           duration={15}
           onTimeUp={handleTimeUp}
-          isRunning={!showResult && !quizFinished && !isQuitPromptOpen}
+          isRunning={
+            !showResult &&
+            !quizFinished &&
+            !isQuitPromptOpen &&
+            !wrongWord &&
+            !wrongMeaning &&
+            incorrectCount < MAX_INCORRECT_ANSWERS
+          }
           quizKey={
             isMatching
               ? `matching-${matchingTimerResetKey}`
@@ -651,6 +761,8 @@ export default function QuizPlayScreen() {
               matchingMeanings={matchingMeanings}
               selectedWord={selectedWord}
               selectedMeaning={selectedMeaning}
+              wrongWord={wrongWord}
+              wrongMeaning={wrongMeaning}
               matchedPairs={matchedPairs}
               onSelectWord={handleSelectWord}
               onSelectMeaning={handleSelectMeaning}
@@ -687,6 +799,8 @@ export default function QuizPlayScreen() {
               matchingMeanings={matchingMeanings}
               selectedWord={selectedWord}
               selectedMeaning={selectedMeaning}
+              wrongWord={wrongWord}
+              wrongMeaning={wrongMeaning}
               matchedPairs={matchedPairs}
               onSelectWord={handleSelectWord}
               onSelectMeaning={handleSelectMeaning}

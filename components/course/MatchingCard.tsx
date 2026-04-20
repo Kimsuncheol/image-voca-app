@@ -11,6 +11,7 @@ interface MatchingCardProps {
   variant?: "word" | "meaning" | "synonym" | "pronunciation";
   isMatched: boolean;
   isSelected: boolean;
+  isIncorrect?: boolean;
   onPress: () => void;
   courseColor?: string;
   isDark: boolean;
@@ -23,6 +24,7 @@ export function MatchingCard({
   variant = "word",
   isMatched,
   isSelected,
+  isIncorrect = false,
   onPress,
   courseColor,
   isDark,
@@ -47,9 +49,10 @@ export function MatchingCard({
           borderColor: courseColor || "#007AFF",
           backgroundColor: (courseColor || "#007AFF") + "10",
         },
+        isIncorrect && styles.matchingItemIncorrect,
       ]}
       onPress={onPress}
-      disabled={isMatched}
+      disabled={isMatched || isIncorrect}
     >
       <View style={styles.content}>
         {variant === "meaning" ? (
@@ -62,12 +65,14 @@ export function MatchingCard({
               styles.meaningText,
               isMatched && styles.matchingItemTextMatched,
               isSelected && { color: courseColor || "#007AFF" },
+              isIncorrect && styles.matchingItemTextIncorrect,
             ]}
             prefixStyle={[
               styles.matchingItemText,
               styles.meaningText,
               isMatched && styles.matchingItemTextMatched,
               isSelected && { color: courseColor || "#007AFF" },
+              isIncorrect && styles.matchingItemTextIncorrect,
             ]}
             containerStyle={styles.meaningContainer}
             lineStyle={styles.meaningLine}
@@ -80,6 +85,7 @@ export function MatchingCard({
               styles.pronunciationText,
               isMatched && styles.matchingItemTextMatched,
               isSelected && { color: courseColor || "#007AFF" },
+              isIncorrect && styles.matchingItemTextIncorrect,
             ]}
           >
             {text}
@@ -92,6 +98,7 @@ export function MatchingCard({
               isMatched && styles.matchingItemTextMatched,
               !isMatched && !isSelected && styles.synonymTextDefault,
               isSelected && { color: courseColor || "#007AFF" },
+              isIncorrect && styles.matchingItemTextIncorrect,
             ]}
           >
             {text}
@@ -105,6 +112,7 @@ export function MatchingCard({
                 { fontSize: wordFontSize, lineHeight: wordLineHeight },
                 isMatched && styles.matchingItemTextMatched,
                 isSelected && { color: courseColor || "#007AFF" },
+                isIncorrect && styles.matchingItemTextIncorrect,
               ]}
             >
               {text}
@@ -115,6 +123,7 @@ export function MatchingCard({
                   styles.pronunciationCaption,
                   isMatched && styles.matchingItemTextMatched,
                   isSelected && { color: courseColor || "#007AFF" },
+                  isIncorrect && styles.matchingItemTextIncorrect,
                 ]}
               >
                 {pronunciation}
@@ -156,6 +165,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
   },
+  matchingItemIncorrect: {
+    borderColor: "#dc3545",
+    backgroundColor: "#dc354520",
+    borderWidth: 2,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
   matchingItemSelected: {
     borderWidth: 2,
     shadowOpacity: 0.2,
@@ -172,6 +188,11 @@ const styles = StyleSheet.create({
     color: "#28a745",
     fontWeight: "700",
     opacity: 0.8,
+  },
+  matchingItemTextIncorrect: {
+    color: "#dc3545",
+    fontWeight: "700",
+    opacity: 0.9,
   },
   wordStack: {
     alignItems: "center",

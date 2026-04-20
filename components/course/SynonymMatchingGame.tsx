@@ -19,6 +19,8 @@ interface SynonymMatchingGameProps {
   questions: QuizQuestion[];
   selectedWord: string | null;
   selectedMeaning: string | null;
+  wrongWord?: string | null;
+  wrongMeaning?: string | null;
   matchedPairs: Record<string, string>;
   onSelectWord: (word: string) => void;
   onSelectMeaning: (meaning: string) => void;
@@ -32,6 +34,8 @@ export function SynonymMatchingGame({
   questions,
   selectedWord,
   selectedMeaning,
+  wrongWord,
+  wrongMeaning,
   matchedPairs,
   onSelectWord,
   onSelectMeaning,
@@ -96,6 +100,7 @@ export function SynonymMatchingGame({
                   pronunciation={showPronunciationDetails ? question.pronunciation : undefined}
                   isMatched={Boolean(matchedPairs[question.word])}
                   isSelected={selectedWord === question.word}
+                  isIncorrect={wrongWord === question.word}
                   onPress={() => onSelectWord(question.word)}
                   courseColor={courseColor}
                   isDark={isDark}
@@ -108,6 +113,7 @@ export function SynonymMatchingGame({
                   variant="synonym"
                   isMatched={Object.values(matchedPairs).includes(synonym)}
                   isSelected={selectedMeaning === synonym}
+                  isIncorrect={wrongMeaning === synonym}
                   onPress={() => onSelectMeaning(synonym)}
                   courseColor={courseColor}
                   isDark={isDark}
