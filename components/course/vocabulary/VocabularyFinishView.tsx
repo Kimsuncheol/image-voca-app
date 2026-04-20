@@ -7,7 +7,7 @@ interface VocabularyFinishViewProps {
   day: number;
   onQuiz: () => void;
   onRestart: () => void;
-  onManga: () => void;
+
   t: (key: string, options?: Record<string, unknown>) => string;
 }
 
@@ -16,7 +16,7 @@ export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
   day,
   onQuiz,
   onRestart,
-  onManga,
+
   t,
 }) => {
   return (
@@ -35,10 +35,7 @@ export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
           <Text style={styles.buttonText}>{t("common.restart")}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, styles.mangaButton]} onPress={onManga}>
-          <Ionicons name="book-outline" size={22} color="#1a1a1a" />
-          <Text style={styles.buttonText}>{t("course.readManga")}</Text>
-        </TouchableOpacity>
+
       </View>
     </View>
   );
@@ -83,9 +80,7 @@ const styles = StyleSheet.create({
   restartButton: {
     backgroundColor: "#5B9CDB",
   },
-  mangaButton: {
-    backgroundColor: "#C07FD4",
-  },
+
   buttonText: {
     fontSize: 15,
     fontWeight: "700",

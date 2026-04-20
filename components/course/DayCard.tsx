@@ -16,7 +16,7 @@ interface DayCardProps {
   courseColor?: string;
   onDayPress: () => void;
   onQuizPress: () => void;
-  onMangaPress?: () => void;
+
 }
 
 export function DayCard({
@@ -26,7 +26,7 @@ export function DayCard({
   courseColor,
   onDayPress,
   onQuizPress,
-  onMangaPress,
+
 }: DayCardProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -73,17 +73,7 @@ export function DayCard({
           </ThemedText>
         )}
       </TouchableOpacity>
-      {(isCompleted || isRetake || quizCompleted) && !isLocked && onMangaPress && (
-        <TouchableOpacity
-          style={styles.mangaButton}
-          onPress={onMangaPress}
-        >
-          <Ionicons name="book" size={14} color="#fff" />
-          <ThemedText style={styles.mangaButtonText}>
-            {t("course.readManga")}
-          </ThemedText>
-        </TouchableOpacity>
-      )}
+
       {isCompleted && !isLocked && (
         <TouchableOpacity
           style={[
@@ -167,22 +157,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
   },
-  mangaButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-    marginTop: 6,
-    gap: 4,
-    backgroundColor: "#9B59B6",
-  },
-  mangaButtonText: {
-    fontSize: 12,
-    color: "#fff",
-    fontWeight: "600",
-  },
+
   lockedCard: {
     opacity: 0.5,
   },

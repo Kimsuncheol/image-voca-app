@@ -398,16 +398,7 @@ export default function VocabularyScreen() {
     });
   };
 
-  /**
-   * Action: Read Manga
-   * Navigates to the manga reader for content related to this course and day.
-   */
-  const handleManga = () => {
-    router.push({
-      pathname: "/manga/reader",
-      params: { courseId, day: String(dayNumber) },
-    });
-  };
+
 
   // ============================================================================
   // Section 6: Render Helpers & Main Render
@@ -419,7 +410,6 @@ export default function VocabularyScreen() {
       day={dayNumber}
       onQuiz={handleQuiz}
       onRestart={handleRestart}
-      onManga={handleManga}
       t={t}
     />
   );

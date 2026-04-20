@@ -666,10 +666,7 @@ const en = {
     },
   },
 
-  manga: {
-    emptyTitle: "No Manga Available",
-    emptySubtitle: "Check back later or explore other days!",
-  },
+
   course: {
     days: "Days",
     selectDay: "Select a day to start learning",
@@ -677,7 +674,7 @@ const en = {
     preparingVocabulary: "Preparing vocabulary...",
     dayCompleted: "Day completed!",
     takeQuiz: "Take Quiz",
-    readManga: "Read Manga",
+
     progress: "{{learned}}/{{total}} words",
     retake: "Retake",
     quiz: "Quiz",

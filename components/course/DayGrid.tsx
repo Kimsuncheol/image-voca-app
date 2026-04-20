@@ -12,7 +12,7 @@ interface DayGridProps {
   courseId: string;
   onDayPress: (day: number) => void;
   onQuizPress: (day: number) => void;
-  onMangaPress?: (day: number) => void;
+
 }
 
 export function DayGrid({
@@ -22,7 +22,7 @@ export function DayGrid({
   courseId: _courseId,
   onDayPress,
   onQuizPress,
-  onMangaPress,
+
 }: DayGridProps) {
   return (
     <View style={styles.daysGrid}>
@@ -43,7 +43,7 @@ export function DayGrid({
             courseColor={courseColor}
             onDayPress={() => onDayPress(day)}
             onQuizPress={() => onQuizPress(day)}
-            onMangaPress={onMangaPress ? () => onMangaPress(day) : undefined}
+
           />
         );
       })}

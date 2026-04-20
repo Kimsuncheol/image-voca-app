@@ -659,10 +659,7 @@ const ko = {
     },
   },
 
-  manga: {
-    emptyTitle: "만화가 준비되지 않았어요",
-    emptySubtitle: "다음에 다시 확인하거나 다른 날짜를 선택해보세요!",
-  },
+
   course: {
     days: "일차",
     selectDay: "학습할 일차를 선택하세요",
@@ -670,7 +667,7 @@ const ko = {
     preparingVocabulary: "단어를 불러오는 중...",
     dayCompleted: "오늘 학습 완료!",
     takeQuiz: "퀴즈 풀기",
-    readManga: "만화 읽기",
+
     progress: "{{learned}}/{{total}} 단어",
     retake: "정복 완료",
     quiz: "퀴즈",

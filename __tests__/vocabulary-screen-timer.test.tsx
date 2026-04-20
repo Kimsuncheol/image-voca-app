@@ -143,14 +143,12 @@ jest.mock("../components/course/vocabulary/VocabularyEmptyState", () => ({
 }));
 
 jest.mock("../components/course/vocabulary/VocabularyFinishView", () => ({
-  VocabularyFinishView: ({ onManga }: { onManga: () => void }) => {
+  VocabularyFinishView: () => {
     const { Text, TouchableOpacity, View } = require("react-native");
     return (
       <View>
         <Text>Finish View</Text>
-        <TouchableOpacity onPress={onManga}>
-          <Text>Read Manga</Text>
-        </TouchableOpacity>
+
       </View>
     );
   },
@@ -266,26 +264,5 @@ describe("VocabularyScreen deck state", () => {
     expect(screen.queryByText("Vocabulary Deck")).toBeNull();
   });
 
-  it("navigates to the manga reader with courseId and day params", async () => {
-    const screen = render(<VocabularyScreen />);
 
-    await Promise.resolve();
-    await Promise.resolve();
-
-    act(() => {
-      fireEvent.press(screen.getByText("Finish Deck"));
-    });
-
-    await Promise.resolve();
-
-    fireEvent.press(screen.getByText("Read Manga"));
-
-    expect(mockPush).toHaveBeenCalledWith({
-      pathname: "/manga/reader",
-      params: {
-        courseId: "TOEIC",
-        day: "1",
-      },
-    });
-  });
 });

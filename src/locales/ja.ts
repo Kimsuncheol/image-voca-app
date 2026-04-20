@@ -658,7 +658,6 @@ const ja = {
     preparingVocabulary: "単語を読み込み中...",
     dayCompleted: "今日の学習完了！",
     takeQuiz: "クイズを受ける",
-    readManga: "マンガを読む",
     progress: "{{learned}}/{{total}} 単語",
     retake: "完了",
     quiz: "クイズ",

@@ -260,16 +260,7 @@ export default function DayPickerScreen() {
     [courseId, router],
   );
 
-  const handleMangaPress = useCallback(
-    (day: number) => {
-      if (!courseId) return;
-      router.push({
-        pathname: "/manga/reader",
-        params: { courseId, day: day.toString() },
-      });
-    },
-    [courseId, router],
-  );
+
 
   // ---------------------------------------------------------------------------
   // Render
@@ -343,7 +334,6 @@ export default function DayPickerScreen() {
             courseId={courseId!}
             onDayPress={handleDayPress}
             onQuizPress={handleQuizPress}
-            onMangaPress={handleMangaPress}
           />
         )}
       </ScrollView>
