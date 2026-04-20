@@ -60,6 +60,8 @@ export default function DayPickerScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
+  const isFocusedRef = React.useRef(true);
+  const isNavigatingRef = React.useRef(false);
   const { t } = useTranslation();
   const { recentCourseByLanguage, setRecentCourseForLanguage } =
     useLearningLanguage();
@@ -148,6 +150,15 @@ export default function DayPickerScreen() {
     }, [user, courseId, fetchSubscription, fetchCourseProgress]),
   );
 
+  useFocusEffect(
+    useCallback(() => {
+      isFocusedRef.current = true;
+      return () => {
+        isFocusedRef.current = false;
+      };
+    }, []),
+  );
+
   useEffect(() => {
     if (!courseId) return;
 
@@ -193,6 +204,8 @@ export default function DayPickerScreen() {
   const handleDayPress = useCallback(
     async (day: number) => {
       if (!courseId) return;
+      if (isNavigatingRef.current) return;
+      isNavigatingRef.current = true;
 
       // Check 1: Sequential Progression - Must complete previous day first
       if (day > 1) {
@@ -200,6 +213,7 @@ export default function DayPickerScreen() {
         const previousDayProgress = dayProgress[previousDay];
 
         if (!previousDayProgress?.completed) {
+          isNavigatingRef.current = false;
           Alert.alert(
             t("course.lockedDay.title", { defaultValue: "Day Locked" }),
             t("course.lockedDay.message", {
@@ -237,6 +251,8 @@ export default function DayPickerScreen() {
       } finally {
         setLoadingDay(null);
       }
+      isNavigatingRef.current = false;
+      if (!isFocusedRef.current) return;
       router.push({
         pathname: "/course/[courseId]/vocabulary",
         params: { courseId, day: day.toString() },

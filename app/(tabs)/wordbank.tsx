@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { collection, getDocs } from "firebase/firestore";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 import { TopInstallNativeAd } from "../../components/ads/TopInstallNativeAd";
@@ -15,6 +15,7 @@ export default function WordBankScreen() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
+  const isNavigatingRef = useRef(false);
   const { learningLanguage } = useLearningLanguage();
 
   const [wordCounts, setWordCounts] = useState<Record<string, number>>({});
@@ -34,14 +35,17 @@ export default function WordBankScreen() {
   );
 
   const handleCoursePress = (courseId: CourseType) => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
     if (courseId === "JLPT") {
       router.push("/courses/jlpt-levels");
-      return;
+    } else {
+      router.push({
+        pathname: "/courses/[course]",
+        params: { course: courseId },
+      });
     }
-    router.push({
-      pathname: "/courses/[course]",
-      params: { course: courseId },
-    });
+    setTimeout(() => { isNavigatingRef.current = false; }, 300);
   };
 
   const courses = getTopLevelCoursesForLanguage(learningLanguage);

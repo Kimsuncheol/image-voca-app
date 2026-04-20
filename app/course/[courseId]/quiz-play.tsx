@@ -123,6 +123,7 @@ export default function QuizPlayScreen() {
   const matchingWrongTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const isFocusedRef = React.useRef(true);
   const resolvedQuizType = resolveRuntimeQuizType(effectiveQuizType);
 
   const clearAnswerAdvanceTimeout = React.useCallback(() => {
@@ -497,6 +498,7 @@ export default function QuizPlayScreen() {
     clearAnswerAdvanceTimeout();
     answerAdvanceTimeoutRef.current = setTimeout(() => {
       answerAdvanceTimeoutRef.current = null;
+      if (!isFocusedRef.current) return;
       setShowResult(false);
       setUserAnswer("");
 
@@ -536,6 +538,7 @@ export default function QuizPlayScreen() {
       clearMatchingWrongTimeout();
       matchingWrongTimeoutRef.current = setTimeout(() => {
         matchingWrongTimeoutRef.current = null;
+        if (!isFocusedRef.current) return;
         setWrongWord(null);
         setWrongMeaning(null);
         setSelectedWord(null);
@@ -634,9 +637,17 @@ export default function QuizPlayScreen() {
     }, [handleQuit]),
   );
 
+  useFocusEffect(
+    useCallback(() => {
+      isFocusedRef.current = true;
+      return () => {
+        isFocusedRef.current = false;
+      };
+    }, []),
+  );
+
   const handleFinish = () => {
-    router.back();
-    router.back();
+    router.dismiss(2);
   };
 
   const handleRetry = () => {

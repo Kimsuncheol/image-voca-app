@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../themed-text";
@@ -12,6 +12,14 @@ type ElementaryModuleListProps = {
 export function ElementaryModuleList({ isDark }: ElementaryModuleListProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const isNavigatingRef = useRef(false);
+
+  const navigate = (path: string) => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    router.push(path as never);
+    setTimeout(() => { isNavigatingRef.current = false; }, 300);
+  };
 
   const sectionLabelColor = isDark
     ? "rgba(255,255,255,0.54)"
@@ -34,7 +42,7 @@ export function ElementaryModuleList({ isDark }: ElementaryModuleListProps) {
             defaultValue: "Learn the Japanese character systems and practice recognition.",
           })}
           icon="language-outline"
-          onPress={() => router.push("/japanese-characters")}
+          onPress={() => navigate("/japanese-characters")}
           isDark={isDark}
         />
         <ElementaryModuleCard
@@ -43,7 +51,7 @@ export function ElementaryModuleList({ isDark }: ElementaryModuleListProps) {
             defaultValue: "Study common Japanese prefixes and suffixes.",
           })}
           icon="text-outline"
-          onPress={() => router.push("/prefix-postfix")}
+          onPress={() => navigate("/prefix-postfix")}
           isDark={isDark}
         />
         <ElementaryModuleCard
@@ -52,7 +60,7 @@ export function ElementaryModuleList({ isDark }: ElementaryModuleListProps) {
             defaultValue: "Browse Japanese counters by category with examples.",
           })}
           icon="albums-outline"
-          onPress={() => router.push("/counters")}
+          onPress={() => navigate("/counters")}
           isDark={isDark}
         />
         <ElementaryModuleCard
@@ -61,7 +69,7 @@ export function ElementaryModuleList({ isDark }: ElementaryModuleListProps) {
             defaultValue: "Study essential Japanese greetings used in daily conversation.",
           })}
           icon="chatbubble-ellipses-outline"
-          onPress={() => router.push("/japanese-greetings" as never)}
+          onPress={() => navigate("/japanese-greetings")}
           isDark={isDark}
         />
         <ElementaryModuleCard
@@ -70,7 +78,7 @@ export function ElementaryModuleList({ isDark }: ElementaryModuleListProps) {
             defaultValue: "Learn demonstratives, particles, and connectors that precede nouns.",
           })}
           icon="git-branch-outline"
-          onPress={() => router.push("/prenominal-adjective" as never)}
+          onPress={() => navigate("/prenominal-adjective")}
           isDark={isDark}
         />
       </View>

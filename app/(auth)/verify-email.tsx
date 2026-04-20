@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { sendEmailVerification, signOut } from "firebase/auth";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ScrollView,
@@ -33,6 +33,8 @@ export default function VerifyEmailScreen() {
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const [localError, setLocalError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const isMountedRef = useRef(true);
+  useEffect(() => () => { isMountedRef.current = false; }, []);
 
   useEffect(() => {
     if (cooldownSeconds <= 0) {
@@ -109,6 +111,7 @@ export default function VerifyEmailScreen() {
       console.warn("Failed to sign out from verification screen", error);
     }
 
+    if (!isMountedRef.current) return;
     router.replace("/(auth)/login");
   };
 

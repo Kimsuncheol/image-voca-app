@@ -9,7 +9,7 @@ import {
   signOut,
   verifyPasswordResetCode,
 } from "firebase/auth";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   KeyboardAvoidingView,
@@ -120,6 +120,8 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
   const [isVerifyingCode, setIsVerifyingCode] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [verifiedCode, setVerifiedCode] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
+  useEffect(() => () => { isMountedRef.current = false; }, []);
 
   const isValidEmail = useMemo(() => {
     if (!email) return false;
@@ -255,7 +257,9 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
       await confirmPasswordReset(auth, verifiedCode, password);
       await signOut(auth);
       setSuccessMessage(t("auth.passwordReset.resetSuccess"));
-      router.replace(redirectAfterSuccess);
+      if (isMountedRef.current) {
+        router.replace(redirectAfterSuccess);
+      }
     } catch {
       setGeneralError(t("auth.passwordReset.resetFailed"));
     } finally {

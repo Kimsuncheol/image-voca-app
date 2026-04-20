@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
@@ -23,10 +23,13 @@ import {
 export default function CourseSelectionScreen() {
   const { isDark } = useTheme();
   const router = useRouter();
+  const isNavigatingRef = useRef(false);
   const { learningLanguage, recentCourseByLanguage } = useLearningLanguage();
   const { t } = useTranslation();
 
   const handleCourseSelect = (course: Course) => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
     try {
       if (isJlptParentCourseId(course.id)) {
         router.push("/course/jlpt-levels");
@@ -39,7 +42,31 @@ export default function CourseSelectionScreen() {
       });
     } catch (error) {
       console.error("Error navigating to course:", error);
+      isNavigatingRef.current = false;
+      return;
     }
+    setTimeout(() => { isNavigatingRef.current = false; }, 300);
+  };
+
+  const handleKanaPress = () => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    router.push("/elementary-japanese");
+    setTimeout(() => { isNavigatingRef.current = false; }, 300);
+  };
+
+  const handleRecentCoursePress = () => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    if (recentCourseData && isJlptParentCourseId(recentCourseData.id)) {
+      router.push("/course/jlpt-levels");
+    } else if (recentCourseData) {
+      router.push({
+        pathname: "/course/[courseId]/days",
+        params: { courseId: recentCourseData.id },
+      });
+    }
+    setTimeout(() => { isNavigatingRef.current = false; }, 300);
   };
 
   const recentCourse = recentCourseByLanguage[learningLanguage];
@@ -63,7 +90,7 @@ export default function CourseSelectionScreen() {
               styles.kanaButton,
               { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
             ]}
-            onPress={() => router.push("/elementary-japanese")}
+            onPress={handleKanaPress}
             activeOpacity={0.7}
           >
             <View style={styles.kanaButtonLeft}>
@@ -96,14 +123,7 @@ export default function CourseSelectionScreen() {
         {learningLanguage !== "ja" && recentCourseData && (
           <RecentCourseSection
             course={recentCourseData}
-            onPress={() =>
-              isJlptParentCourseId(recentCourseData.id)
-                ? router.push("/course/jlpt-levels")
-                : router.push({
-                    pathname: "/course/[courseId]/days",
-                    params: { courseId: recentCourseData.id },
-                  })
-            }
+            onPress={handleRecentCoursePress}
           />
         )}
         <AllCoursesSection

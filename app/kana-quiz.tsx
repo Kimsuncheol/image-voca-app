@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -239,6 +239,8 @@ export default function KanaQuizScreen() {
   const [finished, setFinished] = useState(false);
 
   const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isFocusedRef = useRef(true);
+  const isNavigatingRef = useRef(false);
 
   const current = questions[currentIndex];
   const isAnswered = selectedIndex !== null;
@@ -267,7 +269,10 @@ export default function KanaQuizScreen() {
   const handleTimeUp = useCallback(() => {
     setWrongChars((prev) => [...prev, current.char]);
     setSelectedIndex(-1);
-    autoAdvanceTimer.current = setTimeout(advanceQuestion, TIMEOUT_ADVANCE_MS);
+    autoAdvanceTimer.current = setTimeout(() => {
+      if (!isFocusedRef.current) return;
+      advanceQuestion();
+    }, TIMEOUT_ADVANCE_MS);
   }, [current, advanceQuestion]);
 
   const handleOption = useCallback(
@@ -285,7 +290,10 @@ export default function KanaQuizScreen() {
       speech.speak(current.char.kana, { language: "ja-JP" });
 
       const delay = correct ? AUTO_ADVANCE_CORRECT_MS : AUTO_ADVANCE_WRONG_MS;
-      autoAdvanceTimer.current = setTimeout(advanceQuestion, delay);
+      autoAdvanceTimer.current = setTimeout(() => {
+        if (!isFocusedRef.current) return;
+        advanceQuestion();
+      }, delay);
     },
     [selectedIndex, current, speech, advanceQuestion],
   );
@@ -330,6 +338,21 @@ export default function KanaQuizScreen() {
     return () => stopCountdown();
   }, [stopCountdown]);
 
+  useFocusEffect(
+    useCallback(() => {
+      isFocusedRef.current = true;
+      return () => {
+        isFocusedRef.current = false;
+      };
+    }, []),
+  );
+
+  const handleDone = useCallback(() => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    router.back();
+  }, [router]);
+
   // ── Render helpers ─────────────────────────────────────────────────────────
 
   const typeLabel = t(
@@ -367,7 +390,7 @@ export default function KanaQuizScreen() {
           wrongChars={wrongChars}
           isDark={isDark}
           onRetry={handleRetry}
-          onDone={() => router.back()}
+          onDone={handleDone}
         />
       ) : (
         <View style={styles.quizContainer}>
