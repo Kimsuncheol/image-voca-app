@@ -17,6 +17,8 @@ type QuizTextValue =
 type MatchingQuizItem = {
   id?: unknown;
   text?: QuizTextValue;
+  word?: unknown;
+  meaning?: QuizTextValue;
   meaningEnglish?: unknown;
   meaningKorean?: unknown;
 };
@@ -24,6 +26,10 @@ type MatchingQuizItem = {
 type MatchingQuizChoice = {
   id?: unknown;
   text?: QuizTextValue;
+  word?: unknown;
+  meaning?: QuizTextValue;
+  meaningEnglish?: unknown;
+  meaningKorean?: unknown;
 };
 
 type FillInBlankOption = {
@@ -44,6 +50,14 @@ type FillInBlankQuestion = {
 export type FirestoreCourseQuizData = {
   questions: QuizQuestion[];
   matchingChoices: string[];
+};
+
+const isDevRuntime = () =>
+  typeof __DEV__ !== "undefined" && Boolean(__DEV__);
+
+const logQuizDebug = (message: string, details?: Record<string, unknown>) => {
+  if (!isDevRuntime()) return;
+  console.log(`[CourseQuizData] ${message}`, details ?? {});
 };
 
 const normalizeString = (value: unknown): string | undefined => {
@@ -100,20 +114,60 @@ export const resolveFirestoreQuizText = (
   );
 };
 
-const resolveMatchingItemText = (
-  item: MatchingQuizItem,
+const resolveFlexibleMatchingText = (
+  source: MatchingQuizItem | MatchingQuizChoice,
   meaningLanguage: unknown,
   appLanguage?: string,
 ) =>
-  resolveFirestoreQuizText(item.text, meaningLanguage, appLanguage) ??
+  resolveFirestoreQuizText(source.text, meaningLanguage, appLanguage) ??
+  resolveFirestoreQuizText(source.word, meaningLanguage, appLanguage) ??
+  resolveFirestoreQuizText(source.meaning, meaningLanguage, appLanguage) ??
   resolveFirestoreQuizText(
     {
-      meaningEnglish: item.meaningEnglish,
-      meaningKorean: item.meaningKorean,
+      meaningEnglish: source.meaningEnglish,
+      meaningKorean: source.meaningKorean,
     },
     meaningLanguage,
     appLanguage,
   );
+
+const resolveMatchingItemText = (
+  item: MatchingQuizItem,
+  meaningLanguage: unknown,
+  appLanguage?: string,
+) => resolveFlexibleMatchingText(item, meaningLanguage, appLanguage);
+
+const getMatchingAnswerKey = (data: Record<string, unknown>) => {
+  if (Array.isArray(data.answer_key)) return data.answer_key;
+  if (Array.isArray(data.answerKey)) return data.answerKey;
+  return [];
+};
+
+const hasMatchingAnswerKeyArray = (data: Record<string, unknown>) =>
+  Array.isArray(data.answer_key) || Array.isArray(data.answerKey);
+
+const getAnswerItemId = (answer: Record<string, unknown>) =>
+  normalizeString(answer.item_id) ?? normalizeString(answer.itemId);
+
+const getAnswerChoiceId = (answer: Record<string, unknown>) =>
+  normalizeString(answer.choice_id) ?? normalizeString(answer.choiceId);
+
+const getFirstRecordId = (value: unknown) => {
+  if (!value || typeof value !== "object") return undefined;
+  return normalizeString((value as { id?: unknown }).id);
+};
+
+const getFirstAnswerIds = (value: unknown) => {
+  if (!value || typeof value !== "object") {
+    return { firstAnswerItemId: undefined, firstAnswerChoiceId: undefined };
+  }
+
+  const answer = value as Record<string, unknown>;
+  return {
+    firstAnswerItemId: getAnswerItemId(answer),
+    firstAnswerChoiceId: getAnswerChoiceId(answer),
+  };
+};
 
 export const getFirestoreQuizKindForQuizType = (
   quizType: QuizTypeId,
@@ -158,7 +212,7 @@ const normalizeMatchingQuiz = (
 ): FirestoreCourseQuizData | null => {
   const rawItems = Array.isArray(data.items) ? data.items : [];
   const rawChoices = Array.isArray(data.choices) ? data.choices : [];
-  const rawAnswerKey = Array.isArray(data.answer_key) ? data.answer_key : [];
+  const rawAnswerKey = getMatchingAnswerKey(data);
   const meaningLanguage = data.meaning_language;
 
   if (rawItems.length === 0 || rawChoices.length === 0 || rawAnswerKey.length === 0) {
@@ -185,8 +239,8 @@ const normalizeMatchingQuiz = (
         if (!rawChoice || typeof rawChoice !== "object") return null;
         const choice = rawChoice as MatchingQuizChoice;
         const id = normalizeString(choice.id);
-        const text = resolveFirestoreQuizText(
-          choice.text,
+        const text = resolveFlexibleMatchingText(
+          choice,
           meaningLanguage,
           appLanguage,
         );
@@ -201,8 +255,8 @@ const normalizeMatchingQuiz = (
   rawAnswerKey.forEach((rawAnswer) => {
     if (!rawAnswer || typeof rawAnswer !== "object") return;
     const answer = rawAnswer as Record<string, unknown>;
-    const itemId = normalizeString(answer.item_id);
-    const choiceId = normalizeString(answer.choice_id);
+    const itemId = getAnswerItemId(answer);
+    const choiceId = getAnswerChoiceId(answer);
     if (itemId && choiceId) {
       answerByItemId.set(itemId, choiceId);
     }
@@ -238,8 +292,8 @@ const normalizeMatchingQuiz = (
     matchingChoices: rawChoices
       .map((rawChoice) =>
         rawChoice && typeof rawChoice === "object"
-          ? resolveFirestoreQuizText(
-              (rawChoice as MatchingQuizChoice).text,
+          ? resolveFlexibleMatchingText(
+              rawChoice as MatchingQuizChoice,
               meaningLanguage,
               appLanguage,
             )
@@ -313,6 +367,121 @@ const normalizeFillInBlankQuiz = (
   return questions.length > 0 ? { questions, matchingChoices: [] } : null;
 };
 
+const describeInvalidMatchingQuiz = (
+  data: Record<string, unknown>,
+  appLanguage?: string,
+) => {
+  const rawItems = Array.isArray(data.items) ? data.items : [];
+  const rawChoices = Array.isArray(data.choices) ? data.choices : [];
+  const rawAnswerKey = getMatchingAnswerKey(data);
+  const meaningLanguage = data.meaning_language;
+
+  if (!Array.isArray(data.items)) return "items is not an array";
+  if (!Array.isArray(data.choices)) return "choices is not an array";
+  if (!hasMatchingAnswerKeyArray(data)) return "answer_key/answerKey is not an array";
+  if (rawItems.length === 0) return "items is empty";
+  if (rawChoices.length === 0) return "choices is empty";
+  if (rawAnswerKey.length === 0) return "answer_key/answerKey is empty";
+
+  const choices = new Map(
+    rawChoices
+      .map((rawChoice) => {
+        if (!rawChoice || typeof rawChoice !== "object") return null;
+        const choice = rawChoice as MatchingQuizChoice;
+        const id = normalizeString(choice.id);
+        const text = resolveFlexibleMatchingText(
+          choice,
+          meaningLanguage,
+          appLanguage,
+        );
+        return id && text ? [id, text] : null;
+      })
+      .filter((entry): entry is [string, string] => Boolean(entry)),
+  );
+
+  const answerByItemId = new Map<string, string>();
+  rawAnswerKey.forEach((rawAnswer) => {
+    if (!rawAnswer || typeof rawAnswer !== "object") return;
+    const answer = rawAnswer as Record<string, unknown>;
+    const itemId = getAnswerItemId(answer);
+    const choiceId = getAnswerChoiceId(answer);
+    if (itemId && choiceId) answerByItemId.set(itemId, choiceId);
+  });
+
+  for (const rawItem of rawItems) {
+    if (!rawItem || typeof rawItem !== "object") return "item is not an object";
+    const item = rawItem as MatchingQuizItem;
+    const itemId = normalizeString(item.id);
+    if (!itemId) return "item.id is missing";
+    if (!resolveMatchingItemText(item, meaningLanguage, appLanguage)) {
+      return `item ${itemId} has no resolvable text`;
+    }
+    const choiceId = answerByItemId.get(itemId);
+    if (!choiceId) return `answer_key missing for item ${itemId}`;
+    if (!choices.has(choiceId)) {
+      return `choice ${choiceId} for item ${itemId} is missing or invalid`;
+    }
+  }
+
+  return "no playable matching questions after normalization";
+};
+
+const describeInvalidFillInBlankQuiz = (data: Record<string, unknown>) => {
+  if (!Array.isArray(data.questions)) return "questions is not an array";
+  if (data.questions.length === 0) return "questions is empty";
+
+  for (const rawQuestion of data.questions) {
+    if (!rawQuestion || typeof rawQuestion !== "object") {
+      return "question is not an object";
+    }
+
+    const question = rawQuestion as FillInBlankQuestion;
+    const questionId = normalizeString(question.id) ?? "(missing id)";
+    const answerId = normalizeString(question.answer_id);
+    const rawOptions = Array.isArray(question.options) ? question.options : [];
+
+    if (!normalizeString(question.sentence)) {
+      return `question ${questionId} has no sentence`;
+    }
+    if (!answerId) return `question ${questionId} has no answer_id`;
+    if (!normalizeString(question.answer_text)) {
+      return `question ${questionId} has no answer_text`;
+    }
+    if (!Array.isArray(question.options)) {
+      return `question ${questionId} options is not an array`;
+    }
+    if (rawOptions.length === 0) return `question ${questionId} options is empty`;
+
+    const validOptions = rawOptions
+      .map((rawOption) => {
+        if (!rawOption || typeof rawOption !== "object") return null;
+        const option = rawOption as FillInBlankOption;
+        const optionId = normalizeString(option.id);
+        const optionText = normalizeString(option.text);
+        return optionId && optionText ? optionId : null;
+      })
+      .filter((optionId): optionId is string => Boolean(optionId));
+
+    if (validOptions.length === 0) {
+      return `question ${questionId} has no valid options`;
+    }
+    if (!validOptions.includes(answerId)) {
+      return `question ${questionId} answer_id ${answerId} does not match any option`;
+    }
+  }
+
+  return "no playable fill-in-the-blank questions after normalization";
+};
+
+const describeInvalidQuizData = (
+  quizKind: FirestoreQuizKind,
+  data: Record<string, unknown>,
+  appLanguage?: string,
+) =>
+  quizKind === "matching"
+    ? describeInvalidMatchingQuiz(data, appLanguage)
+    : describeInvalidFillInBlankQuiz(data);
+
 export const normalizeFirestoreCourseQuiz = (
   quizKind: FirestoreQuizKind,
   data: Record<string, unknown>,
@@ -336,17 +505,80 @@ export const fetchCourseQuizData = async (
   );
 
   if (!quizKind || !pathSegments) {
+    logQuizDebug("missing path config", {
+      courseId,
+      dayNumber,
+      quizType,
+      quizKind,
+      pathSegments,
+    });
     return null;
   }
+
+  logQuizDebug("fetch", {
+    courseId,
+    dayNumber,
+    quizType,
+    quizKind,
+    pathSegments: [...pathSegments],
+  });
 
   const snapshot = await getDoc(doc(db, ...pathSegments));
-  if (!snapshot.exists()) {
+  const exists = snapshot.exists();
+  logQuizDebug("snapshot", {
+    exists,
+    pathSegments: [...pathSegments],
+  });
+
+  if (!exists) {
     return null;
   }
 
-  return normalizeFirestoreCourseQuiz(
-    quizKind,
-    snapshot.data() as Record<string, unknown>,
-    appLanguage,
-  );
+  const data = snapshot.data() as Record<string, unknown>;
+  if (quizKind === "fill_in_the_blank") {
+    logQuizDebug("fill doc shape", {
+      questionsIsArray: Array.isArray(data.questions),
+      questionsLength: Array.isArray(data.questions)
+        ? data.questions.length
+        : undefined,
+    });
+  } else {
+    const rawAnswerKey = getMatchingAnswerKey(data);
+    const firstAnswerIds = getFirstAnswerIds(rawAnswerKey[0]);
+
+    logQuizDebug("matching doc shape", {
+      itemsIsArray: Array.isArray(data.items),
+      choicesIsArray: Array.isArray(data.choices),
+      answerKeyIsArray: hasMatchingAnswerKeyArray(data),
+      itemsLength: Array.isArray(data.items) ? data.items.length : undefined,
+      choicesLength: Array.isArray(data.choices)
+        ? data.choices.length
+        : undefined,
+      answerKeyLength: hasMatchingAnswerKeyArray(data)
+        ? rawAnswerKey.length
+        : undefined,
+      firstItemId: Array.isArray(data.items)
+        ? getFirstRecordId(data.items[0])
+        : undefined,
+      firstChoiceId: Array.isArray(data.choices)
+        ? getFirstRecordId(data.choices[0])
+        : undefined,
+      ...firstAnswerIds,
+    });
+  }
+
+  const normalized = normalizeFirestoreCourseQuiz(quizKind, data, appLanguage);
+  if (!normalized) {
+    logQuizDebug("normalization failed", {
+      reason: describeInvalidQuizData(quizKind, data, appLanguage),
+    });
+    return null;
+  }
+
+  logQuizDebug("normalization succeeded", {
+    questionCount: normalized.questions.length,
+    matchingChoiceCount: normalized.matchingChoices.length,
+  });
+
+  return normalized;
 };

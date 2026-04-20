@@ -1,11 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-} from "firebase/firestore";
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -19,13 +19,15 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
 import {
   EmptyQuizScreen,
   GameBoard,
   QuizFinishView,
   QuizTimer,
 } from "../../../components/course";
-import { QuizGenerationAnimation } from "../../../components/common/QuizGenerationAnimation";
+import { useAuth } from "../../../src/context/AuthContext";
+import { useTheme } from "../../../src/context/ThemeContext";
 import {
   type QuizTypeId,
   resolveRuntimeQuizType,
@@ -37,8 +39,6 @@ import {
   type QuizQuestion,
   type QuizVocabData,
 } from "../../../src/course/quizUtils";
-import { useAuth } from "../../../src/context/AuthContext";
-import { useTheme } from "../../../src/context/ThemeContext";
 import {
   fetchCourseQuizData,
   isFirestoreBackedQuizType,
@@ -93,7 +93,7 @@ export default function QuizPlayScreen() {
   const dayNumber = parseInt(day || "1", 10);
   const showJlptPronunciationDetails = isJlptLevelCourseId(courseId);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [noQuizData, setNoQuizData] = useState(false);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -131,6 +131,15 @@ export default function QuizPlayScreen() {
 
     const fetchVocabulary = async () => {
       const loadingStartedAt = Date.now();
+      if (typeof __DEV__ !== "undefined" && __DEV__) {
+        console.log("[QuizPlay] route params", {
+          courseId,
+          day,
+          quizType,
+          requestedQuizType,
+          language: i18n.language,
+        });
+      }
       setLoading(true);
       setNoQuizData(false);
       setQuestions([]);
@@ -233,7 +242,7 @@ export default function QuizPlayScreen() {
                   : nextResolvedQuizType === "pronunciation-matching" &&
                       q.pronunciation
                     ? q.pronunciation
-                  : q.meaning,
+                    : q.meaning,
               ),
             ),
           );
@@ -263,7 +272,7 @@ export default function QuizPlayScreen() {
     return () => {
       cancelled = true;
     };
-  }, [courseId, dayNumber, i18n.language, requestedQuizType]);
+  }, [courseId, day, dayNumber, i18n.language, quizType, requestedQuizType]);
 
   const currentQuestion = questions[currentIndex];
   const isMatching =
@@ -358,7 +367,7 @@ export default function QuizPlayScreen() {
         ? correctQuestion?.synonym
         : resolvedQuizType === "pronunciation-matching"
           ? correctQuestion?.pronunciation
-        : correctQuestion?.matchChoiceText ?? correctQuestion?.meaning) ===
+          : (correctQuestion?.matchChoiceText ?? correctQuestion?.meaning)) ===
       meaning;
 
     if (user) {
@@ -465,7 +474,6 @@ export default function QuizPlayScreen() {
 
       // Flush any buffered quiz stats
       await flushQuizStats(user.uid);
-
     } catch (error) {
       console.error("Error saving quiz result:", error);
     }
@@ -537,11 +545,10 @@ export default function QuizPlayScreen() {
       >
         <Stack.Screen
           options={{
-            title: t("quiz.typeTitle"),
-            headerBackTitle: t("common.back"),
+            headerShown: false,
           }}
         />
-        <QuizGenerationAnimation isDark={isDark} mode="fullscreen" />
+        <AppSplashScreen visible={true} onHidden={() => {}} />
       </SafeAreaView>
     );
   }

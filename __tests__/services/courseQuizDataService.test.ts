@@ -88,6 +88,30 @@ describe("courseQuizDataService", () => {
     });
   });
 
+  it("builds the JLPT N5 Day 1 fill-in-blank quiz data path", async () => {
+    (getDoc as jest.Mock).mockResolvedValue({
+      exists: () => false,
+    });
+
+    await fetchCourseQuizData("JLPT_N5", 1, "fill-in-blank", "en");
+
+    expect(doc).toHaveBeenCalledWith(
+      {},
+      "courses/jlpt/n5",
+      "Day1",
+      "Day1-quiz",
+      "fill_in_the_blank",
+      "data",
+    );
+    expect(buildCourseQuizDocPathSegments("JLPT_N5", 1, "fill-in-blank")).toEqual([
+      "courses/jlpt/n5",
+      "Day1",
+      "Day1-quiz",
+      "fill_in_the_blank",
+      "data",
+    ]);
+  });
+
   it("resolves object text with meaning_language", () => {
     expect(
       resolveFirestoreQuizText(
@@ -147,6 +171,77 @@ describe("courseQuizDataService", () => {
       }),
     ]);
     expect(result?.matchingChoices).toEqual(["둘째", "첫째"]);
+  });
+
+  it("normalizes matching quizzes with camelCase answer keys and alternate text fields", () => {
+    const result = normalizeFirestoreCourseQuiz(
+      "matching",
+      {
+        meaning_language: "meaningEnglish",
+        items: [
+          { id: "i1", word: "alpha" },
+          {
+            id: "i2",
+            meaning: { meaningEnglish: "beta", meaningKorean: "베타" },
+          },
+        ],
+        choices: [
+          { id: "c1", meaning: "first" },
+          {
+            id: "c2",
+            meaningEnglish: "second",
+            meaningKorean: "둘째",
+          },
+        ],
+        answerKey: [
+          { itemId: "i1", choiceId: "c1" },
+          { itemId: "i2", choiceId: "c2" },
+        ],
+      },
+      "ko",
+    );
+
+    expect(result?.questions).toEqual([
+      expect.objectContaining({
+        word: "alpha",
+        meaning: "first",
+        matchItemId: "i1",
+        matchChoiceId: "c1",
+      }),
+      expect.objectContaining({
+        word: "beta",
+        meaning: "second",
+        matchItemId: "i2",
+        matchChoiceId: "c2",
+      }),
+    ]);
+    expect(result?.matchingChoices).toEqual(["first", "second"]);
+  });
+
+  it("logs a matching normalization reason for invalid choice ids", async () => {
+    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+
+    (getDoc as jest.Mock).mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        items: [{ id: "i1", text: "alpha" }],
+        choices: [{ id: "c1", text: "first" }],
+        answer_key: [{ item_id: "i1", choice_id: "missing" }],
+      }),
+    });
+
+    await expect(
+      fetchCourseQuizData("TOEIC", 1, "matching", "en"),
+    ).resolves.toBeNull();
+
+    expect(logSpy).toHaveBeenCalledWith(
+      "[CourseQuizData] normalization failed",
+      expect.objectContaining({
+        reason: "choice missing for item i1 is missing or invalid",
+      }),
+    );
+
+    logSpy.mockRestore();
   });
 
   it("returns null for missing documents and malformed quiz data", async () => {

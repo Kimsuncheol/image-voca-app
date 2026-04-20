@@ -47,6 +47,10 @@ export function MatchingGame({
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
 
+  useEffect(() => {
+    console.log("MatchingGame questions:", questions);
+  }, [questions]);
+
   const pageCount = Math.ceil(questions.length / PAGE_SIZE);
   const currentQuestions = questions.slice(
     page * PAGE_SIZE,
