@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../themed-text";
+import { GameScore } from "./GameScore";
 import { MatchingCard } from "./MatchingCard";
 
 const PAGE_SIZE = 5;
@@ -24,6 +25,7 @@ interface SynonymMatchingGameProps {
   courseColor?: string;
   isDark: boolean;
   showPronunciationDetails?: boolean;
+  progressCurrent?: number;
 }
 
 export function SynonymMatchingGame({
@@ -36,6 +38,7 @@ export function SynonymMatchingGame({
   courseColor,
   isDark,
   showPronunciationDetails = false,
+  progressCurrent = 0,
 }: SynonymMatchingGameProps) {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
@@ -73,6 +76,13 @@ export function SynonymMatchingGame({
       <ThemedText style={styles.matchingHint}>
         {t("quiz.synonymMatching.instructions")}
       </ThemedText>
+
+      <GameScore
+        current={progressCurrent}
+        total={questions.length}
+        courseColor={courseColor}
+        isDark={isDark}
+      />
 
       <View style={styles.matchingRows}>
         {currentQuestions.map((question, index) => {

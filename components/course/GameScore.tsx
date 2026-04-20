@@ -34,7 +34,16 @@ export function GameScore({
         />
       </View>
       <ThemedText style={styles.progressText}>
-        {current} / {total}
+        <ThemedText
+          style={[
+            styles.currentScoreHighlight,
+            { color: courseColor || (isDark ? "#4DA8DA" : "#007AFF") },
+          ]}
+        >
+          {current}
+        </ThemedText>
+        {" / "}
+        {total}
       </ThemedText>
     </View>
   );
@@ -55,8 +64,13 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   progressText: {
-    fontSize: 12,
+    fontSize: 16,
     opacity: 0.6,
     textAlign: "right",
+  },
+  currentScoreHighlight: {
+    fontSize: 20,
+    fontWeight: "700",
+    opacity: 1,
   },
 });

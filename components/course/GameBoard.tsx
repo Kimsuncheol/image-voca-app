@@ -87,12 +87,14 @@ export function GameBoard({
 
   return (
     <View style={(isMatching || isCollocationMatching) ? { flex: 1 } : undefined}>
-      <GameScore
-        current={progressCurrent}
-        total={questions.length}
-        courseColor={courseColor}
-        isDark={isDark}
-      />
+      {!(isMatching || isCollocationMatching) && (
+        <GameScore
+          current={progressCurrent}
+          total={questions.length}
+          courseColor={courseColor}
+          isDark={isDark}
+        />
+      )}
 
       {isCollocationMatching ? (
         <CollocationMatchingGame
@@ -105,6 +107,7 @@ export function GameBoard({
           onSelectMeaning={onSelectMeaning}
           courseColor={courseColor}
           isDark={isDark}
+          progressCurrent={progressCurrent}
         />
       ) : quizType === "synonym-matching" ? (
         <SynonymMatchingGame
@@ -117,6 +120,7 @@ export function GameBoard({
           courseColor={courseColor}
           isDark={isDark}
           showPronunciationDetails={showPronunciationDetails}
+          progressCurrent={progressCurrent}
         />
       ) : isMatching ? (
         <MatchingGame
@@ -132,6 +136,7 @@ export function GameBoard({
           isDark={isDark}
           showPronunciationDetails={showPronunciationDetails}
           matchingMode={matchingMode}
+          progressCurrent={progressCurrent}
         />
       ) : isCollocationGapFill ? (
         <CollocationGapFillSentenceGame

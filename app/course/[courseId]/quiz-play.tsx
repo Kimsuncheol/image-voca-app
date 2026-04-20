@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+
 import {
   Stack,
   useFocusEffect,
@@ -15,7 +15,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -24,6 +23,7 @@ import {
   EmptyQuizScreen,
   GameBoard,
   QuizFinishView,
+  QuizHeader,
   QuizTimer,
 } from "../../../components/course";
 import { useAuth } from "../../../src/context/AuthContext";
@@ -579,13 +579,13 @@ export default function QuizPlayScreen() {
           styles.container,
           { backgroundColor: isDark ? "#000" : "#fff" },
         ]}
+        edges={["left", "right", "bottom"]}
       >
-        <Stack.Screen
-          options={{
-            headerShown: true,
-            title: t("quiz.typeTitle"),
-            headerBackTitle: t("common.back"),
-          }}
+        <Stack.Screen options={{ headerShown: false }} />
+        <QuizHeader
+          title={t("quiz.typeTitle")}
+          isDark={isDark}
+          onQuit={() => router.back()}
         />
         <EmptyQuizScreen />
       </SafeAreaView>
@@ -600,13 +600,7 @@ export default function QuizPlayScreen() {
           { backgroundColor: isDark ? "#000" : "#fff" },
         ]}
       >
-        <Stack.Screen
-          options={{
-            headerShown: true,
-            title: t("quiz.results.title"),
-            headerLeft: () => null,
-          }}
-        />
+        <Stack.Screen options={{ headerShown: false }} />
         <QuizFinishView
           score={score}
           totalQuestions={totalQuestions}
@@ -621,31 +615,12 @@ export default function QuizPlayScreen() {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
-      edges={["bottom"]}
     >
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: isMatching
-            ? t("quiz.matching.progressTitle", {
-                current: matchedCount,
-                total: totalQuestions,
-              })
-            : t("quiz.questionTitle", {
-                current: currentIndex + 1,
-                total: totalQuestions,
-              }),
-          headerBackTitle: t("common.back"),
-          headerLeft: () => (
-            <TouchableOpacity onPress={handleQuit} hitSlop={8}>
-              <Ionicons
-                name="chevron-back"
-                size={28}
-                color={isDark ? "#fff" : "#000"}
-              />
-            </TouchableOpacity>
-          ),
-        }}
+      <Stack.Screen options={{ headerShown: false }} />
+      <QuizHeader
+        title=""
+        isDark={isDark}
+        onQuit={handleQuit}
       />
       {!quizFinished && !loading && (
         <QuizTimer

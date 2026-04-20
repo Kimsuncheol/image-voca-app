@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../themed-text";
+import { GameScore } from "./GameScore";
 import { MatchingCard } from "./MatchingCard";
 
 const PAGE_SIZE = 5;
@@ -28,6 +29,7 @@ interface MatchingGameProps {
   isDark: boolean;
   matchingMode?: "meaning" | "synonym" | "pronunciation";
   showPronunciationDetails?: boolean;
+  progressCurrent?: number;
 }
 
 export function MatchingGame({
@@ -43,6 +45,7 @@ export function MatchingGame({
   isDark,
   matchingMode = "meaning",
   showPronunciationDetails = false,
+  progressCurrent = 0,
 }: MatchingGameProps) {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
@@ -109,6 +112,13 @@ export function MatchingGame({
               : "quiz.matching.instructions",
         )}
       </ThemedText>
+
+      <GameScore
+        current={progressCurrent}
+        total={questions.length}
+        courseColor={courseColor}
+        isDark={isDark}
+      />
 
       <View style={styles.matchingRows}>
         {currentQuestions.map((question, index) => {

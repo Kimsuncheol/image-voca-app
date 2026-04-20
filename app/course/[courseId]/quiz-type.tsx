@@ -96,9 +96,12 @@ export default function QuizTypeSelectionScreen() {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      edges={["left", "right", "bottom"]}
     >
       <Stack.Screen
         options={{
+          headerStyle: { backgroundColor: isDark ? "#000" : "#fff" },
+          headerShadowVisible: false,
           title: t("quiz.typeTitle"),
           headerBackTitle: t("common.back"),
         }}
