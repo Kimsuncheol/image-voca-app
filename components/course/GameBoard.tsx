@@ -14,6 +14,9 @@ interface QuizQuestion {
   id: string;
   word: string;
   meaning: string;
+  matchItemId?: string;
+  matchChoiceId?: string;
+  matchChoiceText?: string;
   synonym?: string;
   pronunciation?: string;
 

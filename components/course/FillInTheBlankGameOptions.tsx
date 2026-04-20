@@ -7,7 +7,7 @@ import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { ThemedText } from "../themed-text";
 
 interface FillInTheBlankGameOptionsProps {
-  options: Array<QuizWordOption | string>;
+  options: (QuizWordOption | string)[];
   courseId?: string;
   correctAnswer: string;
   userAnswer: string;
@@ -36,6 +36,7 @@ export function FillInTheBlankGameOptions({
       {options.map((option, index) => {
         const normalizedOption =
           typeof option === "string" ? { word: option } : option;
+        const answerValue = normalizedOption.answerText ?? normalizedOption.word;
         const optionFontSize = getIdiomTitleFontSize(
           normalizedOption.word,
           courseId,
@@ -49,14 +50,14 @@ export function FillInTheBlankGameOptions({
               styles.optionButton,
               { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
               showResult &&
-                normalizedOption.word === correctAnswer && {
+                answerValue === correctAnswer && {
                   backgroundColor: "#28a74520",
                   borderColor: "#28a745",
                   borderWidth: 2,
                 },
               showResult &&
-                normalizedOption.word !== correctAnswer &&
-                userAnswer === normalizedOption.word && {
+                answerValue !== correctAnswer &&
+                userAnswer === answerValue && {
                   backgroundColor: "#dc354520",
                   borderColor: "#dc3545",
                   borderWidth: 2,
@@ -64,7 +65,7 @@ export function FillInTheBlankGameOptions({
             ]}
             onPress={() => {
               if (!showResult) {
-                onAnswer(normalizedOption.word);
+                onAnswer(answerValue);
               }
             }}
             disabled={showResult}

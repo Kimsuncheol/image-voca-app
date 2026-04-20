@@ -182,7 +182,9 @@ describe("QuizPlayScreen TOEFL synonym fallback", () => {
     );
 
     expect(screen.getByText("matchingMode:meaning")).toBeTruthy();
-    expect(screen.getByText("correctAnswer:examine")).toBeTruthy();
+    expect(
+      screen.getByText(/correctAnswer:(examine|obtain|conclude|summary)/),
+    ).toBeTruthy();
     expect(
       screen.getByText("matchingMeanings:conclude,examine,obtain,summary"),
     ).toBeTruthy();

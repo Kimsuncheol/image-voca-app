@@ -741,6 +741,10 @@ const ja = {
       message: "進捗が失われます。本当に終了しますか？",
       confirm: "終了",
     },
+    empty: {
+      title: "利用できるクイズはまだありません",
+      description: "別の日またはクイズタイプをお試しください。",
+    },
   },
   student: {
     classes: {

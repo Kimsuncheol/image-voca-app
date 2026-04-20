@@ -751,6 +751,10 @@ const ko = {
       message: "현재 진행 상황이 사라집니다. 정말 종료하시겠어요?",
       confirm: "종료",
     },
+    empty: {
+      title: "아직 이용 가능한 퀴즈가 없습니다",
+      description: "다른 일차나 퀴즈 유형을 선택해 주세요.",
+    },
   },
   comingSoon: {
     title: "준비 중",

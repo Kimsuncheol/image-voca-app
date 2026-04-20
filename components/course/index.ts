@@ -25,3 +25,4 @@ export { RecentCourseSection } from "./RecentCourseSection";
 export { SynonymMatchingGame } from "./SynonymMatchingGame";
 export { VocaHeader } from "./VocaHeader";
 export { EmptyDayView } from "./EmptyDayView";
+export { EmptyQuizScreen } from "./EmptyQuizScreen";

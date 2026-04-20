@@ -28,9 +28,9 @@ jest.mock("expo-router", () => ({
   },
   useFocusEffect: jest.fn(),
   useLocalSearchParams: () => ({
-    courseId: "TOEIC",
+    courseId: "TOEFL_IELTS",
     day: "1",
-    quizType: "multiple-choice",
+    quizType: "synonym-matching",
   }),
   useRouter: () => ({
     back: jest.fn(),
@@ -124,6 +124,7 @@ jest.mock("../src/stores", () => ({
 }));
 
 jest.mock("../components/course", () => ({
+  EmptyQuizScreen: () => null,
   GameBoard: ({
     courseColor,
     currentQuestion,
@@ -164,13 +165,13 @@ describe("QuizPlayScreen", () => {
     const screen = render(<QuizPlayScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("#4ECDC4")).toBeTruthy();
+      expect(screen.getByText("#A855F7")).toBeTruthy();
     });
   });
 
   it("revalidates stale cached vocabulary on load", async () => {
     await AsyncStorage.setItem(
-      "vocab_cache_v3:TOEIC-Day1",
+      "vocab_cache_v5:TOEFL_IELTS-Day1",
       JSON.stringify({
         updatedAt: Date.now() - 1000 * 60 * 60 * 7,
         cards: [
@@ -179,28 +180,28 @@ describe("QuizPlayScreen", () => {
             word: "stale-alpha",
             meaning: "stale first",
             example: "stale alpha example",
-            course: "TOEIC",
+            course: "TOEFL_IELTS",
           },
           {
             id: "stale-2",
             word: "stale-beta",
             meaning: "stale second",
             example: "stale beta example",
-            course: "TOEIC",
+            course: "TOEFL_IELTS",
           },
           {
             id: "stale-3",
             word: "stale-gamma",
             meaning: "stale third",
             example: "stale gamma example",
-            course: "TOEIC",
+            course: "TOEFL_IELTS",
           },
           {
             id: "stale-4",
             word: "stale-delta",
             meaning: "stale fourth",
             example: "stale delta example",
-            course: "TOEIC",
+            course: "TOEFL_IELTS",
           },
         ],
       }),
@@ -209,7 +210,7 @@ describe("QuizPlayScreen", () => {
     const { getByText } = render(<QuizPlayScreen />);
 
     await waitFor(() => {
-      expect(getByText("#4ECDC4")).toBeTruthy();
+      expect(getByText("#A855F7")).toBeTruthy();
     });
 
     await waitFor(() => {
@@ -291,9 +292,9 @@ describe("QuizPlayScreen", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("#4ECDC4")).toBeTruthy();
+      expect(screen.getByText("#A855F7")).toBeTruthy();
     });
 
-    expect(prefetchSpy).toHaveBeenCalledWith("TOEIC", 1);
+    expect(prefetchSpy).toHaveBeenCalledWith("TOEFL_IELTS", 1);
   });
 });

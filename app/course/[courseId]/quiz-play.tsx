@@ -20,6 +20,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
+  EmptyQuizScreen,
   GameBoard,
   QuizFinishView,
   QuizTimer,
@@ -38,6 +39,10 @@ import {
 } from "../../../src/course/quizUtils";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
+import {
+  fetchCourseQuizData,
+  isFirestoreBackedQuizType,
+} from "../../../src/services/courseQuizDataService";
 import { db } from "../../../src/services/firebase";
 import { prefetchVocabularyCards } from "../../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../../src/stores";
@@ -89,6 +94,7 @@ export default function QuizPlayScreen() {
   const showJlptPronunciationDetails = isJlptLevelCourseId(courseId);
 
   const [loading, setLoading] = useState(true);
+  const [noQuizData, setNoQuizData] = useState(false);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -126,9 +132,42 @@ export default function QuizPlayScreen() {
     const fetchVocabulary = async () => {
       const loadingStartedAt = Date.now();
       setLoading(true);
+      setNoQuizData(false);
       setQuestions([]);
       setMatchingMeanings([]);
+      setCurrentIndex(0);
+      setScore(0);
+      setUserAnswer("");
+      setShowResult(false);
+      setIsCorrect(false);
+      setQuizFinished(false);
+      setSelectedWord(null);
+      setSelectedMeaning(null);
+      setMatchedPairs({});
       try {
+        if (isFirestoreBackedQuizType(requestedQuizType)) {
+          const savedQuiz = await fetchCourseQuizData(
+            courseId as CourseType,
+            dayNumber,
+            requestedQuizType,
+            i18n.language,
+          );
+
+          if (cancelled) {
+            return;
+          }
+
+          setEffectiveQuizType(requestedQuizType);
+          if (!savedQuiz || savedQuiz.questions.length === 0) {
+            setNoQuizData(true);
+            return;
+          }
+
+          setQuestions(savedQuiz.questions);
+          setMatchingMeanings(savedQuiz.matchingChoices);
+          return;
+        }
+
         const fetchedCards = await prefetchVocabularyCards(
           courseId as CourseType,
           dayNumber,
@@ -179,6 +218,7 @@ export default function QuizPlayScreen() {
           return;
         }
         setQuestions(generatedQuestions);
+        setNoQuizData(generatedQuestions.length === 0);
 
         if (
           nextResolvedQuizType === "matching" ||
@@ -201,7 +241,10 @@ export default function QuizPlayScreen() {
           setMatchingMeanings([]);
         }
       } catch (error) {
-        console.error("Error fetching vocabulary for quiz:", error);
+        console.error("Error fetching quiz data:", error);
+        if (!cancelled) {
+          setNoQuizData(true);
+        }
       } finally {
         const remainingDelay = Math.max(
           0,
@@ -315,7 +358,8 @@ export default function QuizPlayScreen() {
         ? correctQuestion?.synonym
         : resolvedQuizType === "pronunciation-matching"
           ? correctQuestion?.pronunciation
-        : correctQuestion?.meaning) === meaning;
+        : correctQuestion?.matchChoiceText ?? correctQuestion?.meaning) ===
+      meaning;
 
     if (user) {
       bufferQuizAnswer(user.uid, correct);
@@ -483,8 +527,7 @@ export default function QuizPlayScreen() {
     setMatchedPairs({});
   };
 
-  // Show loading screen while fetching data
-  if (loading || totalQuestions === 0) {
+  if (loading) {
     return (
       <SafeAreaView
         style={[
@@ -499,6 +542,25 @@ export default function QuizPlayScreen() {
           }}
         />
         <QuizGenerationAnimation isDark={isDark} mode="fullscreen" />
+      </SafeAreaView>
+    );
+  }
+
+  if (noQuizData || totalQuestions === 0 || !currentQuestion) {
+    return (
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: isDark ? "#000" : "#fff" },
+        ]}
+      >
+        <Stack.Screen
+          options={{
+            title: t("quiz.typeTitle"),
+            headerBackTitle: t("common.back"),
+          }}
+        />
+        <EmptyQuizScreen />
       </SafeAreaView>
     );
   }
@@ -624,13 +686,6 @@ export default function QuizPlayScreen() {
               showResult={showResult}
               isCorrect={isCorrect}
               showPronunciationDetails={showJlptPronunciationDetails}
-              matchingMode={
-                resolvedQuizType === "synonym-matching"
-                  ? "synonym"
-                  : resolvedQuizType === "pronunciation-matching"
-                    ? "pronunciation"
-                    : "meaning"
-              }
               onAnswer={(answer) => {
                 setUserAnswer(answer);
                 handleAnswer(answer);

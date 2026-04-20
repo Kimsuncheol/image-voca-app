@@ -10,6 +10,7 @@ interface QuizQuestion {
   id: string;
   word: string;
   meaning: string;
+  matchChoiceText?: string;
   synonym?: string;
   pronunciation?: string;
 }
@@ -31,7 +32,7 @@ interface MatchingGameProps {
 
 export function MatchingGame({
   questions,
-  meanings: _unusedMeanings,
+  meanings,
   courseId,
   selectedWord,
   selectedMeaning,
@@ -52,21 +53,36 @@ export function MatchingGame({
     (page + 1) * PAGE_SIZE,
   );
 
-  // Shuffle meanings for the current page only; re-shuffle when page changes
-  const shuffledMeanings = React.useMemo(() => {
-    const shuffled = currentQuestions.map((q) =>
+  const getQuestionChoiceText = React.useCallback(
+    (q: QuizQuestion) =>
       matchingMode === "synonym" && q.synonym
         ? q.synonym
         : matchingMode === "pronunciation" && q.pronunciation
           ? q.pronunciation
-          : q.meaning,
-    );
+          : q.matchChoiceText ?? q.meaning,
+    [matchingMode],
+  );
+
+  const visibleChoices = React.useMemo(() => {
+    const currentChoiceTexts = currentQuestions.map(getQuestionChoiceText);
+    if (meanings.length > 0) {
+      const currentChoiceSet = new Set(currentChoiceTexts);
+      const orderedChoices = meanings.filter((meaning) =>
+        currentChoiceSet.has(meaning),
+      );
+      const missingChoices = currentChoiceTexts.filter(
+        (choice) => !orderedChoices.includes(choice),
+      );
+      return [...orderedChoices, ...missingChoices];
+    }
+
+    const shuffled = [...currentChoiceTexts];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
-  }, [currentQuestions, matchingMode]);
+  }, [currentQuestions, getQuestionChoiceText, meanings]);
 
   // Auto-advance to the next page when all current cards are matched
   useEffect(() => {
@@ -92,7 +108,7 @@ export function MatchingGame({
 
       <View style={styles.matchingRows}>
         {currentQuestions.map((question, index) => {
-          const meaning = shuffledMeanings[index];
+          const meaning = visibleChoices[index] ?? getQuestionChoiceText(question);
           return (
             <View key={question.word} style={styles.matchingRow}>
               <View style={styles.matchingCell}>

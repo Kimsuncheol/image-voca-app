@@ -758,6 +758,10 @@ const en = {
       message: "Your progress will be lost. Are you sure you want to quit?",
       confirm: "Quit",
     },
+    empty: {
+      title: "No quiz available yet",
+      description: "Please try another day or quiz type.",
+    },
   },
   comingSoon: {
     title: "Coming Soon",

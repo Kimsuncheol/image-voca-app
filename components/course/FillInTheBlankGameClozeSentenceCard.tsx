@@ -41,8 +41,7 @@ export function FillInTheBlankGameClozeSentenceCard({
     const lines = text.split("\n").filter((line) => line.trim());
 
     return lines.map((line, lineIndex) => {
-      // Split each line by the blank marker
-      const parts = line.split("___");
+      const parts = line.split(/(_+)/);
 
       return (
         <View key={`${lineIndex}`} style={styles.sentenceLine}>
@@ -50,8 +49,8 @@ export function FillInTheBlankGameClozeSentenceCard({
             style={[styles.sentenceText, { color: isDark ? "#fff" : "#000" }]}
           >
             {parts.map((part, partIndex) => {
-              const isLastPart = partIndex === parts.length - 1;
-              if (isLastPart) {
+              const isBlank = /^_+$/.test(part);
+              if (!isBlank) {
                 return <React.Fragment key={partIndex}>{part}</React.Fragment>;
               }
 
@@ -65,7 +64,6 @@ export function FillInTheBlankGameClozeSentenceCard({
 
               return (
                 <React.Fragment key={partIndex}>
-                  {part}
                   <Text
                     style={[
                       styles.blank,
