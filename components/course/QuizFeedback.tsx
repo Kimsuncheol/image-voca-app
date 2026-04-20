@@ -35,6 +35,7 @@ const styles = StyleSheet.create({
   feedbackContainer: {
     alignItems: "center",
     gap: 16,
+    marginTop: 24,
   },
   feedbackBadge: {
     flexDirection: "row",
