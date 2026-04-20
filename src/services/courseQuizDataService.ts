@@ -1,7 +1,7 @@
 import { doc, getDoc } from "firebase/firestore";
 import type { QuizTypeId } from "../course/quizModes";
 import type { QuizQuestion, QuizWordOption } from "../course/quizUtils";
-import type { CourseType } from "../types/vocabulary";
+import { isJlptLevelCourseId, type CourseType } from "../types/vocabulary";
 import { db } from "./firebase";
 import { getCourseConfig } from "./vocabularyPrefetch";
 
@@ -40,8 +40,11 @@ type FillInBlankOption = {
 type FillInBlankQuestion = {
   id?: unknown;
   sentence?: unknown;
+  translation?: unknown;
   translation_english?: unknown;
   translation_korean?: unknown;
+  translationEnglish?: unknown;
+  translationKorean?: unknown;
   options?: unknown;
   answer_id?: unknown;
   answer_text?: unknown;
@@ -131,11 +134,71 @@ const resolveFlexibleMatchingText = (
     appLanguage,
   );
 
+const resolveMatchingWordText = (
+  source: MatchingQuizItem | MatchingQuizChoice,
+  meaningLanguage: unknown,
+  appLanguage?: string,
+) =>
+  resolveFirestoreQuizText(source.word, meaningLanguage, appLanguage) ??
+  resolveFirestoreQuizText(source.text, meaningLanguage, appLanguage) ??
+  resolveFirestoreQuizText(source.meaning, meaningLanguage, appLanguage) ??
+  resolveFirestoreQuizText(
+    {
+      meaningEnglish: source.meaningEnglish,
+      meaningKorean: source.meaningKorean,
+    },
+    meaningLanguage,
+    appLanguage,
+  );
+
+const resolveJlptMatchingMeaningText = (
+  source: MatchingQuizItem | MatchingQuizChoice,
+): string | undefined => {
+  const meaningObject =
+    source.meaning && typeof source.meaning === "object"
+      ? (source.meaning as Record<string, unknown>)
+      : undefined;
+  const textObject =
+    source.text && typeof source.text === "object"
+      ? (source.text as Record<string, unknown>)
+      : undefined;
+
+  const meanings = [
+    normalizeString(source.meaningEnglish) ??
+      normalizeString(meaningObject?.meaningEnglish) ??
+      normalizeString(textObject?.meaningEnglish),
+    normalizeString(source.meaningKorean) ??
+      normalizeString(meaningObject?.meaningKorean) ??
+      normalizeString(textObject?.meaningKorean),
+  ].filter((meaning): meaning is string => Boolean(meaning));
+
+  return meanings.length > 0 ? meanings.join("\n") : undefined;
+};
+
+const resolveMatchingChoiceText = (
+  choice: MatchingQuizChoice,
+  meaningLanguage: unknown,
+  appLanguage: string | undefined,
+  courseId?: CourseType,
+) => {
+  if (isJlptLevelCourseId(courseId)) {
+    return (
+      resolveJlptMatchingMeaningText(choice) ??
+      resolveFlexibleMatchingText(choice, meaningLanguage, appLanguage)
+    );
+  }
+
+  return (
+    normalizeString(choice.meaning) ??
+    resolveFlexibleMatchingText(choice, meaningLanguage, appLanguage)
+  );
+};
+
 const resolveMatchingItemText = (
   item: MatchingQuizItem,
   meaningLanguage: unknown,
   appLanguage?: string,
-) => resolveFlexibleMatchingText(item, meaningLanguage, appLanguage);
+) => resolveMatchingWordText(item, meaningLanguage, appLanguage);
 
 const getMatchingAnswerKey = (data: Record<string, unknown>) => {
   if (Array.isArray(data.answer_key)) return data.answer_key;
@@ -209,6 +272,7 @@ export const buildCourseQuizDocPathSegments = (
 const normalizeMatchingQuiz = (
   data: Record<string, unknown>,
   appLanguage?: string,
+  courseId?: CourseType,
 ): FirestoreCourseQuizData | null => {
   const rawItems = Array.isArray(data.items) ? data.items : [];
   const rawChoices = Array.isArray(data.choices) ? data.choices : [];
@@ -239,10 +303,11 @@ const normalizeMatchingQuiz = (
         if (!rawChoice || typeof rawChoice !== "object") return null;
         const choice = rawChoice as MatchingQuizChoice;
         const id = normalizeString(choice.id);
-        const text = resolveFlexibleMatchingText(
+        const text = resolveMatchingChoiceText(
           choice,
           meaningLanguage,
           appLanguage,
+          courseId,
         );
         return id && text ? [id, { id, text }] : null;
       })
@@ -292,10 +357,11 @@ const normalizeMatchingQuiz = (
     matchingChoices: rawChoices
       .map((rawChoice) =>
         rawChoice && typeof rawChoice === "object"
-          ? resolveFlexibleMatchingText(
+          ? resolveMatchingChoiceText(
               rawChoice as MatchingQuizChoice,
               meaningLanguage,
               appLanguage,
+              courseId,
             )
           : undefined,
       )
@@ -345,12 +411,20 @@ const normalizeFillInBlankQuiz = (
       );
       if (!hasAnswerOption) return null;
 
+      const translationEnglish =
+        normalizeString(question.translation_english) ??
+        normalizeString(question.translationEnglish);
+      const translationKorean =
+        normalizeString(question.translation_korean) ??
+        normalizeString(question.translationKorean);
       const translation =
         appLanguage === "ko"
-          ? normalizeString(question.translation_korean) ??
-            normalizeString(question.translation_english)
-          : normalizeString(question.translation_english) ??
-            normalizeString(question.translation_korean);
+          ? translationKorean ??
+            translationEnglish ??
+            normalizeString(question.translation)
+          : translationEnglish ??
+            translationKorean ??
+            normalizeString(question.translation);
 
       return {
         id,
@@ -370,6 +444,7 @@ const normalizeFillInBlankQuiz = (
 const describeInvalidMatchingQuiz = (
   data: Record<string, unknown>,
   appLanguage?: string,
+  courseId?: CourseType,
 ) => {
   const rawItems = Array.isArray(data.items) ? data.items : [];
   const rawChoices = Array.isArray(data.choices) ? data.choices : [];
@@ -389,10 +464,11 @@ const describeInvalidMatchingQuiz = (
         if (!rawChoice || typeof rawChoice !== "object") return null;
         const choice = rawChoice as MatchingQuizChoice;
         const id = normalizeString(choice.id);
-        const text = resolveFlexibleMatchingText(
+        const text = resolveMatchingChoiceText(
           choice,
           meaningLanguage,
           appLanguage,
+          courseId,
         );
         return id && text ? [id, text] : null;
       })
@@ -477,18 +553,20 @@ const describeInvalidQuizData = (
   quizKind: FirestoreQuizKind,
   data: Record<string, unknown>,
   appLanguage?: string,
+  courseId?: CourseType,
 ) =>
   quizKind === "matching"
-    ? describeInvalidMatchingQuiz(data, appLanguage)
+    ? describeInvalidMatchingQuiz(data, appLanguage, courseId)
     : describeInvalidFillInBlankQuiz(data);
 
 export const normalizeFirestoreCourseQuiz = (
   quizKind: FirestoreQuizKind,
   data: Record<string, unknown>,
   appLanguage?: string,
+  courseId?: CourseType,
 ): FirestoreCourseQuizData | null =>
   quizKind === "matching"
-    ? normalizeMatchingQuiz(data, appLanguage)
+    ? normalizeMatchingQuiz(data, appLanguage, courseId)
     : normalizeFillInBlankQuiz(data, appLanguage);
 
 export const fetchCourseQuizData = async (
@@ -567,10 +645,15 @@ export const fetchCourseQuizData = async (
     });
   }
 
-  const normalized = normalizeFirestoreCourseQuiz(quizKind, data, appLanguage);
+  const normalized = normalizeFirestoreCourseQuiz(
+    quizKind,
+    data,
+    appLanguage,
+    courseId,
+  );
   if (!normalized) {
     logQuizDebug("normalization failed", {
-      reason: describeInvalidQuizData(quizKind, data, appLanguage),
+      reason: describeInvalidQuizData(quizKind, data, appLanguage, courseId),
     });
     return null;
   }

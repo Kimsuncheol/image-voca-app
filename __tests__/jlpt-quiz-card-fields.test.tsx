@@ -1,5 +1,6 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
+import { FillInTheBlankGame } from "../components/course/FillInTheBlankGame";
 import { FillInTheBlankGameClozeSentenceCard } from "../components/course/FillInTheBlankGameClozeSentenceCard";
 import { FillInTheBlankGameOptions } from "../components/course/FillInTheBlankGameOptions";
 import { MatchingGame } from "../components/course/MatchingGame";
@@ -133,6 +134,38 @@ describe("JLPT quiz card fields", () => {
 
     expect(screen.getByText("入り口から入る。")).toBeTruthy();
     expect(screen.queryByText("入(い)り口(ぐち)から入(はい)る。")).toBeNull();
+  });
+
+  it("renders course fill-in-the-blank as sentence, translation, then options", () => {
+    const screen = render(
+      <FillInTheBlankGame
+        word="間"
+        clozeSentence="Alpha beta."
+        translation="Translated sentence."
+        options={[{ word: "間" }, { word: "入口" }]}
+        correctAnswer="間"
+        userAnswer=""
+        showResult={false}
+        onAnswer={jest.fn()}
+      />,
+    );
+
+    const Text = jest.requireActual<typeof import("react-native")>(
+      "react-native",
+    ).Text;
+    const textValues = screen
+      .UNSAFE_getAllByType(Text)
+      .map((node) => node.props.children);
+
+    expect(screen.getByText("Alpha beta.")).toBeTruthy();
+    expect(screen.getByText("Translated sentence.")).toBeTruthy();
+    expect(screen.getByText("間")).toBeTruthy();
+    expect(textValues.indexOf("Alpha beta.")).toBeLessThan(
+      textValues.indexOf("Translated sentence."),
+    );
+    expect(textValues.indexOf("Translated sentence.")).toBeLessThan(
+      textValues.indexOf("間"),
+    );
   });
 
   it("renders dashboard matching left cards with pronunciation details", () => {

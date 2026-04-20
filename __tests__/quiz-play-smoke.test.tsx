@@ -145,11 +145,13 @@ jest.mock("../components/course", () => ({
   QuizTimer: () => null,
 }));
 
-jest.mock("../components/common/QuizGenerationAnimation", () => ({
-  QuizGenerationAnimation: () => {
+jest.mock("../components/common/AppSplashScreen", () => ({
+  AppSplashScreen: ({ visible }: { visible: boolean }) => {
     const ReactModule = jest.requireActual<typeof import("react")>("react");
     const { Text } = jest.requireActual("react-native");
-    return ReactModule.createElement(Text, null, "Creating quizzes...");
+    return visible
+      ? ReactModule.createElement(Text, null, "Preparing quiz...")
+      : null;
   },
 }));
 
@@ -227,7 +229,7 @@ describe("QuizPlayScreen", () => {
     });
   });
 
-  it("shows the generation animation while preparing the first quiz", async () => {
+  it("shows the splash screen while preparing the first quiz", async () => {
     jest.useFakeTimers();
 
     const deferredCards = createDeferred<any[]>();
@@ -237,7 +239,7 @@ describe("QuizPlayScreen", () => {
 
     const screen = render(<QuizPlayScreen />);
 
-    expect(screen.getByText("Creating quizzes...")).toBeTruthy();
+    expect(screen.getByText("Preparing quiz...")).toBeTruthy();
 
     await act(async () => {
       deferredCards.resolve([
@@ -285,7 +287,7 @@ describe("QuizPlayScreen", () => {
       jest.advanceTimersByTime(499);
     });
 
-    expect(screen.getByText("Creating quizzes...")).toBeTruthy();
+    expect(screen.getByText("Preparing quiz...")).toBeTruthy();
 
     act(() => {
       jest.advanceTimersByTime(1);
