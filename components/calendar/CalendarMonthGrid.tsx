@@ -179,7 +179,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 10,
-    paddingHorizontal: 2,
   },
   weekday: {
     width: 42,
@@ -191,7 +190,8 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    justifyContent: "space-between",
+    rowGap: 8,
   },
   cell: {
     width: 42,
