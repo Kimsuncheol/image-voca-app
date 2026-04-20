@@ -639,7 +639,7 @@ const ko = {
 
 
   course: {
-    days: "일차",
+    finish: "완료",
     selectDay: "학습할 일차를 선택하세요",
     dayTitle: "{{day}}일차",
     preparingVocabulary: "단어를 불러오는 중...",

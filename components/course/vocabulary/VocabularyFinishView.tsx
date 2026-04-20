@@ -7,7 +7,7 @@ interface VocabularyFinishViewProps {
   day: number;
   onQuiz: () => void;
   onRestart: () => void;
-
+  onDays: () => void;
   t: (key: string, options?: Record<string, unknown>) => string;
 }
 
@@ -16,7 +16,7 @@ export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
   day,
   onQuiz,
   onRestart,
-
+  onDays,
   t,
 }) => {
   return (
@@ -35,7 +35,10 @@ export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
           <Text style={styles.buttonText}>{t("common.restart")}</Text>
         </TouchableOpacity>
 
-
+        <TouchableOpacity style={[styles.button, styles.daysButton]} onPress={onDays}>
+          <Ionicons name="calendar-outline" size={22} color="#1a1a1a" />
+          <Text style={styles.buttonText}>{t("course.finish")}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -63,14 +66,15 @@ const styles = StyleSheet.create({
   },
   buttonsContainer: {
     width: "100%",
-    paddingHorizontal: 32,
+    paddingHorizontal: 16,
     gap: 10,
   },
   button: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 13,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     borderRadius: 24,
     gap: 8,
   },
@@ -79,6 +83,9 @@ const styles = StyleSheet.create({
   },
   restartButton: {
     backgroundColor: "#5B9CDB",
+  },
+  daysButton: {
+    backgroundColor: "#FFD166",
   },
 
   buttonText: {

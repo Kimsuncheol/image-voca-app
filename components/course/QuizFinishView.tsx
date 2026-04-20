@@ -12,6 +12,8 @@ interface QuizFinishViewProps {
   onFinish: () => void;
 }
 
+const scoreCircleSideLength = 160;
+
 export function QuizFinishView({
   score,
   totalQuestions,
@@ -45,14 +47,6 @@ export function QuizFinishView({
         </ThemedText>
       </View>
 
-      <ThemedText type="subtitle" style={styles.resultMessage}>
-        {percentage >= 80
-          ? t("quiz.results.excellent")
-          : percentage >= 60
-            ? t("quiz.results.goodJob")
-            : t("quiz.results.keepPracticing")}
-      </ThemedText>
-
       <View style={styles.resultButtons}>
         <TouchableOpacity
           style={[styles.resultButton, styles.retryButton]}
@@ -85,19 +79,20 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   scoreCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: scoreCircleSideLength,
+    height: scoreCircleSideLength,
+    borderRadius: scoreCircleSideLength / 2,
     borderWidth: 8,
     justifyContent: "center",
     alignItems: "center",
+    gap: 6,
     marginBottom: 24,
   },
   scoreText: {
-    fontSize: 48,
+    fontSize: 40,
   },
   scoreLabel: {
-    fontSize: 16,
+    fontSize: 14,
     opacity: 0.6,
   },
   resultMessage: {
@@ -105,14 +100,15 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   resultButtons: {
-    flexDirection: "row",
-    gap: 16,
+    flexDirection: "column",
+    gap: 12,
   },
   resultButton: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 14,
-    paddingHorizontal: 24,
+    paddingHorizontal: 30,
     borderRadius: 24,
     gap: 8,
   },

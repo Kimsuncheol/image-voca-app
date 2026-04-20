@@ -634,7 +634,7 @@ const ja = {
   },
 
   course: {
-    days: "日",
+    finish: "完了",
     selectDay: "学習する日を選択してください",
     dayTitle: "{{day}}日目",
     preparingVocabulary: "単語を読み込み中...",

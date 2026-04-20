@@ -650,7 +650,7 @@ const en = {
 
 
   course: {
-    days: "Days",
+    finish: "Finish",
     selectDay: "Select a day to start learning",
     dayTitle: "Day {{day}}",
     preparingVocabulary: "Preparing vocabulary...",
