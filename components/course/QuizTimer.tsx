@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
@@ -24,21 +24,29 @@ export function QuizTimer({
   quizKey,
 }: QuizTimerProps) {
   const progress = useSharedValue(1);
+  const onTimeUpRef = useRef(onTimeUp);
 
   useEffect(() => {
-    // Reset timer when key changes
-    progress.value = 1;
+    onTimeUpRef.current = onTimeUp;
+  }, [onTimeUp]);
 
+  useEffect(() => {
+    progress.value = 1;
+    cancelAnimation(progress);
+  }, [quizKey, progress]);
+
+  useEffect(() => {
     if (isRunning) {
+      const remainingDuration = Math.max(0, progress.value * duration * 1000);
       progress.value = withTiming(
         0,
         {
-          duration: duration * 1000,
+          duration: remainingDuration,
           easing: Easing.linear,
         },
         (finished) => {
           if (finished) {
-            runOnJS(onTimeUp)();
+            runOnJS(onTimeUpRef.current)();
           }
         },
       );
@@ -49,7 +57,7 @@ export function QuizTimer({
     return () => {
       cancelAnimation(progress);
     };
-  }, [quizKey, isRunning, duration, onTimeUp]);
+  }, [quizKey, isRunning, duration, progress]);
 
   const animatedStyle = useAnimatedStyle(() => {
     const backgroundColor = interpolateColor(

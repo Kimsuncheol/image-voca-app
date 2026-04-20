@@ -106,6 +106,8 @@ export default function QuizPlayScreen() {
   const [selectedMeaning, setSelectedMeaning] = useState<string | null>(null);
   const [matchedPairs, setMatchedPairs] = useState<Record<string, string>>({});
   const [matchingMeanings, setMatchingMeanings] = useState<string[]>([]);
+  const [matchingTimerResetKey, setMatchingTimerResetKey] = useState(0);
+  const [isQuitPromptOpen, setIsQuitPromptOpen] = useState(false);
   const [effectiveQuizType, setEffectiveQuizType] =
     useState<QuizTypeId>(requestedQuizType);
   const retakeMarkedRef = React.useRef(false);
@@ -153,6 +155,8 @@ export default function QuizPlayScreen() {
       setSelectedWord(null);
       setSelectedMeaning(null);
       setMatchedPairs({});
+      setMatchingTimerResetKey(0);
+      setIsQuitPromptOpen(false);
       try {
         if (isFirestoreBackedQuizType(requestedQuizType)) {
           const savedQuiz = await fetchCourseQuizData(
@@ -382,6 +386,7 @@ export default function QuizPlayScreen() {
     if (correct) {
       const nextScore = score + 1;
       setMatchedPairs((prev) => ({ ...prev, [word]: meaning }));
+      setMatchingTimerResetKey((prev) => prev + 1);
       setScore((prev) => prev + 1);
       await maybeMarkRetake(nextScore);
     }
@@ -498,14 +503,26 @@ export default function QuizPlayScreen() {
       router.back();
       return;
     }
-    Alert.alert(t("quiz.quit.title"), t("quiz.quit.message"), [
-      { text: t("common.cancel"), style: "cancel" },
+    setIsQuitPromptOpen(true);
+    Alert.alert(
+      t("quiz.quit.title"),
+      t("quiz.quit.message"),
+      [
+        {
+          text: t("common.cancel"),
+          style: "cancel",
+          onPress: () => setIsQuitPromptOpen(false),
+        },
+        {
+          text: t("quiz.quit.confirm"),
+          style: "destructive",
+          onPress: () => router.back(),
+        },
+      ],
       {
-        text: t("quiz.quit.confirm"),
-        style: "destructive",
-        onPress: () => router.back(),
+        onDismiss: () => setIsQuitPromptOpen(false),
       },
-    ]);
+    );
   }, [quizFinished, router, t]);
 
   // Android hardware back button
@@ -533,6 +550,8 @@ export default function QuizPlayScreen() {
     setSelectedWord(null);
     setSelectedMeaning(null);
     setMatchedPairs({});
+    setMatchingTimerResetKey(0);
+    setIsQuitPromptOpen(false);
   };
 
   if (loading) {
@@ -563,6 +582,7 @@ export default function QuizPlayScreen() {
       >
         <Stack.Screen
           options={{
+            headerShown: true,
             title: t("quiz.typeTitle"),
             headerBackTitle: t("common.back"),
           }}
@@ -582,6 +602,7 @@ export default function QuizPlayScreen() {
       >
         <Stack.Screen
           options={{
+            headerShown: true,
             title: t("quiz.results.title"),
             headerLeft: () => null,
           }}
@@ -604,6 +625,7 @@ export default function QuizPlayScreen() {
     >
       <Stack.Screen
         options={{
+          headerShown: true,
           title: isMatching
             ? t("quiz.matching.progressTitle", {
                 current: matchedCount,
@@ -629,8 +651,12 @@ export default function QuizPlayScreen() {
         <QuizTimer
           duration={15}
           onTimeUp={handleTimeUp}
-          isRunning={!showResult && !quizFinished}
-          quizKey={isMatching ? "matching" : `${currentIndex}-${dayNumber}`}
+          isRunning={!showResult && !quizFinished && !isQuitPromptOpen}
+          quizKey={
+            isMatching
+              ? `matching-${matchingTimerResetKey}`
+              : `${currentIndex}-${dayNumber}`
+          }
         />
       )}
       <KeyboardAvoidingView
