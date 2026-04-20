@@ -8,12 +8,14 @@ import { ThemedText } from "../../components/themed-text";
 import {
   DashboardHeader,
   DashboardPopFamousQuote,
-  DashboardPopQuiz,
   DashboardStats,
 } from "../../components/dashboard";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
-import { useDashboardSettingsStore } from "../../src/stores/dashboardSettingsStore";
+import {
+  useDashboardSettingsStore,
+  type DashboardElement,
+} from "../../src/stores/dashboardSettingsStore";
 import { useUserStatsStore } from "../../src/stores";
 
 export default function DashboardScreen() {
@@ -32,7 +34,7 @@ export default function DashboardScreen() {
     getTodayProgress,
   } = useUserStatsStore();
 
-  const { quizEnabled, famousQuoteEnabled, elementOrder, loadSettings } =
+  const { famousQuoteEnabled, elementOrder, loadSettings } =
     useDashboardSettingsStore();
 
   useFocusEffect(
@@ -46,9 +48,10 @@ export default function DashboardScreen() {
 
   const userName = user?.displayName || user?.email?.split("@")[0] || undefined;
 
-  const elementMap: Record<string, React.ReactNode> = {
-    quiz: quizEnabled ? <DashboardPopQuiz key="quiz" /> : null,
-    famousQuote: famousQuoteEnabled ? <DashboardPopFamousQuote key="famousQuote" /> : null,
+  const elementMap: Record<DashboardElement, React.ReactNode> = {
+    famousQuote: famousQuoteEnabled ? (
+      <DashboardPopFamousQuote key="famousQuote" />
+    ) : null,
   };
 
   return (

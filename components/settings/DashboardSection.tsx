@@ -11,44 +11,31 @@ interface DashboardSectionProps {
 }
 
 export function DashboardSection({ styles, t }: DashboardSectionProps) {
-  const { quizEnabled, famousQuoteEnabled, setQuizEnabled, setFamousQuoteEnabled } =
-    useDashboardSettingsStore();
+  const { famousQuoteEnabled, setFamousQuoteEnabled } = useDashboardSettingsStore();
 
   return (
     <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          {t("settings.dashboard.title", { defaultValue: "Dashboard" })}
-        </Text>
-        <View style={styles.card}>
-          {/* Pop Quiz toggle */}
-          <View style={styles.option}>
-            <View style={styles.optionLeft}>
-              <View style={[iconStyles.circle, { backgroundColor: "#5856D620" }]}>
-                <Ionicons name="help-circle" size={20} color="#5856D6" />
-              </View>
-              <Text style={styles.optionText}>
-                {t("settings.dashboard.popQuiz", { defaultValue: "Pop Quiz" })}
-              </Text>
+      <Text style={styles.sectionTitle}>
+        {t("settings.dashboard.title", { defaultValue: "Dashboard" })}
+      </Text>
+      <View style={styles.card}>
+        <View style={styles.option}>
+          <View style={styles.optionLeft}>
+            <View style={[iconStyles.circle, { backgroundColor: "#FF950020" }]}>
+              <Ionicons name="chatbubble-ellipses" size={20} color="#FF9500" />
             </View>
-            <ToggleSwitch value={quizEnabled} onValueChange={setQuizEnabled} />
+            <Text style={styles.optionText}>
+              {t("settings.dashboard.famousQuote", {
+                defaultValue: "Famous Quote",
+              })}
+            </Text>
           </View>
-
-          <View style={styles.separator} />
-
-          {/* Famous Quote toggle */}
-          <View style={styles.option}>
-            <View style={styles.optionLeft}>
-              <View style={[iconStyles.circle, { backgroundColor: "#FF950020" }]}>
-                <Ionicons name="chatbubble-ellipses" size={20} color="#FF9500" />
-              </View>
-              <Text style={styles.optionText}>
-                {t("settings.dashboard.famousQuote", { defaultValue: "Famous Quote" })}
-              </Text>
-            </View>
-            <ToggleSwitch value={famousQuoteEnabled} onValueChange={setFamousQuoteEnabled} />
-          </View>
-
+          <ToggleSwitch
+            value={famousQuoteEnabled}
+            onValueChange={setFamousQuoteEnabled}
+          />
         </View>
+      </View>
     </View>
   );
 }

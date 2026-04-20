@@ -3,9 +3,9 @@ import { create } from "zustand";
 
 const STORAGE_KEY = "@dashboard_settings";
 
-export type DashboardElement = "quiz" | "famousQuote";
+export type DashboardElement = "famousQuote";
 
-const DEFAULT_ORDER: DashboardElement[] = ["quiz", "famousQuote"];
+const DEFAULT_ORDER: DashboardElement[] = ["famousQuote"];
 
 const normalizeElementOrder = (value: unknown): DashboardElement[] => {
   if (!Array.isArray(value)) {
@@ -14,7 +14,7 @@ const normalizeElementOrder = (value: unknown): DashboardElement[] => {
 
   const filtered = value.filter(
     (item): item is DashboardElement =>
-      item === "quiz" || item === "famousQuote",
+      item === "famousQuote",
   );
 
   const nextOrder = [...filtered];
@@ -29,18 +29,15 @@ const normalizeElementOrder = (value: unknown): DashboardElement[] => {
 };
 
 interface DashboardSettingsState {
-  quizEnabled: boolean;
   famousQuoteEnabled: boolean;
   elementOrder: DashboardElement[];
   _initialized: boolean;
   loadSettings: () => Promise<void>;
-  setQuizEnabled: (value: boolean) => void;
   setFamousQuoteEnabled: (value: boolean) => void;
   setElementOrder: (order: DashboardElement[]) => void;
 }
 
 export const useDashboardSettingsStore = create<DashboardSettingsState>((set, get) => ({
-  quizEnabled: true,
   famousQuoteEnabled: true,
   elementOrder: DEFAULT_ORDER,
   _initialized: false,
@@ -52,7 +49,6 @@ export const useDashboardSettingsStore = create<DashboardSettingsState>((set, ge
       if (raw) {
         const parsed = JSON.parse(raw);
         set({
-          quizEnabled: parsed.quizEnabled ?? true,
           famousQuoteEnabled: parsed.famousQuoteEnabled ?? true,
           elementOrder: normalizeElementOrder(parsed.elementOrder),
         });
@@ -64,30 +60,22 @@ export const useDashboardSettingsStore = create<DashboardSettingsState>((set, ge
     }
   },
 
-  setQuizEnabled: (value: boolean) => {
-    set({ quizEnabled: value });
-    const { famousQuoteEnabled, elementOrder } = get();
-    AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ quizEnabled: value, famousQuoteEnabled, elementOrder }),
-    ).catch((e) => console.error("Failed to save quizEnabled", e));
-  },
-
   setFamousQuoteEnabled: (value: boolean) => {
     set({ famousQuoteEnabled: value });
-    const { quizEnabled, elementOrder } = get();
+    const { elementOrder } = get();
     AsyncStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ quizEnabled, famousQuoteEnabled: value, elementOrder }),
+      JSON.stringify({ famousQuoteEnabled: value, elementOrder }),
     ).catch((e) => console.error("Failed to save famousQuoteEnabled", e));
   },
 
   setElementOrder: (order: DashboardElement[]) => {
-    set({ elementOrder: order });
-    const { quizEnabled, famousQuoteEnabled } = get();
+    const elementOrder = normalizeElementOrder(order);
+    set({ elementOrder });
+    const { famousQuoteEnabled } = get();
     AsyncStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ quizEnabled, famousQuoteEnabled, elementOrder: order }),
+      JSON.stringify({ famousQuoteEnabled, elementOrder }),
     ).catch((e) => console.error("Failed to save elementOrder", e));
   },
 }));

@@ -3,10 +3,6 @@ import {
   ENGLISH_COURSES,
   getTopLevelCoursesForLanguage,
 } from "../src/types/vocabulary";
-import {
-  getDebugTotalDaysCourses,
-  getQuizCoursesForLanguage,
-} from "../components/dashboard/constants/quizConfig";
 
 describe("course configuration", () => {
   it("places English courses in the configured top-level order", () => {
@@ -29,7 +25,7 @@ describe("course configuration", () => {
     ]);
   });
 
-  it("returns English courses in top-level course lists and pop quiz config", () => {
+  it("returns English courses in top-level course lists", () => {
     expect(getTopLevelCoursesForLanguage("en").map((course) => course.id)).toEqual([
       "수능",
       "CSAT_IDIOMS",
@@ -38,15 +34,5 @@ describe("course configuration", () => {
       "EXTREMELY_ADVANCED",
       "COLLOCATION",
     ]);
-    expect(getQuizCoursesForLanguage("en").map(({ id }) => id)).toEqual([
-      "수능",
-      "CSAT_IDIOMS",
-      "TOEIC",
-      "TOEFL_IELTS",
-      "EXTREMELY_ADVANCED",
-      "COLLOCATION",
-    ]);
-    expect(getDebugTotalDaysCourses("en")).toContain("CSAT_IDIOMS");
-    expect(getDebugTotalDaysCourses("en")).toContain("EXTREMELY_ADVANCED");
   });
 });
