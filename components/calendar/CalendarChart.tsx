@@ -95,7 +95,7 @@ export function CalendarChart({ dailyStats }: CalendarChartProps) {
             lineConfig={{
               color: lineColor,
               thickness: 2,
-              curved: true,
+              curved: false,
               hideDataPoints: false,
               dataPointsShape: "circular",
               dataPointsColor: lineColor,

@@ -21,10 +21,7 @@ export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <Text style={[styles.checkedLabel, { color: isDark ? "#fff" : "#000" }]}>
-        {t("course.dayTitle", { day })}
-      </Text>
-      <View style={styles.buttonsContainer}>
+<View style={styles.buttonsContainer}>
         <TouchableOpacity style={[styles.button, styles.quizButton]} onPress={onQuiz}>
           <Ionicons name="clipboard-outline" size={22} color="#1a1a1a" />
           <Text style={styles.buttonText}>{t("course.takeQuiz")}</Text>

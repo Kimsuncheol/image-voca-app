@@ -105,6 +105,11 @@ export const getCourseConfig = (courseId: CourseType): CourseConfig => {
         path: process.env.EXPO_PUBLIC_COURSE_PATH_COLLOCATION,
         prefix: "COLLOCATION",
       };
+    case "KANJI":
+      return {
+        path: process.env.EXPO_PUBLIC_COURSE_PATH_KANJI,
+        prefix: "KANJI",
+      };
     case "JLPT":
       return {
         path: "",
