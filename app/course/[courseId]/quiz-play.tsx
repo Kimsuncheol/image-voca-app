@@ -1,4 +1,3 @@
-
 import {
   Stack,
   useFocusEffect,
@@ -117,12 +116,12 @@ export default function QuizPlayScreen() {
     useState<QuizTypeId>(requestedQuizType);
   const retakeMarkedRef = React.useRef(false);
   const incorrectCountRef = React.useRef(0);
-  const answerAdvanceTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-  const matchingWrongTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
+  const answerAdvanceTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const matchingWrongTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
   const isFocusedRef = React.useRef(true);
   const resolvedQuizType = resolveRuntimeQuizType(effectiveQuizType);
 
@@ -696,11 +695,6 @@ export default function QuizPlayScreen() {
         edges={["left", "right", "bottom"]}
       >
         <Stack.Screen options={{ headerShown: false }} />
-        <QuizHeader
-          title={t("quiz.typeTitle")}
-          isDark={isDark}
-          onQuit={() => router.back()}
-        />
         <EmptyQuizScreen />
       </SafeAreaView>
     );
@@ -731,11 +725,7 @@ export default function QuizPlayScreen() {
       style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
     >
       <Stack.Screen options={{ headerShown: false }} />
-      <QuizHeader
-        title=""
-        isDark={isDark}
-        onQuit={handleQuit}
-      />
+      <QuizHeader title="" isDark={isDark} onQuit={handleQuit} />
       {!quizFinished && !loading && (
         <QuizTimer
           duration={15}
