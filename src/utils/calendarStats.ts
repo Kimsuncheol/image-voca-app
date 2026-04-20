@@ -157,6 +157,48 @@ export const buildCalendarMonth = ({
   });
 };
 
+export interface ChartDayEntry {
+  dateKey: string;
+  label: string;
+  dailyWords: number;
+  cumulativeWords: number;
+}
+
+export function buildLast30DaysChartData(
+  dailyStats: DailyStats[],
+  daysPerBar: number,
+): ChartDayEntry[] {
+  const today = new Date();
+  const lookup = buildDailyStatsLookup(dailyStats);
+  const barCount = Math.ceil(30 / daysPerBar);
+
+  let cumulative = 0;
+  return Array.from({ length: barCount }, (_, groupIndex) => {
+    const offsetFromEnd = (barCount - 1 - groupIndex) * daysPerBar;
+    const groupStart = new Date(today);
+    groupStart.setDate(groupStart.getDate() - offsetFromEnd - (daysPerBar - 1));
+
+    let groupWords = 0;
+    for (let d = 0; d < daysPerBar; d++) {
+      const date = new Date(groupStart);
+      date.setDate(date.getDate() + d);
+      groupWords += lookup[formatDateKey(date)]?.wordsLearned ?? 0;
+    }
+
+    cumulative += groupWords;
+    // Label the END of each group so the rightmost bar shows today's date
+    const groupEnd = new Date(groupStart);
+    groupEnd.setDate(groupEnd.getDate() + daysPerBar - 1);
+    const label = `${groupEnd.getMonth() + 1}/${groupEnd.getDate()}`;
+    return {
+      dateKey: formatDateKey(groupStart),
+      label,
+      dailyWords: groupWords,
+      cumulativeWords: cumulative,
+    };
+  });
+}
+
 export const getMonthPreferredSelectedDate = (
   monthStart: Date,
   dailyStatsByDate: Record<string, DailyStats>,

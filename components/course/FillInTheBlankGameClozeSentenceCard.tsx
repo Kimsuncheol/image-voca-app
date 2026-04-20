@@ -168,6 +168,7 @@ const styles = StyleSheet.create({
   sentenceText: {
     fontSize: 18,
     lineHeight: 28,
+    textAlign: "left",
   },
   blank: {
     paddingHorizontal: 8,

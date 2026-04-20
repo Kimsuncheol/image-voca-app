@@ -50,7 +50,8 @@ export type TopLevelCourseType =
   | "TOEFL_IELTS"
   | "EXTREMELY_ADVANCED"
   | "COLLOCATION"
-  | "JLPT";
+  | "JLPT"
+  | "KANJI";
 
 export type CourseType = TopLevelCourseType | JLPTLevelId;
 
@@ -150,6 +151,16 @@ export const COURSES: Course[] = [
     color: "#FF8A65",
     wordCount: 5000,
   },
+  {
+    id: "KANJI",
+    title: "Kanji",
+    titleKey: "courses.kanji.title",
+    description: "Japanese Kanji Characters",
+    descriptionKey: "courses.kanji.description",
+    icon: "text",
+    color: "#C0392B",
+    wordCount: 0,
+  },
 ];
 
 export const JLPT_LEVELS: JLPTLevelCourse[] = [
@@ -219,7 +230,7 @@ export const ENGLISH_COURSES: TopLevelCourseType[] = [
   "COLLOCATION",
 ];
 
-export const JAPANESE_COURSES: TopLevelCourseType[] = ["JLPT"];
+export const JAPANESE_COURSES: TopLevelCourseType[] = ["JLPT", "KANJI"];
 
 const JLPT_LEVEL_IDS = new Set<JLPTLevelId>(JLPT_LEVELS.map((level) => level.id));
 
@@ -247,6 +258,7 @@ export const getLearningLanguageForCourse = (
 ): LearningLanguage | undefined => {
   if (!courseId) return undefined;
   if (isJlptCourseId(courseId)) return "ja";
+  if (JAPANESE_COURSES.includes(courseId as TopLevelCourseType)) return "ja";
   if (ENGLISH_COURSES.includes(courseId as TopLevelCourseType)) return "en";
   return undefined;
 };

@@ -183,6 +183,11 @@ const ja = {
       wordsLearned: "学習単語",
       currentStreak: "連続日数",
     },
+    chart: {
+      title: "30日間の学習推移",
+      subtitle: "合計{{total}}単語学習",
+      empty: "過去30日間の学習記録がありません。",
+    },
     detail: {
       noStudy: "この日の学習記録はありません。",
       wordsLearned: "学習単語",

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TopInstallNativeAd } from "../components/ads/TopInstallNativeAd";
+import { CalendarChart } from "../components/calendar/CalendarChart";
 import { CalendarDayDetailCard } from "../components/calendar/CalendarDayDetailCard";
 import { CalendarMonthGrid } from "../components/calendar/CalendarMonthGrid";
 import { CalendarMonthSummaryCard } from "../components/calendar/CalendarMonthSummaryCard";
@@ -223,6 +224,8 @@ export default function CalendarScreen() {
           isNextMonthDisabled={isCurrentMonth}
           onSelectDate={setSelectedDateKey}
         />
+
+        <CalendarChart dailyStats={stats?.dailyStats ?? []} />
 
         <CalendarDayDetailCard
           title={detailTitle}

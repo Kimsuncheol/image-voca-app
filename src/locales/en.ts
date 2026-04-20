@@ -184,6 +184,11 @@ const en = {
       wordsLearned: "Words learned",
       currentStreak: "Current streak",
     },
+    chart: {
+      title: "30-Day Progress",
+      subtitle: "{{total}} words learned",
+      empty: "No learning activity in the last 30 days.",
+    },
     detail: {
       noStudy: "No study activity recorded for this date.",
       wordsLearned: "Words learned",

@@ -80,6 +80,27 @@ const JLPT_QUIZ_TYPES: QuizTypeOption[] = [
     color: "#FFE66D",
   },
   {
+    id: "fill-in-blank",
+    title: "Fill in the Blank",
+    titleKey: "quiz.types.fillInBlank.title",
+    description: "Complete the sentence",
+    descriptionKey: "quiz.types.fillInBlank.description",
+    icon: "create-outline",
+    color: "#4ECDC4",
+  },
+];
+
+const KANJI_QUIZ_TYPES: QuizTypeOption[] = [
+  {
+    id: "matching",
+    title: "Matching",
+    titleKey: "quiz.types.matching.title",
+    description: "Match words with meanings",
+    descriptionKey: "quiz.types.matching.description",
+    icon: "git-compare",
+    color: "#FFE66D",
+  },
+  {
     id: "pronunciation-matching",
     title: "Pronunciation Matching",
     titleKey: "quiz.types.pronunciationMatching.title",
@@ -129,6 +150,9 @@ const TOEFL_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
 const JLPT_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
   JLPT_QUIZ_TYPES.map((quizType) => quizType.id),
 );
+const KANJI_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
+  KANJI_QUIZ_TYPES.map((quizType) => quizType.id),
+);
 const COLLOCATION_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
   COLLOCATION_QUIZ_TYPES.map((quizType) => quizType.id),
 );
@@ -140,6 +164,8 @@ export const getQuizTypesForCourse = (
     ? COLLOCATION_QUIZ_TYPES
     : courseId === "TOEFL_IELTS"
       ? TOEFL_QUIZ_TYPES
+      : courseId === "KANJI"
+        ? KANJI_QUIZ_TYPES
       : isJlptLevelCourseId(courseId)
         ? JLPT_QUIZ_TYPES
       : STANDARD_QUIZ_TYPES;
@@ -161,6 +187,12 @@ export const sanitizeRequestedQuizType = (
 
   if (courseId === "TOEFL_IELTS") {
     return TOEFL_QUIZ_TYPE_IDS.has(requestedQuizType as QuizTypeId)
+      ? (requestedQuizType as QuizTypeId)
+      : getLegacyFallbackQuizType(courseId);
+  }
+
+  if (courseId === "KANJI") {
+    return KANJI_QUIZ_TYPE_IDS.has(requestedQuizType as QuizTypeId)
       ? (requestedQuizType as QuizTypeId)
       : getLegacyFallbackQuizType(courseId);
   }

@@ -183,6 +183,11 @@ const ko = {
       wordsLearned: "학습한 단어",
       currentStreak: "연속 학습",
     },
+    chart: {
+      title: "30일 학습 추이",
+      subtitle: "총 {{total}}개 단어 학습",
+      empty: "최근 30일간 학습 기록이 없습니다.",
+    },
     detail: {
       noStudy: "이 날짜에는 기록된 학습 활동이 없습니다.",
       wordsLearned: "학습한 단어",
