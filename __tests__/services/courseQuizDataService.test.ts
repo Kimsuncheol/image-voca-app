@@ -361,80 +361,93 @@ describe("courseQuizDataService", () => {
     expect(result?.matchingChoices).toEqual(["first", "second"]);
   });
 
-  it("normalizes fill-in-the-blank translation fields by app language with fallback", () => {
+  it("localizes Japanese fill-in-the-blank translations by app language", () => {
+    const quizData = {
+      questions: [
+        {
+          id: "q1",
+          sentence: "入口から____。",
+          translationEnglish: "Enter through the entrance.",
+          translationKorean: "입구로 들어가세요.",
+          options: [
+            { id: "a", text: "入る" },
+            { id: "b", text: "見る" },
+          ],
+          answer_id: "a",
+          answer_text: "入る",
+        },
+      ],
+    };
     const englishResult = normalizeFirestoreCourseQuiz(
       "fill_in_the_blank",
-      {
-        questions: [
-          {
-            id: "q1",
-            sentence: "Alpha ____.",
-            translationEnglish: "Alpha beta.",
-            translationKorean: "알파 베타.",
-            options: [
-              { id: "a", text: "alpha" },
-              { id: "b", text: "beta" },
-            ],
-            answer_id: "b",
-            answer_text: "beta",
-          },
-          {
-            id: "q2",
-            sentence: "Gamma ____.",
-            translation_korean: "감마 델타.",
-            translation: "Fallback translation.",
-            options: [
-              { id: "g", text: "gamma" },
-              { id: "d", text: "delta" },
-            ],
-            answer_id: "d",
-            answer_text: "delta",
-          },
-        ],
-      },
+      quizData,
       "en",
+      "JLPT_N5",
     );
     const koreanResult = normalizeFirestoreCourseQuiz(
       "fill_in_the_blank",
+      quizData,
+      "ko",
+      "JLPT_N5",
+    );
+
+    expect(englishResult?.questions[0].translation).toBe(
+      "Enter through the entrance.",
+    );
+    expect(koreanResult?.questions[0].translation).toBe("입구로 들어가세요.");
+  });
+
+  it("uses literal translation for English fill-in-the-blank courses", () => {
+    const result = normalizeFirestoreCourseQuiz(
+      "fill_in_the_blank",
       {
         questions: [
           {
             id: "q1",
             sentence: "Alpha ____.",
-            translationEnglish: "Alpha beta.",
-            translationKorean: "알파 베타.",
+            translation: "Literal translation.",
+            translationEnglish: "Localized English translation.",
+            translationKorean: "현지화된 한국어 번역.",
             options: [
               { id: "a", text: "alpha" },
               { id: "b", text: "beta" },
             ],
             answer_id: "b",
             answer_text: "beta",
-          },
-          {
-            id: "q2",
-            sentence: "Gamma ____.",
-            translation_english: "Gamma delta.",
-            translation: "Fallback translation.",
-            options: [
-              { id: "g", text: "gamma" },
-              { id: "d", text: "delta" },
-            ],
-            answer_id: "d",
-            answer_text: "delta",
           },
         ],
       },
       "ko",
+      "TOEIC",
     );
 
-    expect(englishResult?.questions.map((question) => question.translation)).toEqual([
-      "Alpha beta.",
-      "감마 델타.",
-    ]);
-    expect(koreanResult?.questions.map((question) => question.translation)).toEqual([
-      "알파 베타.",
-      "Gamma delta.",
-    ]);
+    expect(result?.questions[0].translation).toBe("Literal translation.");
+  });
+
+  it("falls back when a Japanese fill-in-the-blank localized translation is missing", () => {
+    const result = normalizeFirestoreCourseQuiz(
+      "fill_in_the_blank",
+      {
+        questions: [
+          {
+            id: "q1",
+            sentence: "入口から____。",
+            translation_english: "Enter through the entrance.",
+            translation: "Fallback translation.",
+            options: [
+              { id: "a", text: "入る" },
+              { id: "b", text: "見る" },
+            ],
+            answer_id: "a",
+            answer_text: "入る",
+          },
+        ],
+      },
+      "ko",
+      "JLPT_N5",
+    );
+
+    expect(result?.questions[0].translation).toBe("Enter through the entrance.");
   });
 
   it("logs a matching normalization reason for invalid choice ids", async () => {

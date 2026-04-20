@@ -184,7 +184,6 @@ const styles = StyleSheet.create({
   translationText: {
     fontSize: 14,
     opacity: 0.7,
-    fontStyle: "italic",
     marginTop: 8,
   },
 });

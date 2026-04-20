@@ -1,7 +1,11 @@
 import { doc, getDoc } from "firebase/firestore";
 import type { QuizTypeId } from "../course/quizModes";
 import type { QuizQuestion, QuizWordOption } from "../course/quizUtils";
-import { isJlptLevelCourseId, type CourseType } from "../types/vocabulary";
+import {
+  getLearningLanguageForCourse,
+  isJlptLevelCourseId,
+  type CourseType,
+} from "../types/vocabulary";
 import { db } from "./firebase";
 import { getCourseConfig } from "./vocabularyPrefetch";
 
@@ -199,6 +203,35 @@ const resolveMatchingChoiceText = (
   );
 };
 
+const resolveFillInBlankTranslation = (
+  question: FillInBlankQuestion,
+  appLanguage?: string,
+  courseId?: CourseType,
+) => {
+  const translation = normalizeString(question.translation);
+  const translationEnglish =
+    normalizeString(question.translation_english) ??
+    normalizeString(question.translationEnglish);
+  const translationKorean =
+    normalizeString(question.translation_korean) ??
+    normalizeString(question.translationKorean);
+  const learningLanguage = getLearningLanguageForCourse(courseId);
+
+  if (learningLanguage === "ja") {
+    return appLanguage === "ko"
+      ? translationKorean ?? translationEnglish ?? translation
+      : translationEnglish ?? translationKorean ?? translation;
+  }
+
+  if (learningLanguage === "en") {
+    return translation ?? translationEnglish ?? translationKorean;
+  }
+
+  return appLanguage === "ko"
+    ? translationKorean ?? translationEnglish ?? translation
+    : translationEnglish ?? translationKorean ?? translation;
+};
+
 const resolveMatchingItemText = (
   item: MatchingQuizItem,
   meaningLanguage: unknown,
@@ -377,6 +410,7 @@ const normalizeMatchingQuiz = (
 const normalizeFillInBlankQuiz = (
   data: Record<string, unknown>,
   appLanguage?: string,
+  courseId?: CourseType,
 ): FirestoreCourseQuizData | null => {
   const rawQuestions = Array.isArray(data.questions) ? data.questions : [];
   if (rawQuestions.length === 0) return null;
@@ -416,20 +450,11 @@ const normalizeFillInBlankQuiz = (
       );
       if (!hasAnswerOption) return null;
 
-      const translationEnglish =
-        normalizeString(question.translation_english) ??
-        normalizeString(question.translationEnglish);
-      const translationKorean =
-        normalizeString(question.translation_korean) ??
-        normalizeString(question.translationKorean);
-      const translation =
-        appLanguage === "ko"
-          ? translationKorean ??
-            translationEnglish ??
-            normalizeString(question.translation)
-          : translationEnglish ??
-            translationKorean ??
-            normalizeString(question.translation);
+      const translation = resolveFillInBlankTranslation(
+        question,
+        appLanguage,
+        courseId,
+      );
 
       return {
         id,
@@ -572,7 +597,7 @@ export const normalizeFirestoreCourseQuiz = (
 ): FirestoreCourseQuizData | null =>
   quizKind === "matching"
     ? normalizeMatchingQuiz(data, appLanguage, courseId)
-    : normalizeFillInBlankQuiz(data, appLanguage);
+    : normalizeFillInBlankQuiz(data, appLanguage, courseId);
 
 export const fetchCourseQuizData = async (
   courseId: CourseType,
