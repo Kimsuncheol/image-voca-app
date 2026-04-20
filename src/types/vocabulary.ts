@@ -157,7 +157,7 @@ export const COURSES: Course[] = [
     titleKey: "courses.kanji.title",
     description: "Japanese Kanji Characters",
     descriptionKey: "courses.kanji.description",
-    icon: "text",
+    icon: "language",
     color: "#C0392B",
     wordCount: 0,
   },
