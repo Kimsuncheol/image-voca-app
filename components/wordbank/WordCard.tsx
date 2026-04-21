@@ -11,7 +11,7 @@ import type {
   VocabularyLocalizationMap,
 } from "../../src/types/vocabulary";
 import { isJlptCourseId, isKanjiWord } from "../../src/types/vocabulary";
-import { KanjiVocabularyCard } from "../course/vocabulary/KanjiVocabularyCard";
+import { KanjiCollocationCard } from "../course/vocabulary/KanjiCollocationCard";
 import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
 import { speakWordVariants } from "../../src/utils/wordVariants";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
@@ -66,7 +66,21 @@ interface WordCardProps {
  * Displays a saved word with all its information in a card format
  * Composed of smaller sub-components for better maintainability
  */
-export function WordCard({
+export function WordCard(props: WordCardProps) {
+  if (isKanjiWord(props.word)) {
+    return (
+      <KanjiCollocationCard
+        item={props.word as KanjiWord}
+        initialIsSaved={true}
+        day={props.word.day}
+        isActive={false}
+      />
+    );
+  }
+  return <StandardWordCard {...props} />;
+}
+
+function StandardWordCard({
   word,
   isDark,
   showPronunciation = true,
@@ -76,17 +90,6 @@ export function WordCard({
   useCardSpeechCleanup();
   const { i18n } = useTranslation();
   const { learningLanguage } = useLearningLanguage();
-
-  if (isKanjiWord(word)) {
-    return (
-      <KanjiVocabularyCard
-        item={word as KanjiWord}
-        initialIsSaved={true}
-        day={word.day}
-        isActive={false}
-      />
-    );
-  }
 
   const speakLanguage = learningLanguage === "ja" ? "ja-JP" : "en-US";
   const [showKana, setShowKana] = React.useState(false);

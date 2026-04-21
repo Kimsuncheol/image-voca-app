@@ -81,6 +81,9 @@ const textChildrenOf = (node: { findAllByType: (type: unknown) => Array<{ props:
     .flatMap((textNode) => React.Children.toArray(textNode.props.children))
     .filter((child): child is string => typeof child === "string");
 
+const flattenStyleOf = (node: { props: { style?: unknown } }) =>
+  StyleSheet.flatten(node.props.style);
+
 describe("KanjiCollocationCard", () => {
   beforeEach(() => {
     mockLanguage = "en";
@@ -99,23 +102,44 @@ describe("KanjiCollocationCard", () => {
   it("renders example text and translation on back side", () => {
     const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
     flipToBack(screen);
-    const { getByText } = screen;
+    const { getAllByText, getByText } = screen;
 
     expect(getByText("熟語")).toBeTruthy();
     expect(getByText("compound word")).toBeTruthy();
     expect(getByText("日本語")).toBeTruthy();
     expect(getByText("Japanese language")).toBeTruthy();
-    expect(getByText("語を学ぶ。")).toBeTruthy();
+    expect(getAllByText("語を学ぶ。").length).toBeGreaterThanOrEqual(1);
     expect(getByText("Learn words.")).toBeTruthy();
   });
 
-  it("does not render hurigana text visually", () => {
+  it("renders meaning and reading hurigana as transparent placeholders by default", () => {
     const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
     flipToBack(screen);
-    const { queryByText } = screen;
+    const { getByTestId, queryByText } = screen;
 
-    expect(queryByText("じゅくご")).toBeNull();
-    expect(queryByText("にほんご")).toBeNull();
+    const meaningHurigana = getByTestId(
+      "kanji-collocation-meaning-hurigana-0-0",
+    );
+    const readingHurigana = getByTestId(
+      "kanji-collocation-reading-hurigana-0-0",
+    );
+
+    expect(meaningHurigana.props.children).toBe("じゅくご");
+    expect(readingHurigana.props.children).toBe("にほんご");
+    expect(flattenStyleOf(meaningHurigana)).toEqual(
+      expect.objectContaining({
+        fontSize: 8,
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(flattenStyleOf(readingHurigana)).toEqual(
+      expect.objectContaining({
+        fontSize: 8,
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
     expect(queryByText("ごをまなぶ。")).toBeNull();
   });
 
@@ -153,11 +177,22 @@ describe("KanjiCollocationCard", () => {
       />,
     );
     flipToBack(screen);
-    const { getAllByText, getByText, queryByText } = screen;
+    const { getAllByText, getByText, getByTestId, queryByText } = screen;
 
     expect(getAllByText("language").length).toBeGreaterThanOrEqual(1);
     expect(getAllByText("かたる").length).toBeGreaterThanOrEqual(1);
-    expect(getByText("語る。")).toBeTruthy();
+    expect(getAllByText("語る。").length).toBeGreaterThanOrEqual(1);
+    const missingHuriganaPlaceholder = getByTestId(
+      "kanji-collocation-meaning-hurigana-0-0",
+    );
+    expect(missingHuriganaPlaceholder.props.children).toBe("あ");
+    expect(flattenStyleOf(missingHuriganaPlaceholder)).toEqual(
+      expect.objectContaining({
+        fontSize: 8,
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
     expect(queryByText("undefined")).toBeNull();
   });
 
@@ -170,27 +205,26 @@ describe("KanjiCollocationCard", () => {
       />,
     );
     flipToBack(screen);
-    const { queryByText, getByText, getByTestId } = screen;
+    const { getAllByText, queryByText, getByText, getByTestId } = screen;
 
-    expect(queryByText("じゅくご")).toBeNull();
-    expect(queryByText("にほんご")).toBeNull();
+    expect(flattenStyleOf(getByTestId("kanji-collocation-meaning-hurigana-0-0")).color).toBe("transparent");
+    expect(flattenStyleOf(getByTestId("kanji-collocation-reading-hurigana-0-0")).color).toBe("transparent");
     expect(queryByText("ごをまなぶ。")).toBeNull();
-    expect(getByText("語を学ぶ。")).toBeTruthy();
-    expect(queryByText("(ご)")).toBeNull();
+    expect(textChildrenOf(getByTestId("kanji-collocation-example-visible-0"))).toEqual(["語を学ぶ。"]);
 
     fireEvent.press(getByText("がな"));
 
     expect(getByTestId("kanji-collocation-back-side")).toBeTruthy();
-    expect(getByText("じゅくご")).toBeTruthy();
-    expect(getByText("にほんご")).toBeTruthy();
+    expect(flattenStyleOf(getByTestId("kanji-collocation-meaning-hurigana-0-0")).color).toBe("#999");
+    expect(flattenStyleOf(getByTestId("kanji-collocation-reading-hurigana-0-0")).color).toBe("#999");
     expect(queryByText("ごをまなぶ。")).toBeNull();
-    expect(getByText("(ご)")).toBeTruthy();
-    expect(getByText("(まな)")).toBeTruthy();
+    expect(getAllByText("(ご)").length).toBeGreaterThanOrEqual(1);
+    expect(getAllByText("(まな)").length).toBeGreaterThanOrEqual(1);
 
     fireEvent.press(getByText("がな"));
 
-    expect(queryByText("じゅくご")).toBeNull();
-    expect(queryByText("(ご)")).toBeNull();
+    expect(flattenStyleOf(getByTestId("kanji-collocation-meaning-hurigana-0-0")).color).toBe("transparent");
+    expect(textChildrenOf(getByTestId("kanji-collocation-example-visible-0"))).toEqual(["語を学ぶ。"]);
   });
 
   it("renders meaning and reading hurigana at font size 8 when がな is active", () => {
@@ -202,16 +236,8 @@ describe("KanjiCollocationCard", () => {
 
     fireEvent.press(getByText("がな"));
 
-    expect(
-      StyleSheet.flatten(
-        getByTestId("kanji-collocation-meaning-hurigana-0-0").props.style,
-      ).fontSize,
-    ).toBe(8);
-    expect(
-      StyleSheet.flatten(
-        getByTestId("kanji-collocation-reading-hurigana-0-0").props.style,
-      ).fontSize,
-    ).toBe(8);
+    expect(flattenStyleOf(getByTestId("kanji-collocation-meaning-hurigana-0-0")).fontSize).toBe(8);
+    expect(flattenStyleOf(getByTestId("kanji-collocation-reading-hurigana-0-0")).fontSize).toBe(8);
   });
 
   it("lays out meaning and reading example rows above their hurigana rows", () => {
@@ -232,11 +258,15 @@ describe("KanjiCollocationCard", () => {
       expect.arrayContaining(["日本語", "Japanese language"]),
     );
     expect(
-      screen.queryByTestId("kanji-collocation-meaning-hurigana-0-0"),
-    ).toBeNull();
+      flattenStyleOf(
+        screen.getByTestId("kanji-collocation-meaning-hurigana-0-0"),
+      ).color,
+    ).toBe("transparent");
     expect(
-      screen.queryByTestId("kanji-collocation-reading-hurigana-0-0"),
-    ).toBeNull();
+      flattenStyleOf(
+        screen.getByTestId("kanji-collocation-reading-hurigana-0-0"),
+      ).color,
+    ).toBe("transparent");
 
     fireEvent.press(screen.getByText("がな"));
 
@@ -261,13 +291,13 @@ describe("KanjiCollocationCard", () => {
       />,
     );
     flipToBack(screen);
-    const { getByText, getAllByText, queryByText } = screen;
+    const { getByText, getByTestId, queryByText } = screen;
 
-    expect(getAllByText(matchingExample)).toHaveLength(1);
+    expect(textChildrenOf(getByTestId("kanji-collocation-example-visible-0"))).toEqual([matchingExample]);
 
     fireEvent.press(getByText("がな"));
 
-    expect(getAllByText(matchingExample)).toHaveLength(1);
+    expect(textChildrenOf(getByTestId("kanji-collocation-example-visible-0"))).toEqual([matchingExample]);
     expect(queryByText("ごをまなぶ。")).toBeNull();
   });
 
@@ -287,20 +317,31 @@ describe("KanjiCollocationCard", () => {
       />,
     );
     flipToBack(screen);
-    const { getByText, getAllByText, getByTestId, queryByText } = screen;
+    const { getByText, getAllByText, getByTestId } = screen;
 
-    expect(getByText("一月新しい一年の始まりだ。")).toBeTruthy();
-    expect(queryByText("(いち)")).toBeNull();
-    expect(
-      queryByText(
-        "一(いち)月(がつ)新(あたら)しい一(いち)年(ねん)の始(はじ)まりだ。",
-      ),
-    ).toBeNull();
+    expect(textChildrenOf(getByTestId("kanji-collocation-example-visible-0"))).toEqual([
+      "一月新しい一年の始まりだ。",
+    ]);
+    expect(textChildrenOf(getByTestId("kanji-collocation-example-sizer-0"))).toEqual([
+      "一月新しい一年の始まりだ。",
+    ]);
+    expect(flattenStyleOf(getByTestId("kanji-collocation-example-sizer-0"))).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
 
     fireEvent.press(getByText("がな"));
 
     expect(getAllByText("(いち)").length).toBeGreaterThanOrEqual(1);
-    expect(getByText("(がつ)")).toBeTruthy();
+    expect(getAllByText("(がつ)").length).toBeGreaterThanOrEqual(1);
+    expect(textChildrenOf(getByTestId("kanji-collocation-example-visible-0"))).toEqual(
+      expect.arrayContaining(["一", "(いち)", "月", "(がつ)"]),
+    );
+    expect(textChildrenOf(getByTestId("kanji-collocation-example-sizer-0"))).toEqual(
+      expect.arrayContaining(["一", "(いち)", "月", "(がつ)"]),
+    );
     expect(
       StyleSheet.flatten(
         getByTestId("kanji-collocation-example-furigana-segment-0-1").props
@@ -314,7 +355,7 @@ describe("KanjiCollocationCard", () => {
     flipToBack(screen);
     const { getByText, getByTestId } = screen;
 
-    fireEvent.press(getByText("語を学ぶ。"));
+    fireEvent.press(getByTestId("kanji-collocation-example-visible-0"));
 
     expect(mockSpeak).toHaveBeenCalledWith("ごをまなぶ。", {
       language: "ja-JP",
