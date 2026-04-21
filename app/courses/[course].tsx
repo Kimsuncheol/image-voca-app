@@ -94,10 +94,21 @@ export default function CourseWordBankScreen() {
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       result = result.filter(
-        (w) =>
-          w.word.toLowerCase().includes(q) ||
-          w.meaning.toLowerCase().includes(q) ||
-          w.example?.toLowerCase().includes(q),
+        (w) => {
+          const wordText = w.kanji ?? w.word ?? "";
+          const meaningText = Array.isArray(w.meaning)
+            ? w.meaning.join("; ")
+            : (w.meaning ?? "");
+          const exampleText = Array.isArray(w.example)
+            ? w.example.join("\n")
+            : (w.example ?? "");
+
+          return (
+            wordText.toLowerCase().includes(q) ||
+            meaningText.toLowerCase().includes(q) ||
+            exampleText.toLowerCase().includes(q)
+          );
+        },
       );
     }
     return sortByDay(result);

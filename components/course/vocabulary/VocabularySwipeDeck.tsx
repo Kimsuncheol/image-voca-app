@@ -1,18 +1,26 @@
 import React from "react";
-import { CourseType, VocabularyCard, isJlptLevelCourseId } from "../../../src/types/vocabulary";
+import {
+  CourseType,
+  CourseVocabularyCard,
+  KanjiWord,
+  VocabularyCard,
+  isJlptLevelCourseId,
+  isKanjiWord,
+} from "../../../src/types/vocabulary";
 import { CollocationSwipeable } from "../../CollocationFlipCard/CollocationSwipeable";
 import { CarouselSwipeDeck } from "./CarouselSwipeDeck";
 import { JlptSwipeDeck } from "./JlptSwipeDeck";
+import { KanjiSwipeDeck } from "./KanjiSwipeDeck";
 
 interface VocabularySwipeDeckProps {
-  cards: VocabularyCard[];
+  cards: CourseVocabularyCard[];
   courseId: CourseType;
   isDark: boolean;
   dayNumber: number;
   savedWordIds: Set<string>;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
-  onSwipeRight: (item: VocabularyCard) => void;
-  onSwipeLeft: (item: VocabularyCard) => void;
+  onSwipeRight: (item: CourseVocabularyCard) => void;
+  onSwipeLeft: (item: CourseVocabularyCard) => void;
   onIndexChange: (index: number) => void;
   onFinish: () => void;
   renderFinishView?: () => React.ReactNode;
@@ -34,9 +42,12 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
   isStudyCompleted,
 }) => {
   if (courseId === "COLLOCATION") {
+    const vocabularyCards = cards.filter(
+      (card): card is VocabularyCard => !isKanjiWord(card),
+    );
     return (
       <CollocationSwipeable
-        data={cards}
+        data={vocabularyCards}
         isDark={isDark}
         onIndexChange={onIndexChange}
         onFinish={onFinish}
@@ -50,28 +61,51 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
   }
 
   if (isJlptLevelCourseId(courseId)) {
+    const vocabularyCards = cards.filter(
+      (card): card is VocabularyCard => !isKanjiWord(card),
+    );
     return (
       <JlptSwipeDeck
-        cards={cards}
+        cards={vocabularyCards}
         dayNumber={dayNumber}
         savedWordIds={savedWordIds}
         onSavedWordChange={onSavedWordChange}
-        onSwipeRight={onSwipeRight}
-        onSwipeLeft={onSwipeLeft}
+        onSwipeRight={onSwipeRight as (item: VocabularyCard) => void}
+        onSwipeLeft={onSwipeLeft as (item: VocabularyCard) => void}
         onIndexChange={onIndexChange}
         onFinish={onFinish}
       />
     );
   }
 
+  if (courseId === "KANJI") {
+    const kanjiCards = cards.filter(isKanjiWord);
+    return (
+      <KanjiSwipeDeck
+        cards={kanjiCards}
+        dayNumber={dayNumber}
+        savedWordIds={savedWordIds}
+        onSavedWordChange={onSavedWordChange}
+        onSwipeRight={onSwipeRight as (item: KanjiWord) => void}
+        onSwipeLeft={onSwipeLeft as (item: KanjiWord) => void}
+        onIndexChange={onIndexChange}
+        onFinish={onFinish}
+      />
+    );
+  }
+
+  const vocabularyCards = cards.filter(
+    (card): card is VocabularyCard => !isKanjiWord(card),
+  );
+
   return (
     <CarouselSwipeDeck
-      cards={cards}
+      cards={vocabularyCards}
       dayNumber={dayNumber}
       savedWordIds={savedWordIds}
       onSavedWordChange={onSavedWordChange}
-      onSwipeRight={onSwipeRight}
-      onSwipeLeft={onSwipeLeft}
+      onSwipeRight={onSwipeRight as (item: VocabularyCard) => void}
+      onSwipeLeft={onSwipeLeft as (item: VocabularyCard) => void}
       onIndexChange={onIndexChange}
       onFinish={onFinish}
     />

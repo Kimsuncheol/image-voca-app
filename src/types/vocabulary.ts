@@ -21,6 +21,7 @@ export interface VocabularyCard {
   example: string;
   exampleRoman?: string;
   exampleFurigana?: string;
+  exampleHurigana?: string;
   imageUrl?: string;
   localized?: VocabularyLocalizationMap;
   course: CourseType;
@@ -31,6 +32,40 @@ export interface VocabularyCard {
   relatedWords?: string[];
   wordForms?: WordForms;
 }
+
+export type KanjiNestedListGroup = {
+  items: string[];
+};
+
+export type KanjiWord = {
+  id: string;
+  kanji: string;
+
+  meaning: string[];
+  meaningExample: KanjiNestedListGroup[];
+  meaningExampleHurigana: KanjiNestedListGroup[];
+  meaningEnglishTranslation: KanjiNestedListGroup[];
+  meaningKoreanTranslation: KanjiNestedListGroup[];
+
+  reading: string[];
+  readingExample: KanjiNestedListGroup[];
+  readingExampleHurigana: KanjiNestedListGroup[];
+  readingEnglishTranslation: KanjiNestedListGroup[];
+  readingKoreanTranslation: KanjiNestedListGroup[];
+
+  example: string[];
+  exampleEnglishTranslation: string[];
+  exampleKoreanTranslation: string[];
+  exampleHurigana: string[];
+};
+
+export type CourseVocabularyCard = VocabularyCard | KanjiWord;
+
+export const isKanjiWord = (value: unknown): value is KanjiWord => {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<KanjiWord>;
+  return typeof candidate.id === "string" && typeof candidate.kanji === "string";
+};
 
 export type { PartOfSpeech, WordForms };
 

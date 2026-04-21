@@ -35,6 +35,7 @@ import {
 import {
   generateQuizQuestions,
   hasReachedQuizCompletionThreshold,
+  mapKanjiWordToQuizData,
   type QuizQuestion,
   type QuizVocabData,
 } from "../../../src/course/quizUtils";
@@ -49,6 +50,7 @@ import {
   CourseType,
   findRuntimeCourse,
   isJlptLevelCourseId,
+  isKanjiWord,
 } from "../../../src/types/vocabulary";
 import { resolveQuizVocabulary } from "../../../src/utils/localizedVocabulary";
 import { isPronunciationMatchEligible } from "../../../src/utils/pronunciationMatching";
@@ -229,6 +231,10 @@ export default function QuizPlayScreen() {
           dayNumber,
         );
         const fetchedVocab: QuizVocabData[] = fetchedCards.map((card) => {
+          if (isKanjiWord(card)) {
+            return mapKanjiWordToQuizData(card);
+          }
+
           const resolved = resolveQuizVocabulary(card, i18n.language);
           return {
             word: resolved.word,

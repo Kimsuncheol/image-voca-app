@@ -18,7 +18,7 @@ import {
   isVocabularyCacheFresh,
 } from "../../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../../src/stores";
-import { CourseType, VocabularyCard } from "../../../src/types/vocabulary";
+import { CourseType, CourseVocabularyCard } from "../../../src/types/vocabulary";
 import { formatDateKey } from "../../../src/utils/calendarStats";
 
 // Components
@@ -86,7 +86,7 @@ export default function VocabularyScreen() {
   const STREAK_MILESTONE_KEY = "voca_streak_milestone_shown";
 
   // The list of vocabulary words to display
-  const [cards, setCards] = useState<VocabularyCard[]>([]);
+  const [cards, setCards] = useState<CourseVocabularyCard[]>([]);
 
   // Set of IDs for words that are already saved in the user's Word Bank
   const [savedWordIds, setSavedWordIds] = useState<Set<string>>(new Set());
@@ -260,7 +260,7 @@ export default function VocabularyScreen() {
    * Handler: Swipe Right (Learned)
    * Records the word as learned in the local buffer.
    */
-  const onSwipeRight = (item: VocabularyCard) => {
+  const onSwipeRight = (item: CourseVocabularyCard) => {
     if (user) {
       const wordId = `${courseId}-${item.id}`;
       trackSessionLearnedWord(wordId);
@@ -272,7 +272,7 @@ export default function VocabularyScreen() {
    * Handler: Swipe Left (Review/Skipped)
    * Skipped words are not counted as learned.
    */
-  const onSwipeLeft = (_item: VocabularyCard) => {};
+  const onSwipeLeft = (_item: CourseVocabularyCard) => {};
 
   /**
    * Handler: Deck Finished

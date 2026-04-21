@@ -241,7 +241,7 @@ export default function DayPickerScreen() {
           ),
         ]);
         const imageUrls = cards
-          .map((c) => c.imageUrl)
+          .map((c) => ("imageUrl" in c ? c.imageUrl : undefined))
           .filter((url): url is string => Boolean(url));
         if (imageUrls.length > 0) {
           await Image.prefetch(imageUrls, "memory-disk").catch(() => {});

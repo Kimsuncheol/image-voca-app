@@ -1,10 +1,14 @@
 import React from "react";
-import { VocabularyCard } from "../../src/types/vocabulary";
-import { SavedWord } from "../wordbank/WordCard";
+import {
+  CourseVocabularyCard,
+  VocabularyCard,
+  isKanjiWord,
+} from "../../src/types/vocabulary";
+import type { SavedWord } from "../wordbank/WordCard";
 import { AddToWordBankButton } from "../wordbank/AddToWordBankButton";
 
 interface SwipeCardItemAddToWordBankButtonProps {
-  item: VocabularyCard;
+  item: CourseVocabularyCard;
   isDark: boolean;
   initialIsSaved?: boolean;
   day?: number;
@@ -18,33 +22,45 @@ export function SwipeCardItemAddToWordBankButton({
   day,
   onSavedWordChange,
 }: SwipeCardItemAddToWordBankButtonProps) {
+  const course = isKanjiWord(item) ? "KANJI" : item.course;
+
   return (
     <AddToWordBankButton
       itemId={item.id}
-      course={item.course}
+      course={course}
       isDark={isDark}
       initialIsSaved={initialIsSaved}
       onSavedStateChange={onSavedWordChange}
       testIDPrefix="swipe-card-add-to-wordbank"
       variant="star"
-      buildSavedWord={() =>
-        ({
-          id: item.id,
-          word: item.word,
-          meaning: item.meaning,
-          translation: item.translation || "",
-          synonyms: item.synonyms,
-          pronunciation: item.pronunciation || "",
-          pronunciationRoman: item.pronunciationRoman,
-          example: item.example,
-          exampleFurigana: item.exampleFurigana,
-          course: item.course,
+      buildSavedWord={() => {
+        if (isKanjiWord(item)) {
+          return {
+            ...item,
+            course,
+            day,
+            addedAt: new Date().toISOString(),
+          } as SavedWord;
+        }
+
+        const vocabularyItem = item as VocabularyCard;
+        return {
+          id: vocabularyItem.id,
+          word: vocabularyItem.word,
+          meaning: vocabularyItem.meaning,
+          translation: vocabularyItem.translation || "",
+          synonyms: vocabularyItem.synonyms,
+          pronunciation: vocabularyItem.pronunciation || "",
+          pronunciationRoman: vocabularyItem.pronunciationRoman,
+          example: vocabularyItem.example,
+          exampleFurigana: vocabularyItem.exampleFurigana,
+          course: vocabularyItem.course,
           day,
           addedAt: new Date().toISOString(),
-          imageUrl: item.imageUrl,
-          localized: item.localized,
-        }) as SavedWord
-      }
+          imageUrl: vocabularyItem.imageUrl,
+          localized: vocabularyItem.localized,
+        } as SavedWord;
+      }}
     />
   );
 }

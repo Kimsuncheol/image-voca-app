@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   __resetVocabularyPrefetchStateForTests,
+  formatKanjiFirestoreDocumentForLog,
   getCourseConfig,
   hydrateVocabularyCache,
   mapVocabularyDocToCard,
@@ -182,6 +183,79 @@ describe("vocabulary image normalization", () => {
     expect(card.synonyms).toEqual(["concise", "terse"]);
   });
 
+  it("maps KANJI documents using persisted Firestore array and group shapes", () => {
+    const card = mapVocabularyDocToCard(
+      "kanji-1",
+      {
+        kanji: "語",
+        meaning: ["word", "language", 123],
+        meaningExample: [{ items: ["熟語", "単語"] }, ["legacy nested array"]],
+        meaningExampleHurigana: [{ items: ["じゅくご", "たんご"] }],
+        meaningEnglishTranslation: [{ items: ["compound word", "word"] }],
+        meaningKoreanTranslation: [{ items: ["숙어", "단어"] }],
+        reading: ["ご", "かたる"],
+        readingExample: [{ items: ["日本語"] }],
+        readingExampleHurigana: [{ items: ["にほんご"] }],
+        readingEnglishTranslation: [{ items: ["Japanese language"] }],
+        readingKoreanTranslation: [{ items: ["일본어"] }],
+        example: ["語を学ぶ。"],
+        exampleHurigana: ["ごをまなぶ。"],
+        exampleEnglishTranslation: ["Learn words."],
+        exampleKoreanTranslation: ["단어를 배우다."],
+      },
+      "KANJI",
+    );
+
+    expect(card.kanji).toBe("語");
+    expect(card.meaning).toEqual(["word", "language"]);
+    expect(card.meaningExample[0].items[0]).toBe("熟語");
+    expect(Array.isArray(card.meaningExample[0])).toBe(false);
+    expect(card.meaningExample[1]).toEqual({ items: [] });
+    expect(card.readingExample[0].items).toEqual(["日本語"]);
+    expect(card.exampleHurigana).toEqual(["ごをまなぶ。"]);
+  });
+
+  it("formats KANJI Firestore logs with requested fields in order", () => {
+    const lines = formatKanjiFirestoreDocumentForLog({
+      extraField: "should not appear",
+      example: ["一(いち)月(がつ)"],
+      exampleEnglishTranslation: ["January"],
+      exampleHurigana: ["いちがつ"],
+      kanji: "一",
+      meaning: ["one"],
+      meaningEnglishTranslation: [{ items: ["one"] }],
+      meaningExample: [{ items: ["一月"] }],
+      meaningExampleHurigana: [{ items: ["いちがつ"] }],
+      meaningKoreanTranslation: [{ items: ["하나"] }],
+      reading: ["いち"],
+      readingExample: [{ items: ["一日"] }],
+      readingExampleHurigana: [{ items: ["ついたち"] }],
+      readingEnglishTranslation: [{ items: ["first day"] }],
+      readingKoreanTranslation: [{ items: ["하루"] }],
+    });
+
+    expect(lines.filter((line) => !line.startsWith("  "))).toEqual([
+      "kanji",
+      "meaning",
+      "meaningExample",
+      "meaningExampleHurigana",
+      "meaningEnglishTranslation",
+      "meaningKoreanTranslation",
+      "reading",
+      "readingExample",
+      "readingExampleHurigana",
+      "readingEnglishTranslation",
+      "readingKoreanTranslation",
+      "example",
+      "exampleEnglishTranslation",
+      "exampleKoreanTranslation",
+      "exampleHurigana",
+    ]);
+    expect(lines.join("\n")).toContain('    items\n      0 "一月"');
+    expect(lines.join("\n")).toContain("exampleKoreanTranslation\n  undefined");
+    expect(lines.join("\n")).not.toContain("extraField");
+  });
+
   it("drops the legacy image field when normalizing cached cards", () => {
     const normalized = normalizeVocabularyCard({
       id: "card-1",
@@ -202,7 +276,7 @@ describe("vocabulary image normalization", () => {
 
   it("hydrates legacy cached cards into imageUrl", async () => {
     await AsyncStorage.setItem(
-      "vocab_cache_v5:TOEIC-Day1",
+      "vocab_cache_v6:TOEIC-Day1",
       JSON.stringify({
         updatedAt: Date.now(),
         cards: [
@@ -227,7 +301,7 @@ describe("vocabulary image normalization", () => {
 
   it("hydrates localized cache entries", async () => {
     await AsyncStorage.setItem(
-      "vocab_cache_v5:TOEIC-Day2",
+      "vocab_cache_v6:TOEIC-Day2",
       JSON.stringify({
         updatedAt: Date.now(),
         cards: [
@@ -252,6 +326,28 @@ describe("vocabulary image normalization", () => {
 
     expect(cards?.[0].localized?.ko?.meaning).toBe("적응하다");
     expect(cards?.[0].pronunciationRoman).toBe("a-daept");
+  });
+
+  it("ignores older v5 cache entries so KANJI data can repopulate persisted shapes", async () => {
+    await AsyncStorage.setItem(
+      "vocab_cache_v5:KANJI-Day1",
+      JSON.stringify({
+        updatedAt: Date.now(),
+        cards: [
+          {
+            id: "cached-kanji-1",
+            word: "",
+            meaning: "",
+            example: "",
+            course: "KANJI",
+          },
+        ],
+      }),
+    );
+
+    const cards = await hydrateVocabularyCache("KANJI", 1);
+
+    expect(cards).toBeNull();
   });
 
   it("ignores older v2 cache entries so fresh data can repopulate new fields", async () => {

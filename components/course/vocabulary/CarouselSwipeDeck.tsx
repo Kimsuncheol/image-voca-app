@@ -10,7 +10,11 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { VocabularyCard } from "../../../src/types/vocabulary";
+import {
+  CourseVocabularyCard,
+  VocabularyCard,
+  isKanjiWord,
+} from "../../../src/types/vocabulary";
 import { SwipeCardItem } from "../../swipe/SwipeCardItem";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -31,17 +35,17 @@ const normalizeImageUrl = (value: string | undefined) => {
 // Interfaces
 // ─────────────────────────────────────────────────────────────
 
-interface CarouselSwipeDeckProps {
-  cards: VocabularyCard[];
+interface CarouselSwipeDeckProps<TCard extends CourseVocabularyCard = VocabularyCard> {
+  cards: TCard[];
   dayNumber: number;
   savedWordIds: Set<string>;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
-  onSwipeRight: (item: VocabularyCard) => void;
-  onSwipeLeft: (item: VocabularyCard) => void;
+  onSwipeRight: (item: TCard) => void;
+  onSwipeLeft: (item: TCard) => void;
   onIndexChange: (index: number) => void;
   onFinish: () => void;
   renderCard?: (params: {
-    item: VocabularyCard;
+    item: TCard;
     isSaved: boolean;
     isActive: boolean;
     dayNumber: number;
@@ -54,7 +58,7 @@ interface CarouselSwipeDeckProps {
 // ─────────────────────────────────────────────────────────────
 
 interface CardItemProps {
-  item: VocabularyCard;
+  item: CourseVocabularyCard;
   index: number;
   translateX: SharedValue<number>;
   isSaved: boolean;
@@ -62,7 +66,7 @@ interface CardItemProps {
   isActive: boolean;
   isActiveWindow: boolean;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
-  renderCard?: CarouselSwipeDeckProps["renderCard"];
+  renderCard?: CarouselSwipeDeckProps<CourseVocabularyCard>["renderCard"];
 }
 
 const CardItem = React.memo(function CardItem({
@@ -97,13 +101,15 @@ const CardItem = React.memo(function CardItem({
             onSavedWordChange,
           })
         ) : (
-          <SwipeCardItem
-            item={item}
-            initialIsSaved={isSaved}
-            day={dayNumber}
-            isActive={isActive}
-            onSavedWordChange={onSavedWordChange}
-          />
+          !isKanjiWord(item) ? (
+            <SwipeCardItem
+              item={item}
+              initialIsSaved={isSaved}
+              day={dayNumber}
+              isActive={isActive}
+              onSavedWordChange={onSavedWordChange}
+            />
+          ) : null
         )
       ) : (
         <View style={styles.virtualizedCard} />
@@ -116,7 +122,7 @@ const CardItem = React.memo(function CardItem({
 // CarouselSwipeDeck
 // ─────────────────────────────────────────────────────────────
 
-export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
+export function CarouselSwipeDeck<TCard extends CourseVocabularyCard>({
   cards,
   dayNumber,
   savedWordIds,
@@ -126,7 +132,7 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
   onIndexChange,
   onFinish,
   renderCard,
-}) => {
+}: CarouselSwipeDeckProps<TCard>) {
   const translateX = useSharedValue(0);
   // Use shared value instead of ref so it's readable inside worklets
   const currentIndex = useSharedValue(0);
@@ -146,7 +152,9 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
       new Set(
         cards
           .slice(activeIndex + 1, activeIndex + 3)
-          .map((card) => normalizeImageUrl(card.imageUrl))
+          .map((card) =>
+            "imageUrl" in card ? normalizeImageUrl(card.imageUrl) : undefined,
+          )
           .filter((url): url is string => Boolean(url))
           .filter((url) => !prefetchedImageUrlsRef.current.has(url)),
       ),
@@ -245,14 +253,16 @@ export const CarouselSwipeDeck: React.FC<CarouselSwipeDeckProps> = ({
               isActive={index === activeIndex}
               isActiveWindow={Math.abs(index - activeIndex) <= 1}
               onSavedWordChange={onSavedWordChange}
-              renderCard={renderCard}
+              renderCard={
+                renderCard as CarouselSwipeDeckProps<CourseVocabularyCard>["renderCard"]
+              }
             />
           ))}
         </Animated.View>
       </View>
     </GestureDetector>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {

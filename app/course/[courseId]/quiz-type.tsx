@@ -12,6 +12,7 @@ import {
   CourseType,
   findRuntimeCourse,
   isJlptLevelCourseId,
+  isKanjiWord,
 } from "../../../src/types/vocabulary";
 import { isPronunciationMatchEligible } from "../../../src/utils/pronunciationMatching";
 
@@ -54,9 +55,16 @@ export default function QuizTypeSelectionScreen() {
           return;
         }
 
-        const pronunciationEligibleCount = cards.filter((card) =>
-          isPronunciationMatchEligible(card.word, card.pronunciation),
-        ).length;
+        const pronunciationEligibleCount = cards.filter((card) => {
+          if (isKanjiWord(card)) {
+            const reading = card.reading
+              .map((value) => value.trim())
+              .find(Boolean);
+            return isPronunciationMatchEligible(card.kanji, reading);
+          }
+
+          return isPronunciationMatchEligible(card.word, card.pronunciation);
+        }).length;
 
         setQuizTypes(
           pronunciationEligibleCount >= 4
@@ -86,7 +94,7 @@ export default function QuizTypeSelectionScreen() {
     };
   }, [courseId, day]);
 
-  const handleQuizTypeSelect = (quizType: (typeof quizTypes)[number]) => {
+  const handleQuizTypeSelect = (quizType: { id: string }) => {
     router.push({
       pathname: "/course/[courseId]/quiz-play",
       params: { courseId, day, quizType: quizType.id },

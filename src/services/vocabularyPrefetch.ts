@@ -12,9 +12,13 @@ import {
 } from "firebase/firestore";
 import { useNetworkStore } from "../stores/networkStore";
 import {
+  CourseVocabularyCard,
   CourseType,
+  KanjiNestedListGroup,
+  KanjiWord,
   VocabularyCard,
   isJlptLevelCourseId,
+  isKanjiWord,
 } from "../types/vocabulary";
 import { normalizeVocabularyLocalizationMap } from "../utils/localizedVocabulary";
 import {
@@ -29,15 +33,18 @@ type CourseConfig = {
 };
 
 // Bump the cache version so older persisted cards without newly added fields
-// like `exampleFurigana` do not mask fresh Firestore data.
-const STORAGE_PREFIX = "vocab_cache_v5";
+// or course-specific shapes do not mask fresh Firestore data.
+const STORAGE_PREFIX = "vocab_cache_v6";
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const METADATA_TTL_MS = 1000 * 60 * 10;
 const VOCAB_CACHE_MAX_ENTRIES = 50;
 
-const vocabularyCache = new Map<string, VocabularyCard[]>();
+const vocabularyCache = new Map<string, CourseVocabularyCard[]>();
 const vocabularyCacheUpdatedAt = new Map<string, number>();
-const inFlightVocabularyFetches = new Map<string, Promise<VocabularyCard[]>>();
+const inFlightVocabularyFetches = new Map<
+  string,
+  Promise<CourseVocabularyCard[]>
+>();
 const totalDaysCache = new Map<CourseType, { totalDays: number; updatedAt: number }>();
 const inFlightTotalDaysRequests = new Map<CourseType, Promise<number>>();
 
@@ -50,6 +57,8 @@ type PrefetchVocabularyOptions = {
 type FirestoreVocabularyFetchOptions = {
   limitCount?: number;
 };
+
+type NonKanjiCourseType = Exclude<CourseType, "KANJI">;
 
 /**
  * Get course configuration including Firestore path and prefix
@@ -148,9 +157,159 @@ export const normalizeVocabularyImageUrl = (value: unknown) => {
   return trimmed.length > 0 ? trimmed : undefined;
 };
 
-export const normalizeVocabularyCard = (
+const normalizeStringArray = (value: unknown): string[] =>
+  Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+
+const normalizeKanjiNestedListGroups = (
+  value: unknown,
+): KanjiNestedListGroup[] =>
+  Array.isArray(value)
+    ? value.map((item) =>
+        item && typeof item === "object" && !Array.isArray(item)
+          ? {
+              items: normalizeStringArray(
+                (item as Record<string, unknown>).items,
+              ),
+            }
+          : { items: [] },
+      )
+    : [];
+
+const mapKanjiDocToWord = (
+  docId: string,
+  data: Record<string, unknown>,
+): KanjiWord => ({
+  id: docId,
+  kanji: typeof data.kanji === "string" ? data.kanji : "",
+  meaning: normalizeStringArray(data.meaning),
+  meaningExample: normalizeKanjiNestedListGroups(data.meaningExample),
+  meaningExampleHurigana: normalizeKanjiNestedListGroups(
+    data.meaningExampleHurigana,
+  ),
+  meaningEnglishTranslation: normalizeKanjiNestedListGroups(
+    data.meaningEnglishTranslation,
+  ),
+  meaningKoreanTranslation: normalizeKanjiNestedListGroups(
+    data.meaningKoreanTranslation,
+  ),
+  reading: normalizeStringArray(data.reading),
+  readingExample: normalizeKanjiNestedListGroups(data.readingExample),
+  readingExampleHurigana: normalizeKanjiNestedListGroups(
+    data.readingExampleHurigana,
+  ),
+  readingEnglishTranslation: normalizeKanjiNestedListGroups(
+    data.readingEnglishTranslation,
+  ),
+  readingKoreanTranslation: normalizeKanjiNestedListGroups(
+    data.readingKoreanTranslation,
+  ),
+  example: normalizeStringArray(data.example),
+  exampleEnglishTranslation: normalizeStringArray(data.exampleEnglishTranslation),
+  exampleKoreanTranslation: normalizeStringArray(data.exampleKoreanTranslation),
+  exampleHurigana: normalizeStringArray(data.exampleHurigana),
+});
+
+const KANJI_FIRESTORE_LOG_FIELDS = [
+  "kanji",
+  "meaning",
+  "meaningExample",
+  "meaningExampleHurigana",
+  "meaningEnglishTranslation",
+  "meaningKoreanTranslation",
+  "reading",
+  "readingExample",
+  "readingExampleHurigana",
+  "readingEnglishTranslation",
+  "readingKoreanTranslation",
+  "example",
+  "exampleEnglishTranslation",
+  "exampleKoreanTranslation",
+  "exampleHurigana",
+] as const;
+
+const formatKanjiFirestoreValue = (
+  value: unknown,
+  indentLevel = 0,
+): string[] => {
+  const indent = "  ".repeat(indentLevel);
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return [`${indent}[]`];
+    }
+
+    return value.flatMap((item, index) => {
+      if (item && typeof item === "object") {
+        return [
+          `${indent}${index}`,
+          ...formatKanjiFirestoreValue(item, indentLevel + 1),
+        ];
+      }
+
+      return [`${indent}${index} ${JSON.stringify(item)}`];
+    });
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>);
+    if (entries.length === 0) {
+      return [`${indent}{}`];
+    }
+
+    return entries.flatMap(([key, nestedValue]) => [
+      `${indent}${key}`,
+      ...formatKanjiFirestoreValue(nestedValue, indentLevel + 1),
+    ]);
+  }
+
+  return [`${indent}${JSON.stringify(value)}`];
+};
+
+export const formatKanjiFirestoreDocumentForLog = (
+  data: Record<string, unknown>,
+) =>
+  KANJI_FIRESTORE_LOG_FIELDS.flatMap((key) => [
+    key,
+    ...formatKanjiFirestoreValue(data[key], 1),
+  ]);
+
+const logKanjiFirestoreDocument = ({
+  path,
+  day,
+  id,
+  data,
+}: {
+  path: string;
+  day: string;
+  id: string;
+  data: Record<string, unknown>;
+}) => {
+  console.log(
+    [
+      `[KANJI Firestore] ${path}/${day}/${id}`,
+      ...formatKanjiFirestoreDocumentForLog(data),
+    ].join("\n"),
+  );
+};
+
+export function normalizeVocabularyCard(
+  card: KanjiWord & { image?: unknown },
+): KanjiWord;
+export function normalizeVocabularyCard(
   card: VocabularyCard & { image?: unknown },
-): VocabularyCard => {
+): VocabularyCard;
+export function normalizeVocabularyCard(
+  card: CourseVocabularyCard & { image?: unknown },
+): CourseVocabularyCard;
+export function normalizeVocabularyCard(
+  card: CourseVocabularyCard & { image?: unknown },
+): CourseVocabularyCard {
+  if (isKanjiWord(card)) {
+    return card;
+  }
+
   const { image: legacyImage, ...rest } = card;
   const imageUrl =
     normalizeVocabularyImageUrl(rest.imageUrl) ??
@@ -167,19 +326,42 @@ export const normalizeVocabularyCard = (
       typeof rest.exampleFurigana === "string"
         ? rest.exampleFurigana.trim() || undefined
         : undefined,
+    exampleHurigana:
+      typeof rest.exampleHurigana === "string"
+        ? rest.exampleHurigana.trim() || undefined
+        : undefined,
     pronunciationRoman:
       typeof rest.pronunciationRoman === "string"
         ? rest.pronunciationRoman.trim() || undefined
         : undefined,
     localized: normalizeVocabularyLocalizationMap(rest.localized),
   };
-};
+}
 
-export const mapVocabularyDocToCard = (
+export function mapVocabularyDocToCard(
+  docId: string,
+  data: Record<string, unknown>,
+  courseId: "KANJI",
+): KanjiWord;
+export function mapVocabularyDocToCard(
+  docId: string,
+  data: Record<string, unknown>,
+  courseId: NonKanjiCourseType,
+): VocabularyCard;
+export function mapVocabularyDocToCard(
   docId: string,
   data: Record<string, unknown>,
   courseId: CourseType,
-): VocabularyCard => {
+): CourseVocabularyCard;
+export function mapVocabularyDocToCard(
+  docId: string,
+  data: Record<string, unknown>,
+  courseId: CourseType,
+): CourseVocabularyCard {
+  if (courseId === "KANJI") {
+    return mapKanjiDocToWord(docId, data);
+  }
+
   const normalizedSynonyms = Array.isArray(data.synonyms)
     ? normalizeSynonyms(data.synonyms as string[])
     : typeof data.synonym === "string"
@@ -191,6 +373,8 @@ export const mapVocabularyDocToCard = (
   const exampleFurigana =
     typeof data.exampleFurigana === "string"
       ? data.exampleFurigana
+      : typeof data.exampleHurigana === "string"
+        ? data.exampleHurigana
       : undefined;
 
   if (isJlptLevelCourseId(courseId)) {
@@ -209,6 +393,7 @@ export const mapVocabularyDocToCard = (
       exampleRoman:
         typeof data.exampleRoman === "string" ? data.exampleRoman : undefined,
       exampleFurigana,
+      exampleHurigana: exampleFurigana,
       imageUrl,
       localized: {
         en: {
@@ -251,6 +436,7 @@ export const mapVocabularyDocToCard = (
           : undefined,
       example: typeof data.example === "string" ? data.example : "",
       exampleFurigana,
+      exampleHurigana: exampleFurigana,
       imageUrl,
       localized: normalizeVocabularyLocalizationMap(data.localized),
       course: courseId,
@@ -266,6 +452,7 @@ export const mapVocabularyDocToCard = (
         typeof data.translation === "string" ? data.translation : "",
       example: typeof data.example === "string" ? data.example : "",
       exampleFurigana,
+      exampleHurigana: exampleFurigana,
       imageUrl,
       localized: normalizeVocabularyLocalizationMap(data.localized),
       course: courseId,
@@ -286,6 +473,7 @@ export const mapVocabularyDocToCard = (
         : undefined,
     example: typeof data.example === "string" ? data.example : "",
     exampleFurigana,
+    exampleHurigana: exampleFurigana,
     imageUrl,
     localized: normalizeVocabularyLocalizationMap(data.localized),
     course: courseId,
@@ -297,12 +485,12 @@ export const mapVocabularyDocToCard = (
       : [],
     wordForms: data.wordForms as VocabularyCard["wordForms"],
   };
-};
+}
 
 const setCachedVocabularyCards = (
   courseId: CourseType,
   dayNumber: number,
-  cards: VocabularyCard[],
+  cards: CourseVocabularyCard[],
   updatedAt = Date.now(),
 ) => {
   const key = makeCacheKey(courseId, dayNumber);
@@ -311,10 +499,24 @@ const setCachedVocabularyCards = (
   vocabularyCacheUpdatedAt.set(key, updatedAt);
 };
 
-export const getCachedVocabularyCards = (
+export function getCachedVocabularyCards(
+  courseId: "KANJI",
+  dayNumber: number,
+): KanjiWord[] | undefined;
+export function getCachedVocabularyCards(
+  courseId: NonKanjiCourseType,
+  dayNumber: number,
+): VocabularyCard[] | undefined;
+export function getCachedVocabularyCards(
   courseId: CourseType,
   dayNumber: number,
-) => vocabularyCache.get(makeCacheKey(courseId, dayNumber));
+): CourseVocabularyCard[] | undefined;
+export function getCachedVocabularyCards(
+  courseId: CourseType,
+  dayNumber: number,
+) {
+  return vocabularyCache.get(makeCacheKey(courseId, dayNumber));
+}
 
 export const getCachedVocabularyUpdatedAt = (
   courseId: CourseType,
@@ -374,7 +576,7 @@ export const pruneVocabularyCaches = async (): Promise<void> => {
 const persistVocabularyCache = async (
   courseId: CourseType,
   dayNumber: number,
-  cards: VocabularyCard[],
+  cards: CourseVocabularyCard[],
   updatedAt: number,
 ) => {
   const buildPayload = () =>
@@ -396,18 +598,33 @@ const persistVocabularyCache = async (
   }
 };
 
-export const hydrateVocabularyCache = async (
+export function hydrateVocabularyCache(
+  courseId: "KANJI",
+  dayNumber: number,
+  options?: { allowStale?: boolean },
+): Promise<KanjiWord[] | null>;
+export function hydrateVocabularyCache(
+  courseId: NonKanjiCourseType,
+  dayNumber: number,
+  options?: { allowStale?: boolean },
+): Promise<VocabularyCard[] | null>;
+export function hydrateVocabularyCache(
   courseId: CourseType,
   dayNumber: number,
   options?: { allowStale?: boolean },
-) => {
+): Promise<CourseVocabularyCard[] | null>;
+export async function hydrateVocabularyCache(
+  courseId: CourseType,
+  dayNumber: number,
+  options?: { allowStale?: boolean },
+) {
   try {
     const raw = await AsyncStorage.getItem(makeStorageKey(courseId, dayNumber));
     if (!raw) return null;
 
     const parsed = JSON.parse(raw) as {
       updatedAt?: number;
-      cards?: VocabularyCard[];
+      cards?: CourseVocabularyCard[];
     };
 
     if (!parsed?.cards || !Array.isArray(parsed.cards)) return null;
@@ -419,7 +636,7 @@ export const hydrateVocabularyCache = async (
     }
 
     const normalizedCards = parsed.cards.map((card) =>
-      normalizeVocabularyCard(card as VocabularyCard & { image?: unknown }),
+      normalizeVocabularyCard(card as CourseVocabularyCard & { image?: unknown }),
     );
     setCachedVocabularyCards(
       courseId,
@@ -432,13 +649,28 @@ export const hydrateVocabularyCache = async (
     console.warn("Failed to hydrate vocabulary cache:", error);
     return null;
   }
-};
+}
 
-export const fetchVocabularyCardsFromFirestore = async (
+export function fetchVocabularyCardsFromFirestore(
+  courseId: "KANJI",
+  dayNumber: number,
+  options?: FirestoreVocabularyFetchOptions,
+): Promise<KanjiWord[]>;
+export function fetchVocabularyCardsFromFirestore(
+  courseId: NonKanjiCourseType,
+  dayNumber: number,
+  options?: FirestoreVocabularyFetchOptions,
+): Promise<VocabularyCard[]>;
+export function fetchVocabularyCardsFromFirestore(
   courseId: CourseType,
   dayNumber: number,
   options?: FirestoreVocabularyFetchOptions,
-) => {
+): Promise<CourseVocabularyCard[]>;
+export async function fetchVocabularyCardsFromFirestore(
+  courseId: CourseType,
+  dayNumber: number,
+  options?: FirestoreVocabularyFetchOptions,
+) {
   const config = getCourseConfig(courseId);
 
   if (!config.path) {
@@ -455,25 +687,45 @@ export const fetchVocabularyCardsFromFirestore = async (
         ...(options?.limitCount ? [limit(options.limitCount)] : []),
       ),
     );
-    const cards: VocabularyCard[] = querySnapshot.docs.map((snapshot) =>
-      mapVocabularyDocToCard(
-        snapshot.id,
-        snapshot.data() as Record<string, unknown>,
-        courseId,
-      ),
-    );
+    const cards: CourseVocabularyCard[] = querySnapshot.docs.map((snapshot) => {
+      const data = snapshot.data() as Record<string, unknown>;
+      const card = mapVocabularyDocToCard(snapshot.id, data, courseId);
+
+      if (courseId === "KANJI") {
+        logKanjiFirestoreDocument({
+          path: config.path,
+          day: subCollectionName,
+          id: snapshot.id,
+          data,
+        });
+      }
+
+      return card;
+    });
     markFirebaseReadSuccess();
     return cards;
   } catch (error) {
     markFirebaseReadFailure(error);
     throw error;
   }
-};
+}
 
-export const fetchVocabularyCards = async (
+export function fetchVocabularyCards(
+  courseId: "KANJI",
+  dayNumber: number,
+): Promise<KanjiWord[]>;
+export function fetchVocabularyCards(
+  courseId: NonKanjiCourseType,
+  dayNumber: number,
+): Promise<VocabularyCard[]>;
+export function fetchVocabularyCards(
   courseId: CourseType,
   dayNumber: number,
-) => {
+): Promise<CourseVocabularyCard[]>;
+export async function fetchVocabularyCards(
+  courseId: CourseType,
+  dayNumber: number,
+) {
   const cacheKey = makeCacheKey(courseId, dayNumber);
   const existingRequest = inFlightVocabularyFetches.get(cacheKey);
   if (existingRequest) {
@@ -498,7 +750,7 @@ export const fetchVocabularyCards = async (
   return request.finally(() => {
     inFlightVocabularyFetches.delete(cacheKey);
   });
-};
+}
 
 const revalidateVocabularyCards = (
   courseId: CourseType,
@@ -509,11 +761,26 @@ const revalidateVocabularyCards = (
   });
 };
 
-export const prefetchVocabularyCards = async (
+export function prefetchVocabularyCards(
+  courseId: "KANJI",
+  dayNumber: number,
+  options?: PrefetchVocabularyOptions,
+): Promise<KanjiWord[]>;
+export function prefetchVocabularyCards(
+  courseId: NonKanjiCourseType,
+  dayNumber: number,
+  options?: PrefetchVocabularyOptions,
+): Promise<VocabularyCard[]>;
+export function prefetchVocabularyCards(
   courseId: CourseType,
   dayNumber: number,
   options?: PrefetchVocabularyOptions,
-) => {
+): Promise<CourseVocabularyCard[]>;
+export async function prefetchVocabularyCards(
+  courseId: CourseType,
+  dayNumber: number,
+  options?: PrefetchVocabularyOptions,
+) {
   const allowStale = options?.allowStale ?? true;
   const preferCache = options?.preferCache ?? true;
   const revalidateIfStale = options?.revalidateIfStale ?? true;
@@ -551,7 +818,7 @@ export const prefetchVocabularyCards = async (
   }
 
   return fetchVocabularyCards(courseId, dayNumber);
-};
+}
 
 // ============================================================================
 // COURSE METADATA MANAGEMENT
@@ -648,8 +915,9 @@ export const getTotalDaysForCourse = async (
   courseId: CourseType,
 ): Promise<number> => {
   const config = getCourseConfig(courseId);
+  const coursePath = config.path;
 
-  if (!config.path) {
+  if (!coursePath) {
     console.error("No path configuration for course:", courseId);
     return 0;
   }
@@ -667,7 +935,7 @@ export const getTotalDaysForCourse = async (
   const request = (async () => {
     try {
       // Read metadata fields from the course document
-      const courseDocRef = doc(db, config.path);
+      const courseDocRef = doc(db, coursePath);
       const courseDoc = await getDoc(courseDocRef);
 
       markFirebaseReadSuccess();

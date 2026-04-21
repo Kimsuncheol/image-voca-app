@@ -5,8 +5,13 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
-import type { VocabularyLocalizationMap } from "../../src/types/vocabulary";
-import { isJlptCourseId } from "../../src/types/vocabulary";
+import type {
+  KanjiWord,
+  KanjiNestedListGroup,
+  VocabularyLocalizationMap,
+} from "../../src/types/vocabulary";
+import { isJlptCourseId, isKanjiWord } from "../../src/types/vocabulary";
+import { KanjiVocabularyCard } from "../course/vocabulary/KanjiVocabularyCard";
 import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
 import { speakWordVariants } from "../../src/utils/wordVariants";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
@@ -20,14 +25,27 @@ import { WordCardMeaning } from "./WordCardMeaning";
  */
 export interface SavedWord {
   id: string;
-  word: string;
-  meaning: string;
+  word?: string;
+  meaning?: string | string[];
   translation?: string;
   synonyms?: string[];
-  pronunciation: string;
+  pronunciation?: string;
   pronunciationRoman?: string;
-  example: string;
+  example?: string | string[];
   exampleFurigana?: string;
+  kanji?: string;
+  meaningExample?: KanjiNestedListGroup[];
+  meaningExampleHurigana?: KanjiNestedListGroup[];
+  meaningEnglishTranslation?: KanjiNestedListGroup[];
+  meaningKoreanTranslation?: KanjiNestedListGroup[];
+  reading?: string[];
+  readingExample?: KanjiNestedListGroup[];
+  readingExampleHurigana?: KanjiNestedListGroup[];
+  readingEnglishTranslation?: KanjiNestedListGroup[];
+  readingKoreanTranslation?: KanjiNestedListGroup[];
+  exampleEnglishTranslation?: string[];
+  exampleKoreanTranslation?: string[];
+  exampleHurigana?: string[];
   course: string;
   day?: number;
   addedAt: string;
@@ -58,10 +76,42 @@ export function WordCard({
   useCardSpeechCleanup();
   const { i18n } = useTranslation();
   const { learningLanguage } = useLearningLanguage();
+
+  if (isKanjiWord(word)) {
+    return (
+      <KanjiVocabularyCard
+        item={word as KanjiWord}
+        initialIsSaved={true}
+        day={word.day}
+        isActive={false}
+      />
+    );
+  }
+
   const speakLanguage = learningLanguage === "ja" ? "ja-JP" : "en-US";
   const [showKana, setShowKana] = React.useState(false);
   const resolved = React.useMemo(
-    () => resolveVocabularyContent(word, i18n.language),
+    () =>
+      resolveVocabularyContent(
+        {
+          word: word.word ?? "",
+          meaning:
+            typeof word.meaning === "string"
+              ? word.meaning
+              : (word.meaning ?? []).join("; "),
+          translation: word.translation,
+          pronunciation: word.pronunciation,
+          pronunciationRoman: word.pronunciationRoman,
+          example:
+            typeof word.example === "string"
+              ? word.example
+              : (word.example ?? []).join("\n"),
+          exampleFurigana: word.exampleFurigana,
+          imageUrl: word.imageUrl,
+          localized: word.localized,
+        },
+        i18n.language,
+      ),
     [i18n.language, word],
   );
   React.useEffect(() => {
@@ -91,8 +141,8 @@ export function WordCard({
   const handleSpeakWord = React.useCallback(async () => {
     try {
       const textToSpeak = learningLanguage === "ja"
-        ? (resolved.sharedPronunciation ?? word.word)
-        : word.word;
+        ? (resolved.sharedPronunciation ?? word.word ?? "")
+        : word.word ?? "";
       await speakWordVariants(textToSpeak, speak, {
         language: speakLanguage,
       });
@@ -112,7 +162,7 @@ export function WordCard({
       <View style={styles.topSection}>
         <View style={styles.topLeft}>
           <WordCardHeader
-            word={word.word}
+            word={word.word ?? ""}
             courseId={word.course}
             day={word.day}
             pronunciation={
