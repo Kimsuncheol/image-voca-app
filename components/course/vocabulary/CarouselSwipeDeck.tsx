@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   interpolate,
@@ -11,15 +11,17 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import {
+  CARD_HEIGHT,
+  CARD_WIDTH,
+  SCREEN_WIDTH,
+} from "../../../src/constants/layout";
+import {
   CourseVocabularyCard,
-  VocabularyCard,
   isKanjiWord,
+  VocabularyCard,
 } from "../../../src/types/vocabulary";
 import { SwipeCardItem } from "../../swipe/SwipeCardItem";
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-const CARD_WIDTH = SCREEN_WIDTH * 0.9;
-const CARD_HEIGHT = SCREEN_HEIGHT * 0.76;
 const PEEK = (SCREEN_WIDTH - CARD_WIDTH) / 2;
 const SNAP_INTERVAL = CARD_WIDTH;
 
@@ -35,7 +37,9 @@ const normalizeImageUrl = (value: string | undefined) => {
 // Interfaces
 // ─────────────────────────────────────────────────────────────
 
-interface CarouselSwipeDeckProps<TCard extends CourseVocabularyCard = VocabularyCard> {
+interface CarouselSwipeDeckProps<
+  TCard extends CourseVocabularyCard = VocabularyCard,
+> {
   cards: TCard[];
   dayNumber: number;
   savedWordIds: Set<string>;
@@ -101,17 +105,15 @@ const CardItem = React.memo(function CardItem({
             dayNumber,
             onSavedWordChange,
           })
-        ) : (
-          !isKanjiWord(item) ? (
-            <SwipeCardItem
-              item={item}
-              initialIsSaved={isSaved}
-              day={dayNumber}
-              isActive={isActive}
-              onSavedWordChange={onSavedWordChange}
-            />
-          ) : null
-        )
+        ) : !isKanjiWord(item) ? (
+          <SwipeCardItem
+            item={item}
+            initialIsSaved={isSaved}
+            day={dayNumber}
+            isActive={isActive}
+            onSavedWordChange={onSavedWordChange}
+          />
+        ) : null
       ) : (
         <View style={styles.virtualizedCard} />
       )}

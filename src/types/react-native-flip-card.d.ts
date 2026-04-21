@@ -6,6 +6,7 @@ declare module "react-native-flip-card" {
     style?: StyleProp<ViewStyle>;
     friction?: number;
     perspective?: number;
+    flip?: boolean;
     flipHorizontal?: boolean;
     flipVertical?: boolean;
     clickable?: boolean;
