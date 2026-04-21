@@ -11,6 +11,7 @@ type PanEvent = {
 };
 
 let panEndHandler: ((event: PanEvent) => void) | undefined;
+let panBeginHandler: (() => void) | undefined;
 const mockSwipeCardRenders = new Map<string, number>();
 
 jest.mock("react-native-gesture-handler", () => {
@@ -27,6 +28,10 @@ jest.mock("react-native-gesture-handler", () => {
           runOnJS: jest.fn(() => builder),
           activeOffsetX: jest.fn(() => builder),
           failOffsetY: jest.fn(() => builder),
+          onBegin: jest.fn((handler: () => void) => {
+            panBeginHandler = handler;
+            return builder;
+          }),
           onUpdate: jest.fn(() => builder),
           onEnd: jest.fn((handler: (event: PanEvent) => void) => {
             panEndHandler = handler;
@@ -150,6 +155,7 @@ function buildCards(
 describe("CarouselSwipeDeck", () => {
   beforeEach(() => {
     panEndHandler = undefined;
+    panBeginHandler = undefined;
     mockSwipeCardRenders.clear();
     jest.clearAllMocks();
     (Image.prefetch as jest.Mock).mockResolvedValue(true);
@@ -207,6 +213,29 @@ describe("CarouselSwipeDeck", () => {
     expect(queryByTestId("card-2")).toBeTruthy();
     expect(queryByTestId("card-3")).toBeTruthy();
     expect(queryByTestId("card-4")).toBeNull();
+  });
+
+  it("calls the optional swipe start callback when a pan begins", () => {
+    const onSwipeStart = jest.fn();
+
+    render(
+      <CarouselSwipeDeck
+        cards={buildCards()}
+        dayNumber={1}
+        savedWordIds={new Set()}
+        onSwipeRight={jest.fn()}
+        onSwipeLeft={jest.fn()}
+        onIndexChange={jest.fn()}
+        onFinish={jest.fn()}
+        onSwipeStart={onSwipeStart}
+      />,
+    );
+
+    act(() => {
+      panBeginHandler?.();
+    });
+
+    expect(onSwipeStart).toHaveBeenCalledTimes(1);
   });
 
   it("finishes exactly once after swiping past the last card", () => {

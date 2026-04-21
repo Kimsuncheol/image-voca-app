@@ -57,6 +57,8 @@ export type KanjiWord = {
   exampleEnglishTranslation: string[];
   exampleKoreanTranslation: string[];
   exampleHurigana: string[];
+
+  imageUrl?: string;
 };
 
 export type CourseVocabularyCard = VocabularyCard | KanjiWord;

@@ -6,6 +6,7 @@ import type { KanjiWord } from "../src/types/vocabulary";
 
 let mockLanguage = "en";
 const mockSpeak = jest.fn();
+const mockStopCardSpeech = jest.fn();
 
 jest.mock("../src/context/ThemeContext", () => ({
   useTheme: () => ({ isDark: false }),
@@ -27,6 +28,10 @@ jest.mock("../src/hooks/useSpeech", () => ({
     isPaused: false,
     error: null,
   }),
+}));
+
+jest.mock("../src/hooks/useCardSpeechCleanup", () => ({
+  useCardSpeechCleanup: () => mockStopCardSpeech,
 }));
 
 jest.mock("../components/swipe/SwipeCardItemAddToWordBankButton", () => ({
@@ -88,6 +93,7 @@ describe("KanjiCollocationCard", () => {
   beforeEach(() => {
     mockLanguage = "en";
     mockSpeak.mockClear();
+    mockStopCardSpeech.mockClear();
   });
 
   it("renders kanji, meaning values, and reading values on face side", () => {
@@ -371,6 +377,7 @@ describe("KanjiCollocationCard", () => {
 
     flipToBack(screen);
 
+    expect(mockStopCardSpeech).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
     expect(screen.queryByTestId("kanji-collocation-face-side")).toBeNull();
   });
@@ -381,6 +388,7 @@ describe("KanjiCollocationCard", () => {
 
     fireEvent.press(screen.getByTestId("kanji-collocation-back-side"));
 
+    expect(mockStopCardSpeech).toHaveBeenCalledTimes(2);
     expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
     expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
   });
@@ -391,7 +399,19 @@ describe("KanjiCollocationCard", () => {
 
     fireEvent.press(screen.getByTestId("kanji-collocation-back-scroll-background"));
 
+    expect(mockStopCardSpeech).toHaveBeenCalledTimes(2);
     expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
     expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
+  });
+
+  it("does not stop speech when がな is pressed", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+    mockStopCardSpeech.mockClear();
+
+    fireEvent.press(screen.getByText("がな"));
+
+    expect(mockStopCardSpeech).not.toHaveBeenCalled();
+    expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
   });
 });

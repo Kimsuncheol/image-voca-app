@@ -7,6 +7,7 @@ import type { KanjiWord } from "../../../src/types/vocabulary";
 import { styles } from "./KanjiCollocationCardStyles";
 import { compactStrings } from "./kanjiCollocationUtils";
 import { DottedDivider } from "./KanjiCollocationCardDivider";
+import { CollocationCardImage } from "../../common/CollocationCardImage";
 
 /**
  * Props passed to the front face component of the Kanji Collocation Card.
@@ -73,6 +74,14 @@ export function FaceSide({
         </View>
       </View>
 
+      {item.imageUrl !== undefined && (
+        <CollocationCardImage
+          imageUrl={item.imageUrl}
+          isDark={isDark}
+          style={styles.cardImage}
+        />
+      )}
+
       <View style={styles.faceContent}>
         <TouchableOpacity onPress={handleSpeakKanji} activeOpacity={0.7}>
           <Text style={[styles.kanjiText, { color: isDark ? "#fff" : "#1a1a1a" }]}>
@@ -81,7 +90,7 @@ export function FaceSide({
         </TouchableOpacity>
 
         {meanings.length > 0 && (
-          <View style={styles.faceSection}>
+          <View style={styles.faceSection} onStartShouldSetResponder={() => true}>
             <Text style={[styles.faceSectionLabel, { color: isDark ? "#999" : "#666" }]}>
               MEANING
             </Text>
@@ -97,7 +106,7 @@ export function FaceSide({
 
         {meanings.length > 0 && readings.length > 0 && <DottedDivider isDark={isDark} />}
         {readings.length > 0 && (
-          <View style={styles.faceSection}>
+          <View style={styles.faceSection} onStartShouldSetResponder={() => true}>
             <Text style={[styles.faceSectionLabel, { color: isDark ? "#999" : "#666" }]}>
               READING
             </Text>

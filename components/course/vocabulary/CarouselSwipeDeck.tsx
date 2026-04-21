@@ -44,6 +44,7 @@ interface CarouselSwipeDeckProps<TCard extends CourseVocabularyCard = Vocabulary
   onSwipeLeft: (item: TCard) => void;
   onIndexChange: (index: number) => void;
   onFinish: () => void;
+  onSwipeStart?: () => void;
   renderCard?: (params: {
     item: TCard;
     isSaved: boolean;
@@ -131,6 +132,7 @@ export function CarouselSwipeDeck<TCard extends CourseVocabularyCard>({
   onSwipeLeft,
   onIndexChange,
   onFinish,
+  onSwipeStart,
   renderCard,
 }: CarouselSwipeDeckProps<TCard>) {
   const translateX = useSharedValue(0);
@@ -197,6 +199,12 @@ export function CarouselSwipeDeck<TCard extends CourseVocabularyCard>({
   const panGesture = Gesture.Pan()
     .activeOffsetX([-12, 12])
     .failOffsetY([-10, 10])
+    .onBegin(() => {
+      "worklet";
+      if (onSwipeStart) {
+        runOnJS(onSwipeStart)();
+      }
+    })
     .onUpdate((event) => {
       "worklet";
       const base = -(currentIndex.value * SNAP_INTERVAL);

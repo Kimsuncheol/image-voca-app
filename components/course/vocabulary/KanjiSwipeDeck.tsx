@@ -1,4 +1,5 @@
 import React from "react";
+import { stopAllCardSpeech } from "../../../src/hooks/useCardSpeechCleanup";
 import { KanjiWord } from "../../../src/types/vocabulary";
 import { CarouselSwipeDeck } from "./CarouselSwipeDeck";
 import { KanjiCollocationCard } from "./KanjiCollocationCard";
@@ -40,5 +41,11 @@ export const KanjiSwipeDeck: React.FC<KanjiSwipeDeckProps> = (props) => {
     [],
   );
 
-  return <CarouselSwipeDeck {...props} renderCard={renderKanjiCard} />;
+  return (
+    <CarouselSwipeDeck
+      {...props}
+      renderCard={renderKanjiCard}
+      onSwipeStart={stopAllCardSpeech}
+    />
+  );
 };

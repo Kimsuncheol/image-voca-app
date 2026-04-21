@@ -77,36 +77,41 @@ export function BackSide({ item, isDark, isActive, useKorean, onFlip }: BackSide
           onPress={onFlip}
           style={styles.backScrollContent}
         >
-          <BackSection
-            title="MEANING"
-            values={item.meaning}
-            examples={item.meaningExample}
-            hurigana={item.meaningExampleHurigana}
-            translations={meaningTranslations}
-            isDark={isDark}
-            isActive={isActive}
-            showFurigana={showFurigana}
-          />
-          <DottedDivider isDark={isDark} />
-          <BackSection
-            title="READING"
-            values={item.reading}
-            examples={item.readingExample}
-            hurigana={item.readingExampleHurigana}
-            translations={readingTranslations}
-            isDark={isDark}
-            isActive={isActive}
-            showFurigana={showFurigana}
-          />
-          <DottedDivider isDark={isDark} />
-          <GeneralBackSection
-            examples={item.example}
-            hurigana={item.exampleHurigana}
-            translations={exampleTranslations}
-            isDark={isDark}
-            isActive={isActive}
-            showFurigana={showFurigana}
-          />
+          <View
+            onStartShouldSetResponder={() => true}
+            onResponderTerminationRequest={() => true}
+          >
+            <BackSection
+              title="MEANING"
+              values={item.meaning}
+              examples={item.meaningExample}
+              hurigana={item.meaningExampleHurigana}
+              translations={meaningTranslations}
+              isDark={isDark}
+              isActive={isActive}
+              showFurigana={showFurigana}
+            />
+            <DottedDivider isDark={isDark} />
+            <BackSection
+              title="READING"
+              values={item.reading}
+              examples={item.readingExample}
+              hurigana={item.readingExampleHurigana}
+              translations={readingTranslations}
+              isDark={isDark}
+              isActive={isActive}
+              showFurigana={showFurigana}
+            />
+            <DottedDivider isDark={isDark} />
+            <GeneralBackSection
+              examples={item.example}
+              hurigana={item.exampleHurigana}
+              translations={exampleTranslations}
+              isDark={isDark}
+              isActive={isActive}
+              showFurigana={showFurigana}
+            />
+          </View>
         </Pressable>
       </ScrollView>
     </Pressable>

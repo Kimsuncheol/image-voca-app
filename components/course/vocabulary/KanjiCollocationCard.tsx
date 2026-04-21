@@ -1,6 +1,6 @@
 import React from "react";
+import { Animated } from "react-native";
 import { useTranslation } from "react-i18next";
-import FlipCard from "react-native-flip-card";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useCardSpeechCleanup } from "../../../src/hooks/useCardSpeechCleanup";
 import type { KanjiWord } from "../../../src/types/vocabulary";
@@ -8,30 +8,14 @@ import { FaceSide } from "./KanjiCollocationCardFace";
 import { BackSide } from "./KanjiCollocationCardBack";
 import { styles } from "./KanjiCollocationCardStyles";
 
-/**
- * Props for the root `KanjiCollocationCard` component.
- */
 interface KanjiCollocationCardProps {
-  /** The primary vocabulary item populated with parsed detailed kanji properties */
   item: KanjiWord;
-  /** Initial boolean flag noting whether the user has previously saved this word */
   initialIsSaved?: boolean;
-  /** Represents the specific "day" grouping to render DayBadges */
   day?: number;
-  /** Defines if the user is currently viewing this exact card, triggering mounts/TTS cleanup properly */
   isActive?: boolean;
-  /** Callback linking to the global save handler from the parent screen */
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
 }
 
-/**
- * KanjiCollocationCard
- * 
- * The parent wrapper for the vocabulary flip card. Uses `FlipCard` internally to orchestrate
- * 3D rotations between the minimalist summary `FaceSide` and the highly detailed `BackSide`.
- * Manages the `isFlipped` state locally and passes down theme/translation context props
- * natively avoiding huge component sizes.
- */
 export function KanjiCollocationCard({
   item,
   initialIsSaved = false,
@@ -41,46 +25,66 @@ export function KanjiCollocationCard({
 }: KanjiCollocationCardProps) {
   const { isDark } = useTheme();
   const { i18n } = useTranslation();
-  useCardSpeechCleanup(isActive);
+  const stopCardSpeech = useCardSpeechCleanup(isActive);
 
-  const [isFlipped, setIsFlipped] = React.useState(false);
-  const useKorean = i18n.language === "ko";
+  const flipAnim = React.useRef(new Animated.Value(0)).current;
+  const [mountedSide, setMountedSide] = React.useState<"front" | "back">("front");
 
   React.useEffect(() => {
-    if (!isActive && isFlipped) {
-      setIsFlipped(false);
+    if (!isActive && mountedSide === "back") {
+      setMountedSide("front");
+      flipAnim.setValue(0);
     }
-  }, [isActive, isFlipped]);
+  }, [isActive, mountedSide, flipAnim]);
 
-  const handleFlipToBack = React.useCallback(() => setIsFlipped(true), []);
-  const handleFlipToFront = React.useCallback(() => setIsFlipped(false), []);
+  const flip = React.useCallback(
+    (to: "front" | "back") => {
+      stopCardSpeech();
+      Animated.timing(flipAnim, {
+        toValue: 1,
+        duration: 180,
+        useNativeDriver: true,
+      }).start(() => {
+        setMountedSide(to);
+        flipAnim.setValue(-1);
+        Animated.timing(flipAnim, {
+          toValue: 0,
+          duration: 180,
+          useNativeDriver: true,
+        }).start();
+      });
+    },
+    [flipAnim, stopCardSpeech],
+  );
+
+  const rotateY = flipAnim.interpolate({
+    inputRange: [-1, 0, 1],
+    outputRange: ["-90deg", "0deg", "90deg"],
+  });
 
   return (
-    <FlipCard
-      style={styles.card}
-      flip={isFlipped}
-      friction={10}
-      perspective={2000}
-      flipHorizontal={true}
-      flipVertical={false}
-      clickable={false}
+    <Animated.View
+      style={[styles.card, { transform: [{ perspective: 2000 }, { rotateY }] }]}
     >
-      <FaceSide
-        item={item}
-        isDark={isDark}
-        isActive={isActive}
-        day={day}
-        initialIsSaved={initialIsSaved}
-        onSavedWordChange={onSavedWordChange}
-        onFlip={handleFlipToBack}
-      />
-      <BackSide
-        item={item}
-        isDark={isDark}
-        isActive={isActive}
-        useKorean={useKorean}
-        onFlip={handleFlipToFront}
-      />
-    </FlipCard>
+      {mountedSide === "front" ? (
+        <FaceSide
+          item={item}
+          isDark={isDark}
+          isActive={isActive}
+          day={day}
+          initialIsSaved={initialIsSaved}
+          onSavedWordChange={onSavedWordChange}
+          onFlip={() => flip("back")}
+        />
+      ) : (
+        <BackSide
+          item={item}
+          isDark={isDark}
+          isActive={isActive}
+          useKorean={i18n.language === "ko"}
+          onFlip={() => flip("front")}
+        />
+      )}
+    </Animated.View>
   );
 }

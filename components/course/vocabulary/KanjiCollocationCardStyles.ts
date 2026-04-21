@@ -21,6 +21,13 @@ export const styles = StyleSheet.create({
     overflow: "hidden",
     padding: 24,
   },
+  cardImage: {
+    width: "100%",
+    aspectRatio: 1,
+    borderRadius: 16,
+    marginBottom: 16,
+    overflow: "hidden",
+  },
   faceTopRow: {
     flexDirection: "row",
     alignItems: "center",

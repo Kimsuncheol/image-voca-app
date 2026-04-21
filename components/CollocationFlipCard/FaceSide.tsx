@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import React from "react";
 import {
   Dimensions,
@@ -16,7 +15,7 @@ import {
   speakWordVariants,
 } from "../../src/utils/wordVariants";
 import { DayBadge } from "../common/DayBadge";
-import { ImagePlaceholder } from "../common/ImagePlaceholder";
+import { CollocationCardImage } from "../common/CollocationCardImage";
 import { AddToWordBankButton } from "../wordbank/AddToWordBankButton";
 import { SavedWord } from "../wordbank/WordCard";
 import { CollocationData, CollocationWordBankConfig } from "./types";
@@ -272,18 +271,12 @@ export default React.memo(function FaceSide({
 
       <View style={styles.contentContainer}>
         {/* Section: Image */}
-        {data.imageUrl ? (
-          <Image
-            source={{ uri: data.imageUrl }}
-            style={styles.cardImage}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-            onLoad={onImageLoad}
-            onError={onImageLoad}
-          />
-        ) : (
-          <ImagePlaceholder isDark={isDark} style={styles.cardImage} />
-        )}
+        <CollocationCardImage
+          imageUrl={data.imageUrl}
+          isDark={isDark}
+          style={styles.cardImage}
+          onImageLoad={onImageLoad}
+        />
 
         <View style={styles.textContainer}>
           {/* Top Row: Collocation + Day Badge */}
