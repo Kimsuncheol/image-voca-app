@@ -19,14 +19,26 @@ export const styles = StyleSheet.create({
     shadowRadius: 10.32,
     elevation: 16,
     overflow: "hidden",
+  },
+  faceInnerContainer: {
+    flex: 6,
     padding: 24,
+  },
+  imageContainer: {
+    flex: 4,
+    position: "relative",
+    width: "100%",
   },
   cardImage: {
     width: "100%",
-    aspectRatio: 1,
-    borderRadius: 16,
-    marginBottom: 16,
+    height: "100%",
     overflow: "hidden",
+  },
+  imageTopRightOverlay: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    zIndex: 3,
   },
   faceTopRow: {
     flexDirection: "row",
@@ -39,8 +51,14 @@ export const styles = StyleSheet.create({
   },
   faceContent: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     gap: 20,
+  },
+  kanjiSectionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
   },
   kanjiText: {
     fontSize: 64,

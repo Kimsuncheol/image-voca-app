@@ -1,13 +1,13 @@
 import React from "react";
-import { View, Text, Pressable, TouchableOpacity } from "react-native";
+import { Pressable, Text, TouchableOpacity, View } from "react-native";
 import { useSpeech } from "../../../src/hooks/useSpeech";
+import type { KanjiWord } from "../../../src/types/vocabulary";
+import { CollocationCardImage } from "../../common/CollocationCardImage";
 import { DayBadge } from "../../common/DayBadge";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
-import type { KanjiWord } from "../../../src/types/vocabulary";
+import { DottedDivider } from "./KanjiCollocationCardDivider";
 import { styles } from "./KanjiCollocationCardStyles";
 import { compactStrings } from "./kanjiCollocationUtils";
-import { DottedDivider } from "./KanjiCollocationCardDivider";
-import { CollocationCardImage } from "../../common/CollocationCardImage";
 
 /**
  * Props passed to the front face component of the Kanji Collocation Card.
@@ -31,7 +31,7 @@ export interface FaceSideProps {
 
 /**
  * FaceSide
- * 
+ *
  * The front face of the FlipCard component. It prominently displays the target `Kanji`
  * and brief summarized labels of its meaning and reading. Provides interaction endpoints
  * such as TTS voice playback natively on click and flipping the card over.
@@ -58,12 +58,22 @@ export function FaceSide({
   return (
     <Pressable
       testID="kanji-collocation-face-side"
-      style={[styles.face, { backgroundColor: isDark ? "#1a1a1a" : "#fff", borderColor: isDark ? "#333" : "#E0E0E0" }]}
+      style={[
+        styles.face,
+        {
+          backgroundColor: isDark ? "#1a1a1a" : "#fff",
+          borderColor: isDark ? "#333" : "#E0E0E0",
+        },
+      ]}
       onPress={onFlip}
     >
-      <View style={styles.faceTopRow}>
-        {day !== undefined && <DayBadge day={day} isDark={isDark} />}
-        <View style={styles.faceTopRowRight}>
+      <View style={styles.imageContainer}>
+        <CollocationCardImage
+          imageUrl={item.imageUrl}
+          isDark={isDark}
+          style={styles.cardImage}
+        />
+        <View style={styles.imageTopRightOverlay}>
           <SwipeCardItemAddToWordBankButton
             item={item}
             isDark={isDark}
@@ -74,51 +84,82 @@ export function FaceSide({
         </View>
       </View>
 
-      {item.imageUrl !== undefined && (
-        <CollocationCardImage
-          imageUrl={item.imageUrl}
-          isDark={isDark}
-          style={styles.cardImage}
-        />
-      )}
-
-      <View style={styles.faceContent}>
-        <TouchableOpacity onPress={handleSpeakKanji} activeOpacity={0.7}>
-          <Text style={[styles.kanjiText, { color: isDark ? "#fff" : "#1a1a1a" }]}>
-            {item.kanji}
-          </Text>
-        </TouchableOpacity>
+      <View style={styles.faceInnerContainer}>
+        <View style={styles.faceContent}>
+        <View style={styles.kanjiSectionRow}>
+          <TouchableOpacity onPress={handleSpeakKanji} activeOpacity={0.7}>
+            <Text
+              style={[styles.kanjiText, { color: isDark ? "#fff" : "#1a1a1a" }]}
+            >
+              {item.kanji}
+            </Text>
+          </TouchableOpacity>
+          {day !== undefined && <DayBadge day={day} isDark={isDark} />}
+        </View>
 
         {meanings.length > 0 && (
-          <View style={styles.faceSection} onStartShouldSetResponder={() => true}>
-            <Text style={[styles.faceSectionLabel, { color: isDark ? "#999" : "#666" }]}>
+          <View
+            style={styles.faceSection}
+            onStartShouldSetResponder={() => true}
+          >
+            <Text
+              style={[
+                styles.faceSectionLabel,
+                { color: isDark ? "#999" : "#666" },
+              ]}
+            >
               MEANING
             </Text>
             <View style={styles.faceChipRow}>
               {meanings.map((m, i) => (
-                <Text key={`meaning-${i}`} style={[styles.faceListItem, { color: isDark ? "#e0e0e0" : "#1a1a1a" }]}>
-                  {m}{i < meanings.length - 1 ? "," : ""}
+                <Text
+                  key={`meaning-${i}`}
+                  style={[
+                    styles.faceListItem,
+                    { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                  ]}
+                >
+                  {m}
+                  {i < meanings.length - 1 ? "," : ""}
                 </Text>
               ))}
             </View>
           </View>
         )}
 
-        {meanings.length > 0 && readings.length > 0 && <DottedDivider isDark={isDark} />}
+        {meanings.length > 0 && readings.length > 0 && (
+          <DottedDivider isDark={isDark} />
+        )}
         {readings.length > 0 && (
-          <View style={styles.faceSection} onStartShouldSetResponder={() => true}>
-            <Text style={[styles.faceSectionLabel, { color: isDark ? "#999" : "#666" }]}>
+          <View
+            style={styles.faceSection}
+            onStartShouldSetResponder={() => true}
+          >
+            <Text
+              style={[
+                styles.faceSectionLabel,
+                { color: isDark ? "#999" : "#666" },
+              ]}
+            >
               READING
             </Text>
             <View style={styles.faceChipRow}>
               {readings.map((r, i) => (
-                <Text key={`reading-${i}`} style={[styles.faceListItem, { color: isDark ? "#e0e0e0" : "#1a1a1a" }]}>
-                  {r}{i < readings.length - 1 ? "," : ""}
+                <Text
+                  key={`reading-${i}`}
+                  style={[
+                    styles.faceListItem,
+                    { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                  ]}
+                >
+                  {r}
+                  {i < readings.length - 1 ? "," : ""}
                 </Text>
               ))}
             </View>
           </View>
         )}
+        </View>
       </View>
     </Pressable>
   );

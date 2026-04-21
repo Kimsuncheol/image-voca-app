@@ -14,8 +14,8 @@ import {
   parseWordVariants,
   speakWordVariants,
 } from "../../src/utils/wordVariants";
-import { DayBadge } from "../common/DayBadge";
 import { CollocationCardImage } from "../common/CollocationCardImage";
+import { DayBadge } from "../common/DayBadge";
 import { AddToWordBankButton } from "../wordbank/AddToWordBankButton";
 import { SavedWord } from "../wordbank/WordCard";
 import { CollocationData, CollocationWordBankConfig } from "./types";
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   textContainer: {
-    flex: 1,
+    flex: 6,
     flexDirection: "column",
     justifyContent: "flex-start",
     alignItems: "flex-start",
@@ -475,8 +475,8 @@ const styles = StyleSheet.create({
     zIndex: 3,
   },
   cardImage: {
+    flex: 4,
     width: "100%",
-    aspectRatio: 1,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     overflow: "hidden",

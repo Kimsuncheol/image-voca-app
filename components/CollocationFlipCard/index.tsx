@@ -143,14 +143,13 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
 
 CollocationFlipCard.displayName = "CollocationFlipCard";
 
-const { height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   card: {
-    minHeight: height * 0.7,
-    width: "90%",
+    height: "100%",
+    width: width * 0.9,
     alignSelf: "center",
-    marginVertical: 20,
     backgroundColor: "transparent",
   },
 });
