@@ -132,6 +132,7 @@ export const styles = StyleSheet.create({
   },
   dividerWrapper: {
     height: 1,
+    marginVertical: 16,
     overflow: "hidden",
   },
   dividerInner: {
