@@ -6,12 +6,11 @@ import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import type {
-  KanjiWord,
   KanjiNestedListGroup,
   VocabularyLocalizationMap,
 } from "../../src/types/vocabulary";
 import { isJlptCourseId, isKanjiWord } from "../../src/types/vocabulary";
-import { KanjiCollocationCard } from "../course/vocabulary/KanjiCollocationCard";
+import { KanjiWordBankCard } from "./KanjiWordBankCard";
 import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
 import { speakWordVariants } from "../../src/utils/wordVariants";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
@@ -59,6 +58,7 @@ interface WordCardProps {
   isDark: boolean;
   showPronunciation?: boolean;
   expandExampleToContent?: boolean;
+  onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
 }
 
 /**
@@ -69,11 +69,10 @@ interface WordCardProps {
 export function WordCard(props: WordCardProps) {
   if (isKanjiWord(props.word)) {
     return (
-      <KanjiCollocationCard
-        item={props.word as KanjiWord}
-        initialIsSaved={true}
-        day={props.word.day}
-        isActive={false}
+      <KanjiWordBankCard
+        word={props.word}
+        isDark={props.isDark}
+        onSavedWordChange={props.onSavedWordChange}
       />
     );
   }

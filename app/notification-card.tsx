@@ -7,8 +7,10 @@ import { TopInstallNativeAd } from "../components/ads/TopInstallNativeAd";
 import { AppSplashScreen } from "../components/common/AppSplashScreen";
 import CollocationCardSection from "../components/notification/CollocationCardSection";
 import EmptyState from "../components/notification/EmptyState";
+import KanjiCardSection from "../components/notification/KanjiCardSection";
 import NotificationHeader from "../components/notification/NotificationHeader";
 import WordCard from "../components/notification/WordCard";
+import type { NotificationKanjiCardPayload } from "../src/types/notificationCard";
 import { useTheme } from "../src/context/ThemeContext";
 import { useNotificationCard } from "../src/hooks/useNotificationCard";
 
@@ -38,9 +40,13 @@ export default function NotificationCardScreen() {
       ? t("notifications.collocation.header", {
           defaultValue: "Collocation Notification",
         })
-      : t("notifications.word.header", {
-          defaultValue: "Word Notification",
-        });
+      : payload?.cardKind === "kanji"
+        ? t("notifications.kanji.header", {
+            defaultValue: "Kanji Notification",
+          })
+        : t("notifications.word.header", {
+            defaultValue: "Word Notification",
+          });
 
   return (
     <SafeAreaView
@@ -79,6 +85,15 @@ export default function NotificationCardScreen() {
           /* Collocation flip-card */
           <View style={styles.cardContainer}>
             <CollocationCardSection payload={payload} isDark={isDark} onReady={handleReady} />
+          </View>
+        ) : payload.cardKind === "kanji" ? (
+          /* Kanji flat card */
+          <View style={styles.cardContainer}>
+            <KanjiCardSection
+              payload={payload as NotificationKanjiCardPayload}
+              isDark={isDark}
+              onReady={handleReady}
+            />
           </View>
         ) : (
           /* Word card */

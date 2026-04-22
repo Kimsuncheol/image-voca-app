@@ -1,9 +1,10 @@
 import type {
   CourseType,
+  KanjiNestedListGroup,
   VocabularyLocalizationMap,
 } from "./vocabulary";
 
-export type NotificationCardKind = "word" | "collocation";
+export type NotificationCardKind = "word" | "collocation" | "kanji";
 
 interface NotificationCardPayloadBase {
   type: "pop_word";
@@ -31,9 +32,81 @@ export interface NotificationCollocationCardPayload
   cardKind: "collocation";
 }
 
+export interface NotificationKanjiCardPayload {
+  type: "pop_word";
+  cardKind: "kanji";
+  course: CourseType | string;
+  id?: string;
+  kanji: string;
+  meaningSummary: string;
+  readingSummary: string;
+  imageUrl?: string;
+  // All nested array fields serialized as JSON strings to fit notification data limits
+  meaning: string;
+  reading: string;
+  meaningExample: string;
+  meaningExampleHurigana: string;
+  meaningEnglishTranslation: string;
+  meaningKoreanTranslation: string;
+  readingExample: string;
+  readingExampleHurigana: string;
+  readingEnglishTranslation: string;
+  readingKoreanTranslation: string;
+  example: string;
+  exampleHurigana: string;
+  exampleEnglishTranslation: string;
+  exampleKoreanTranslation: string;
+}
+
+export interface DeserializedKanjiNotificationPayload {
+  meaning: string[];
+  reading: string[];
+  meaningExample: KanjiNestedListGroup[];
+  meaningExampleHurigana: KanjiNestedListGroup[];
+  meaningEnglishTranslation: KanjiNestedListGroup[];
+  meaningKoreanTranslation: KanjiNestedListGroup[];
+  readingExample: KanjiNestedListGroup[];
+  readingExampleHurigana: KanjiNestedListGroup[];
+  readingEnglishTranslation: KanjiNestedListGroup[];
+  readingKoreanTranslation: KanjiNestedListGroup[];
+  example: string[];
+  exampleHurigana: string[];
+  exampleEnglishTranslation: string[];
+  exampleKoreanTranslation: string[];
+}
+
+export function deserializeKanjiNotificationPayload(
+  payload: NotificationKanjiCardPayload,
+): DeserializedKanjiNotificationPayload {
+  const parse = <T>(json: string, fallback: T): T => {
+    try {
+      return JSON.parse(json) as T;
+    } catch {
+      return fallback;
+    }
+  };
+  return {
+    meaning: parse(payload.meaning, []),
+    reading: parse(payload.reading, []),
+    meaningExample: parse(payload.meaningExample, []),
+    meaningExampleHurigana: parse(payload.meaningExampleHurigana, []),
+    meaningEnglishTranslation: parse(payload.meaningEnglishTranslation, []),
+    meaningKoreanTranslation: parse(payload.meaningKoreanTranslation, []),
+    readingExample: parse(payload.readingExample, []),
+    readingExampleHurigana: parse(payload.readingExampleHurigana, []),
+    readingEnglishTranslation: parse(payload.readingEnglishTranslation, []),
+    readingKoreanTranslation: parse(payload.readingKoreanTranslation, []),
+    example: parse(payload.example, []),
+    exampleHurigana: parse(payload.exampleHurigana, []),
+    exampleEnglishTranslation: parse(payload.exampleEnglishTranslation, []),
+    exampleKoreanTranslation: parse(payload.exampleKoreanTranslation, []),
+  };
+}
+
 export type NotificationCardPayload =
   | NotificationWordCardPayload
-  | NotificationCollocationCardPayload;
+  | NotificationCollocationCardPayload
+  | NotificationKanjiCardPayload;
 
 const isStringOrUndefined = (value: unknown): value is string | undefined =>
   value === undefined || typeof value === "string";
@@ -52,8 +125,18 @@ export const isNotificationCardPayload = (
   const data = value as Record<string, unknown>;
 
   if (data.type !== "pop_word") return false;
-  if (data.cardKind !== "word" && data.cardKind !== "collocation") return false;
+  if (
+    data.cardKind !== "word" &&
+    data.cardKind !== "collocation" &&
+    data.cardKind !== "kanji"
+  )
+    return false;
   if (typeof data.course !== "string") return false;
+
+  if (data.cardKind === "kanji") {
+    return typeof data.kanji === "string";
+  }
+
   if (typeof data.word !== "string" || typeof data.meaning !== "string") {
     return false;
   }

@@ -9,8 +9,12 @@ import {
     prefetchVocabularyCards,
 } from "../services/vocabularyPrefetch";
 import { vocaService } from "../services/vocaService";
-import type { NotificationCardPayload } from "../types/notificationCard";
-import { CourseType } from "../types/vocabulary";
+import type {
+  NotificationCardPayload,
+  NotificationKanjiCardPayload,
+  NotificationWordCardPayload,
+} from "../types/notificationCard";
+import { CourseType, isKanjiWord, type KanjiWord } from "../types/vocabulary";
 import { isAndroidExpoGoRuntime } from "./runtimeEnvironment";
 import { resolveVocabularyContent } from "./localizedVocabulary";
 
@@ -162,8 +166,60 @@ type NotificationCardSelection = {
   translation?: string;
   synonyms?: string[];
   imageUrl?: string;
-  localized?: NotificationCardPayload["localized"];
+  localized?: NotificationWordCardPayload["localized"];
   course?: CourseType | string;
+};
+
+const serializeArr = <T>(arr: T[] | undefined): string =>
+  arr && arr.length > 0 ? JSON.stringify(arr) : "[]";
+
+export const buildKanjiPopWordNotificationData = (
+  item: KanjiWord,
+): NotificationKanjiCardPayload => ({
+  type: "pop_word",
+  cardKind: "kanji",
+  course: "KANJI",
+  id: item.id,
+  kanji: item.kanji,
+  meaningSummary: item.meaning.map((m) => m.trim()).filter(Boolean).slice(0, 3).join(", "),
+  readingSummary: item.reading.map((r) => r.trim()).filter(Boolean).slice(0, 3).join(", "),
+  imageUrl: item.imageUrl,
+  meaning: serializeArr(item.meaning),
+  reading: serializeArr(item.reading),
+  meaningExample: serializeArr(item.meaningExample),
+  meaningExampleHurigana: serializeArr(item.meaningExampleHurigana),
+  meaningEnglishTranslation: serializeArr(item.meaningEnglishTranslation),
+  meaningKoreanTranslation: serializeArr(item.meaningKoreanTranslation),
+  readingExample: serializeArr(item.readingExample),
+  readingExampleHurigana: serializeArr(item.readingExampleHurigana),
+  readingEnglishTranslation: serializeArr(item.readingEnglishTranslation),
+  readingKoreanTranslation: serializeArr(item.readingKoreanTranslation),
+  example: serializeArr(item.example),
+  exampleHurigana: serializeArr(item.exampleHurigana),
+  exampleEnglishTranslation: serializeArr(item.exampleEnglishTranslation),
+  exampleKoreanTranslation: serializeArr(item.exampleKoreanTranslation),
+});
+
+export const buildKanjiPopWordNotificationContent = async (
+  item: KanjiWord,
+): Promise<{ title: string; body: string }> => {
+  const language = await getCurrentLanguage();
+  const t = i18n.getFixedT(language);
+  const title = t("notifications.kanji.title", {
+    defaultValue: "Kanji of the Day",
+  });
+  const meaningStr = item.meaning
+    .map((m) => m.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(", ");
+  const readingStr = item.reading
+    .map((r) => r.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("・");
+  const body = `${item.kanji}　${meaningStr}\n${readingStr}`;
+  return { title, body };
 };
 
 export const buildPopWordNotificationData = (
@@ -435,6 +491,7 @@ export const schedulePopWordNotifications = async (
     "TOEFL_IELTS",
     "EXTREMELY_ADVANCED",
     "COLLOCATION",
+    "KANJI",
   ];
   const allCards: any[] = [];
 
@@ -474,13 +531,24 @@ export const schedulePopWordNotifications = async (
   for (let i = 0; i < dates.length; i++) {
     const date = dates[i];
     const selection = shuffledCards[i % shuffledCards.length];
-    const { title, body } = await buildPopWordNotificationContent(selection);
+
+    let notifData: NotificationCardPayload | NotificationKanjiCardPayload;
+    let title: string;
+    let body: string;
+
+    if (isKanjiWord(selection)) {
+      notifData = buildKanjiPopWordNotificationData(selection);
+      ({ title, body } = await buildKanjiPopWordNotificationContent(selection));
+    } else {
+      notifData = buildPopWordNotificationData(selection);
+      ({ title, body } = await buildPopWordNotificationContent(selection));
+    }
 
     const id = await Notifications.scheduleNotificationAsync({
       content: {
         title,
         body,
-        data: { ...buildPopWordNotificationData(selection) },
+        data: { ...notifData },
       },
       trigger: buildDateTrigger(date),
     });

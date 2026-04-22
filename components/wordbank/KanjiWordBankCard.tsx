@@ -1,0 +1,266 @@
+import { Image } from "expo-image";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
+import { useSpeech } from "../../src/hooks/useSpeech";
+import { DayBadge } from "../common/DayBadge";
+import { ImagePlaceholder } from "../common/ImagePlaceholder";
+import { DottedDivider } from "../course/vocabulary/KanjiCollocationCardDivider";
+import { GeneralBackSection } from "../course/vocabulary/KanjiCollocationCardGeneralBackSection";
+import { compactStrings } from "../course/vocabulary/kanjiCollocationUtils";
+import { AddToWordBankButton } from "./AddToWordBankButton";
+import type { SavedWord } from "./WordCard";
+
+interface KanjiWordBankCardProps {
+  word: SavedWord;
+  isDark: boolean;
+  onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
+}
+
+export function KanjiWordBankCard({
+  word,
+  isDark,
+  onSavedWordChange,
+}: KanjiWordBankCardProps) {
+  const { speak } = useSpeech();
+  useCardSpeechCleanup();
+  const { i18n } = useTranslation();
+  const useKorean = i18n.language === "ko";
+
+  const [showFurigana, setShowFurigana] = React.useState(false);
+
+  const meanings = compactStrings(word.meaning as string[] | undefined);
+  const readings = compactStrings(word.reading);
+
+  const exampleTranslations = useKorean
+    ? (word.exampleKoreanTranslation ?? [])
+    : (word.exampleEnglishTranslation ?? []);
+
+  const handleSpeakKanji = React.useCallback(() => {
+    void speak(word.kanji ?? "", { language: "ja-JP" });
+  }, [speak, word.kanji]);
+
+  const hasGeneralExamples = (word.exampleHurigana?.length ?? 0) > 0 ||
+    ((word.example as string[] | string | undefined) instanceof Array
+      ? (word.example as string[]).length > 0
+      : false);
+
+  const exampleArray: string[] =
+    Array.isArray(word.example) ? word.example : [];
+
+  return (
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
+      ]}
+    >
+      {/* Header: kanji + image + day badge + save button */}
+      <View style={styles.headerRow}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={handleSpeakKanji} activeOpacity={0.7}>
+            <Text
+              style={[styles.kanjiText, { color: isDark ? "#fff" : "#1a1a1a" }]}
+            >
+              {word.kanji}
+            </Text>
+          </TouchableOpacity>
+          {word.day !== undefined && (
+            <DayBadge day={word.day} isDark={isDark} />
+          )}
+        </View>
+        <View style={styles.imageContainer}>
+          {word.imageUrl ? (
+            <Image
+              source={{ uri: word.imageUrl }}
+              style={styles.thumbnail}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+            />
+          ) : (
+            <ImagePlaceholder isDark={isDark} style={styles.thumbnail} />
+          )}
+          <View style={styles.imageOverlay}>
+            <AddToWordBankButton
+              itemId={word.id}
+              course={word.course}
+              isDark={isDark}
+              initialIsSaved={true}
+              buildSavedWord={() => word}
+              onSavedStateChange={onSavedWordChange}
+              variant="star"
+            />
+          </View>
+        </View>
+      </View>
+
+      {/* Meaning chips */}
+      {meanings.length > 0 && (
+        <View style={styles.chipsSection}>
+          <Text
+            style={[styles.sectionLabel, { color: isDark ? "#999" : "#666" }]}
+          >
+            MEANING
+          </Text>
+          <View style={styles.chipRow}>
+            {meanings.map((m, i) => (
+              <Text
+                key={`m-${i}`}
+                style={[
+                  styles.chipText,
+                  { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                ]}
+              >
+                {m}
+                {i < meanings.length - 1 ? "," : ""}
+              </Text>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* Reading chips */}
+      {readings.length > 0 && (
+        <View style={styles.chipsSection}>
+          <Text
+            style={[styles.sectionLabel, { color: isDark ? "#999" : "#666" }]}
+          >
+            READING
+          </Text>
+          <View style={styles.chipRow}>
+            {readings.map((r, i) => (
+              <Text
+                key={`r-${i}`}
+                style={[
+                  styles.chipText,
+                  { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                ]}
+              >
+                {r}
+                {i < readings.length - 1 ? "," : ""}
+              </Text>
+            ))}
+          </View>
+        </View>
+      )}
+
+      <DottedDivider isDark={isDark} />
+
+      {/* General examples */}
+      {hasGeneralExamples && (
+        <View style={styles.exampleSection}>
+          <View style={styles.exampleHeader}>
+            <TouchableOpacity
+              onPress={() => setShowFurigana((v) => !v)}
+              activeOpacity={0.7}
+              style={[
+                styles.furiganaButton,
+                showFurigana
+                  ? { backgroundColor: "#2EA043" }
+                  : {
+                      borderColor: isDark
+                        ? "rgba(255,255,255,0.22)"
+                        : "rgba(17,24,28,0.16)",
+                      borderWidth: 1,
+                    },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.furiganaButtonText,
+                  { color: showFurigana ? "#fff" : isDark ? "#aaa" : "#666" },
+                ]}
+              >
+                がな
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <GeneralBackSection
+            examples={exampleArray}
+            hurigana={word.exampleHurigana ?? []}
+            translations={exampleTranslations}
+            isDark={isDark}
+            isActive={true}
+            showFurigana={showFurigana}
+          />
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1.5,
+    borderColor: "transparent",
+    gap: 12,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flex: 1,
+  },
+  imageContainer: {
+    position: "relative",
+  },
+  imageOverlay: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    zIndex: 3,
+  },
+  kanjiText: {
+    fontSize: 52,
+    fontWeight: "bold",
+  },
+  thumbnail: {
+    width: 110,
+    height: 110,
+    borderRadius: 12,
+  },
+  chipsSection: {
+    gap: 4,
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  chipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  chipText: {
+    fontSize: 16,
+    fontWeight: "600",
+    lineHeight: 24,
+  },
+  exampleSection: {
+    gap: 8,
+  },
+  exampleHeader: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
+  furiganaButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  furiganaButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+});
