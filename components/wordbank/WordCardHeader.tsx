@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { parseWordVariants } from "../../src/utils/wordVariants";
+import { DayBadge } from "../common/DayBadge";
 import { ThemedText } from "../themed-text";
 
 interface WordCardHeaderProps {
@@ -80,7 +81,7 @@ export function WordCardHeader({
         ) : (
           titleContent
         )}
-        {day && <ThemedText style={styles.dayBadge}>Day {day}</ThemedText>}
+        {day && <DayBadge day={day} />}
       </View>
       {pronunciation && (
         <ThemedText style={styles.pronunciation}>{pronunciation}</ThemedText>
@@ -115,15 +116,6 @@ const styles = StyleSheet.create({
   },
   wordTitleMultiline: {
     lineHeight: 28,
-  },
-  dayBadge: {
-    fontSize: 13,
-    opacity: 0.6,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-    backgroundColor: "rgba(0, 122, 255, 0.1)",
-    flexShrink: 0,
   },
   pronunciation: {
     fontSize: 14,

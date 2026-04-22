@@ -94,7 +94,7 @@ export function FaceSide({
               {item.kanji}
             </Text>
           </TouchableOpacity>
-          {day !== undefined && <DayBadge day={day} isDark={isDark} />}
+          {day !== undefined && <DayBadge day={day} />}
         </View>
 
         {meanings.length > 0 && (

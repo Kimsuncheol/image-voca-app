@@ -105,7 +105,7 @@ export function SwipeCardItemWordMeaningSection({
             {renderWord()}
           </TouchableOpacity>
         </View>
-        {day !== undefined && <DayBadge day={day} isDark={isDark} />}
+        {day !== undefined && <DayBadge day={day} />}
       </View>
       {normalizedPronunciation ? (
         <Text

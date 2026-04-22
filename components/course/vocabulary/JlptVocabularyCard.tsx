@@ -296,7 +296,7 @@ export function JlptVocabularyCard({
                 </Text>
               </TouchableOpacity>
             </View>
-            {day !== undefined && <DayBadge day={day} isDark={isDark} />}
+            {day !== undefined && <DayBadge day={day} />}
           </View>
 
           {pronunciation ? (

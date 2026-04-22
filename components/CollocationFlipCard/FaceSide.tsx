@@ -302,7 +302,7 @@ export default React.memo(function FaceSide({
             {/* Section: Day chip */}
             {wordBankConfig?.day !== undefined && (
               <View style={styles.dayBadgeContainerRow}>
-                <DayBadge day={wordBankConfig.day} isDark={isDark} />
+                <DayBadge day={wordBankConfig.day} />
               </View>
             )}
           </View>

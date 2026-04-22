@@ -66,31 +66,31 @@ export function KanjiWordBankCard({
               {word.kanji}
             </Text>
           </TouchableOpacity>
-          {word.day !== undefined && (
-            <DayBadge day={word.day} isDark={isDark} />
-          )}
         </View>
-        <View style={styles.imageContainer}>
-          {word.imageUrl ? (
-            <Image
-              source={{ uri: word.imageUrl }}
-              style={styles.thumbnail}
-              contentFit="cover"
-              cachePolicy="memory-disk"
-            />
-          ) : (
-            <ImagePlaceholder isDark={isDark} style={styles.thumbnail} />
-          )}
-          <View style={styles.imageOverlay}>
-            <AddToWordBankButton
-              itemId={word.id}
-              course={word.course}
-              isDark={isDark}
-              initialIsSaved={true}
-              buildSavedWord={() => word}
-              onSavedStateChange={onSavedWordChange}
-              variant="star"
-            />
+        <View style={styles.imageWrapper}>
+          {word.day !== undefined && <DayBadge day={word.day} />}
+          <View style={styles.imageContainer}>
+            {word.imageUrl ? (
+              <Image
+                source={{ uri: word.imageUrl }}
+                style={styles.thumbnail}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+              />
+            ) : (
+              <ImagePlaceholder isDark={isDark} style={styles.thumbnail} />
+            )}
+            <View style={styles.imageOverlay}>
+              <AddToWordBankButton
+                itemId={word.id}
+                course={word.course}
+                isDark={isDark}
+                initialIsSaved={true}
+                buildSavedWord={() => word}
+                onSavedStateChange={onSavedWordChange}
+                variant="star"
+              />
+            </View>
           </View>
         </View>
       </View>
@@ -212,6 +212,11 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: "relative",
+  },
+  imageWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   imageOverlay: {
     position: "absolute",
