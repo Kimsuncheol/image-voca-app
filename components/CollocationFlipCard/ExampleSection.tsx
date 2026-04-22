@@ -107,7 +107,10 @@ export default React.memo(function ExampleSection({
                     <View style={styles.scrollText}>
                       <View style={styles.interleavedContainer}>
                         {items.map((item, index) => (
-                          <View key={`dialogue-item-${index}`} style={styles.itemContainer}>
+                          <View
+                            key={`dialogue-item-${index}`}
+                            style={styles.itemContainer}
+                          >
                             <View style={styles.itemRow}>
                               <View
                                 style={[
@@ -224,9 +227,9 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   value: {
-    fontSize: 18,
+    fontSize: 16,
     color: "#333",
-    lineHeight: 26,
+    lineHeight: 24,
     fontWeight: "400",
     flexShrink: 1,
   },
@@ -267,11 +270,12 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   translationValue: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: "#555",
+    fontSize: 12,
+    lineHeight: 16,
+    color: "#666",
     fontStyle: "normal",
     flexShrink: 1,
+    opacity: 0.7,
   },
   translationDark: {
     color: "#D1D1D6",

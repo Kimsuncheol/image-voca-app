@@ -63,9 +63,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   value: {
-    fontSize: 18,
+    fontSize: 15,
     color: "#333",
-    lineHeight: 26,
+    lineHeight: 22,
     fontWeight: "400",
   },
   textDark: {
