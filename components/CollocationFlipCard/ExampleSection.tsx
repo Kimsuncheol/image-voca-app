@@ -8,8 +8,11 @@ import {
   View,
 } from "react-native";
 import Collapsible from "react-native-collapsible";
-import { toDialogueTurns } from "../../src/utils/roleplayUtils";
-import { SpeakerButton } from "./SpeakerButton";
+import { useSpeech } from "../../src/hooks/useSpeech";
+import {
+  stripRoleLabels,
+  toDialogueTurns,
+} from "../../src/utils/roleplayUtils";
 
 const CHARACTER_MIN_WIDTH = 88;
 const CHARACTER_MAX_WIDTH = 120;
@@ -41,6 +44,8 @@ export default React.memo(function ExampleSection({
   isDark,
   maxHeight,
 }: ExampleSectionProps) {
+  const { speak } = useSpeech();
+  const spokenExampleText = useMemo(() => stripRoleLabels(example), [example]);
   const exampleTurns = useMemo(() => toDialogueTurns(example), [example]);
   const translationTurns = useMemo(
     () => toDialogueTurns(translation || ""),
@@ -73,6 +78,15 @@ export default React.memo(function ExampleSection({
       Math.min(CHARACTER_MAX_WIDTH, estimatedWidth),
     );
   }, [items]);
+  const handleSpeakExample = React.useCallback(() => {
+    if (!spokenExampleText.trim()) {
+      return;
+    }
+
+    void speak(spokenExampleText, { language: "en-US" }).catch((error) => {
+      console.error("Collocation example TTS error:", error);
+    });
+  }, [speak, spokenExampleText]);
 
   return (
     <View>
@@ -103,67 +117,67 @@ export default React.memo(function ExampleSection({
                   showsVerticalScrollIndicator
                   nestedScrollEnabled={true}
                 >
-                  <View style={styles.scrollContentRow}>
-                    <View style={styles.scrollText}>
-                      <View style={styles.interleavedContainer}>
-                        {items.map((item, index) => (
-                          <View
-                            key={`dialogue-item-${index}`}
-                            style={styles.itemContainer}
-                          >
-                            <View style={styles.itemRow}>
-                              <View
+                  <View style={styles.scrollText}>
+                    <View style={styles.interleavedContainer}>
+                      {items.map((item, index) => (
+                        <View
+                          key={`dialogue-item-${index}`}
+                          style={styles.itemContainer}
+                        >
+                          <View style={styles.itemRow}>
+                            <View
+                              style={[
+                                styles.characterCell,
+                                { width: characterColumnWidth },
+                              ]}
+                            >
+                              <Text
                                 style={[
-                                  styles.characterCell,
-                                  { width: characterColumnWidth },
+                                  styles.characterText,
+                                  isDark && styles.characterTextDark,
                                 ]}
+                                onPress={handleSpeakExample}
                               >
-                                <Text
-                                  style={[
-                                    styles.characterText,
-                                    isDark && styles.characterTextDark,
-                                  ]}
-                                >
-                                  {item.characterLabel}
-                                </Text>
-                              </View>
-                              <View style={styles.contentCell}>
-                                <Text
-                                  style={[
-                                    styles.value,
-                                    styles.exampleText,
-                                    isDark && styles.textDark,
-                                  ]}
-                                >
-                                  {item.exampleText}
-                                </Text>
-                              </View>
+                                {item.characterLabel}
+                              </Text>
                             </View>
-
-                            <View style={styles.itemRow}>
-                              <View
+                            <View style={styles.contentCell}>
+                              <Text
                                 style={[
-                                  styles.characterCell,
-                                  { width: characterColumnWidth },
+                                  styles.value,
+                                  styles.exampleText,
+                                  isDark && styles.textDark,
                                 ]}
-                              />
-                              <View style={styles.contentCell}>
-                                <Text
-                                  style={[
-                                    styles.value,
-                                    styles.translationValue,
-                                    isDark && styles.translationDark,
-                                  ]}
-                                >
-                                  {item.translationText}
-                                </Text>
-                              </View>
+                                onPress={handleSpeakExample}
+                              >
+                                {item.exampleText}
+                              </Text>
                             </View>
                           </View>
-                        ))}
-                      </View>
+
+                          <View style={styles.itemRow}>
+                            <View
+                              style={[
+                                styles.characterCell,
+                                { width: characterColumnWidth },
+                              ]}
+                            />
+                            <View style={styles.contentCell}>
+                              <Text
+                                style={[
+                                  styles.value,
+                                  styles.translationValue,
+                                  isDark && styles.translationDark,
+                                ]}
+                                onPress={handleSpeakExample}
+                              >
+                                {item.translationText}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                      ))}
                     </View>
-                    <SpeakerButton text={example} isDark={isDark} />
                   </View>
                 </ScrollView>
               </View>
@@ -205,7 +219,6 @@ const styles = StyleSheet.create({
   },
   exampleContent: {
     flex: 1,
-    marginRight: 8,
     minHeight: 0,
   },
   exampleScroll: {
@@ -214,11 +227,6 @@ const styles = StyleSheet.create({
   exampleScrollContent: {
     paddingBottom: 4,
     gap: 8,
-  },
-  scrollContentRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
   },
   scrollText: {
     flex: 1,

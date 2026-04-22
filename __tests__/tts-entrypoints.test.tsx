@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
+import ExampleSection from "../components/CollocationFlipCard/ExampleSection";
 import FaceSide from "../components/CollocationFlipCard/FaceSide";
-import { SpeakerButton } from "../components/CollocationFlipCard/SpeakerButton";
 import { SwipeCardItemWordMeaningSection } from "../components/swipe/SwipeCardItemWordMeaningSection";
 import { WordCard } from "../components/wordbank/WordCard";
 import { WordCardExample } from "../components/wordbank/WordCardExample";
@@ -10,6 +10,15 @@ const mockSpeak = jest.fn();
 const mockStop = jest.fn();
 const mockPause = jest.fn();
 const mockResume = jest.fn();
+
+jest.mock(
+  "@/src/constants/layout",
+  () => ({
+    CARD_HEIGHT: 600,
+    CARD_WIDTH: 360,
+  }),
+  { virtual: true },
+);
 
 jest.mock("../src/context/ThemeContext", () => ({
   useTheme: () => ({ isDark: false }),
@@ -72,6 +81,16 @@ jest.mock("../src/hooks/useSoundMode", () => ({
     isAvailable: true,
   }),
 }));
+
+jest.mock("react-native-collapsible", () => {
+  return ({
+    collapsed,
+    children,
+  }: {
+    collapsed: boolean;
+    children: React.ReactNode;
+  }) => (collapsed ? null : children);
+});
 
 jest.mock("../components/swipe/SwipeCardItemAddToWordBankButton", () => ({
   __esModule: true,
@@ -226,15 +245,22 @@ describe("TTS entrypoints", () => {
     });
   });
 
-  it("uses the shared speech hook from the collocation speaker button", async () => {
+  it("uses the shared speech hook from collocation example text", async () => {
+    const fullExample = "A: We need to make a decision today.";
     const { getByText } = render(
-      <SpeakerButton text="make a decision" isDark={false} />
+      <ExampleSection
+        example={fullExample}
+        translation="A: 우리는 오늘 결정을 내려야 한다."
+        isOpen={true}
+        onToggle={jest.fn()}
+        isDark={false}
+      />
     );
 
-    fireEvent.press(getByText("volume-high"));
+    fireEvent.press(getByText("We need to make a decision today."));
 
     await waitFor(() => {
-      expect(mockSpeak).toHaveBeenCalledWith("make a decision", {
+      expect(mockSpeak).toHaveBeenCalledWith("We need to make a decision today.", {
         language: "en-US",
       });
     });
@@ -319,11 +345,11 @@ describe("TTS entrypoints", () => {
       />
     );
 
-    expect(getByText("connecting flight")).toBeTruthy();
-    expect(getByText("connection")).toBeTruthy();
+    expect(getByText(/connecting flight/)).toBeTruthy();
+    expect(getByText(/connection\s+600/)).toBeTruthy();
     expect(queryByText(/=/)).toBeNull();
 
-    fireEvent.press(getByText("connection flight"));
+    fireEvent.press(getByText(/connection flight/));
 
     await waitFor(() => {
       expect(mockSpeak).toHaveBeenCalledTimes(3);

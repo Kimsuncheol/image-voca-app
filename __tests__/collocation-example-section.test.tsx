@@ -1,15 +1,14 @@
-import { render } from "@testing-library/react-native";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import BackSide from "../components/CollocationFlipCard/BackSide";
 import ExampleSection from "../components/CollocationFlipCard/ExampleSection";
+
+const mockSpeak = jest.fn();
 
 jest.mock("@expo/vector-icons", () => ({
   Ionicons: () => null,
 }));
-
-const mockReact = React;
-const mockText = Text;
 
 jest.mock("react-native-collapsible", () => {
   return ({
@@ -21,14 +20,24 @@ jest.mock("react-native-collapsible", () => {
   }) => (collapsed ? null : children);
 });
 
-jest.mock("../components/CollocationFlipCard/SpeakerButton", () => {
-  return {
-    SpeakerButton: () =>
-      mockReact.createElement(mockText, null, "Speaker Button"),
-  };
-});
+jest.mock("../src/hooks/useSpeech", () => ({
+  useSpeech: () => ({
+    speak: mockSpeak,
+    stop: jest.fn(),
+    pause: jest.fn(),
+    resume: jest.fn(),
+    isSpeaking: false,
+    isPaused: false,
+    error: null,
+  }),
+}));
 
 describe("ExampleSection", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSpeak.mockResolvedValue(undefined);
+  });
+
   test("renders two-line items with role, example, and translation", () => {
     const { getByText, queryByText } = render(
       <ExampleSection
@@ -46,6 +55,92 @@ describe("ExampleSection", () => {
     expect(getByText("이번엔 산에 가자.")).toBeTruthy();
     expect(queryByText("Jane")).toBeNull();
     expect(queryByText("Michelle")).toBeNull();
+  });
+
+  test("does not render the old speaker button", () => {
+    const { queryByText } = render(
+      <ExampleSection
+        example="John: I want to go to the beach."
+        translation="Jane: 난 해변에 가고 싶어."
+        isOpen={true}
+        onToggle={jest.fn()}
+        isDark={false}
+      />,
+    );
+
+    expect(queryByText("Speaker Button")).toBeNull();
+  });
+
+  test("speaks the full original example when example text is pressed", async () => {
+    const fullExample =
+      "John: I want to go to the beach. Mary: Let's go to the mountains.";
+    const spokenExample =
+      "I want to go to the beach.\nLet's go to the mountains.";
+    const { getByText } = render(
+      <ExampleSection
+        example={fullExample}
+        translation="Jane: 난 해변에 가고 싶어. Michelle: 이번엔 산에 가자."
+        isOpen={true}
+        onToggle={jest.fn()}
+        isDark={false}
+      />,
+    );
+
+    fireEvent.press(getByText("I want to go to the beach."));
+
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledWith(spokenExample, {
+        language: "en-US",
+      });
+    });
+  });
+
+  test("speaks the full original example when translation text is pressed", async () => {
+    const fullExample =
+      "John: I want to go to the beach. Mary: Let's go to the mountains.";
+    const spokenExample =
+      "I want to go to the beach.\nLet's go to the mountains.";
+    const { getByText } = render(
+      <ExampleSection
+        example={fullExample}
+        translation="Jane: 난 해변에 가고 싶어. Michelle: 이번엔 산에 가자."
+        isOpen={true}
+        onToggle={jest.fn()}
+        isDark={false}
+      />,
+    );
+
+    fireEvent.press(getByText("난 해변에 가고 싶어."));
+
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledWith(spokenExample, {
+        language: "en-US",
+      });
+    });
+  });
+
+  test("speaks the example without role names when role label text is pressed", async () => {
+    const fullExample =
+      "John: I want to go to the beach. Mary: Let's go to the mountains.";
+    const spokenExample =
+      "I want to go to the beach.\nLet's go to the mountains.";
+    const { getByText } = render(
+      <ExampleSection
+        example={fullExample}
+        translation="Jane: 난 해변에 가고 싶어. Michelle: 이번엔 산에 가자."
+        isOpen={true}
+        onToggle={jest.fn()}
+        isDark={false}
+      />,
+    );
+
+    fireEvent.press(getByText("John"));
+
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledWith(spokenExample, {
+        language: "en-US",
+      });
+    });
   });
 
   test("uses example turns as source of truth when translation has extra turns", () => {
