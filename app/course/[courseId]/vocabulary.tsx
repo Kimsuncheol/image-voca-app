@@ -423,10 +423,6 @@ export default function VocabularyScreen() {
     >
       <Stack.Screen
         options={{
-          headerStyle: {
-            backgroundColor: "blue"
-          },
-          title: "",
           headerShown: hasCards(),
           headerShadowVisible: false,
           headerTintColor: isDark ? "#fff" : "#000",

@@ -16,7 +16,8 @@ export default function CourseLayout() {
       />
       <Stack.Screen
         name="[courseId]/vocabulary"
-        options={{ title: t("courses.vocabularyTitle") }}
+        options={{ title: ""  }}
+        // options={{ title: t("courses.vocabularyTitle") }}
       />
       <Stack.Screen
         name="[courseId]/quiz-type"

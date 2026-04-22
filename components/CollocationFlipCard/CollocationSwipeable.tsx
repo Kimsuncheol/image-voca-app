@@ -1,3 +1,4 @@
+import { CARD_HEIGHT } from "@/src/constants/layout";
 import * as Haptics from "expo-haptics";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -215,31 +216,33 @@ export const CollocationSwipeable: React.FC<Props> = ({
       >
         {data.map((item, index) => (
           <View key={item.id} style={styles.page}>
-            {Math.abs(index - activeIndex) <= 1 ? (
-              <CollocationFlipCard
-                data={{
-                  collocation: item.word,
-                  meaning: item.meaning,
-                  explanation: item.pronunciation || "",
-                  example: item.example,
-                  translation: item.translation || "",
-                }}
-                isDark={isDark}
-                wordBankConfig={{
-                  id: item.id,
-                  course: item.course,
-                  day,
-                  initialIsSaved: savedWordIds?.has(item.id) ?? false,
-                  enableAdd: true,
-                  enableDelete: false,
-                  onSavedStateChange: onSavedWordChange,
-                }}
-                onFirstFlipToBack={() => handleCardFirstFlip(index)}
-                isActive={activeIndex === index}
-              />
-            ) : (
-              <View style={styles.cardPlaceholder} />
-            )}
+            <View style={styles.cardCenteringWrapper}>
+              {Math.abs(index - activeIndex) <= 1 ? (
+                <CollocationFlipCard
+                  data={{
+                    collocation: item.word,
+                    meaning: item.meaning,
+                    explanation: item.pronunciation || "",
+                    example: item.example,
+                    translation: item.translation || "",
+                  }}
+                  isDark={isDark}
+                  wordBankConfig={{
+                    id: item.id,
+                    course: item.course,
+                    day,
+                    initialIsSaved: savedWordIds?.has(item.id) ?? false,
+                    enableAdd: true,
+                    enableDelete: false,
+                    onSavedStateChange: onSavedWordChange,
+                  }}
+                  onFirstFlipToBack={() => handleCardFirstFlip(index)}
+                  isActive={activeIndex === index}
+                />
+              ) : (
+                <View style={styles.cardPlaceholder} />
+              )}
+            </View>
           </View>
         ))}
         {renderFinalPage && (
@@ -275,19 +278,24 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     position: "relative",
+    justifyContent: "center",
+    alignItems: "center",
   },
   pagerView: {
-    flex: 1,
+    height: CARD_HEIGHT,
     width: "100%",
   },
   page: {
+    height: CARD_HEIGHT,
+  },
+  cardCenteringWrapper: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
   cardPlaceholder: {
     width: "90%",
-    minHeight: "70%",
+    height: CARD_HEIGHT,
     alignSelf: "center",
   },
   hintContainer: {

@@ -1,3 +1,4 @@
+import { CARD_HEIGHT } from "@/src/constants/layout";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
@@ -194,7 +195,7 @@ export default React.memo(function FaceSide({
               { fontSize: dynamicFontSize },
             ]}
           >
-            {variant}
+            {variant} {CARD_HEIGHT}
           </Text>
         ))}
       </View>

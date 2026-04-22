@@ -1,11 +1,14 @@
-import { Dimensions, StyleSheet } from "react-native";
+import { CARD_HEIGHT, CARD_WIDTH } from "@/src/constants/layout";
+import { StyleSheet } from "react-native";
 
-const { width } = Dimensions.get("window");
+// const { width } = Dimensions.get("window");
 
 export const styles = StyleSheet.create({
   card: {
-    height: "100%",
-    width: width * 0.9,
+    // height: "100%",
+    // width: width * 0.9,
+    height: CARD_HEIGHT,
+    width: CARD_WIDTH,
     alignSelf: "center",
   },
   // Face
