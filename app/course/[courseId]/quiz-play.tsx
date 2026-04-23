@@ -591,6 +591,10 @@ export default function QuizPlayScreen() {
     setSelectedMeaning(meaning);
   };
 
+  const handleMatchingPageAdvance = React.useCallback(() => {
+    setMatchingTimerResetKey((prev) => prev + 1);
+  }, []);
+
   const handleTimeUp = () => {
     if (isMatching) {
       // Matching game ends on time up
@@ -773,6 +777,7 @@ export default function QuizPlayScreen() {
               matchedPairs={matchedPairs}
               onSelectWord={handleSelectWord}
               onSelectMeaning={handleSelectMeaning}
+              onMatchingPageAdvance={handleMatchingPageAdvance}
               userAnswer={userAnswer}
               showResult={showResult}
               isCorrect={isCorrect}

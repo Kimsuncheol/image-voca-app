@@ -49,6 +49,7 @@ interface GameBoardProps {
   matchedPairs: Record<string, string>;
   onSelectWord: (word: string) => void;
   onSelectMeaning: (meaning: string) => void;
+  onMatchingPageAdvance?: () => void;
 
   userAnswer: string;
   showResult: boolean;
@@ -74,6 +75,7 @@ export function GameBoard({
   matchedPairs,
   onSelectWord,
   onSelectMeaning,
+  onMatchingPageAdvance,
   userAnswer,
   showResult,
   isCorrect,
@@ -111,6 +113,7 @@ export function GameBoard({
           matchedPairs={matchedPairs}
           onSelectWord={onSelectWord}
           onSelectMeaning={onSelectMeaning}
+          onPageAdvance={onMatchingPageAdvance}
           courseColor={courseColor}
           isDark={isDark}
           progressCurrent={progressCurrent}
@@ -125,6 +128,7 @@ export function GameBoard({
           matchedPairs={matchedPairs}
           onSelectWord={onSelectWord}
           onSelectMeaning={onSelectMeaning}
+          onPageAdvance={onMatchingPageAdvance}
           courseColor={courseColor}
           isDark={isDark}
           showPronunciationDetails={showPronunciationDetails}
@@ -142,6 +146,7 @@ export function GameBoard({
           matchedPairs={matchedPairs}
           onSelectWord={onSelectWord}
           onSelectMeaning={onSelectMeaning}
+          onPageAdvance={onMatchingPageAdvance}
           courseColor={courseColor}
           isDark={isDark}
           showPronunciationDetails={showPronunciationDetails}

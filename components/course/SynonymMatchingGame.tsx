@@ -28,6 +28,7 @@ interface SynonymMatchingGameProps {
   isDark: boolean;
   showPronunciationDetails?: boolean;
   progressCurrent?: number;
+  onPageAdvance?: () => void;
 }
 
 export function SynonymMatchingGame({
@@ -43,6 +44,7 @@ export function SynonymMatchingGame({
   isDark,
   showPronunciationDetails = false,
   progressCurrent = 0,
+  onPageAdvance,
 }: SynonymMatchingGameProps) {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
@@ -70,10 +72,13 @@ export function SynonymMatchingGame({
     if (currentQuestions.length === 0) return;
     const allMatched = currentQuestions.every((question) => matchedPairs[question.word]);
     if (allMatched && page < pageCount - 1) {
-      const timer = setTimeout(() => setPage((currentPage) => currentPage + 1), 500);
+      const timer = setTimeout(() => {
+        setPage((currentPage) => currentPage + 1);
+        onPageAdvance?.();
+      }, 500);
       return () => clearTimeout(timer);
     }
-  }, [matchedPairs, currentQuestions, page, pageCount]);
+  }, [matchedPairs, currentQuestions, page, pageCount, onPageAdvance]);
 
   return (
     <View style={styles.matchingContainer}>

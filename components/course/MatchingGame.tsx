@@ -32,6 +32,7 @@ interface MatchingGameProps {
   matchingMode?: "meaning" | "synonym" | "pronunciation";
   showPronunciationDetails?: boolean;
   progressCurrent?: number;
+  onPageAdvance?: () => void;
 }
 
 export function MatchingGame({
@@ -50,6 +51,7 @@ export function MatchingGame({
   matchingMode = "meaning",
   showPronunciationDetails = false,
   progressCurrent = 0,
+  onPageAdvance,
 }: MatchingGameProps) {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
@@ -100,10 +102,13 @@ export function MatchingGame({
     if (currentQuestions.length === 0) return;
     const allMatched = currentQuestions.every((q) => matchedPairs[q.word]);
     if (allMatched && page < pageCount - 1) {
-      const timer = setTimeout(() => setPage((p) => p + 1), 500);
+      const timer = setTimeout(() => {
+        setPage((p) => p + 1);
+        onPageAdvance?.();
+      }, 500);
       return () => clearTimeout(timer);
     }
-  }, [matchedPairs, currentQuestions, page, pageCount]);
+  }, [matchedPairs, currentQuestions, page, pageCount, onPageAdvance]);
 
   return (
     <View style={styles.matchingContainer}>

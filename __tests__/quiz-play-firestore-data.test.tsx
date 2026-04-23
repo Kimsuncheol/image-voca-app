@@ -123,6 +123,7 @@ jest.mock("../components/course", () => ({
     currentQuestion,
     onSelectWord,
     onSelectMeaning,
+    onMatchingPageAdvance,
     onAnswer,
   }: {
     quizType: string;
@@ -134,6 +135,7 @@ jest.mock("../components/course", () => ({
     };
     onSelectWord: (word: string) => void;
     onSelectMeaning: (meaning: string) => void;
+    onMatchingPageAdvance?: () => void;
     onAnswer: (answer: string) => void;
   }) => {
     const { Button, Text, View } = jest.requireActual<typeof import("react-native")>(
@@ -160,6 +162,10 @@ jest.mock("../components/course", () => ({
         <Button
           title="select-incorrect-meaning"
           onPress={() => onSelectMeaning("not-the-answer")}
+        />
+        <Button
+          title="advance-matching-page"
+          onPress={() => onMatchingPageAdvance?.()}
         />
         <Button
           title="select-correct-answer"
@@ -382,6 +388,87 @@ describe("QuizPlayScreen Firestore quiz data", () => {
     await waitFor(() => {
       expect(getLatestQuizTimerProps()).toEqual(
         expect.objectContaining({ quizKey: "matching-1" }),
+      );
+    });
+  });
+
+  it("resets the matching timer key when the matching page advances", async () => {
+    mockFetchCourseQuizData.mockResolvedValue({
+      questions: [
+        {
+          id: "i1",
+          word: "alpha",
+          meaning: "first",
+          matchChoiceText: "first",
+          correctAnswer: "first",
+        },
+        {
+          id: "i2",
+          word: "beta",
+          meaning: "second",
+          matchChoiceText: "second",
+          correctAnswer: "second",
+        },
+        {
+          id: "i3",
+          word: "gamma",
+          meaning: "third",
+          matchChoiceText: "third",
+          correctAnswer: "third",
+        },
+        {
+          id: "i4",
+          word: "delta",
+          meaning: "fourth",
+          matchChoiceText: "fourth",
+          correctAnswer: "fourth",
+        },
+        {
+          id: "i5",
+          word: "epsilon",
+          meaning: "fifth",
+          matchChoiceText: "fifth",
+          correctAnswer: "fifth",
+        },
+        {
+          id: "i6",
+          word: "zeta",
+          meaning: "sixth",
+          matchChoiceText: "sixth",
+          correctAnswer: "sixth",
+        },
+      ],
+      matchingChoices: ["first", "second", "third", "fourth", "fifth", "sixth"],
+    });
+
+    const screen = render(<QuizPlayScreen />);
+
+    await waitFor(() => {
+      expect(getLatestQuizTimerProps()).toEqual(
+        expect.objectContaining({ quizKey: "matching-0" }),
+      );
+    });
+
+    act(() => {
+      fireEvent.press(screen.getByText("select-current-word"));
+    });
+    act(() => {
+      fireEvent.press(screen.getByText("select-correct-meaning"));
+    });
+
+    await waitFor(() => {
+      expect(getLatestQuizTimerProps()).toEqual(
+        expect.objectContaining({ quizKey: "matching-1" }),
+      );
+    });
+
+    act(() => {
+      fireEvent.press(screen.getByText("advance-matching-page"));
+    });
+
+    await waitFor(() => {
+      expect(getLatestQuizTimerProps()).toEqual(
+        expect.objectContaining({ quizKey: "matching-2" }),
       );
     });
   });
