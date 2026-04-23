@@ -26,6 +26,12 @@ describe("InlineMeaningWithChips", () => {
     const secondTextColumnStyle = StyleSheet.flatten(
       getByTestId("inline-meaning-text-column-1").props.style,
     );
+    const firstPosChipStyle = StyleSheet.flatten(
+      firstPosColumn.props.children.props.style,
+    );
+    const firstPosLabelStyle = StyleSheet.flatten(
+      firstPosColumn.props.children.props.children.props.style,
+    );
 
     expect(getByText("a")).toBeTruthy();
     expect(getByText(" 1. 합리적인, 타당한")).toBeTruthy();
@@ -38,6 +44,8 @@ describe("InlineMeaningWithChips", () => {
     expect(queryByTestId("inline-meaning-text-column-1")).toBeTruthy();
     expect(firstRowStyle.flexDirection).toBe("row");
     expect(firstPosColumnStyle.width).toBe(secondPosColumnStyle.width);
+    expect(firstPosChipStyle.borderWidth).toBeUndefined();
+    expect(firstPosLabelStyle.color).toBe("#4B5563");
     expect(firstTextColumnStyle.flex).toBe(1);
     expect(secondTextColumnStyle.flex).toBe(1);
     expect(secondPosColumn.props.children ?? null).toBeNull();
@@ -82,6 +90,13 @@ describe("InlineMeaningWithChips", () => {
     const secondTextColumnStyle = StyleSheet.flatten(
       getByTestId("inline-meaning-text-column-1").props.style,
     );
+    const firstPosColumn = getByTestId("inline-meaning-pos-column-0");
+    const firstPosChipStyle = StyleSheet.flatten(
+      firstPosColumn.props.children.props.style,
+    );
+    const firstPosLabelStyle = StyleSheet.flatten(
+      firstPosColumn.props.children.props.children.props.style,
+    );
 
     expect(getByText("v")).toBeTruthy();
     expect(getByText("n")).toBeTruthy();
@@ -90,6 +105,8 @@ describe("InlineMeaningWithChips", () => {
     expect(queryByText("v.")).toBeNull();
     expect(queryByText("n.")).toBeNull();
     expect(queryByText("|")).toBeNull();
+    expect(firstPosChipStyle.borderWidth).toBeUndefined();
+    expect(firstPosLabelStyle.color).toBe("#4B5563");
     expect(firstLineStyle.flexDirection).toBe("row");
     expect(secondLineStyle.flexDirection).toBe("row");
     expect(firstTextColumnStyle.flex).toBe(1);

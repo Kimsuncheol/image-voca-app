@@ -25,19 +25,26 @@ export function QuizTimer({
 }: QuizTimerProps) {
   const progress = useSharedValue(1);
   const onTimeUpRef = useRef(onTimeUp);
+  const previousQuizKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     onTimeUpRef.current = onTimeUp;
   }, [onTimeUp]);
 
   useEffect(() => {
-    progress.value = 1;
-    cancelAnimation(progress);
-  }, [quizKey, progress]);
+    const shouldReset = previousQuizKeyRef.current !== quizKey;
+    previousQuizKeyRef.current = quizKey;
 
-  useEffect(() => {
+    cancelAnimation(progress);
+
+    if (shouldReset) {
+      progress.value = 1;
+    }
+
     if (isRunning) {
-      const remainingDuration = Math.max(0, progress.value * duration * 1000);
+      const remainingDuration = shouldReset
+        ? duration * 1000
+        : Math.max(0, progress.value * duration * 1000);
       progress.value = withTiming(
         0,
         {

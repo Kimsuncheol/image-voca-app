@@ -4,6 +4,8 @@ import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { ThemedText } from "../themed-text";
 
+const MATCHING_POS_MARKER_REGEX = /\b(?:prep|ad|n|v|a)\.(?=\s|$)/gi;
+
 interface MatchingCardProps {
   text: string;
   pronunciation?: string;
@@ -37,6 +39,10 @@ export function MatchingCard({
     () => Math.round(wordFontSize * 1.2),
     [wordFontSize],
   );
+  const meaningText = React.useMemo(
+    () => stripMatchingPartOfSpeechMarkers(text),
+    [text],
+  );
 
   return (
     <TouchableOpacity
@@ -57,7 +63,7 @@ export function MatchingCard({
       <View style={styles.content}>
         {variant === "meaning" ? (
           <InlineMeaningWithChips
-            meaning={text}
+            meaning={meaningText}
             courseId={courseId}
             isDark={isDark}
             textStyle={[
@@ -77,6 +83,7 @@ export function MatchingCard({
             containerStyle={styles.meaningContainer}
             lineStyle={styles.meaningLine}
             testID="matching-meaning"
+            forceInline
           />
         ) : variant === "pronunciation" ? (
           <ThemedText
@@ -134,6 +141,18 @@ export function MatchingCard({
       </View>
     </TouchableOpacity>
   );
+}
+
+function stripMatchingPartOfSpeechMarkers(value: string): string {
+  return value
+    .split("\n")
+    .map((line) =>
+      line
+        .replace(MATCHING_POS_MARKER_REGEX, "")
+        .replace(/[ \t]{2,}/g, " ")
+        .trim(),
+    )
+    .join("\n");
 }
 
 const styles = StyleSheet.create({

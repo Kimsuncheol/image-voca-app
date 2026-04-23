@@ -22,15 +22,12 @@ export function PartOfSpeechChips({
     return null;
   }
 
-  const chipColor = isDark ? "#FFFFFF" : "#000000";
+  const chipColor = isDark ? "#D1D5DB" : "#4B5563";
 
   return (
     <View style={[styles.container, style]}>
       {labels.map((label, index) => (
-        <View
-          key={`${label}-${index}`}
-          style={[styles.chip, { borderColor: chipColor }]}
-        >
+        <View key={`${label}-${index}`} style={styles.chip}>
           <Text style={[styles.label, { color: chipColor }]}>{label}</Text>
         </View>
       ))}
@@ -48,7 +45,6 @@ const styles = StyleSheet.create({
     minHeight: 18,
     minWidth: 18,
     paddingHorizontal: 6,
-    borderWidth: 1,
     borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
