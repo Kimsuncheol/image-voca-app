@@ -11,6 +11,7 @@ import {
 } from "../../src/utils/meaningPartsOfSpeech";
 
 const POS_COLUMN_WIDTH = 28;
+const PREFIX_COLUMN_WIDTH = 26;
 
 interface InlineMeaningWithChipsProps {
   meaning: string;
@@ -24,6 +25,7 @@ interface InlineMeaningWithChipsProps {
   testID?: string;
   forceInline?: boolean;
   splitPosSegmentsIntoRows?: boolean;
+  usePrefixColumnLayout?: boolean;
 }
 
 export function InlineMeaningWithChips({
@@ -38,6 +40,7 @@ export function InlineMeaningWithChips({
   testID,
   forceInline = false,
   splitPosSegmentsIntoRows = false,
+  usePrefixColumnLayout = false,
 }: InlineMeaningWithChipsProps) {
   const formattedMeaning = React.useMemo(
     () => formatIdiomMeaningForDisplay(meaning, courseId),
@@ -53,7 +56,11 @@ export function InlineMeaningWithChips({
   );
   const textColor = isDark ? "#FFFFFF" : "#000000";
   const posTextColor = isDark ? "#D1D5DB" : "#4B5563";
+  const usePrefixColumns =
+    usePrefixColumnLayout && displayLines.some((line) => line.linePrefix);
   const useColumnLayout =
+    !usePrefixColumns &&
+    !usePrefixColumnLayout &&
     !forceInline &&
     (displayLines.length > 1 ||
       (splitPosSegmentsIntoRows && parsedMeaning.hasPartsOfSpeech)) &&
@@ -63,7 +70,24 @@ export function InlineMeaningWithChips({
   return (
     <View style={[styles.container, containerStyle]} testID={testID}>
       {displayLines.map((line, lineIndex) =>
-        useColumnLayout ? (
+        usePrefixColumns ? (
+          <View
+            key={`line-${lineIndex}`}
+            style={[styles.prefixColumnRow, lineStyle]}
+            testID={testID ? `${testID}-line-${lineIndex}` : undefined}
+          >
+            {renderPrefixColumnLine(
+              line,
+              lineIndex,
+              textColor,
+              posTextColor,
+              textStyle,
+              prefixStyle,
+              chipStyle,
+              testID,
+            )}
+          </View>
+        ) : useColumnLayout ? (
           <View
             key={`line-${lineIndex}`}
             style={[styles.columnRow, lineStyle]}
@@ -98,6 +122,56 @@ export function InlineMeaningWithChips({
         ),
       )}
     </View>
+  );
+}
+
+function renderPrefixColumnLine(
+  line: MeaningLine,
+  lineIndex: number,
+  textColor: string,
+  posTextColor: string,
+  textStyle?: StyleProp<TextStyle>,
+  prefixStyle?: StyleProp<TextStyle>,
+  chipStyle?: StyleProp<ViewStyle>,
+  testID?: string,
+) {
+  return (
+    <>
+      <View
+        style={styles.prefixColumn}
+        testID={testID ? `${testID}-prefix-column-${lineIndex}` : undefined}
+      >
+        {line.linePrefix ? (
+          <Text
+            style={[
+              styles.baseText,
+              { color: textColor },
+              textStyle,
+              styles.prefix,
+              prefixStyle,
+            ]}
+          >
+            {line.linePrefix}
+          </Text>
+        ) : null}
+      </View>
+      <View
+        style={styles.prefixTextColumn}
+        testID={testID ? `${testID}-text-column-${lineIndex}` : undefined}
+      >
+        {line.segments.map((segment, segmentIndex) => (
+          <React.Fragment key={`prefix-segment-${lineIndex}-${segmentIndex}`}>
+            {renderSegment(
+              segment,
+              textColor,
+              posTextColor,
+              textStyle,
+              chipStyle,
+            )}
+          </React.Fragment>
+        ))}
+      </View>
+    </>
   );
 }
 
@@ -268,6 +342,25 @@ const styles = StyleSheet.create({
   },
   columnRow: {
     flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  prefixColumnRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "center",
+  },
+  prefixColumn: {
+    width: PREFIX_COLUMN_WIDTH,
+    minHeight: 24,
+    alignItems: "flex-end",
+    justifyContent: "flex-start",
+    paddingTop: 1,
+    paddingRight: 4,
+  },
+  prefixTextColumn: {
+    flex: 1,
+    flexDirection: "row",
+    flexWrap: "wrap",
     alignItems: "flex-start",
   },
   posColumn: {

@@ -83,7 +83,7 @@ export function MatchingCard({
             containerStyle={styles.meaningContainer}
             lineStyle={styles.meaningLine}
             testID="matching-meaning"
-            forceInline
+            usePrefixColumnLayout
           />
         ) : variant === "pronunciation" ? (
           <ThemedText

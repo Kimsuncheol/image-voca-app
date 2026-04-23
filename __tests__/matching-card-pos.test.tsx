@@ -12,7 +12,7 @@ jest.mock("../components/themed-text", () => ({
 
 describe("MatchingCard", () => {
   it("removes POS markers from numbered meaning cards", () => {
-    const { getByText, queryByTestId, queryByText } = render(
+    const { getByTestId, getByText, queryByTestId, queryByText } = render(
       <MatchingCard
         text={"1. n. 이유\n2. v. 추론하다, 추리하다"}
         variant="meaning"
@@ -23,14 +23,18 @@ describe("MatchingCard", () => {
       />,
     );
 
-    expect(getByText("1. ")).toBeTruthy();
-    expect(getByText("2. ")).toBeTruthy();
+    expect(getByText("1.")).toBeTruthy();
+    expect(getByText("2.")).toBeTruthy();
     expect(getByText("이유")).toBeTruthy();
     expect(getByText("추론하다, 추리하다")).toBeTruthy();
     expect(queryByText("n")).toBeNull();
     expect(queryByText("v")).toBeNull();
     expect(queryByText("n.")).toBeNull();
     expect(queryByText("v.")).toBeNull();
+    expect(getByTestId("matching-meaning-prefix-column-0")).toBeTruthy();
+    expect(getByTestId("matching-meaning-prefix-column-1")).toBeTruthy();
+    expect(getByTestId("matching-meaning-text-column-0")).toBeTruthy();
+    expect(getByTestId("matching-meaning-text-column-1")).toBeTruthy();
     expect(queryByTestId("matching-meaning-pos-column-0")).toBeNull();
     expect(queryByTestId("matching-meaning-pos-column-1")).toBeNull();
   });
@@ -48,10 +52,12 @@ describe("MatchingCard", () => {
       />,
     );
 
-    expect(getByText("1. ")).toBeTruthy();
-    expect(getByText("2. ")).toBeTruthy();
+    expect(getByText("1.")).toBeTruthy();
+    expect(getByText("2.")).toBeTruthy();
     expect(getByText("아주 드물게")).toBeTruthy();
     expect(getByText("거의 하지 않게")).toBeTruthy();
+    expect(queryByTestId("matching-meaning-prefix-column-0")).toBeTruthy();
+    expect(queryByTestId("matching-meaning-text-column-0")).toBeTruthy();
     expect(queryByTestId("matching-meaning-pos-column-0")).toBeNull();
     expect(queryByTestId("matching-meaning-pos-column-1")).toBeNull();
   });
@@ -69,11 +75,33 @@ describe("MatchingCard", () => {
       />,
     );
 
-    expect(getByText("1. ")).toBeTruthy();
-    expect(getByText("2. ")).toBeTruthy();
+    expect(getByText("1.")).toBeTruthy();
+    expect(getByText("2.")).toBeTruthy();
     expect(getByText("정교분리 반대론")).toBeTruthy();
     expect(getByText("긴 단어")).toBeTruthy();
+    expect(queryByTestId("matching-meaning-prefix-column-0")).toBeTruthy();
+    expect(queryByTestId("matching-meaning-text-column-0")).toBeTruthy();
     expect(queryByTestId("matching-meaning-pos-column-0")).toBeNull();
     expect(queryByTestId("matching-meaning-pos-column-1")).toBeNull();
+  });
+
+  it("keeps unnumbered meaning cards in inline flow", () => {
+    const { getByTestId, getByText, queryByTestId } = render(
+      <MatchingCard
+        text={"절망\n절망하다"}
+        variant="meaning"
+        isMatched={false}
+        isSelected={false}
+        onPress={jest.fn()}
+        isDark={true}
+      />,
+    );
+
+    expect(getByText("절망")).toBeTruthy();
+    expect(getByText("절망하다")).toBeTruthy();
+    expect(getByTestId("matching-meaning-line-0")).toBeTruthy();
+    expect(queryByTestId("matching-meaning-prefix-column-0")).toBeNull();
+    expect(queryByTestId("matching-meaning-text-column-0")).toBeNull();
+    expect(queryByTestId("matching-meaning-pos-column-0")).toBeNull();
   });
 });

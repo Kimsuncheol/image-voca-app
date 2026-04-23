@@ -68,6 +68,38 @@ describe("InlineMeaningWithChips", () => {
     expect(queryByTestId("inline-meaning-pos-column-0")).toBeNull();
   });
 
+  it("uses prefix/text columns for numbered meanings when opted in", () => {
+    const { getByTestId, getByText, queryByTestId } = render(
+      <InlineMeaningWithChips
+        meaning={"1. 서 있다, 일어서다\n2. 견디다, 참다"}
+        isDark={false}
+        testID="inline-meaning"
+        usePrefixColumnLayout
+      />,
+    );
+
+    const firstLineStyle = StyleSheet.flatten(
+      getByTestId("inline-meaning-line-0").props.style,
+    );
+    const firstPrefixColumnStyle = StyleSheet.flatten(
+      getByTestId("inline-meaning-prefix-column-0").props.style,
+    );
+    const firstTextColumnStyle = StyleSheet.flatten(
+      getByTestId("inline-meaning-text-column-0").props.style,
+    );
+
+    expect(getByText("1.")).toBeTruthy();
+    expect(getByText("2.")).toBeTruthy();
+    expect(getByText("서 있다, 일어서다")).toBeTruthy();
+    expect(getByText("견디다, 참다")).toBeTruthy();
+    expect(firstLineStyle.flexDirection).toBe("row");
+    expect(firstPrefixColumnStyle.width).toBe(26);
+    expect(firstPrefixColumnStyle.alignItems).toBe("flex-end");
+    expect(firstTextColumnStyle.flex).toBe(1);
+    expect(firstTextColumnStyle.flexWrap).toBe("wrap");
+    expect(queryByTestId("inline-meaning-pos-column-0")).toBeNull();
+  });
+
   it("splits single-line POS groups into wrapped rows when opted in", () => {
     const { getByTestId, getByText, queryByText } = render(
       <InlineMeaningWithChips
