@@ -1,5 +1,5 @@
-import { CARD_HEIGHT, CARD_WIDTH } from "../../../src/constants/layout";
 import { StyleSheet } from "react-native";
+import { CARD_HEIGHT, CARD_WIDTH } from "../../../src/constants/layout";
 
 // const { width } = Dimensions.get("window");
 
@@ -155,6 +155,8 @@ export const styles = StyleSheet.create({
   backPairsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
     gap: 8,
   },
   backItemRow: {
@@ -165,11 +167,14 @@ export const styles = StyleSheet.create({
   },
   backPairItem: {
     flexDirection: "column",
+    alignItems: "stretch",
+    alignSelf: "flex-start",
     gap: 1,
   },
   backPairMainRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    flexWrap: "nowrap",
+    alignSelf: "stretch",
     alignItems: "center",
     gap: 6,
   },
@@ -185,6 +190,8 @@ export const styles = StyleSheet.create({
   backFurigana: {
     fontSize: 8,
     lineHeight: 12,
+    alignSelf: "stretch",
+    textAlign: "left",
   },
   backFuriganaPlaceholder: {
     color: "transparent",

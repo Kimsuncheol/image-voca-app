@@ -130,31 +130,20 @@ export function FaceSide({
               </Text>
               <View style={styles.faceChipRow}>
                 {meanings.map((m, i) => (
-                  <React.Fragment key={`meaning-${i}`}>
-                    <Pressable
-                      testID={`kanji-collocation-face-meaning-${i}`}
-                      onPress={(event) => handlePressSpeechItem(event, m)}
+                  <Pressable
+                    key={`meaning-${i}`}
+                    testID={`kanji-collocation-face-meaning-${i}`}
+                    onPress={(event) => handlePressSpeechItem(event, m)}
+                  >
+                    <Text
+                      style={[
+                        styles.faceListItem,
+                        { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                      ]}
                     >
-                      <Text
-                        style={[
-                          styles.faceListItem,
-                          { color: isDark ? "#e0e0e0" : "#1a1a1a" },
-                        ]}
-                      >
-                        {m}
-                      </Text>
-                    </Pressable>
-                    {i < meanings.length - 1 ? (
-                      <Text
-                        style={[
-                          styles.faceListItem,
-                          { color: isDark ? "#e0e0e0" : "#1a1a1a" },
-                        ]}
-                      >
-                        ,
-                      </Text>
-                    ) : null}
-                  </React.Fragment>
+                      {m}
+                    </Text>
+                  </Pressable>
                 ))}
               </View>
             </View>
@@ -175,31 +164,20 @@ export function FaceSide({
               </Text>
               <View style={styles.faceChipRow}>
                 {readings.map((r, i) => (
-                  <React.Fragment key={`reading-${i}`}>
-                    <Pressable
-                      testID={`kanji-collocation-face-reading-${i}`}
-                      onPress={(event) => handlePressSpeechItem(event, r)}
+                  <Pressable
+                    key={`reading-${i}`}
+                    testID={`kanji-collocation-face-reading-${i}`}
+                    onPress={(event) => handlePressSpeechItem(event, r)}
+                  >
+                    <Text
+                      style={[
+                        styles.faceListItem,
+                        { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                      ]}
                     >
-                      <Text
-                        style={[
-                          styles.faceListItem,
-                          { color: isDark ? "#e0e0e0" : "#1a1a1a" },
-                        ]}
-                      >
-                        {r}
-                      </Text>
-                    </Pressable>
-                    {i < readings.length - 1 ? (
-                      <Text
-                        style={[
-                          styles.faceListItem,
-                          { color: isDark ? "#e0e0e0" : "#1a1a1a" },
-                        ]}
-                      >
-                        ,
-                      </Text>
-                    ) : null}
-                  </React.Fragment>
+                      {r}
+                    </Text>
+                  </Pressable>
                 ))}
               </View>
             </View>

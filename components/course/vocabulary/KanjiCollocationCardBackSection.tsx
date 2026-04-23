@@ -43,7 +43,6 @@ export function BackSection({
   translations,
   isDark,
   isActive,
-  showFurigana,
 }: BackSectionProps) {
   const { speak } = useSpeech();
 
@@ -83,17 +82,20 @@ export function BackSection({
           >
             {entry.value}
           </Text>
-          <View style={styles.backPairsContainer}>
+          <View
+            testID={`kanji-collocation-${title.toLowerCase()}-pairs-container-${i}`}
+            style={styles.backPairsContainer}
+          >
             {entry.examples.map((example, j) => {
               const huriganaText = entry.hurigana[j] ?? "あ";
               const hasHurigana = Boolean(entry.hurigana[j]);
-              const showVisibleHurigana = showFurigana && hasHurigana;
 
               return (
                 <TouchableOpacity
                   key={`${title}-${i}-ex-${j}`}
                   onPress={() => handleSpeak(entry.hurigana[j] ?? example)}
                   activeOpacity={0.7}
+                  testID={`kanji-collocation-${title.toLowerCase()}-pair-item-${i}-${j}`}
                   style={styles.backPairItem}
                 >
                   <View
@@ -123,7 +125,7 @@ export function BackSection({
                     testID={`kanji-collocation-${title.toLowerCase()}-hurigana-${i}-${j}`}
                     style={[
                       styles.backFurigana,
-                      showVisibleHurigana
+                      hasHurigana
                         ? { color: isDark ? "#888" : "#999" }
                         : styles.backFuriganaSpacer,
                     ]}

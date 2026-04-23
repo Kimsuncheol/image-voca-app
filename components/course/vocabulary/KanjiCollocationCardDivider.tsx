@@ -2,9 +2,14 @@ import React from "react";
 import { View } from "react-native";
 import { styles } from "./KanjiCollocationCardStyles";
 
-export function DottedDivider({ isDark }: { isDark: boolean }) {
+interface DottedDividerProps {
+  isDark: boolean;
+  testID?: string;
+}
+
+export function DottedDivider({ isDark, testID }: DottedDividerProps) {
   return (
-    <View style={styles.dividerWrapper}>
+    <View testID={testID} style={styles.dividerWrapper}>
       <View style={[styles.dividerInner, { borderColor: isDark ? "#444" : "#ccc" }]} />
     </View>
   );

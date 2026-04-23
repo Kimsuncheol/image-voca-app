@@ -41,6 +41,9 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
   const meaningTranslations = useKorean ? item.meaningKoreanTranslation : item.meaningEnglishTranslation;
   const readingTranslations = useKorean ? item.readingKoreanTranslation : item.readingEnglishTranslation;
   const exampleTranslations = useKorean ? item.exampleKoreanTranslation : item.exampleEnglishTranslation;
+  const hasMeaningSection = meanings.some((value) => value.trim().length > 0);
+  const hasReadingSection = readings.some((value) => value.trim().length > 0);
+  const hasExampleSection = item.example.some((value) => value.trim().length > 0);
 
   const [showFurigana, setShowFurigana] = React.useState(false);
 
@@ -89,36 +92,52 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
             onStartShouldSetResponder={() => true}
             onResponderTerminationRequest={() => true}
           >
-            <BackSection
-              title="MEANING"
-              values={meanings}
-              examples={item.meaningExample}
-              hurigana={item.meaningExampleHurigana}
-              translations={meaningTranslations}
-              isDark={isDark}
-              isActive={isActive}
-              showFurigana={showFurigana}
-            />
-            <DottedDivider isDark={isDark} />
-            <BackSection
-              title="READING"
-              values={readings}
-              examples={item.readingExample}
-              hurigana={item.readingExampleHurigana}
-              translations={readingTranslations}
-              isDark={isDark}
-              isActive={isActive}
-              showFurigana={showFurigana}
-            />
-            <DottedDivider isDark={isDark} />
-            <GeneralBackSection
-              examples={item.example}
-              hurigana={item.exampleHurigana}
-              translations={exampleTranslations}
-              isDark={isDark}
-              isActive={isActive}
-              showFurigana={showFurigana}
-            />
+            {hasMeaningSection ? (
+              <BackSection
+                title="MEANING"
+                values={meanings}
+                examples={item.meaningExample}
+                hurigana={item.meaningExampleHurigana}
+                translations={meaningTranslations}
+                isDark={isDark}
+                isActive={isActive}
+                showFurigana={showFurigana}
+              />
+            ) : null}
+            {hasMeaningSection && hasReadingSection ? (
+              <DottedDivider
+                isDark={isDark}
+                testID="kanji-collocation-divider-meaning-reading"
+              />
+            ) : null}
+            {hasReadingSection ? (
+              <BackSection
+                title="READING"
+                values={readings}
+                examples={item.readingExample}
+                hurigana={item.readingExampleHurigana}
+                translations={readingTranslations}
+                isDark={isDark}
+                isActive={isActive}
+                showFurigana={showFurigana}
+              />
+            ) : null}
+            {hasReadingSection && hasExampleSection ? (
+              <DottedDivider
+                isDark={isDark}
+                testID="kanji-collocation-divider-reading-example"
+              />
+            ) : null}
+            {hasExampleSection ? (
+              <GeneralBackSection
+                examples={item.example}
+                hurigana={item.exampleHurigana}
+                translations={exampleTranslations}
+                isDark={isDark}
+                isActive={isActive}
+                showFurigana={showFurigana}
+              />
+            ) : null}
           </View>
         </Pressable>
       </ScrollView>
