@@ -147,6 +147,60 @@ describe("KanjiCollocationCard", () => {
     expect(queryByText("go")).toBeNull();
   });
 
+  it("does not speak the kanji when the kanji text is pressed on the face side", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+
+    fireEvent.press(screen.getByText("語"));
+
+    expect(mockSpeak).not.toHaveBeenCalled();
+    expect(mockStopCardSpeech).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
+    expect(screen.queryByTestId("kanji-collocation-face-side")).toBeNull();
+  });
+
+  it("splits comma-delimited face-side meaning and reading items into tappable speech targets", () => {
+    mockLanguage = "ja";
+
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord({
+          meaning: [" ひと,  ひと(つ) ", " , "],
+          reading: [" いち,  いつ ", ""],
+        })}
+      />,
+    );
+
+    expect(textChildrenOf(screen.getByTestId("kanji-collocation-face-meaning-0"))).toEqual(["ひと"]);
+    expect(textChildrenOf(screen.getByTestId("kanji-collocation-face-meaning-1"))).toEqual(["ひと(つ)"]);
+    expect(textChildrenOf(screen.getByTestId("kanji-collocation-face-reading-0"))).toEqual(["いち"]);
+    expect(textChildrenOf(screen.getByTestId("kanji-collocation-face-reading-1"))).toEqual(["いつ"]);
+    expect(screen.queryByTestId("kanji-collocation-face-meaning-2")).toBeNull();
+    expect(screen.queryByTestId("kanji-collocation-face-reading-2")).toBeNull();
+
+    mockSpeak.mockClear();
+    mockStopCardSpeech.mockClear();
+
+    fireEvent.press(screen.getByTestId("kanji-collocation-face-meaning-0"));
+
+    expect(mockSpeak).toHaveBeenCalledTimes(1);
+    expect(mockSpeak).toHaveBeenLastCalledWith("ひと", {
+      language: "ja-JP",
+    });
+    expect(mockStopCardSpeech).not.toHaveBeenCalled();
+    expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
+    expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
+
+    fireEvent.press(screen.getByTestId("kanji-collocation-face-reading-1"));
+
+    expect(mockSpeak).toHaveBeenCalledTimes(2);
+    expect(mockSpeak).toHaveBeenLastCalledWith("いつ", {
+      language: "ja-JP",
+    });
+    expect(mockStopCardSpeech).not.toHaveBeenCalled();
+    expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
+    expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
+  });
+
   it("renders example text and translation on back side", () => {
     const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
     flipToBack(screen);

@@ -1,5 +1,10 @@
 import React from "react";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import {
+  Pressable,
+  Text,
+  type GestureResponderEvent,
+  View,
+} from "react-native";
 import { useSpeech } from "../../../src/hooks/useSpeech";
 import type { KanjiWord } from "../../../src/types/vocabulary";
 import {
@@ -11,7 +16,7 @@ import { DayBadge } from "../../common/DayBadge";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
 import { DottedDivider } from "./KanjiCollocationCardDivider";
 import { styles } from "./KanjiCollocationCardStyles";
-import { compactStrings } from "./kanjiCollocationUtils";
+import { splitFaceSummaryItems } from "./kanjiCollocationUtils";
 
 /**
  * Props passed to the front face component of the Kanji Collocation Card.
@@ -54,13 +59,24 @@ export function FaceSide({
 }: FaceSideProps) {
   const { speak } = useSpeech();
 
-  const handleSpeakKanji = React.useCallback(() => {
-    if (!isActive) return;
-    void speak(item.kanji, { language: "ja-JP" });
-  }, [isActive, item.kanji, speak]);
+  const handleSpeakItem = React.useCallback(
+    (text: string) => {
+      if (!isActive) return;
+      void speak(text, { language: "ja-JP" });
+    },
+    [isActive, speak],
+  );
 
-  const meanings = compactStrings(getLocalizedKanjiMeanings(item, language));
-  const readings = compactStrings(getLocalizedKanjiReadings(item, language));
+  const meanings = splitFaceSummaryItems(getLocalizedKanjiMeanings(item, language));
+  const readings = splitFaceSummaryItems(getLocalizedKanjiReadings(item, language));
+
+  const handlePressSpeechItem = React.useCallback(
+    (event: GestureResponderEvent | undefined, text: string) => {
+      event?.stopPropagation();
+      handleSpeakItem(text);
+    },
+    [handleSpeakItem],
+  );
 
   return (
     <Pressable
@@ -93,79 +109,101 @@ export function FaceSide({
 
       <View style={styles.faceInnerContainer}>
         <View style={styles.faceContent}>
-        <View style={styles.kanjiSectionRow}>
-          <TouchableOpacity onPress={handleSpeakKanji} activeOpacity={0.7}>
+          <View style={styles.kanjiSectionRow}>
             <Text
               style={[styles.kanjiText, { color: isDark ? "#fff" : "#1a1a1a" }]}
             >
               {item.kanji}
             </Text>
-          </TouchableOpacity>
-          {day !== undefined && <DayBadge day={day} />}
-        </View>
-
-        {meanings.length > 0 && (
-          <View
-            style={styles.faceSection}
-            onStartShouldSetResponder={() => true}
-          >
-            <Text
-              style={[
-                styles.faceSectionLabel,
-                { color: isDark ? "#999" : "#666" },
-              ]}
-            >
-              MEANING
-            </Text>
-            <View style={styles.faceChipRow}>
-              {meanings.map((m, i) => (
-                <Text
-                  key={`meaning-${i}`}
-                  style={[
-                    styles.faceListItem,
-                    { color: isDark ? "#e0e0e0" : "#1a1a1a" },
-                  ]}
-                >
-                  {m}
-                  {i < meanings.length - 1 ? "," : ""}
-                </Text>
-              ))}
-            </View>
+            {day !== undefined && <DayBadge day={day} />}
           </View>
-        )}
 
-        {meanings.length > 0 && readings.length > 0 && (
-          <DottedDivider isDark={isDark} />
-        )}
-        {readings.length > 0 && (
-          <View
-            style={styles.faceSection}
-            onStartShouldSetResponder={() => true}
-          >
-            <Text
-              style={[
-                styles.faceSectionLabel,
-                { color: isDark ? "#999" : "#666" },
-              ]}
-            >
-              READING
-            </Text>
-            <View style={styles.faceChipRow}>
-              {readings.map((r, i) => (
-                <Text
-                  key={`reading-${i}`}
-                  style={[
-                    styles.faceListItem,
-                    { color: isDark ? "#e0e0e0" : "#1a1a1a" },
-                  ]}
-                >
-                  {r}
-                  {i < readings.length - 1 ? "," : ""}
-                </Text>
-              ))}
+          {meanings.length > 0 && (
+            <View style={styles.faceSection}>
+              <Text
+                style={[
+                  styles.faceSectionLabel,
+                  { color: isDark ? "#999" : "#666" },
+                ]}
+              >
+                MEANING
+              </Text>
+              <View style={styles.faceChipRow}>
+                {meanings.map((m, i) => (
+                  <React.Fragment key={`meaning-${i}`}>
+                    <Pressable
+                      testID={`kanji-collocation-face-meaning-${i}`}
+                      onPress={(event) => handlePressSpeechItem(event, m)}
+                    >
+                      <Text
+                        style={[
+                          styles.faceListItem,
+                          { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                        ]}
+                      >
+                        {m}
+                      </Text>
+                    </Pressable>
+                    {i < meanings.length - 1 ? (
+                      <Text
+                        style={[
+                          styles.faceListItem,
+                          { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                        ]}
+                      >
+                        ,
+                      </Text>
+                    ) : null}
+                  </React.Fragment>
+                ))}
+              </View>
             </View>
-          </View>
-        )}
+          )}
+
+          {meanings.length > 0 && readings.length > 0 && (
+            <DottedDivider isDark={isDark} />
+          )}
+          {readings.length > 0 && (
+            <View style={styles.faceSection}>
+              <Text
+                style={[
+                  styles.faceSectionLabel,
+                  { color: isDark ? "#999" : "#666" },
+                ]}
+              >
+                READING
+              </Text>
+              <View style={styles.faceChipRow}>
+                {readings.map((r, i) => (
+                  <React.Fragment key={`reading-${i}`}>
+                    <Pressable
+                      testID={`kanji-collocation-face-reading-${i}`}
+                      onPress={(event) => handlePressSpeechItem(event, r)}
+                    >
+                      <Text
+                        style={[
+                          styles.faceListItem,
+                          { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                        ]}
+                      >
+                        {r}
+                      </Text>
+                    </Pressable>
+                    {i < readings.length - 1 ? (
+                      <Text
+                        style={[
+                          styles.faceListItem,
+                          { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                        ]}
+                      >
+                        ,
+                      </Text>
+                    ) : null}
+                  </React.Fragment>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
       </View>
     </Pressable>
