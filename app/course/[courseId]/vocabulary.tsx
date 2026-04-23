@@ -398,7 +398,16 @@ export default function VocabularyScreen() {
     });
   };
 
-
+  /**
+   * Action: Return to Days
+   * Navigates back to the day picker for this course.
+   */
+  const handleDays = () => {
+    router.push({
+      pathname: "/course/[courseId]/days",
+      params: { courseId },
+    });
+  };
 
   // ============================================================================
   // Section 6: Render Helpers & Main Render
@@ -410,6 +419,7 @@ export default function VocabularyScreen() {
       day={dayNumber}
       onQuiz={handleQuiz}
       onRestart={handleRestart}
+      onDays={handleDays}
       t={t}
     />
   );
@@ -423,7 +433,7 @@ export default function VocabularyScreen() {
     >
       <Stack.Screen
         options={{
-          headerShown: hasCards(),
+          headerShown: hasCards() && !isFinished,
           headerShadowVisible: false,
           headerTintColor: isDark ? "#fff" : "#000",
           headerBackTitle: t("common.back"),
