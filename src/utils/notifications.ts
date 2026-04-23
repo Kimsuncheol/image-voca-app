@@ -15,6 +15,10 @@ import type {
   NotificationWordCardPayload,
 } from "../types/notificationCard";
 import { CourseType, isKanjiWord, type KanjiWord } from "../types/vocabulary";
+import {
+  getLocalizedKanjiMeanings,
+  getLocalizedKanjiReadings,
+} from "./kanjiLocalization";
 import { isAndroidExpoGoRuntime } from "./runtimeEnvironment";
 import { resolveVocabularyContent } from "./localizedVocabulary";
 
@@ -163,6 +167,7 @@ type NotificationCardSelection = {
   pronunciationRoman?: string;
   example?: string;
   exampleFurigana?: string;
+  exampleHurigana?: string;
   translation?: string;
   synonyms?: string[];
   imageUrl?: string;
@@ -185,7 +190,11 @@ export const buildKanjiPopWordNotificationData = (
   readingSummary: item.reading.map((r) => r.trim()).filter(Boolean).slice(0, 3).join(", "),
   imageUrl: item.imageUrl,
   meaning: serializeArr(item.meaning),
+  meaningKorean: serializeArr(item.meaningKorean),
+  meaningKoreanRomanize: serializeArr(item.meaningKoreanRomanize),
   reading: serializeArr(item.reading),
+  readingKorean: serializeArr(item.readingKorean),
+  readingKoreanRomanize: serializeArr(item.readingKoreanRomanize),
   meaningExample: serializeArr(item.meaningExample),
   meaningExampleHurigana: serializeArr(item.meaningExampleHurigana),
   meaningEnglishTranslation: serializeArr(item.meaningEnglishTranslation),
@@ -208,12 +217,12 @@ export const buildKanjiPopWordNotificationContent = async (
   const title = t("notifications.kanji.title", {
     defaultValue: "Kanji of the Day",
   });
-  const meaningStr = item.meaning
+  const meaningStr = getLocalizedKanjiMeanings(item, language)
     .map((m) => m.trim())
     .filter(Boolean)
     .slice(0, 2)
     .join(", ");
-  const readingStr = item.reading
+  const readingStr = getLocalizedKanjiReadings(item, language)
     .map((r) => r.trim())
     .filter(Boolean)
     .slice(0, 2)
@@ -238,6 +247,7 @@ export const buildPopWordNotificationData = (
     pronunciationRoman: selection.pronunciationRoman ?? "",
     example: selection.example ?? "",
     exampleFurigana: selection.exampleFurigana,
+    exampleHurigana: selection.exampleHurigana ?? selection.exampleFurigana,
     translation: selection.translation ?? "",
     synonyms: selection.synonyms,
     imageUrl: selection.imageUrl ?? "",

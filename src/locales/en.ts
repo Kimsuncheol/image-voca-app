@@ -124,6 +124,10 @@ const en = {
       title: "Collocation of the Day",
       header: "Collocation Notification",
     },
+    kanji: {
+      title: "Kanji of the Day",
+      header: "Kanji Notification",
+    },
     reminder: {
       title: "Study Reminder",
       body: "Time to build your vocabulary habit! Open the app and study your words or collocations today.",

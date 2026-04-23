@@ -2,6 +2,10 @@ import React from "react";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
 import { useSpeech } from "../../../src/hooks/useSpeech";
 import type { KanjiWord } from "../../../src/types/vocabulary";
+import {
+  getLocalizedKanjiMeanings,
+  getLocalizedKanjiReadings,
+} from "../../../src/utils/kanjiLocalization";
 import { CollocationCardImage } from "../../common/CollocationCardImage";
 import { DayBadge } from "../../common/DayBadge";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
@@ -19,6 +23,8 @@ export interface FaceSideProps {
   isDark: boolean;
   /** Whether the card is currently active/visible on the screen to process TTS operations */
   isActive: boolean;
+  /** Current app language used to choose localized meaning/reading labels */
+  language?: string;
   /** The day integer identifier associated with the word (used for indexing in DayBadge) */
   day?: number;
   /** Whether the word is initially tagged as saved in the user's wordbank */
@@ -40,6 +46,7 @@ export function FaceSide({
   item,
   isDark,
   isActive,
+  language,
   day,
   initialIsSaved,
   onSavedWordChange,
@@ -52,8 +59,8 @@ export function FaceSide({
     void speak(item.kanji, { language: "ja-JP" });
   }, [isActive, item.kanji, speak]);
 
-  const meanings = compactStrings(item.meaning);
-  const readings = compactStrings(item.reading);
+  const meanings = compactStrings(getLocalizedKanjiMeanings(item, language));
+  const readings = compactStrings(getLocalizedKanjiReadings(item, language));
 
   return (
     <Pressable

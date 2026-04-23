@@ -5,6 +5,10 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import {
+  getLocalizedKanjiMeanings,
+  getLocalizedKanjiReadings,
+} from "../../src/utils/kanjiLocalization";
+import {
   deserializeKanjiNotificationPayload,
   type NotificationKanjiCardPayload,
 } from "../../src/types/notificationCard";
@@ -40,8 +44,8 @@ export default function KanjiCardSection({
     [payload],
   );
 
-  const meanings = compactStrings(data.meaning);
-  const readings = compactStrings(data.reading);
+  const meanings = compactStrings(getLocalizedKanjiMeanings(data, i18n.language));
+  const readings = compactStrings(getLocalizedKanjiReadings(data, i18n.language));
 
   const exampleTranslations = useKorean
     ? data.exampleKoreanTranslation

@@ -27,6 +27,8 @@ jest.mock("../src/services/vocaService", () => ({
 
 import { setLanguage } from "../src/i18n";
 import {
+  buildKanjiPopWordNotificationContent,
+  buildKanjiPopWordNotificationData,
   buildPopWordNotificationData,
   buildPopWordNotificationContent,
   getMuteAtNightPreference,
@@ -200,6 +202,72 @@ describe("notification localization", () => {
         course: "JLPT_N5",
         example: "雨(あま)戸(ど)を閉(し)める。",
         exampleHurigana: "あまどをしめる。",
+      }),
+    );
+  });
+
+  it("builds Korean Kanji notification content from Korean meaning and reading fields", async () => {
+    await setLanguage("ko");
+
+    const content = await buildKanjiPopWordNotificationContent({
+      id: "kanji-1",
+      kanji: "語",
+      meaning: ["word"],
+      meaningKorean: ["단어"],
+      meaningKoreanRomanize: ["dan-eo"],
+      meaningExample: [],
+      meaningExampleHurigana: [],
+      meaningEnglishTranslation: [],
+      meaningKoreanTranslation: [],
+      reading: ["ご"],
+      readingKorean: ["고"],
+      readingKoreanRomanize: ["go"],
+      readingExample: [],
+      readingExampleHurigana: [],
+      readingEnglishTranslation: [],
+      readingKoreanTranslation: [],
+      example: [],
+      exampleEnglishTranslation: [],
+      exampleKoreanTranslation: [],
+      exampleHurigana: [],
+    });
+
+    expect(content).toEqual({
+      title: "오늘의 한자",
+      body: "語　단어\n고",
+    });
+  });
+
+  it("preserves localized Kanji fields in notification payload data", () => {
+    const payload = buildKanjiPopWordNotificationData({
+      id: "kanji-1",
+      kanji: "語",
+      meaning: ["word"],
+      meaningKorean: ["단어"],
+      meaningKoreanRomanize: ["dan-eo"],
+      meaningExample: [],
+      meaningExampleHurigana: [],
+      meaningEnglishTranslation: [],
+      meaningKoreanTranslation: [],
+      reading: ["ご"],
+      readingKorean: ["고"],
+      readingKoreanRomanize: ["go"],
+      readingExample: [],
+      readingExampleHurigana: [],
+      readingEnglishTranslation: [],
+      readingKoreanTranslation: [],
+      example: [],
+      exampleEnglishTranslation: [],
+      exampleKoreanTranslation: [],
+      exampleHurigana: [],
+    });
+
+    expect(payload).toEqual(
+      expect.objectContaining({
+        meaningKorean: JSON.stringify(["단어"]),
+        meaningKoreanRomanize: JSON.stringify(["dan-eo"]),
+        readingKorean: JSON.stringify(["고"]),
+        readingKoreanRomanize: JSON.stringify(["go"]),
       }),
     );
   });

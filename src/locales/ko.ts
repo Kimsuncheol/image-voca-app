@@ -123,6 +123,10 @@ const ko = {
       title: "오늘의 연어",
       header: "연어 알림",
     },
+    kanji: {
+      title: "오늘의 한자",
+      header: "한자 알림",
+    },
     reminder: {
       title: "학습 알림",
       body: "오늘도 어휘 학습 습관을 만들어보세요! 앱을 열고 단어나 연어를 공부해보세요.",

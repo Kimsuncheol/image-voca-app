@@ -39,6 +39,14 @@ jest.mock("../components/swipe/SwipeCardItemAddToWordBankButton", () => ({
   SwipeCardItemAddToWordBankButton: () => null,
 }));
 
+jest.mock("../components/common/DayBadge", () => ({
+  DayBadge: ({ day }: { day: number }) => {
+    const React = require("react");
+    const { Text } = require("react-native");
+    return <Text>{`Day ${day}`}</Text>;
+  },
+}));
+
 jest.mock("react-native-flip-card", () => {
   const React = require("react");
   const { View } = require("react-native");
@@ -59,11 +67,15 @@ function buildKanjiWord(overrides: Partial<KanjiWord> = {}): KanjiWord {
     id: "kanji-1",
     kanji: "語",
     meaning: ["word"],
+    meaningKorean: ["단어"],
+    meaningKoreanRomanize: ["dan-eo"],
     meaningExample: [{ items: ["熟語"] }],
     meaningExampleHurigana: [{ items: ["じゅくご"] }],
     meaningEnglishTranslation: [{ items: ["compound word"] }],
     meaningKoreanTranslation: [{ items: ["숙어"] }],
     reading: ["ご"],
+    readingKorean: ["고"],
+    readingKoreanRomanize: ["go"],
     readingExample: [{ items: ["日本語"] }],
     readingExampleHurigana: [{ items: ["にほんご"] }],
     readingEnglishTranslation: [{ items: ["Japanese language"] }],
@@ -83,11 +95,13 @@ const flipToBack = (screen: ReturnType<typeof render>) => {
 const textChildrenOf = (node: { findAllByType: (type: unknown) => Array<{ props: { children?: unknown } }> }) =>
   node
     .findAllByType(Text)
-    .flatMap((textNode) => React.Children.toArray(textNode.props.children))
+    .flatMap((textNode) =>
+      React.Children.toArray(textNode.props.children as React.ReactNode),
+    )
     .filter((child): child is string => typeof child === "string");
 
-const flattenStyleOf = (node: { props: { style?: unknown } }) =>
-  StyleSheet.flatten(node.props.style);
+const flattenStyleOf = (node: { props: { style?: unknown } }): any =>
+  StyleSheet.flatten(node.props.style as any);
 
 describe("KanjiCollocationCard", () => {
   beforeEach(() => {
@@ -96,13 +110,41 @@ describe("KanjiCollocationCard", () => {
     mockStopCardSpeech.mockClear();
   });
 
-  it("renders kanji, meaning values, and reading values on face side", () => {
+  it("renders English-localized romanized meaning and reading values on face side", () => {
     const { getByText, getAllByText, queryByText } = render(<KanjiCollocationCard item={buildKanjiWord()} day={1} />);
 
     expect(getByText("語")).toBeTruthy();
+    expect(getAllByText("dan-eo").length).toBeGreaterThanOrEqual(1);
+    expect(getAllByText("go").length).toBeGreaterThanOrEqual(1);
+    expect(queryByText("word")).toBeNull();
+    expect(queryByText("ご")).toBeNull();
+    expect(queryByText("熟語")).toBeNull();
+  });
+
+  it("renders Korean-localized meaning and reading values when language is ko", () => {
+    mockLanguage = "ko";
+
+    const { getAllByText, queryByText } = render(
+      <KanjiCollocationCard item={buildKanjiWord()} />,
+    );
+
+    expect(getAllByText("단어").length).toBeGreaterThanOrEqual(1);
+    expect(getAllByText("고").length).toBeGreaterThanOrEqual(1);
+    expect(queryByText("dan-eo")).toBeNull();
+    expect(queryByText("go")).toBeNull();
+  });
+
+  it("renders base meaning and reading values when language is ja", () => {
+    mockLanguage = "ja";
+
+    const { getAllByText, queryByText } = render(
+      <KanjiCollocationCard item={buildKanjiWord()} />,
+    );
+
     expect(getAllByText("word").length).toBeGreaterThanOrEqual(1);
     expect(getAllByText("ご").length).toBeGreaterThanOrEqual(1);
-    expect(queryByText("熟語")).toBeNull();
+    expect(queryByText("dan-eo")).toBeNull();
+    expect(queryByText("go")).toBeNull();
   });
 
   it("renders example text and translation on back side", () => {

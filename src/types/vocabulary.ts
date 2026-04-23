@@ -42,12 +42,16 @@ export type KanjiWord = {
   kanji: string;
 
   meaning: string[];
+  meaningKorean: string[];
+  meaningKoreanRomanize: string[];
   meaningExample: KanjiNestedListGroup[];
   meaningExampleHurigana: KanjiNestedListGroup[];
   meaningEnglishTranslation: KanjiNestedListGroup[];
   meaningKoreanTranslation: KanjiNestedListGroup[];
 
   reading: string[];
+  readingKorean: string[];
+  readingKoreanRomanize: string[];
   readingExample: KanjiNestedListGroup[];
   readingExampleHurigana: KanjiNestedListGroup[];
   readingEnglishTranslation: KanjiNestedListGroup[];

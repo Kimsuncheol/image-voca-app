@@ -13,6 +13,14 @@ jest.mock("../components/swipe/SwipeCardItemAddToWordBankButton", () => ({
   SwipeCardItemAddToWordBankButton: () => null,
 }));
 
+jest.mock("../components/common/DayBadge", () => ({
+  DayBadge: ({ day }: { day: number }) => {
+    const React = require("react");
+    const { Text } = require("react-native");
+    return <Text>{`Day ${day}`}</Text>;
+  },
+}));
+
 jest.mock("../components/course/vocabulary/CarouselSwipeDeck", () => ({
   __esModule: true,
   CarouselSwipeDeck: ({ onSwipeStart }: { onSwipeStart?: () => void }) => {
@@ -30,11 +38,15 @@ const kanjiWord: KanjiWord = {
   id: "kanji-1",
   kanji: "語",
   meaning: ["word"],
+  meaningKorean: ["단어"],
+  meaningKoreanRomanize: ["dan-eo"],
   meaningExample: [{ items: ["熟語"] }],
   meaningExampleHurigana: [{ items: ["じゅくご"] }],
   meaningEnglishTranslation: [{ items: ["compound word"] }],
   meaningKoreanTranslation: [{ items: ["숙어"] }],
   reading: ["ご"],
+  readingKorean: ["고"],
+  readingKoreanRomanize: ["go"],
   readingExample: [{ items: ["日本語"] }],
   readingExampleHurigana: [{ items: ["にほんご"] }],
   readingEnglishTranslation: [{ items: ["Japanese language"] }],

@@ -17,6 +17,7 @@ interface NotificationCardPayloadBase {
   pronunciationRoman?: string;
   example?: string;
   exampleFurigana?: string;
+  exampleHurigana?: string;
   translation?: string;
   synonyms?: string[];
   imageUrl?: string;
@@ -43,7 +44,11 @@ export interface NotificationKanjiCardPayload {
   imageUrl?: string;
   // All nested array fields serialized as JSON strings to fit notification data limits
   meaning: string;
+  meaningKorean: string;
+  meaningKoreanRomanize: string;
   reading: string;
+  readingKorean: string;
+  readingKoreanRomanize: string;
   meaningExample: string;
   meaningExampleHurigana: string;
   meaningEnglishTranslation: string;
@@ -60,7 +65,11 @@ export interface NotificationKanjiCardPayload {
 
 export interface DeserializedKanjiNotificationPayload {
   meaning: string[];
+  meaningKorean: string[];
+  meaningKoreanRomanize: string[];
   reading: string[];
+  readingKorean: string[];
+  readingKoreanRomanize: string[];
   meaningExample: KanjiNestedListGroup[];
   meaningExampleHurigana: KanjiNestedListGroup[];
   meaningEnglishTranslation: KanjiNestedListGroup[];
@@ -78,7 +87,8 @@ export interface DeserializedKanjiNotificationPayload {
 export function deserializeKanjiNotificationPayload(
   payload: NotificationKanjiCardPayload,
 ): DeserializedKanjiNotificationPayload {
-  const parse = <T>(json: string, fallback: T): T => {
+  const parse = <T>(json: unknown, fallback: T): T => {
+    if (typeof json !== "string") return fallback;
     try {
       return JSON.parse(json) as T;
     } catch {
@@ -87,7 +97,11 @@ export function deserializeKanjiNotificationPayload(
   };
   return {
     meaning: parse(payload.meaning, []),
+    meaningKorean: parse(payload.meaningKorean, []),
+    meaningKoreanRomanize: parse(payload.meaningKoreanRomanize, []),
     reading: parse(payload.reading, []),
+    readingKorean: parse(payload.readingKorean, []),
+    readingKoreanRomanize: parse(payload.readingKoreanRomanize, []),
     meaningExample: parse(payload.meaningExample, []),
     meaningExampleHurigana: parse(payload.meaningExampleHurigana, []),
     meaningEnglishTranslation: parse(payload.meaningEnglishTranslation, []),

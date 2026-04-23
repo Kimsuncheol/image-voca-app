@@ -1,6 +1,10 @@
 import React from "react";
 import { View, Text, Pressable, ScrollView, TouchableOpacity } from "react-native";
 import type { KanjiWord } from "../../../src/types/vocabulary";
+import {
+  getLocalizedKanjiMeanings,
+  getLocalizedKanjiReadings,
+} from "../../../src/utils/kanjiLocalization";
 import { styles } from "./KanjiCollocationCardStyles";
 import { BackSection } from "./KanjiCollocationCardBackSection";
 import { GeneralBackSection } from "./KanjiCollocationCardGeneralBackSection";
@@ -16,6 +20,8 @@ export interface BackSideProps {
   isDark: boolean;
   /** Whether the card is currently active/visible on the screen to process TTS operations */
   isActive: boolean;
+  /** Current app language used to choose localized meaning/reading labels */
+  language?: string;
   /** Whether the user speaks Korean. Used to toggle dynamically between Korean/English translations. */
   useKorean: boolean;
   /** Callback triggered to flip the card horizontally back to the front face */
@@ -29,7 +35,9 @@ export interface BackSideProps {
  * detailed collocations, grouped meanings, readings, Japanese usages, and example sentences.
  * It also holds the "がな" (Furigana) toggle button to show or hide reading aids.
  */
-export function BackSide({ item, isDark, isActive, useKorean, onFlip }: BackSideProps) {
+export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }: BackSideProps) {
+  const meanings = getLocalizedKanjiMeanings(item, language);
+  const readings = getLocalizedKanjiReadings(item, language);
   const meaningTranslations = useKorean ? item.meaningKoreanTranslation : item.meaningEnglishTranslation;
   const readingTranslations = useKorean ? item.readingKoreanTranslation : item.readingEnglishTranslation;
   const exampleTranslations = useKorean ? item.exampleKoreanTranslation : item.exampleEnglishTranslation;
@@ -83,7 +91,7 @@ export function BackSide({ item, isDark, isActive, useKorean, onFlip }: BackSide
           >
             <BackSection
               title="MEANING"
-              values={item.meaning}
+              values={meanings}
               examples={item.meaningExample}
               hurigana={item.meaningExampleHurigana}
               translations={meaningTranslations}
@@ -94,7 +102,7 @@ export function BackSide({ item, isDark, isActive, useKorean, onFlip }: BackSide
             <DottedDivider isDark={isDark} />
             <BackSection
               title="READING"
-              values={item.reading}
+              values={readings}
               examples={item.readingExample}
               hurigana={item.readingExampleHurigana}
               translations={readingTranslations}

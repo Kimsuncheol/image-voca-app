@@ -232,7 +232,7 @@ export default function QuizPlayScreen() {
         );
         const fetchedVocab: QuizVocabData[] = fetchedCards.map((card) => {
           if (isKanjiWord(card)) {
-            return mapKanjiWordToQuizData(card);
+            return mapKanjiWordToQuizData(card, i18n.language);
           }
 
           const resolved = resolveQuizVocabulary(card, i18n.language);

@@ -1,4 +1,4 @@
-import { CARD_HEIGHT, CARD_WIDTH } from "@/src/constants/layout";
+import { CARD_HEIGHT, CARD_WIDTH } from "../../../src/constants/layout";
 import { StyleSheet } from "react-native";
 
 // const { width } = Dimensions.get("window");

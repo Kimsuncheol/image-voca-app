@@ -1,5 +1,9 @@
 import nlp from "compromise";
 import type { KanjiWord } from "../types/vocabulary";
+import {
+  getLocalizedKanjiMeanings,
+  getLocalizedKanjiReadings,
+} from "../utils/kanjiLocalization";
 import { isPronunciationMatchEligible } from "../utils/pronunciationMatching";
 
 export interface QuizWordOption {
@@ -56,21 +60,31 @@ const escapeRegex = (value: string) =>
 const firstNonEmpty = (values: string[]) =>
   values.map((value) => value.trim()).find(Boolean);
 
-export const mapKanjiWordToQuizData = (card: KanjiWord): QuizVocabData => {
+export const mapKanjiWordToQuizData = (
+  card: KanjiWord,
+  language?: string,
+): QuizVocabData => {
   const exampleIndex = card.example.findIndex((example) =>
     example.includes(card.kanji),
   );
   const exampleContainingKanji =
     exampleIndex >= 0 ? card.example[exampleIndex] : undefined;
+  const isKorean = language?.split("-")[0] === "ko";
+  const translations = isKorean
+    ? card.exampleKoreanTranslation
+    : card.exampleEnglishTranslation;
 
   return {
     word: card.kanji,
-    meaning: card.meaning.map((meaning) => meaning.trim()).filter(Boolean).join("; "),
-    pronunciation: firstNonEmpty(card.reading),
+    meaning: getLocalizedKanjiMeanings(card, language)
+      .map((meaning) => meaning.trim())
+      .filter(Boolean)
+      .join("; "),
+    pronunciation: firstNonEmpty(getLocalizedKanjiReadings(card, language)),
     example: exampleContainingKanji,
     translation:
       exampleIndex >= 0
-        ? firstNonEmpty([card.exampleEnglishTranslation[exampleIndex] ?? ""])
+        ? firstNonEmpty([translations[exampleIndex] ?? ""])
         : undefined,
   };
 };

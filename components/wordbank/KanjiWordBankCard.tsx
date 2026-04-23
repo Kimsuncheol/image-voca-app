@@ -4,6 +4,10 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
+import {
+  getLocalizedKanjiMeanings,
+  getLocalizedKanjiReadings,
+} from "../../src/utils/kanjiLocalization";
 import { DayBadge } from "../common/DayBadge";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { DottedDivider } from "../course/vocabulary/KanjiCollocationCardDivider";
@@ -30,8 +34,8 @@ export function KanjiWordBankCard({
 
   const [showFurigana, setShowFurigana] = React.useState(false);
 
-  const meanings = compactStrings(word.meaning as string[] | undefined);
-  const readings = compactStrings(word.reading);
+  const meanings = compactStrings(getLocalizedKanjiMeanings(word, i18n.language));
+  const readings = compactStrings(getLocalizedKanjiReadings(word, i18n.language));
 
   const exampleTranslations = useKorean
     ? (word.exampleKoreanTranslation ?? [])

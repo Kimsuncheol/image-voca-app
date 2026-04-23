@@ -182,8 +182,15 @@ const mapKanjiDocToWord = (
   data: Record<string, unknown>,
 ): KanjiWord => ({
   id: docId,
-  kanji: typeof data.kanji === "string" ? data.kanji : "",
+  kanji:
+    typeof data.Kanji === "string"
+      ? data.Kanji
+      : typeof data.kanji === "string"
+        ? data.kanji
+        : "",
   meaning: normalizeStringArray(data.meaning),
+  meaningKorean: normalizeStringArray(data.meaningKorean),
+  meaningKoreanRomanize: normalizeStringArray(data.meaningKoreanRomanize),
   meaningExample: normalizeKanjiNestedListGroups(data.meaningExample),
   meaningExampleHurigana: normalizeKanjiNestedListGroups(
     data.meaningExampleHurigana,
@@ -195,6 +202,8 @@ const mapKanjiDocToWord = (
     data.meaningKoreanTranslation,
   ),
   reading: normalizeStringArray(data.reading),
+  readingKorean: normalizeStringArray(data.readingKorean),
+  readingKoreanRomanize: normalizeStringArray(data.readingKoreanRomanize),
   readingExample: normalizeKanjiNestedListGroups(data.readingExample),
   readingExampleHurigana: normalizeKanjiNestedListGroups(
     data.readingExampleHurigana,
@@ -212,13 +221,18 @@ const mapKanjiDocToWord = (
 });
 
 const KANJI_FIRESTORE_LOG_FIELDS = [
+  "Kanji",
   "kanji",
   "meaning",
+  "meaningKorean",
+  "meaningKoreanRomanize",
   "meaningExample",
   "meaningExampleHurigana",
   "meaningEnglishTranslation",
   "meaningKoreanTranslation",
   "reading",
+  "readingKorean",
+  "readingKoreanRomanize",
   "readingExample",
   "readingExampleHurigana",
   "readingEnglishTranslation",
@@ -693,7 +707,7 @@ export async function fetchVocabularyCardsFromFirestore(
 
       if (courseId === "KANJI") {
         logKanjiFirestoreDocument({
-          path: config.path,
+          path: config.path ?? "",
           day: subCollectionName,
           id: snapshot.id,
           data,

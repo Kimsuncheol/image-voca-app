@@ -57,6 +57,7 @@ export function KanjiCollocationCard({
         item={item}
         isDark={isDark}
         isActive={isActive}
+        language={i18n.language}
         day={day}
         initialIsSaved={initialIsSaved}
         onSavedWordChange={onSavedWordChange}
@@ -66,6 +67,7 @@ export function KanjiCollocationCard({
         item={item}
         isDark={isDark}
         isActive={isActive}
+        language={i18n.language}
         useKorean={i18n.language === "ko"}
         onFlip={() => flip(false)}
       />
