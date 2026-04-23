@@ -10,7 +10,7 @@ import {
   type MeaningSegment,
 } from "../../src/utils/meaningPartsOfSpeech";
 
-const POS_COLUMN_WIDTH = 36;
+const POS_COLUMN_WIDTH = 28;
 
 interface InlineMeaningWithChipsProps {
   meaning: string;
@@ -23,6 +23,7 @@ interface InlineMeaningWithChipsProps {
   chipStyle?: StyleProp<ViewStyle>;
   testID?: string;
   forceInline?: boolean;
+  splitPosSegmentsIntoRows?: boolean;
 }
 
 export function InlineMeaningWithChips({
@@ -36,22 +37,31 @@ export function InlineMeaningWithChips({
   chipStyle,
   testID,
   forceInline = false,
+  splitPosSegmentsIntoRows = false,
 }: InlineMeaningWithChipsProps) {
   const formattedMeaning = React.useMemo(
     () => formatIdiomMeaningForDisplay(meaning, courseId),
     [courseId, meaning],
   );
   const parsedMeaning = parseMeaningPartsOfSpeech(formattedMeaning);
+  const displayLines = React.useMemo(
+    () =>
+      splitPosSegmentsIntoRows
+        ? splitLinesByPartsOfSpeech(parsedMeaning.lines)
+        : parsedMeaning.lines,
+    [parsedMeaning.lines, splitPosSegmentsIntoRows],
+  );
   const textColor = isDark ? "#FFFFFF" : "#000000";
   const useColumnLayout =
     !forceInline &&
-    parsedMeaning.lines.length > 1 &&
+    (displayLines.length > 1 ||
+      (splitPosSegmentsIntoRows && parsedMeaning.hasPartsOfSpeech)) &&
     (!isNumberedMeaningDisplayCourseId(courseId) ||
       parsedMeaning.hasPartsOfSpeech);
 
   return (
     <View style={[styles.container, containerStyle]} testID={testID}>
-      {parsedMeaning.lines.map((line, lineIndex) =>
+      {displayLines.map((line, lineIndex) =>
         useColumnLayout ? (
           <View
             key={`line-${lineIndex}`}
@@ -80,6 +90,40 @@ export function InlineMeaningWithChips({
       )}
     </View>
   );
+}
+
+function splitLinesByPartsOfSpeech(lines: MeaningLine[]): MeaningLine[] {
+  return lines.flatMap((line) => {
+    const posSegmentIndexes = line.segments
+      .map((segment, index) => (segment.type === "pos" ? index : -1))
+      .filter((index) => index >= 0);
+
+    if (posSegmentIndexes.length === 0) {
+      return [line];
+    }
+
+    return posSegmentIndexes.map((posIndex, rowIndex) => {
+      const nextPosIndex = posSegmentIndexes[rowIndex + 1] ?? line.segments.length;
+      const rowSegments = line.segments
+        .slice(posIndex, nextPosIndex)
+        .map((segment, segmentIndex) => {
+          if (segment.type !== "text" || segmentIndex !== 1) {
+            return segment;
+          }
+
+          return {
+            ...segment,
+            value: segment.value.trim(),
+          };
+        })
+        .filter((segment) => segment.type !== "text" || segment.value.length > 0);
+
+      return {
+        linePrefix: rowIndex === 0 ? line.linePrefix : undefined,
+        segments: rowSegments,
+      };
+    });
+  });
 }
 
 function renderInlineLine(
@@ -222,7 +266,7 @@ const styles = StyleSheet.create({
     minHeight: 18,
     minWidth: 18,
     paddingHorizontal: 6,
-    marginRight: 6,
+    marginRight: 4,
     borderWidth: 1,
     borderRadius: 999,
     alignItems: "center",

@@ -176,6 +176,9 @@ function StandardWordCard({
             meaning={resolved.meaning}
             courseId={word.course}
             isDark={isDark}
+            hasPronunciation={
+              showPronunciation && Boolean(resolved.sharedPronunciation)
+            }
           />
         </View>
         {resolved.imageUrl ? (

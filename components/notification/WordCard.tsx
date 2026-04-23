@@ -166,9 +166,14 @@ export default function WordCard({
                 styles.meaning,
                 { color: isDark ? "#BFDBFE" : "#1D4ED8" },
               ]}
-              containerStyle={styles.inlineMeaning}
+              containerStyle={[
+                styles.inlineMeaning,
+                resolved.sharedPronunciation &&
+                  styles.inlineMeaningAfterPronunciation,
+              ]}
               chipStyle={styles.inlineChip}
               testID="inline-meaning"
+              splitPosSegmentsIntoRows
             />
           </View>
 
@@ -262,8 +267,11 @@ const styles = StyleSheet.create({
   inlineMeaning: {
     gap: 6,
   },
+  inlineMeaningAfterPronunciation: {
+    marginTop: 2,
+  },
   inlineChip: {
-    marginRight: 6,
+    marginRight: 4,
   },
   wordRow: {
     flexDirection: "row",

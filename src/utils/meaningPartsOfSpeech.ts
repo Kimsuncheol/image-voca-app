@@ -33,7 +33,7 @@ const pushTextSegment = (segments: MeaningSegment[], value: string) => {
 export function parseMeaningPartsOfSpeech(
   meaning: string,
 ): ParsedMeaningPartsOfSpeech {
-  const lines = meaning.split("\n").map((rawLine) => {
+  const lines: MeaningLine[] = meaning.split("\n").map((rawLine) => {
     let linePrefix: string | undefined;
     let content = rawLine;
 

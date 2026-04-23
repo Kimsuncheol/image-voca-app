@@ -6,6 +6,7 @@ interface WordCardMeaningProps {
   meaning: string;
   courseId?: string;
   isDark: boolean;
+  hasPronunciation?: boolean;
 }
 
 /**
@@ -16,6 +17,7 @@ export function WordCardMeaning({
   meaning,
   courseId,
   isDark,
+  hasPronunciation = false,
 }: WordCardMeaningProps) {
   return (
     <InlineMeaningWithChips
@@ -23,9 +25,13 @@ export function WordCardMeaning({
       courseId={courseId}
       isDark={isDark}
       textStyle={styles.meaning}
-      containerStyle={styles.container}
+      containerStyle={[
+        styles.container,
+        hasPronunciation && styles.containerAfterPronunciation,
+      ]}
       chipStyle={styles.inlineChip}
       testID="inline-meaning"
+      splitPosSegmentsIntoRows
     />
   );
 }
@@ -34,8 +40,11 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 8,
   },
+  containerAfterPronunciation: {
+    marginTop: 8,
+  },
   inlineChip: {
-    marginRight: 6,
+    marginRight: 4,
   },
   meaning: {
     fontSize: 15,

@@ -60,6 +60,44 @@ describe("InlineMeaningWithChips", () => {
     expect(queryByTestId("inline-meaning-pos-column-0")).toBeNull();
   });
 
+  it("splits single-line POS groups into wrapped rows when opted in", () => {
+    const { getByTestId, getByText, queryByText } = render(
+      <InlineMeaningWithChips
+        meaning="v. 진행하다, 나아가다, 계속되다 n. 진행, 계속됨"
+        isDark={false}
+        testID="inline-meaning"
+        splitPosSegmentsIntoRows
+      />,
+    );
+
+    const firstLineStyle = StyleSheet.flatten(
+      getByTestId("inline-meaning-line-0").props.style,
+    );
+    const secondLineStyle = StyleSheet.flatten(
+      getByTestId("inline-meaning-line-1").props.style,
+    );
+    const firstTextColumnStyle = StyleSheet.flatten(
+      getByTestId("inline-meaning-text-column-0").props.style,
+    );
+    const secondTextColumnStyle = StyleSheet.flatten(
+      getByTestId("inline-meaning-text-column-1").props.style,
+    );
+
+    expect(getByText("v")).toBeTruthy();
+    expect(getByText("n")).toBeTruthy();
+    expect(getByText("진행하다, 나아가다, 계속되다")).toBeTruthy();
+    expect(getByText("진행, 계속됨")).toBeTruthy();
+    expect(queryByText("v.")).toBeNull();
+    expect(queryByText("n.")).toBeNull();
+    expect(queryByText("|")).toBeNull();
+    expect(firstLineStyle.flexDirection).toBe("row");
+    expect(secondLineStyle.flexDirection).toBe("row");
+    expect(firstTextColumnStyle.flex).toBe(1);
+    expect(firstTextColumnStyle.flexWrap).toBe("wrap");
+    expect(secondTextColumnStyle.flex).toBe(1);
+    expect(secondTextColumnStyle.flexWrap).toBe("wrap");
+  });
+
   it("renders numbered CSAT idiom meanings without POS indentation", () => {
     const { getByText, queryByTestId } = render(
       <InlineMeaningWithChips

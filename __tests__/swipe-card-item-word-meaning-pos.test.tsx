@@ -10,6 +10,17 @@ jest.mock("../src/hooks/useSpeech", () => ({
   }),
 }));
 
+jest.mock("../components/themed-text", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+
+  return {
+    ThemedText: ({ children, ...props }: any) => (
+      <Text {...props}>{children}</Text>
+    ),
+  };
+});
+
 jest.mock("../components/swipe/SwipeCardItemAddToWordBankButton", () => ({
   __esModule: true,
   SwipeCardItemAddToWordBankButton: () => null,
@@ -26,8 +37,8 @@ function buildItem(): VocabularyCard {
 }
 
 describe("SwipeCardItemWordMeaningSection", () => {
-  it("renders inline chips for later markers in the same line", () => {
-    const { getByText, queryByText } = render(
+  it("renders POS groups as separate meaning rows", () => {
+    const { getByTestId, getByText, queryByText } = render(
       <SwipeCardItemWordMeaningSection
         item={buildItem()}
         word="sparkle"
@@ -36,12 +47,48 @@ describe("SwipeCardItemWordMeaningSection", () => {
       />,
     );
 
+    const firstRowStyle = StyleSheet.flatten(
+      getByTestId("inline-meaning-line-0").props.style,
+    );
+    const secondRowStyle = StyleSheet.flatten(
+      getByTestId("inline-meaning-line-1").props.style,
+    );
+    const firstTextColumnStyle = StyleSheet.flatten(
+      getByTestId("inline-meaning-text-column-0").props.style,
+    );
+    const secondTextColumnStyle = StyleSheet.flatten(
+      getByTestId("inline-meaning-text-column-1").props.style,
+    );
+
     expect(getByText("n")).toBeTruthy();
     expect(getByText("v")).toBeTruthy();
-    expect(getByText(" 불꽃, 번쩍임 ")).toBeTruthy();
-    expect(getByText(" 번쩍이다.")).toBeTruthy();
+    expect(getByText("불꽃, 번쩍임")).toBeTruthy();
+    expect(getByText("번쩍이다.")).toBeTruthy();
     expect(queryByText("n.")).toBeNull();
     expect(queryByText("v.")).toBeNull();
+    expect(queryByText("|")).toBeNull();
+    expect(firstRowStyle.flexDirection).toBe("row");
+    expect(secondRowStyle.flexDirection).toBe("row");
+    expect(firstTextColumnStyle.flex).toBe(1);
+    expect(firstTextColumnStyle.flexWrap).toBe("wrap");
+    expect(secondTextColumnStyle.flex).toBe(1);
+    expect(secondTextColumnStyle.flexWrap).toBe("wrap");
+  });
+
+  it("uses an 8px gap after pronunciation before the meaning", () => {
+    const { getByText } = render(
+      <SwipeCardItemWordMeaningSection
+        item={buildItem()}
+        word="seed"
+        pronunciation="/siːd/"
+        meaning="n. 씨, 씨앗"
+        isDark={false}
+      />,
+    );
+
+    const pronunciationStyle = StyleSheet.flatten(getByText("/siːd/").props.style);
+
+    expect(pronunciationStyle.marginBottom).toBe(8);
   });
 
   it("preserves numbered prefixes while converting line markers to chips", () => {
@@ -58,8 +105,8 @@ describe("SwipeCardItemWordMeaningSection", () => {
     expect(getByText("2. ")).toBeTruthy();
     expect(getByText("n")).toBeTruthy();
     expect(getByText("v")).toBeTruthy();
-    expect(getByText(" 이유")).toBeTruthy();
-    expect(getByText(" 추론하다, 추리하다")).toBeTruthy();
+    expect(getByText("이유")).toBeTruthy();
+    expect(getByText("추론하다, 추리하다")).toBeTruthy();
     expect(queryByText("n. 이유")).toBeNull();
     expect(queryByText("v. 추론하다, 추리하다")).toBeNull();
   });

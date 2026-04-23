@@ -126,6 +126,7 @@ export function SwipeCardItemWordMeaningSection({
           containerStyle={styles.inlineMeaning}
           chipStyle={styles.inlineChip}
           testID="inline-meaning"
+          splitPosSegmentsIntoRows
         />
       </View>
     </>
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     color: "#666",
     fontStyle: "italic",
     marginTop: 2,
-    marginBottom: 10,
+    marginBottom: 8,
     letterSpacing: 0.2,
   },
   meaningSection: {
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   inlineChip: {
-    marginRight: 6,
+    marginRight: 4,
   },
   cardDescription: {
     fontSize: 17,

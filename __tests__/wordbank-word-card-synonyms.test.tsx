@@ -19,6 +19,10 @@ jest.mock("../src/context/LearningLanguageContext", () => ({
   }),
 }));
 
+jest.mock("../components/wordbank/KanjiWordBankCard", () => ({
+  KanjiWordBankCard: () => null,
+}));
+
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (_key: string, options?: { defaultValue?: string }) =>
