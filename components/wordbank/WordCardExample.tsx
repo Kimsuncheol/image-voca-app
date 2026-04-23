@@ -369,9 +369,6 @@ export function WordCardExample({
 
 const styles = StyleSheet.create({
   container: {
-    borderLeftWidth: 3,
-    borderLeftColor: "#007AFF",
-    paddingLeft: 12,
     marginTop: 4,
   },
   containerCapped: {
@@ -396,7 +393,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   translation: {
-    fontSize: 14,
+    fontSize: 12,
     lineHeight: 19,
     marginTop: 4,
     opacity: 0.92,

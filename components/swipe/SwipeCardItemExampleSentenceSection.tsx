@@ -97,7 +97,6 @@ export function SwipeCardItemExampleSentenceSection({
                 style={[
                   styles.cardExample,
                   { color: isDark ? "#b0b0b0" : "#444" },
-                  { borderLeftColor: isDark ? "#0a84ff" : "#007AFF" },
                 ]}
                 numberOfLines={2}
               >
@@ -110,7 +109,6 @@ export function SwipeCardItemExampleSentenceSection({
                 style={[
                   styles.cardTranslation,
                   { color: isDark ? "#a8e6a1" : "#2d5f2d" },
-                  { borderLeftColor: isDark ? "#34c759" : "#28a745" },
                 ]}
                 numberOfLines={2}
               >
@@ -136,7 +134,6 @@ export function SwipeCardItemExampleSentenceSection({
               style={[
                 styles.cardSynonyms,
                 { color: isDark ? "#9A9A9A" : "#2F2F2F" },
-                { borderLeftColor: isDark ? "#0a84ff" : "#007AFF" },
               ]}
               numberOfLines={2}
             >
@@ -197,26 +194,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     color: "#444",
-    borderLeftWidth: 4,
-    borderLeftColor: "#007AFF",
-    paddingLeft: 12,
     lineHeight: 20,
   },
   cardTranslation: {
-    fontSize: 16,
+    fontSize: 12,
     color: "#2d5f2d",
     fontWeight: "500",
-    borderLeftWidth: 4,
-    borderLeftColor: "#28a745",
-    paddingLeft: 12,
     marginTop: 4,
     lineHeight: 22,
   },
   cardSynonyms: {
     fontSize: 15,
     fontWeight: "500",
-    borderLeftWidth: 4,
-    paddingLeft: 12,
     lineHeight: 22,
   },
   expandButton: {

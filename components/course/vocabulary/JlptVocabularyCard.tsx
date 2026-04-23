@@ -85,6 +85,7 @@ function LabeledMeaningRow({
         containerStyle={styles.inlineMeaning}
         chipStyle={styles.inlineChip}
         testID={`${testID}-content`}
+        forceInline
       />
     </View>
   );
@@ -150,7 +151,6 @@ const ExampleBlock = React.memo(function ExampleBlock({
                   style={[
                     styles.cardExample,
                     { color: isDark ? "#b0b0b0" : "#444" },
-                    { borderLeftColor: isDark ? "#0a84ff" : "#007AFF" },
                   ]}
                   numberOfLines={2}
                 >
@@ -177,7 +177,6 @@ const ExampleBlock = React.memo(function ExampleBlock({
                 style={[
                   styles.cardTranslation,
                   { color: isDark ? "#a8e6a1" : "#2d5f2d" },
-                  { borderLeftColor: isDark ? "#34c759" : "#28a745" },
                 ]}
                 numberOfLines={2}
               >
@@ -471,16 +470,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     color: "#444",
-    borderLeftWidth: 4,
-    borderLeftColor: "#007AFF",
-    paddingLeft: 12,
     lineHeight: 20,
   },
   cardTranslation: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "500",
-    borderLeftWidth: 4,
-    paddingLeft: 12,
     marginTop: 4,
     lineHeight: 22,
   },

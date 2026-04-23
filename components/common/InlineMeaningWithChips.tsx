@@ -22,6 +22,7 @@ interface InlineMeaningWithChipsProps {
   lineStyle?: StyleProp<ViewStyle>;
   chipStyle?: StyleProp<ViewStyle>;
   testID?: string;
+  forceInline?: boolean;
 }
 
 export function InlineMeaningWithChips({
@@ -34,6 +35,7 @@ export function InlineMeaningWithChips({
   lineStyle,
   chipStyle,
   testID,
+  forceInline = false,
 }: InlineMeaningWithChipsProps) {
   const formattedMeaning = React.useMemo(
     () => formatIdiomMeaningForDisplay(meaning, courseId),
@@ -42,6 +44,7 @@ export function InlineMeaningWithChips({
   const parsedMeaning = parseMeaningPartsOfSpeech(formattedMeaning);
   const textColor = isDark ? "#FFFFFF" : "#000000";
   const useColumnLayout =
+    !forceInline &&
     parsedMeaning.lines.length > 1 &&
     (!isNumberedMeaningDisplayCourseId(courseId) ||
       parsedMeaning.hasPartsOfSpeech);
