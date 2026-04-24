@@ -182,7 +182,7 @@ describe("KanjiCollocationCard", () => {
     mockSpeak.mockClear();
     mockStopCardSpeech.mockClear();
 
-    fireEvent.press(screen.getByTestId("kanji-collocation-face-meaning-0"));
+    fireEvent.press(screen.getByTestId("kanji-collocation-face-meaning-speak-0"));
 
     expect(mockSpeak).toHaveBeenCalledTimes(1);
     expect(mockSpeak).toHaveBeenLastCalledWith("person", {
@@ -192,7 +192,7 @@ describe("KanjiCollocationCard", () => {
     expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
     expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
 
-    fireEvent.press(screen.getByTestId("kanji-collocation-face-reading-1"));
+    fireEvent.press(screen.getByTestId("kanji-collocation-face-reading-speak-1"));
 
     expect(mockSpeak).toHaveBeenCalledTimes(2);
     expect(mockSpeak).toHaveBeenLastCalledWith("いち", {

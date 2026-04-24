@@ -129,12 +129,9 @@ export function FaceSide({
               </Text>
               <View style={styles.faceChipRow}>
                 {meanings.map((m, i) => (
-                  <Pressable
+                  <View
                     key={`meaning-${i}`}
                     testID={`kanji-collocation-face-meaning-${i}`}
-                    onPress={(event) =>
-                      handlePressSpeechItem(event, m.speakText)
-                    }
                     style={{
                       flexDirection: "row",
                       alignItems: "baseline",
@@ -152,16 +149,23 @@ export function FaceSide({
                       </Text>
                     ) : null}
                     {m.baseText ? (
-                      <Text
-                        style={[
-                          styles.faceListItem,
-                          { color: isDark ? "#e0e0e0" : "#1a1a1a" },
-                        ]}
+                      <Pressable
+                        testID={`kanji-collocation-face-meaning-speak-${i}`}
+                        onPress={(event) =>
+                          handlePressSpeechItem(event, m.speakText)
+                        }
                       >
-                        {m.baseText}
-                      </Text>
+                        <Text
+                          style={[
+                            styles.faceListItem,
+                            { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                          ]}
+                        >
+                          {m.baseText}
+                        </Text>
+                      </Pressable>
                     ) : null}
-                  </Pressable>
+                  </View>
                 ))}
               </View>
             </View>
@@ -182,12 +186,9 @@ export function FaceSide({
               </Text>
               <View style={styles.faceChipRow}>
                 {readings.map((r, i) => (
-                  <Pressable
+                  <View
                     key={`reading-${i}`}
                     testID={`kanji-collocation-face-reading-${i}`}
-                    onPress={(event) =>
-                      handlePressSpeechItem(event, r.speakText)
-                    }
                     style={{
                       flexDirection: "row",
                       alignItems: "baseline",
@@ -205,16 +206,23 @@ export function FaceSide({
                       </Text>
                     ) : null}
                     {r.baseText ? (
-                      <Text
-                        style={[
-                          styles.faceListItem,
-                          { color: isDark ? "#e0e0e0" : "#1a1a1a" },
-                        ]}
+                      <Pressable
+                        testID={`kanji-collocation-face-reading-speak-${i}`}
+                        onPress={(event) =>
+                          handlePressSpeechItem(event, r.speakText)
+                        }
                       >
-                        {r.baseText}
-                      </Text>
+                        <Text
+                          style={[
+                            styles.faceListItem,
+                            { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                          ]}
+                        >
+                          {r.baseText}
+                        </Text>
+                      </Pressable>
                     ) : null}
-                  </Pressable>
+                  </View>
                 ))}
               </View>
             </View>
