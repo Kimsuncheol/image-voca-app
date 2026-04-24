@@ -4,7 +4,7 @@ import type {
   VocabularyLocalizationMap,
 } from "./vocabulary";
 
-export type NotificationCardKind = "word" | "collocation" | "kanji";
+export type NotificationCardKind = "collocation" | "kanji";
 
 interface NotificationCardPayloadBase {
   type: "pop_word";
@@ -22,10 +22,6 @@ interface NotificationCardPayloadBase {
   synonyms?: string[];
   imageUrl?: string;
   localized?: VocabularyLocalizationMap;
-}
-
-export interface NotificationWordCardPayload extends NotificationCardPayloadBase {
-  cardKind: "word";
 }
 
 export interface NotificationCollocationCardPayload
@@ -118,9 +114,7 @@ export function deserializeKanjiNotificationPayload(
 }
 
 export type NotificationCardPayload =
-  | NotificationWordCardPayload
-  | NotificationCollocationCardPayload
-  | NotificationKanjiCardPayload;
+  NotificationCollocationCardPayload | NotificationKanjiCardPayload;
 
 const isStringOrUndefined = (value: unknown): value is string | undefined =>
   value === undefined || typeof value === "string";
@@ -140,7 +134,6 @@ export const isNotificationCardPayload = (
 
   if (data.type !== "pop_word") return false;
   if (
-    data.cardKind !== "word" &&
     data.cardKind !== "collocation" &&
     data.cardKind !== "kanji"
   )

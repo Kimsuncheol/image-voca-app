@@ -40,8 +40,6 @@ const translations: Record<string, string> = {
   "settings.notifications.title": "Notifications",
   "settings.notifications.push": "Push Notifications",
   "settings.notifications.studyReminder": "Study Reminder",
-  "settings.notifications.wordOfTheDay": "Word of the Day",
-  "settings.notifications.muteAtNight": "Mute at Night",
   "settings.notifications.permissionRequired":
     "Notifications are blocked. Tap to open Settings.",
 };
@@ -49,7 +47,7 @@ const translations: Record<string, string> = {
 const t = (key: string) => translations[key] ?? key;
 
 describe("NotificationsSection", () => {
-  it("renders the mute at night row", () => {
+  it("renders push and study reminder rows only", () => {
     const screen = render(
       <NotificationsSection
         styles={styles}
@@ -57,22 +55,41 @@ describe("NotificationsSection", () => {
         pushEnabled
         notificationPermissionDenied={false}
         studyReminderEnabled
-        popWordEnabled
-        muteAtNightEnabled
         onTogglePush={jest.fn()}
         onToggleStudyReminder={jest.fn()}
-        onTogglePopWord={jest.fn()}
-        onToggleMuteAtNight={jest.fn()}
         onOpenPermissionSettings={jest.fn()}
         t={t}
       />,
     );
 
-    expect(screen.getByText("Mute at Night")).toBeTruthy();
+    expect(screen.getByText("Push Notifications")).toBeTruthy();
+    expect(screen.getByText("Study Reminder")).toBeTruthy();
+    expect(screen.queryByText("Word of the Day")).toBeNull();
+    expect(screen.queryByText("Mute at Night")).toBeNull();
   });
 
-  it("calls the mute at night handler when the toggle is pressed", () => {
-    const onToggleMuteAtNight = jest.fn();
+  it("shows the permission warning when notifications are blocked", () => {
+    const screen = render(
+      <NotificationsSection
+        styles={styles}
+        isDark={false}
+        pushEnabled={false}
+        notificationPermissionDenied
+        studyReminderEnabled={false}
+        onTogglePush={jest.fn()}
+        onToggleStudyReminder={jest.fn()}
+        onOpenPermissionSettings={jest.fn()}
+        t={t}
+      />,
+    );
+
+    expect(
+      screen.getByText("Notifications are blocked. Tap to open Settings."),
+    ).toBeTruthy();
+  });
+
+  it("calls the study reminder handler when the toggle is pressed", () => {
+    const onToggleStudyReminder = jest.fn();
 
     const screen = render(
       <NotificationsSection
@@ -81,19 +98,15 @@ describe("NotificationsSection", () => {
         pushEnabled
         notificationPermissionDenied={false}
         studyReminderEnabled
-        popWordEnabled
-        muteAtNightEnabled
         onTogglePush={jest.fn()}
-        onToggleStudyReminder={jest.fn()}
-        onTogglePopWord={jest.fn()}
-        onToggleMuteAtNight={onToggleMuteAtNight}
+        onToggleStudyReminder={onToggleStudyReminder}
         onOpenPermissionSettings={jest.fn()}
         t={t}
       />,
     );
 
-    fireEvent.press(screen.getAllByTestId("toggle-on")[3]);
+    fireEvent.press(screen.getAllByTestId("toggle-on")[1]);
 
-    expect(onToggleMuteAtNight).toHaveBeenCalledWith(false);
+    expect(onToggleStudyReminder).toHaveBeenCalledWith(false);
   });
 });

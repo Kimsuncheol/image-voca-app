@@ -66,8 +66,6 @@ const ja = {
       title: "通知",
       push: "プッシュ通知",
       studyReminder: "学習リマインダー",
-      wordOfTheDay: "今日の単語",
-      muteAtNight: "夜間はミュート",
       notSupportedTitle: "非対応",
       notSupportedMessage:
         "Android Expo GoではPush通知はサポートされていません。",
@@ -115,10 +113,6 @@ const ja = {
     },
   },
   notifications: {
-    word: {
-      title: "今日の単語",
-      header: "単語通知",
-    },
     collocation: {
       title: "今日のコロケーション",
       header: "コロケーション通知",

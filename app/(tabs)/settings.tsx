@@ -53,17 +53,13 @@ import { useDashboardSettingsStore } from "../../src/stores/dashboardSettingsSto
 import {
   cancelAllScheduledNotifications, // Cancel all pending notifications
   configureNotifications, // Request notification permissions
-  getMuteAtNightPreference, // Get mute at night preference
   getNotificationPermissions, // Check current permissions status
   getNotificationsEnabledPreference, // Get master notification toggle state
-  getPopWordEnabledPreference, // Get pop word notification preference
   getStudyReminderEnabledPreference, // Get study reminder preference
   isPermissionGranted, // Check if permission is granted
   markStudyDate, // Mark today as a study date
   scheduleDailyNotifications, // Schedule daily notifications
-  setMuteAtNightPreference, // Save mute at night preference
   setNotificationsEnabledPreference, // Save master notification toggle
-  setPopWordEnabledPreference, // Save pop word preference
   setStudyReminderEnabledPreference, // Save study reminder preference
 } from "../../src/utils/notifications";
 
@@ -90,8 +86,6 @@ export default function SettingsScreen() {
   const [pushEnabled, setPushEnabled] = useState(false); // Master notification toggle
   const [notificationPermissionDenied, setNotificationPermissionDenied] = useState(false); // True when user wants notifications but system permission is denied
   const [studyReminderEnabled, setStudyReminderEnabled] = useState(true); // Daily study reminder notifications
-  const [popWordEnabled, setPopWordEnabled] = useState(true); // Pop word quiz notifications
-  const [muteAtNightEnabled, setMuteAtNightEnabled] = useState(true); // Suppress pop word notifications overnight
 
   // ============================================================================
   // NAVIGATION & INTERNATIONALIZATION
@@ -127,7 +121,7 @@ export default function SettingsScreen() {
    * Checks and syncs all notification-related preferences and permissions
    *
    * This function:
-   * 1. Loads saved preferences from AsyncStorage (master toggle, study reminder, pop word)
+   * 1. Loads saved preferences from AsyncStorage (master toggle, study reminder)
    * 2. Checks actual system-level notification permissions
    * 3. Updates local state to reflect the combined status
    *
@@ -144,15 +138,11 @@ export default function SettingsScreen() {
       const [
         preferencesEnabled,
         studyEnabled,
-        popEnabled,
-        muteAtNight,
         permissions,
       ] =
         await Promise.all([
           getNotificationsEnabledPreference(), // Master notification toggle
           getStudyReminderEnabledPreference(), // Study reminder preference
-          getPopWordEnabledPreference(), // Pop word notification preference
-          getMuteAtNightPreference(), // Overnight mute preference
           getNotificationPermissions(), // System-level permissions
         ]);
 
@@ -167,8 +157,6 @@ export default function SettingsScreen() {
 
       // Individual notification types reflect saved preferences
       setStudyReminderEnabled(studyEnabled);
-      setPopWordEnabled(popEnabled);
-      setMuteAtNightEnabled(muteAtNight);
     } catch (e) {
       console.warn("Error checking notification status", e);
     }
@@ -252,14 +240,10 @@ export default function SettingsScreen() {
     await Promise.all([
       setNotificationsEnabledPreference(false),
       setStudyReminderEnabledPreference(false),
-      setPopWordEnabledPreference(false),
-      setMuteAtNightPreference(false),
     ]);
     await cancelAllScheduledNotifications(); // Clear notification queue
     setPushEnabled(false);
     setStudyReminderEnabled(false);
-    setPopWordEnabled(false);
-    setMuteAtNightEnabled(false);
   };
 
   // ============================================================================
@@ -270,7 +254,7 @@ export default function SettingsScreen() {
    *
    * When enabling:
    * - Requests permissions and enables notifications
-   * - Auto-enables both study reminder and pop word notifications
+   * - Auto-enables study reminder notifications
    * - Schedules daily notifications
    *
    * When disabling:
@@ -287,14 +271,8 @@ export default function SettingsScreen() {
       if (!enabled) return; // Abort if permissions denied
 
       // Enable all notification-related settings by default
-      await Promise.all([
-        setStudyReminderEnabledPreference(true),
-        setPopWordEnabledPreference(true),
-        setMuteAtNightPreference(true),
-      ]);
+      await setStudyReminderEnabledPreference(true);
       setStudyReminderEnabled(true);
-      setPopWordEnabled(true);
-      setMuteAtNightEnabled(true);
 
       // Schedule notifications
       await scheduleDailyNotifications(user?.uid);
@@ -313,7 +291,7 @@ export default function SettingsScreen() {
    *
    * Dependencies:
    * - If enabling and push is disabled, will first request push permissions
-   * - If disabling and pop word is also disabled, will disable push entirely
+   * - If disabling and no settings-exposed notifications remain enabled, will disable push entirely
    *
    * This ensures the master push toggle reflects whether ANY notification type is enabled
    *
@@ -335,76 +313,14 @@ export default function SettingsScreen() {
     await setStudyReminderEnabledPreference(value);
     setStudyReminderEnabled(value);
 
-    // If disabling and pop word is also disabled, disable push entirely
-    if (!value && !popWordEnabled) {
+    // If disabling and no settings-exposed notifications remain enabled, disable push entirely
+    if (!value) {
       await disablePushNotifications();
       return;
     }
 
     // Reschedule notifications with new preferences
     await scheduleDailyNotifications(user?.uid);
-  };
-
-  // ============================================================================
-  // POP WORD NOTIFICATION TOGGLE
-  // ============================================================================
-  /**
-   * Toggles pop word (vocabulary quiz) notifications
-   *
-   * Dependencies:
-   * - If enabling and push is disabled, will first request push permissions
-   * - If disabling and study reminder is also disabled, will disable push entirely
-   *
-   * This ensures the master push toggle reflects whether ANY notification type is enabled
-   *
-   * @async
-   * @param {boolean} value - True to enable, false to disable
-   * @returns {Promise<void>}
-   */
-  const togglePopWord = async (value: boolean) => {
-    // If enabling and push not enabled, request permissions first
-    if (value && !pushEnabled) {
-      const enabled = await enablePushNotifications();
-      if (!enabled) {
-        setPopWordEnabled(false); // Reset if permissions denied
-        return;
-      }
-    }
-
-    // Save preference and update state
-    await setPopWordEnabledPreference(value);
-    setPopWordEnabled(value);
-
-    // If disabling and study reminder is also disabled, disable push entirely
-    if (!value && !studyReminderEnabled) {
-      await disablePushNotifications();
-      return;
-    }
-
-    // Reschedule notifications with new preferences
-    await scheduleDailyNotifications(user?.uid);
-  };
-
-  // ============================================================================
-  // MUTE AT NIGHT TOGGLE
-  // ============================================================================
-  /**
-   * Toggles the overnight mute preference for hourly pop-word notifications.
-   *
-   * When pop-word notifications are currently active, this reschedules them so the
-   * mute window takes effect immediately.
-   *
-   * @async
-   * @param {boolean} value - True to mute pop-word notifications at night
-   * @returns {Promise<void>}
-   */
-  const toggleMuteAtNight = async (value: boolean) => {
-    await setMuteAtNightPreference(value);
-    setMuteAtNightEnabled(value);
-
-    if (user?.uid && pushEnabled && popWordEnabled) {
-      await scheduleDailyNotifications(user.uid);
-    }
   };
 
   // ============================================================================
@@ -447,7 +363,7 @@ export default function SettingsScreen() {
   const handleLanguageChange = async (language: SupportedLanguage) => {
     try {
       await setLanguage(language); // Updates i18n and saves to AsyncStorage
-      if (user?.uid && pushEnabled && popWordEnabled) {
+      if (user?.uid && pushEnabled && studyReminderEnabled) {
         await scheduleDailyNotifications(user.uid);
       }
     } catch (error) {
@@ -514,7 +430,6 @@ export default function SettingsScreen() {
             Push notification preferences:
             - Master notification toggle
             - Study reminder notifications
-            - Pop word (vocabulary quiz) notifications
         */}
         <NotificationsSection
           styles={styles}
@@ -522,12 +437,8 @@ export default function SettingsScreen() {
           pushEnabled={pushEnabled}
           notificationPermissionDenied={notificationPermissionDenied}
           studyReminderEnabled={studyReminderEnabled}
-          popWordEnabled={popWordEnabled}
-          muteAtNightEnabled={muteAtNightEnabled}
           onTogglePush={togglePushNotifications}
           onToggleStudyReminder={toggleStudyReminder}
-          onTogglePopWord={togglePopWord}
-          onToggleMuteAtNight={toggleMuteAtNight}
           onOpenPermissionSettings={() => Linking.openSettings()}
           t={t}
         />

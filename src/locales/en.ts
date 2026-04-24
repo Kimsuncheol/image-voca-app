@@ -67,8 +67,6 @@ const en = {
       title: "Notifications",
       push: "Push Notifications",
       studyReminder: "Study Reminder",
-      wordOfTheDay: "Word of the Day",
-      muteAtNight: "Mute at Night",
       notSupportedTitle: "Not Supported",
       notSupportedMessage:
         "Push notifications are not supported in Expo Go on Android.",
@@ -116,10 +114,6 @@ const en = {
     },
   },
   notifications: {
-    word: {
-      title: "Word of the Day",
-      header: "Word Notification",
-    },
     collocation: {
       title: "Collocation of the Day",
       header: "Collocation Notification",

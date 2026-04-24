@@ -5,24 +5,9 @@ jest.mock("expo-localization", () => ({
   getLocales: jest.fn(() => [{ languageTag: "en", languageCode: "en" }]),
 }));
 
-jest.mock("firebase/firestore", () => ({
-  collection: jest.fn(),
-  getDocs: jest.fn(),
-}));
-
-jest.mock("../src/services/firebase", () => ({
-  db: {},
-}));
-
 jest.mock("../src/services/vocabularyPrefetch", () => ({
   getTotalDaysForCourse: jest.fn(),
   prefetchVocabularyCards: jest.fn(),
-}));
-
-jest.mock("../src/services/vocaService", () => ({
-  vocaService: {
-    getUserWords: jest.fn(),
-  },
 }));
 
 import { setLanguage } from "../src/i18n";
@@ -63,10 +48,11 @@ describe("notification localization", () => {
     await setLanguage("en");
   });
 
-  it("builds a Korean word notification body from localized fields", async () => {
+  it("builds a Korean collocation notification body from localized fields", async () => {
     await setLanguage("ko");
 
     const content = await buildPopWordNotificationContent({
+      course: "TOEIC",
       word: "abandon",
       meaning: "leave behind",
       example: "They abandoned the plan.",
@@ -77,7 +63,7 @@ describe("notification localization", () => {
     });
 
     expect(content).toEqual({
-      title: "오늘의 단어",
+      title: "오늘의 연어",
       body: "abandon - 버리다\n\n예문: They abandoned the plan.",
     });
   });
@@ -130,7 +116,33 @@ describe("notification localization", () => {
     );
   });
 
-  it("does not schedule Word of the Day notifications during night hours (22:00–07:59)", async () => {
+  it("schedules non-kanji pop-word notifications as collocation cards", async () => {
+    (getTotalDaysForCourse as jest.Mock).mockResolvedValue(1);
+    (prefetchVocabularyCards as jest.Mock).mockResolvedValue([
+      {
+        word: "abandon",
+        meaning: "leave behind",
+        example: "They abandoned the plan.",
+        course: "TOEIC",
+      },
+    ]);
+
+    const { scheduleNotificationAsync } = jest.requireMock("expo-notifications");
+    (scheduleNotificationAsync as jest.Mock).mockClear();
+
+    await schedulePopWordNotifications("user-1", 1);
+
+    expect(
+      (scheduleNotificationAsync as jest.Mock).mock.calls[0][0].content.data,
+    ).toEqual(
+      expect.objectContaining({
+        cardKind: "collocation",
+        course: "TOEIC",
+      }),
+    );
+  });
+
+  it("does not schedule collocation notifications during night hours (22:00–07:59)", async () => {
     // Fake system time to 23:00 so the first candidate hour is midnight
     jest.useFakeTimers();
     jest.setSystemTime(new Date("2025-01-01T23:00:00"));
@@ -162,7 +174,7 @@ describe("notification localization", () => {
     expect(await getMuteAtNightPreference()).toBe(true);
   });
 
-  it("allows Word of the Day notifications during night hours when mute at night is disabled", async () => {
+  it("allows collocation notifications during night hours when mute at night is disabled", async () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date("2025-01-01T23:00:00"));
 
@@ -188,7 +200,7 @@ describe("notification localization", () => {
     jest.useRealTimers();
   });
 
-  it("preserves exampleHurigana in notification payload data", () => {
+  it("retargets pop-word payload data to collocation notifications", () => {
     expect(
       buildPopWordNotificationData({
         course: "JLPT_N5",
@@ -199,6 +211,7 @@ describe("notification localization", () => {
       }),
     ).toEqual(
       expect.objectContaining({
+        cardKind: "collocation",
         course: "JLPT_N5",
         example: "雨(あま)戸(ど)を閉(し)める。",
         exampleHurigana: "あまどをしめる。",

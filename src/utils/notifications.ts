@@ -1,20 +1,21 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type * as NotificationsType from "expo-notifications";
-import { collection, getDocs } from "firebase/firestore";
 import { Platform } from "react-native";
 import i18n, { getCurrentLanguage } from "../i18n";
-import { db } from "../services/firebase";
 import {
     getTotalDaysForCourse,
     prefetchVocabularyCards,
 } from "../services/vocabularyPrefetch";
-import { vocaService } from "../services/vocaService";
 import type {
   NotificationCardPayload,
   NotificationKanjiCardPayload,
-  NotificationWordCardPayload,
 } from "../types/notificationCard";
-import { CourseType, isKanjiWord, type KanjiWord } from "../types/vocabulary";
+import {
+  CourseType,
+  isKanjiWord,
+  type KanjiWord,
+  type VocabularyLocalizationMap,
+} from "../types/vocabulary";
 import {
   getLocalizedKanjiMeanings,
   getLocalizedKanjiReadings,
@@ -171,7 +172,7 @@ type NotificationCardSelection = {
   translation?: string;
   synonyms?: string[];
   imageUrl?: string;
-  localized?: NotificationWordCardPayload["localized"];
+  localized?: VocabularyLocalizationMap;
   course?: CourseType | string;
 };
 
@@ -234,11 +235,9 @@ export const buildKanjiPopWordNotificationContent = async (
 export const buildPopWordNotificationData = (
   selection: NotificationCardSelection,
 ): NotificationCardPayload => {
-  const isCollocation = selection.course === "COLLOCATION";
-
   return {
     type: "pop_word",
-    cardKind: isCollocation ? "collocation" : "word",
+    cardKind: "collocation",
     course: selection.course ?? "WORD_BANK",
     id: selection.id,
     word: selection.word ?? "",
@@ -275,22 +274,15 @@ export const buildPopWordNotificationContent = async (
     language,
   );
 
-  let title = t("notifications.word.title", { defaultValue: "Word of the Day" });
+  let title = t("notifications.collocation.title", {
+    defaultValue: "Collocation of the Day",
+  });
   let body = `${resolved.word} - ${resolved.meaning}`;
 
-  if (selection.course === "COLLOCATION") {
-    title = t("notifications.collocation.title", {
-      defaultValue: "Collocation of the Day",
-    });
-    if (resolved.localizedPronunciation) {
-      body += `\n\n${t("notifications.labels.pronunciation", {
-        defaultValue: "Pronunciation",
-      })}: ${resolved.localizedPronunciation}`;
-    } else if (resolved.example) {
-      body += `\n\n${t("notifications.labels.example", {
-        defaultValue: "Example",
-      })}: ${resolved.example}`;
-    }
+  if (resolved.localizedPronunciation) {
+    body += `\n\n${t("notifications.labels.pronunciation", {
+      defaultValue: "Pronunciation",
+    })}: ${resolved.localizedPronunciation}`;
   } else if (resolved.example) {
     body += `\n\n${t("notifications.labels.example", {
       defaultValue: "Example",
@@ -298,45 +290,6 @@ export const buildPopWordNotificationContent = async (
   }
 
   return { title, body };
-};
-
-const fetchSavedWords = async (userId: string) => {
-  const words: { word: string; meaning: string }[] = [];
-  try {
-    const snapshot = await getDocs(
-      collection(db, "vocabank", userId, "course"),
-    );
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const savedWords = Array.isArray(data.words) ? data.words : [];
-      savedWords.forEach((saved: any) => {
-        if (!saved?.word) return;
-        words.push({
-          word: saved.word,
-          meaning: saved.meaning || saved.definition || "",
-        });
-      });
-    });
-  } catch (error) {
-    console.warn("Failed to load saved word bank", error);
-  }
-
-  if (words.length > 0) return words;
-
-  try {
-    const fallback = await vocaService.getUserWords(userId);
-    fallback.forEach((saved: any) => {
-      if (!saved?.word) return;
-      words.push({
-        word: saved.word,
-        meaning: saved.definition || saved.meaning || "",
-      });
-    });
-  } catch (error) {
-    console.warn("Failed to load fallback vocabulary", error);
-  }
-
-  return words;
 };
 
 export const getNotificationPermissions =
@@ -522,11 +475,6 @@ export const schedulePopWordNotifications = async (
     } catch (err) {
       console.warn(`Failed to fetch course ${course} for pop words`, err);
     }
-  }
-
-  if (allCards.length === 0) {
-    const fallbackWords = await fetchSavedWords(userId);
-    allCards.push(...fallbackWords);
   }
 
   if (allCards.length === 0) return;

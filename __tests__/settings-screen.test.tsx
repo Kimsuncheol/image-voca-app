@@ -7,8 +7,6 @@ const mockLoadDashboardSettings = jest.fn();
 const mockConfigureNotifications = jest.fn();
 const mockSetNotificationsEnabledPreference = jest.fn();
 const mockSetStudyReminderEnabledPreference = jest.fn();
-const mockSetPopWordEnabledPreference = jest.fn();
-const mockSetMuteAtNightPreference = jest.fn();
 const mockCancelAllScheduledNotifications = jest.fn();
 const mockScheduleDailyNotifications = jest.fn();
 const mockIsPermissionGranted = jest.fn();
@@ -77,21 +75,15 @@ jest.mock("../src/utils/notifications", () => ({
   cancelAllScheduledNotifications: (...args: any[]) =>
     mockCancelAllScheduledNotifications(...args),
   configureNotifications: (...args: any[]) => mockConfigureNotifications(...args),
-  getMuteAtNightPreference: jest.fn().mockResolvedValue(true),
   getNotificationPermissions: jest.fn().mockResolvedValue({ granted: false }),
   getNotificationsEnabledPreference: jest.fn().mockResolvedValue(false),
-  getPopWordEnabledPreference: jest.fn().mockResolvedValue(false),
   getStudyReminderEnabledPreference: jest.fn().mockResolvedValue(false),
   isPermissionGranted: (...args: any[]) => mockIsPermissionGranted(...args),
   markStudyDate: (...args: any[]) => mockMarkStudyDate(...args),
   scheduleDailyNotifications: (...args: any[]) =>
     mockScheduleDailyNotifications(...args),
-  setMuteAtNightPreference: (...args: any[]) =>
-    mockSetMuteAtNightPreference(...args),
   setNotificationsEnabledPreference: (...args: any[]) =>
     mockSetNotificationsEnabledPreference(...args),
-  setPopWordEnabledPreference: (...args: any[]) =>
-    mockSetPopWordEnabledPreference(...args),
   setStudyReminderEnabledPreference: (...args: any[]) =>
     mockSetStudyReminderEnabledPreference(...args),
 }));
@@ -123,12 +115,6 @@ jest.mock("../components/settings/NotificationsSection", () => ({
         </ReactNative.Text>
         <ReactNative.Text testID="study-enabled">
           {String(props.studyReminderEnabled)}
-        </ReactNative.Text>
-        <ReactNative.Text testID="pop-enabled">
-          {String(props.popWordEnabled)}
-        </ReactNative.Text>
-        <ReactNative.Text testID="mute-enabled">
-          {String(props.muteAtNightEnabled)}
         </ReactNative.Text>
         <ReactNative.Pressable
           testID="toggle-push-off"
@@ -188,14 +174,10 @@ describe("SettingsScreen", () => {
     await waitFor(() => {
       expect(screen.getByTestId("push-enabled").props.children).toBe("false");
       expect(screen.getByTestId("study-enabled").props.children).toBe("false");
-      expect(screen.getByTestId("pop-enabled").props.children).toBe("false");
-      expect(screen.getByTestId("mute-enabled").props.children).toBe("false");
     });
 
     expect(mockSetNotificationsEnabledPreference).toHaveBeenCalledWith(false);
     expect(mockSetStudyReminderEnabledPreference).toHaveBeenCalledWith(false);
-    expect(mockSetPopWordEnabledPreference).toHaveBeenCalledWith(false);
-    expect(mockSetMuteAtNightPreference).toHaveBeenCalledWith(false);
     expect(mockCancelAllScheduledNotifications).toHaveBeenCalled();
   });
 
@@ -207,16 +189,12 @@ describe("SettingsScreen", () => {
     await waitFor(() => {
       expect(screen.getByTestId("push-enabled").props.children).toBe("true");
       expect(screen.getByTestId("study-enabled").props.children).toBe("true");
-      expect(screen.getByTestId("pop-enabled").props.children).toBe("true");
-      expect(screen.getByTestId("mute-enabled").props.children).toBe("true");
     });
 
     expect(mockConfigureNotifications).toHaveBeenCalled();
     expect(mockMarkStudyDate).toHaveBeenCalled();
     expect(mockSetNotificationsEnabledPreference).toHaveBeenCalledWith(true);
     expect(mockSetStudyReminderEnabledPreference).toHaveBeenCalledWith(true);
-    expect(mockSetPopWordEnabledPreference).toHaveBeenCalledWith(true);
-    expect(mockSetMuteAtNightPreference).toHaveBeenCalledWith(true);
     expect(mockScheduleDailyNotifications).toHaveBeenCalledWith("user-1");
   });
 });

@@ -66,8 +66,6 @@ const ko = {
       title: "알림",
       push: "푸시 알림",
       studyReminder: "학습 알림",
-      wordOfTheDay: "오늘의 단어",
-      muteAtNight: "야간 무음",
       notSupportedTitle: "지원되지 않음",
       notSupportedMessage:
         "Android Expo Go에서는 푸시 알림을 지원하지 않습니다.",
@@ -115,10 +113,6 @@ const ko = {
     },
   },
   notifications: {
-    word: {
-      title: "오늘의 단어",
-      header: "단어 알림",
-    },
     collocation: {
       title: "오늘의 연어",
       header: "연어 알림",

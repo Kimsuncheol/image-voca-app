@@ -9,7 +9,6 @@ import CollocationCardSection from "../components/notification/CollocationCardSe
 import EmptyState from "../components/notification/EmptyState";
 import KanjiCardSection from "../components/notification/KanjiCardSection";
 import NotificationHeader from "../components/notification/NotificationHeader";
-import WordCard from "../components/notification/WordCard";
 import type { NotificationKanjiCardPayload } from "../src/types/notificationCard";
 import { useTheme } from "../src/context/ThemeContext";
 import { useNotificationCard } from "../src/hooks/useNotificationCard";
@@ -40,13 +39,9 @@ export default function NotificationCardScreen() {
       ? t("notifications.collocation.header", {
           defaultValue: "Collocation Notification",
         })
-      : payload?.cardKind === "kanji"
-        ? t("notifications.kanji.header", {
-            defaultValue: "Kanji Notification",
-          })
-        : t("notifications.word.header", {
-            defaultValue: "Word Notification",
-          });
+      : t("notifications.kanji.header", {
+          defaultValue: "Kanji Notification",
+        });
 
   return (
     <SafeAreaView
@@ -96,10 +91,7 @@ export default function NotificationCardScreen() {
             />
           </View>
         ) : (
-          /* Word card */
-          <View style={styles.cardContainer}>
-            <WordCard data={payload} isDark={isDark} onReady={handleReady} />
-          </View>
+          <EmptyState isDark={isDark} onGoDashboard={handleGoDashboard} />
         )}
       </ScrollView>
     </SafeAreaView>

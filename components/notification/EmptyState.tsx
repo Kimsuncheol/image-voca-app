@@ -8,7 +8,7 @@ interface EmptyStateProps {
 
 /**
  * Shown when no notification card payload is available.
- * Explains how to open a word notification and provides a shortcut to the dashboard.
+ * Explains how to open a supported notification and provides a shortcut to the dashboard.
  */
 export default function EmptyState({ isDark, onGoDashboard }: EmptyStateProps) {
   return (
@@ -26,8 +26,8 @@ export default function EmptyState({ isDark, onGoDashboard }: EmptyStateProps) {
       </Text>
 
       <Text style={[styles.body, { color: isDark ? "#9CA3AF" : "#6B7280" }]}>
-        Open a word notification from your device notification center to view it
-        here.
+        Open a collocation or kanji notification from your device notification
+        center to view it here.
       </Text>
 
       <Pressable

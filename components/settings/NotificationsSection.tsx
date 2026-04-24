@@ -9,12 +9,8 @@ interface NotificationsSectionProps {
   pushEnabled: boolean;
   notificationPermissionDenied: boolean;
   studyReminderEnabled: boolean;
-  popWordEnabled: boolean;
-  muteAtNightEnabled: boolean;
   onTogglePush: (value: boolean) => void;
   onToggleStudyReminder: (value: boolean) => void;
-  onTogglePopWord: (value: boolean) => void;
-  onToggleMuteAtNight: (value: boolean) => void;
   onOpenPermissionSettings: () => void;
   t: (key: string) => string;
 }
@@ -25,12 +21,8 @@ export function NotificationsSection({
   pushEnabled,
   notificationPermissionDenied,
   studyReminderEnabled,
-  popWordEnabled,
-  muteAtNightEnabled,
   onTogglePush,
   onToggleStudyReminder,
-  onTogglePopWord,
-  onToggleMuteAtNight,
   onOpenPermissionSettings,
   t,
 }: NotificationsSectionProps) {
@@ -82,42 +74,6 @@ export function NotificationsSection({
           <ToggleSwitch
             value={studyReminderEnabled}
             onValueChange={onToggleStudyReminder}
-            trackColor={{ false: "#767577", true: "#007AFF" }}
-          />
-        </View>
-        <View style={styles.separator} />
-        <View style={[styles.option]}>
-          <View style={styles.optionLeft}>
-            <Ionicons
-              name="book-outline"
-              size={22}
-              color={isDark ? "#fff" : "#333"}
-            />
-            <Text style={styles.optionText}>
-              {t("settings.notifications.wordOfTheDay")}
-            </Text>
-          </View>
-          <ToggleSwitch
-            value={popWordEnabled}
-            onValueChange={onTogglePopWord}
-            trackColor={{ false: "#767577", true: "#007AFF" }}
-          />
-        </View>
-        <View style={styles.separator} />
-        <View style={styles.option}>
-          <View style={styles.optionLeft}>
-            <Ionicons
-              name="moon-outline"
-              size={22}
-              color={isDark ? "#fff" : "#333"}
-            />
-            <Text style={styles.optionText}>
-              {t("settings.notifications.muteAtNight")}
-            </Text>
-          </View>
-          <ToggleSwitch
-            value={muteAtNightEnabled}
-            onValueChange={onToggleMuteAtNight}
             trackColor={{ false: "#767577", true: "#007AFF" }}
           />
         </View>

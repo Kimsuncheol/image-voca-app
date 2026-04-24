@@ -3,7 +3,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface NotificationHeaderProps {
-  /** Dynamic title derived from the card kind ("Word Notification" / "Collocation Notification") */
+  /** Dynamic title derived from the card kind ("Collocation Notification" / "Kanji Notification") */
   title: string;
   backLabel?: string;
   isDark: boolean;

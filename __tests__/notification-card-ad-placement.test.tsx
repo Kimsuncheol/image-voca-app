@@ -46,16 +46,6 @@ jest.mock("../components/notification/EmptyState", () => ({
   },
 }));
 
-jest.mock("../components/notification/WordCard", () => ({
-  __esModule: true,
-  default: () => {
-    const React = require("react");
-    const { View } = require("react-native");
-
-    return <View testID="mock-notification-word-card" />;
-  },
-}));
-
 jest.mock("../components/ads/TopInstallNativeAd", () => ({
   __esModule: true,
   TopInstallNativeAd: () => {
@@ -73,6 +63,16 @@ jest.mock("../components/notification/CollocationCardSection", () => ({
     const { View } = require("react-native");
 
     return <View testID="mock-notification-collocation-card" />;
+  },
+}));
+
+jest.mock("../components/notification/KanjiCardSection", () => ({
+  __esModule: true,
+  default: () => {
+    const React = require("react");
+    const { View } = require("react-native");
+
+    return <View testID="mock-notification-kanji-card" />;
   },
 }));
 
@@ -100,21 +100,17 @@ describe("NotificationCardScreen ad placement", () => {
     expect(screen.getByTestId("mock-top-install-native-ad")).toBeTruthy();
   });
 
-  it("renders the word notification path with the top native ad", () => {
+  it("renders the kanji notification path with the top native ad", () => {
     mockPayload = {
       type: "pop_word",
-      cardKind: "word",
-      course: "TOEIC",
-      word: "abandon",
-      meaning: "leave behind",
-      pronunciation: "/əˈbændən/",
-      example: "They abandoned the plan.",
-      translation: "그들은 계획을 포기했다.",
+      cardKind: "kanji",
+      course: "KANJI",
+      kanji: "語",
     };
 
     const screen = render(<NotificationCardScreen />);
 
-    expect(screen.getByTestId("mock-notification-word-card")).toBeTruthy();
+    expect(screen.getByTestId("mock-notification-kanji-card")).toBeTruthy();
     expect(screen.getByTestId("mock-top-install-native-ad")).toBeTruthy();
   });
 
