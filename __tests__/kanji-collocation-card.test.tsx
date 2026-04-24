@@ -221,6 +221,71 @@ describe("KanjiCollocationCard", () => {
     ).toBeTruthy();
   });
 
+  it("removes parentheses from Korean-localized labels on the back side only", () => {
+    mockLanguage = "ko";
+
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord({
+          meaningKorean: ["단어(뜻)"],
+          readingKorean: ["고(음)"],
+        })}
+      />,
+    );
+
+    expect(screen.getByText("단어(뜻)")).toBeTruthy();
+    expect(screen.getByText("고(음)")).toBeTruthy();
+
+    flipToBack(screen);
+
+    expect(screen.getByText("단어")).toBeTruthy();
+    expect(screen.getByText("고")).toBeTruthy();
+    expect(screen.queryByText("단어(뜻)")).toBeNull();
+    expect(screen.queryByText("고(음)")).toBeNull();
+  });
+
+  it("removes parentheses from English-localized romanized labels on the back side only", () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord({
+          meaningKoreanRomanize: ["dan-eo (meaning)"],
+          readingKoreanRomanize: ["go (sound)"],
+        })}
+      />,
+    );
+
+    expect(screen.getByText("dan-eo (meaning)")).toBeTruthy();
+    expect(screen.getByText("go (sound)")).toBeTruthy();
+
+    flipToBack(screen);
+
+    expect(screen.getByText("dan-eo")).toBeTruthy();
+    expect(screen.getByText("go")).toBeTruthy();
+    expect(screen.queryByText("dan-eo (meaning)")).toBeNull();
+    expect(screen.queryByText("go (sound)")).toBeNull();
+  });
+
+  it("keeps base Japanese labels unchanged on the back side", () => {
+    mockLanguage = "ja";
+
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord({
+          meaning: ["ひと(つ)"],
+          reading: ["いち(ど)"],
+        })}
+      />,
+    );
+
+    expect(screen.getByText("ひと(つ)")).toBeTruthy();
+    expect(screen.getByText("いち(ど)")).toBeTruthy();
+
+    flipToBack(screen);
+
+    expect(screen.getByText("ひと(つ)")).toBeTruthy();
+    expect(screen.getByText("いち(ど)")).toBeTruthy();
+  });
+
   it("hides the divider above reading when the meaning section has no visible entries", () => {
     const screen = render(
       <KanjiCollocationCard

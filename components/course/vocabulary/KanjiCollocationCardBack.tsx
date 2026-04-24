@@ -10,6 +10,19 @@ import { BackSection } from "./KanjiCollocationCardBackSection";
 import { GeneralBackSection } from "./KanjiCollocationCardGeneralBackSection";
 import { DottedDivider } from "./KanjiCollocationCardDivider";
 
+const PARENS_REGEX = /[（(][^()（）]*[）)]/g;
+
+const stripBackSideParens = (value: string) =>
+  value.replace(PARENS_REGEX, "").replace(/\s{2,}/g, " ").trim();
+
+const sanitizeBackSideValues = (values: string[], language?: string) => {
+  const normalizedLanguage = language?.split("-")[0];
+  if (normalizedLanguage !== "ko" && normalizedLanguage !== "en") {
+    return values;
+  }
+  return values.map((value) => stripBackSideParens(value));
+};
+
 /**
  * Props passed to the back face component of the Kanji Collocation Card.
  */
@@ -36,8 +49,14 @@ export interface BackSideProps {
  * It also holds the "がな" (Furigana) toggle button to show or hide reading aids.
  */
 export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }: BackSideProps) {
-  const meanings = getLocalizedKanjiMeanings(item, language);
-  const readings = getLocalizedKanjiReadings(item, language);
+  const meanings = sanitizeBackSideValues(
+    getLocalizedKanjiMeanings(item, language),
+    language,
+  );
+  const readings = sanitizeBackSideValues(
+    getLocalizedKanjiReadings(item, language),
+    language,
+  );
   const meaningTranslations = useKorean ? item.meaningKoreanTranslation : item.meaningEnglishTranslation;
   const readingTranslations = useKorean ? item.readingKoreanTranslation : item.readingEnglishTranslation;
   const exampleTranslations = useKorean ? item.exampleKoreanTranslation : item.exampleEnglishTranslation;
