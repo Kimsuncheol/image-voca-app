@@ -65,6 +65,8 @@ export function GeneralBackSection({
   return (
     <View style={styles.backSection}>
       <Text
+        suppressHighlighting
+        onPress={(e) => e?.stopPropagation()}
         style={[styles.backSectionTitle, { color: isDark ? "#999" : "#666" }]}
       >
         EXAMPLE

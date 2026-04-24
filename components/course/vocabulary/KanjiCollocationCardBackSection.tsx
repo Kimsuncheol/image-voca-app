@@ -68,6 +68,8 @@ export function BackSection({
   return (
     <View style={styles.backSection}>
       <Text
+        suppressHighlighting
+        onPress={(e) => e?.stopPropagation()}
         style={[styles.backSectionTitle, { color: isDark ? "#999" : "#666" }]}
       >
         {title}
@@ -75,6 +77,8 @@ export function BackSection({
       {entries.map((entry, i) => (
         <View key={`${title}-${i}`} style={styles.backGroup}>
           <Text
+            suppressHighlighting
+            onPress={(e) => e?.stopPropagation()}
             style={[
               styles.backGroupLabel,
               { color: isDark ? "#fff" : "#1a1a1a" },

@@ -101,10 +101,12 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
               />
             ) : null}
             {hasMeaningSection && hasReadingSection ? (
-              <DottedDivider
-                isDark={isDark}
-                testID="kanji-collocation-divider-meaning-reading"
-              />
+              <Pressable onPress={(e) => { e?.stopPropagation(); onFlip(); }}>
+                <DottedDivider
+                  isDark={isDark}
+                  testID="kanji-collocation-divider-meaning-reading"
+                />
+              </Pressable>
             ) : null}
             {hasReadingSection ? (
               <BackSection
@@ -119,10 +121,12 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
               />
             ) : null}
             {hasReadingSection && hasExampleSection ? (
-              <DottedDivider
-                isDark={isDark}
-                testID="kanji-collocation-divider-reading-example"
-              />
+              <Pressable onPress={(e) => { e?.stopPropagation(); onFlip(); }}>
+                <DottedDivider
+                  isDark={isDark}
+                  testID="kanji-collocation-divider-reading-example"
+                />
+              </Pressable>
             ) : null}
             {hasExampleSection ? (
               <GeneralBackSection

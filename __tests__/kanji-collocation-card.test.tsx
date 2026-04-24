@@ -706,4 +706,50 @@ describe("KanjiCollocationCard", () => {
     expect(mockStopCardSpeech).not.toHaveBeenCalled();
     expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
   });
+
+  it("flips back to the face side when the meaning-reading divider is pressed", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+    mockStopCardSpeech.mockClear();
+
+    fireEvent.press(screen.getByTestId("kanji-collocation-divider-meaning-reading"));
+
+    expect(mockStopCardSpeech).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
+    expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
+  });
+
+  it("flips back to the face side when the reading-example divider is pressed", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+    mockStopCardSpeech.mockClear();
+
+    fireEvent.press(screen.getByTestId("kanji-collocation-divider-reading-example"));
+
+    expect(mockStopCardSpeech).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
+    expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
+  });
+
+  it("does not flip when a section title text on the back side is pressed", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+    mockStopCardSpeech.mockClear();
+
+    fireEvent.press(screen.getByText("EXAMPLE"));
+
+    expect(mockStopCardSpeech).not.toHaveBeenCalled();
+    expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
+  });
+
+  it("does not flip when a group label text on the back side is pressed", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+    mockStopCardSpeech.mockClear();
+
+    fireEvent.press(screen.getByText("word"));
+
+    expect(mockStopCardSpeech).not.toHaveBeenCalled();
+    expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
+  });
 });
