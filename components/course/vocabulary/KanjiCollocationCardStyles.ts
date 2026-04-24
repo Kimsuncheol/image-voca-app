@@ -88,6 +88,12 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 26,
   },
+  faceRomanizedTextDark: {
+    color: "#b9b9b9",
+  },
+  faceRomanizedTextLight: {
+    color: "#4b5563",
+  },
   // Back
   back: {
     flex: 1,

@@ -103,6 +103,10 @@ const textChildrenOf = (node: { findAllByType: (type: unknown) => Array<{ props:
 const flattenStyleOf = (node: { props: { style?: unknown } }): any =>
   StyleSheet.flatten(node.props.style as any);
 
+const firstTextNodeOf = (node: {
+  findAllByType: (type: unknown) => Array<{ props: { style?: unknown } }>;
+}) => node.findAllByType(Text)[0];
+
 describe("KanjiCollocationCard", () => {
   beforeEach(() => {
     mockLanguage = "en";
@@ -110,41 +114,29 @@ describe("KanjiCollocationCard", () => {
     mockStopCardSpeech.mockClear();
   });
 
-  it("renders English-localized romanized meaning and reading values on face side", () => {
-    const { getByText, getAllByText, queryByText } = render(<KanjiCollocationCard item={buildKanjiWord()} day={1} />);
+  it("renders combined meaning and reading rows on face side", () => {
+    const { getByText } = render(
+      <KanjiCollocationCard item={buildKanjiWord()} day={1} />,
+    );
 
     expect(getByText("語")).toBeTruthy();
-    expect(getAllByText("dan-eo").length).toBeGreaterThanOrEqual(1);
-    expect(getAllByText("go").length).toBeGreaterThanOrEqual(1);
-    expect(queryByText("word")).toBeNull();
-    expect(queryByText("ご")).toBeNull();
-    expect(queryByText("熟語")).toBeNull();
+    expect(getByText("dan-eo")).toBeTruthy();
+    expect(getByText("word")).toBeTruthy();
+    expect(getByText("go")).toBeTruthy();
+    expect(getByText("ご")).toBeTruthy();
   });
 
-  it("renders Korean-localized meaning and reading values when language is ko", () => {
+  it("renders combined rows independently of UI language", () => {
     mockLanguage = "ko";
 
-    const { getAllByText, queryByText } = render(
+    const { getByText } = render(
       <KanjiCollocationCard item={buildKanjiWord()} />,
     );
 
-    expect(getAllByText("단어").length).toBeGreaterThanOrEqual(1);
-    expect(getAllByText("고").length).toBeGreaterThanOrEqual(1);
-    expect(queryByText("dan-eo")).toBeNull();
-    expect(queryByText("go")).toBeNull();
-  });
-
-  it("renders base meaning and reading values when language is ja", () => {
-    mockLanguage = "ja";
-
-    const { getAllByText, queryByText } = render(
-      <KanjiCollocationCard item={buildKanjiWord()} />,
-    );
-
-    expect(getAllByText("word").length).toBeGreaterThanOrEqual(1);
-    expect(getAllByText("ご").length).toBeGreaterThanOrEqual(1);
-    expect(queryByText("dan-eo")).toBeNull();
-    expect(queryByText("go")).toBeNull();
+    expect(getByText("단어")).toBeTruthy();
+    expect(getByText("word")).toBeTruthy();
+    expect(getByText("고")).toBeTruthy();
+    expect(getByText("ご")).toBeTruthy();
   });
 
   it("does not speak the kanji when the kanji text is pressed on the face side", () => {
@@ -158,25 +150,34 @@ describe("KanjiCollocationCard", () => {
     expect(screen.queryByTestId("kanji-collocation-face-side")).toBeNull();
   });
 
-  it("splits comma-delimited face-side meaning and reading items into tappable speech targets", () => {
-    mockLanguage = "ja";
-
+  it("renders one tappable face-side row per source index", () => {
     const screen = render(
       <KanjiCollocationCard
         item={buildKanjiWord({
-          meaning: [" ひと,  ひと(つ) ", " , "],
-          reading: [" いち,  いつ ", ""],
+          meaning: ["person", "one"],
+          meaningKorean: ["사람", "하나"],
+          meaningKoreanRomanize: ["saram", "hana"],
+          reading: ["ひと", "いち"],
+          readingKorean: ["히토", "이치"],
+          readingKoreanRomanize: ["hito", "ichi"],
         })}
       />,
     );
 
-    expect(textChildrenOf(screen.getByTestId("kanji-collocation-face-meaning-0"))).toEqual(["ひと"]);
-    expect(textChildrenOf(screen.getByTestId("kanji-collocation-face-meaning-1"))).toEqual(["ひと(つ)"]);
-    expect(textChildrenOf(screen.getByTestId("kanji-collocation-face-reading-0"))).toEqual(["いち"]);
-    expect(textChildrenOf(screen.getByTestId("kanji-collocation-face-reading-1"))).toEqual(["いつ"]);
+    expect(
+      textChildrenOf(screen.getByTestId("kanji-collocation-face-meaning-0")),
+    ).toEqual(["saram", "person"]);
+    expect(
+      textChildrenOf(screen.getByTestId("kanji-collocation-face-meaning-1")),
+    ).toEqual(["hana", "one"]);
+    expect(
+      textChildrenOf(screen.getByTestId("kanji-collocation-face-reading-0")),
+    ).toEqual(["hito", "ひと"]);
+    expect(
+      textChildrenOf(screen.getByTestId("kanji-collocation-face-reading-1")),
+    ).toEqual(["ichi", "いち"]);
     expect(screen.queryByTestId("kanji-collocation-face-meaning-2")).toBeNull();
     expect(screen.queryByTestId("kanji-collocation-face-reading-2")).toBeNull();
-    expect(screen.queryByText(",")).toBeNull();
 
     mockSpeak.mockClear();
     mockStopCardSpeech.mockClear();
@@ -184,7 +185,7 @@ describe("KanjiCollocationCard", () => {
     fireEvent.press(screen.getByTestId("kanji-collocation-face-meaning-0"));
 
     expect(mockSpeak).toHaveBeenCalledTimes(1);
-    expect(mockSpeak).toHaveBeenLastCalledWith("ひと", {
+    expect(mockSpeak).toHaveBeenLastCalledWith("person", {
       language: "ja-JP",
     });
     expect(mockStopCardSpeech).not.toHaveBeenCalled();
@@ -194,12 +195,43 @@ describe("KanjiCollocationCard", () => {
     fireEvent.press(screen.getByTestId("kanji-collocation-face-reading-1"));
 
     expect(mockSpeak).toHaveBeenCalledTimes(2);
-    expect(mockSpeak).toHaveBeenLastCalledWith("いつ", {
+    expect(mockSpeak).toHaveBeenLastCalledWith("いち", {
       language: "ja-JP",
     });
     expect(mockStopCardSpeech).not.toHaveBeenCalled();
     expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
     expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
+  });
+
+  it("omits missing combined row parts without dangling separators", () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord({
+          meaning: ["word", "language", ""],
+          meaningKorean: ["단어", "", "뜻"],
+          meaningKoreanRomanize: ["", "eon-eo", "tteut"],
+          reading: ["ご", ""],
+          readingKorean: ["고", "음"],
+          readingKoreanRomanize: ["", "eum"],
+        })}
+      />,
+    );
+
+    expect(
+      textChildrenOf(screen.getByTestId("kanji-collocation-face-meaning-0")),
+    ).toEqual(["word"]);
+    expect(
+      textChildrenOf(screen.getByTestId("kanji-collocation-face-meaning-1")),
+    ).toEqual(["eon-eo", "language"]);
+    expect(
+      textChildrenOf(screen.getByTestId("kanji-collocation-face-meaning-2")),
+    ).toEqual(["tteut"]);
+    expect(
+      textChildrenOf(screen.getByTestId("kanji-collocation-face-reading-0")),
+    ).toEqual(["ご"]);
+    expect(
+      textChildrenOf(screen.getByTestId("kanji-collocation-face-reading-1")),
+    ).toEqual(["eum"]);
   });
 
   it("renders example text and translation on back side", () => {
@@ -221,69 +253,37 @@ describe("KanjiCollocationCard", () => {
     ).toBeTruthy();
   });
 
-  it("removes parentheses from Korean-localized labels on the back side only", () => {
+  it("uses base meaning and reading on the back side even when UI language is en", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+
+    expect(screen.getByText("word")).toBeTruthy();
+    expect(screen.getByText("ご")).toBeTruthy();
+    expect(screen.queryByText("dan-eo")).toBeNull();
+    expect(screen.queryByText("go")).toBeNull();
+  });
+
+  it("uses base meaning and reading on the back side even when UI language is ko", () => {
     mockLanguage = "ko";
 
-    const screen = render(
-      <KanjiCollocationCard
-        item={buildKanjiWord({
-          meaningKorean: ["단어(뜻)"],
-          readingKorean: ["고(음)"],
-        })}
-      />,
-    );
-
-    expect(screen.getByText("단어(뜻)")).toBeTruthy();
-    expect(screen.getByText("고(음)")).toBeTruthy();
-
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
     flipToBack(screen);
 
-    expect(screen.getByText("단어")).toBeTruthy();
-    expect(screen.getByText("고")).toBeTruthy();
-    expect(screen.queryByText("단어(뜻)")).toBeNull();
-    expect(screen.queryByText("고(음)")).toBeNull();
+    expect(screen.getByText("word")).toBeTruthy();
+    expect(screen.getByText("ご")).toBeTruthy();
+    expect(screen.queryByText("단어")).toBeNull();
+    expect(screen.queryByText("고")).toBeNull();
   });
 
-  it("removes parentheses from English-localized romanized labels on the back side only", () => {
-    const screen = render(
-      <KanjiCollocationCard
-        item={buildKanjiWord({
-          meaningKoreanRomanize: ["dan-eo (meaning)"],
-          readingKoreanRomanize: ["go (sound)"],
-        })}
-      />,
-    );
+  it("renders split face-side rows with respective label colors", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    const meaningTexts = screen.getByTestId("kanji-collocation-face-meaning-0").findAllByType(Text);
+    const readingTexts = screen.getByTestId("kanji-collocation-face-reading-0").findAllByType(Text);
 
-    expect(screen.getByText("dan-eo (meaning)")).toBeTruthy();
-    expect(screen.getByText("go (sound)")).toBeTruthy();
-
-    flipToBack(screen);
-
-    expect(screen.getByText("dan-eo")).toBeTruthy();
-    expect(screen.getByText("go")).toBeTruthy();
-    expect(screen.queryByText("dan-eo (meaning)")).toBeNull();
-    expect(screen.queryByText("go (sound)")).toBeNull();
-  });
-
-  it("keeps base Japanese labels unchanged on the back side", () => {
-    mockLanguage = "ja";
-
-    const screen = render(
-      <KanjiCollocationCard
-        item={buildKanjiWord({
-          meaning: ["ひと(つ)"],
-          reading: ["いち(ど)"],
-        })}
-      />,
-    );
-
-    expect(screen.getByText("ひと(つ)")).toBeTruthy();
-    expect(screen.getByText("いち(ど)")).toBeTruthy();
-
-    flipToBack(screen);
-
-    expect(screen.getByText("ひと(つ)")).toBeTruthy();
-    expect(screen.getByText("いち(ど)")).toBeTruthy();
+    expect(flattenStyleOf(meaningTexts[0]).color).toBe("#666");
+    expect(flattenStyleOf(meaningTexts[1]).color).toBe("#1a1a1a");
+    expect(flattenStyleOf(readingTexts[0]).color).toBe("#666");
+    expect(flattenStyleOf(readingTexts[1]).color).toBe("#1a1a1a");
   });
 
   it("hides the divider above reading when the meaning section has no visible entries", () => {

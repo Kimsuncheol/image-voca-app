@@ -5,14 +5,13 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import {
-  getLocalizedKanjiMeanings,
-  getLocalizedKanjiReadings,
-} from "../../src/utils/kanjiLocalization";
+  buildKanjiMeaningDisplayRows,
+  buildKanjiReadingDisplayRows,
+} from "../../src/utils/kanjiDisplayRows";
 import { DayBadge } from "../common/DayBadge";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { DottedDivider } from "../course/vocabulary/KanjiCollocationCardDivider";
 import { GeneralBackSection } from "../course/vocabulary/KanjiCollocationCardGeneralBackSection";
-import { compactStrings } from "../course/vocabulary/kanjiCollocationUtils";
 import { AddToWordBankButton } from "./AddToWordBankButton";
 import type { SavedWord } from "./WordCard";
 
@@ -31,11 +30,12 @@ export function KanjiWordBankCard({
   useCardSpeechCleanup();
   const { i18n } = useTranslation();
   const useKorean = i18n.language === "ko";
+  const language = i18n.language;
 
   const [showFurigana, setShowFurigana] = React.useState(false);
 
-  const meanings = compactStrings(getLocalizedKanjiMeanings(word, i18n.language));
-  const readings = compactStrings(getLocalizedKanjiReadings(word, i18n.language));
+  const meanings = buildKanjiMeaningDisplayRows(word, language);
+  const readings = buildKanjiReadingDisplayRows(word, language);
 
   const exampleTranslations = useKorean
     ? (word.exampleKoreanTranslation ?? [])
@@ -108,17 +108,32 @@ export function KanjiWordBankCard({
             MEANING
           </Text>
           <View style={styles.chipRow}>
-            {meanings.map((m, i) => (
-              <Text
+            {meanings.map((row, i) => (
+              <View
                 key={`m-${i}`}
-                style={[
-                  styles.chipText,
-                  { color: isDark ? "#e0e0e0" : "#1a1a1a" },
-                ]}
+                style={{ flexDirection: "row", alignItems: "baseline", gap: 24 }}
               >
-                {m}
-                {i < meanings.length - 1 ? "," : ""}
-              </Text>
+                {row.localizedText ? (
+                  <Text
+                    style={[
+                      styles.chipText,
+                      { color: isDark ? "#aaa" : "#666", fontSize: 14 },
+                    ]}
+                  >
+                    {row.localizedText}
+                  </Text>
+                ) : null}
+                {row.baseText ? (
+                  <Text
+                    style={[
+                      styles.chipText,
+                      { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                    ]}
+                  >
+                    {row.baseText}
+                  </Text>
+                ) : null}
+              </View>
             ))}
           </View>
         </View>
@@ -133,17 +148,32 @@ export function KanjiWordBankCard({
             READING
           </Text>
           <View style={styles.chipRow}>
-            {readings.map((r, i) => (
-              <Text
+            {readings.map((row, i) => (
+              <View
                 key={`r-${i}`}
-                style={[
-                  styles.chipText,
-                  { color: isDark ? "#e0e0e0" : "#1a1a1a" },
-                ]}
+                style={{ flexDirection: "row", alignItems: "baseline", gap: 24 }}
               >
-                {r}
-                {i < readings.length - 1 ? "," : ""}
-              </Text>
+                {row.localizedText ? (
+                  <Text
+                    style={[
+                      styles.chipText,
+                      { color: isDark ? "#aaa" : "#666", fontSize: 14 },
+                    ]}
+                  >
+                    {row.localizedText}
+                  </Text>
+                ) : null}
+                {row.baseText ? (
+                  <Text
+                    style={[
+                      styles.chipText,
+                      { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                    ]}
+                  >
+                    {row.baseText}
+                  </Text>
+                ) : null}
+              </View>
             ))}
           </View>
         </View>

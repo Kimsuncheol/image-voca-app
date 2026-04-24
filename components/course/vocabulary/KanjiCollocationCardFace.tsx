@@ -2,21 +2,20 @@ import React from "react";
 import {
   Pressable,
   Text,
-  type GestureResponderEvent,
   View,
+  type GestureResponderEvent,
 } from "react-native";
 import { useSpeech } from "../../../src/hooks/useSpeech";
 import type { KanjiWord } from "../../../src/types/vocabulary";
 import {
-  getLocalizedKanjiMeanings,
-  getLocalizedKanjiReadings,
-} from "../../../src/utils/kanjiLocalization";
+  buildKanjiMeaningDisplayRows,
+  buildKanjiReadingDisplayRows,
+} from "../../../src/utils/kanjiDisplayRows";
 import { CollocationCardImage } from "../../common/CollocationCardImage";
 import { DayBadge } from "../../common/DayBadge";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
 import { DottedDivider } from "./KanjiCollocationCardDivider";
 import { styles } from "./KanjiCollocationCardStyles";
-import { splitFaceSummaryItems } from "./kanjiCollocationUtils";
 
 /**
  * Props passed to the front face component of the Kanji Collocation Card.
@@ -51,11 +50,11 @@ export function FaceSide({
   item,
   isDark,
   isActive,
-  language,
   day,
   initialIsSaved,
   onSavedWordChange,
   onFlip,
+  language = "en",
 }: FaceSideProps) {
   const { speak } = useSpeech();
 
@@ -67,8 +66,8 @@ export function FaceSide({
     [isActive, speak],
   );
 
-  const meanings = splitFaceSummaryItems(getLocalizedKanjiMeanings(item, language));
-  const readings = splitFaceSummaryItems(getLocalizedKanjiReadings(item, language));
+  const meanings = buildKanjiMeaningDisplayRows(item, language);
+  const readings = buildKanjiReadingDisplayRows(item, language);
 
   const handlePressSpeechItem = React.useCallback(
     (event: GestureResponderEvent | undefined, text: string) => {
@@ -133,16 +132,35 @@ export function FaceSide({
                   <Pressable
                     key={`meaning-${i}`}
                     testID={`kanji-collocation-face-meaning-${i}`}
-                    onPress={(event) => handlePressSpeechItem(event, m)}
+                    onPress={(event) =>
+                      handlePressSpeechItem(event, m.speakText)
+                    }
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "baseline",
+                      gap: 24,
+                    }}
                   >
-                    <Text
-                      style={[
-                        styles.faceListItem,
-                        { color: isDark ? "#e0e0e0" : "#1a1a1a" },
-                      ]}
-                    >
-                      {m}
-                    </Text>
+                    {m.localizedText ? (
+                      <Text
+                        style={[
+                          styles.faceListItem,
+                          { color: isDark ? "#aaa" : "#666", fontSize: 14 },
+                        ]}
+                      >
+                        {m.localizedText}
+                      </Text>
+                    ) : null}
+                    {m.baseText ? (
+                      <Text
+                        style={[
+                          styles.faceListItem,
+                          { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                        ]}
+                      >
+                        {m.baseText}
+                      </Text>
+                    ) : null}
                   </Pressable>
                 ))}
               </View>
@@ -167,16 +185,35 @@ export function FaceSide({
                   <Pressable
                     key={`reading-${i}`}
                     testID={`kanji-collocation-face-reading-${i}`}
-                    onPress={(event) => handlePressSpeechItem(event, r)}
+                    onPress={(event) =>
+                      handlePressSpeechItem(event, r.speakText)
+                    }
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "baseline",
+                      gap: 24,
+                    }}
                   >
-                    <Text
-                      style={[
-                        styles.faceListItem,
-                        { color: isDark ? "#e0e0e0" : "#1a1a1a" },
-                      ]}
-                    >
-                      {r}
-                    </Text>
+                    {r.localizedText ? (
+                      <Text
+                        style={[
+                          styles.faceListItem,
+                          { color: isDark ? "#aaa" : "#666", fontSize: 14 },
+                        ]}
+                      >
+                        {r.localizedText}
+                      </Text>
+                    ) : null}
+                    {r.baseText ? (
+                      <Text
+                        style={[
+                          styles.faceListItem,
+                          { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                        ]}
+                      >
+                        {r.baseText}
+                      </Text>
+                    ) : null}
                   </Pressable>
                 ))}
               </View>
