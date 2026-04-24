@@ -63,14 +63,6 @@ export default function ComingSoonScreen() {
           <Text style={styles.linkText}>{t("comingSoon.links.wordBank")}</Text>
           <Ionicons name="chevron-forward" size={15} color="#007AFF" />
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => router.push("/notification-card")}
-          activeOpacity={0.6}
-          style={styles.link}
-        >
-          <Text style={styles.linkText}>{t("comingSoon.links.notificationCard")}</Text>
-          <Ionicons name="chevron-forward" size={15} color="#007AFF" />
-        </TouchableOpacity>
       </View>
     </View>
   );

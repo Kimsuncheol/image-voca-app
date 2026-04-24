@@ -30,7 +30,6 @@ import {
 } from "../src/context/ThemeContext";
 import { useAuthenticatedDeviceRegistration } from "../src/hooks/useAuthenticatedDeviceRegistration";
 import { useDeviceDeletionEnforcement } from "../src/hooks/useDeviceDeletionEnforcement";
-import { useNotificationTapNavigation } from "../src/hooks/useNotificationTapNavigation";
 import { usePushNotifications } from "../src/hooks/usePushNotifications";
 import { hydrateLanguage } from "../src/i18n";
 import { initializeMobileAds } from "../src/services/mobileAds";
@@ -66,7 +65,6 @@ export function RootLayoutNav() {
   useAuthenticatedDeviceRegistration();
   useDeviceDeletionEnforcement();
   usePushNotifications();
-  useNotificationTapNavigation();
 
   const paperTheme = isDark
     ? {
@@ -127,10 +125,6 @@ export function RootLayoutNav() {
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="wordbank" options={{ headerShown: false }} />
             <Stack.Screen name="course" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="notification-card"
-              options={{ headerShown: false }}
-            />
             <Stack.Screen name="modal" options={{ presentation: "modal" }} />
             <Stack.Screen
               name="profile"

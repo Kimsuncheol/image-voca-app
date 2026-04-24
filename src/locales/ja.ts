@@ -776,7 +776,6 @@ const ja = {
     links: {
       jlptVocabulary: "JLPT 単語",
       wordBank: "単語帳",
-      notificationCard: "今日の単語",
     },
   },
   network: {

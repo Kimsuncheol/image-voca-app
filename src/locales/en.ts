@@ -750,7 +750,6 @@ const en = {
     links: {
       jlptVocabulary: "JLPT Vocabulary",
       wordBank: "Word Bank",
-      notificationCard: "Word of the Day",
     },
   },
   student: {

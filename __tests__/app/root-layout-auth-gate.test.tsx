@@ -77,10 +77,6 @@ jest.mock("../../src/hooks/usePushNotifications", () => ({
   usePushNotifications: jest.fn(),
 }));
 
-jest.mock("../../src/hooks/useNotificationTapNavigation", () => ({
-  useNotificationTapNavigation: jest.fn(),
-}));
-
 jest.mock("../../src/hooks/useDeviceDeletionEnforcement", () => ({
   useDeviceDeletionEnforcement: jest.fn(),
 }));

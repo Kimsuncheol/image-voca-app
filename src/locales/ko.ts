@@ -739,7 +739,6 @@ const ko = {
     links: {
       jlptVocabulary: "JLPT 단어",
       wordBank: "단어장",
-      notificationCard: "오늘의 단어",
     },
   },
   student: {
