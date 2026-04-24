@@ -44,6 +44,7 @@ export function KanjiWordBankCard({
   const handleSpeakKanji = React.useCallback(() => {
     void speak(word.kanji ?? "", { language: "ja-JP" });
   }, [speak, word.kanji]);
+  const handleStaticExampleRowPress = React.useCallback(() => {}, []);
 
   const hasGeneralExamples = (word.exampleHurigana?.length ?? 0) > 0 ||
     ((word.example as string[] | string | undefined) instanceof Array
@@ -217,6 +218,7 @@ export function KanjiWordBankCard({
             isDark={isDark}
             isActive={true}
             showFurigana={showFurigana}
+            onFlip={handleStaticExampleRowPress}
           />
         </View>
       )}

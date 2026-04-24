@@ -133,6 +133,10 @@ export const styles = StyleSheet.create({
   backSection: {
     gap: 8,
   },
+  backFlippableRow: {
+    width: "100%",
+    alignSelf: "stretch",
+  },
   backSectionTitle: {
     fontSize: 11,
     fontWeight: "700",
@@ -161,6 +165,7 @@ export const styles = StyleSheet.create({
   backPairsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
+    width: "100%",
     justifyContent: "flex-start",
     alignItems: "flex-start",
     gap: 8,

@@ -1,5 +1,11 @@
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import {
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
+  type GestureResponderEvent,
+} from "react-native";
 import { useSpeech } from "../../../src/hooks/useSpeech";
 import type { KanjiNestedListGroup } from "../../../src/types/vocabulary";
 import { styles } from "./KanjiCollocationCardStyles";
@@ -26,6 +32,8 @@ interface BackSectionProps {
   isActive: boolean;
   /** State determining if the furigana text should be visibly rendered */
   showFurigana: boolean;
+  /** Callback triggered to flip the card horizontally back to the front face */
+  onFlip: () => void;
 }
 
 /**
@@ -43,6 +51,7 @@ export function BackSection({
   translations,
   isDark,
   isActive,
+  onFlip,
 }: BackSectionProps) {
   const { speak } = useSpeech();
 
@@ -56,7 +65,8 @@ export function BackSection({
     .filter((e) => e.value);
 
   const handleSpeak = React.useCallback(
-    (text: string) => {
+    (event: GestureResponderEvent | undefined, text: string) => {
+      event?.stopPropagation();
       if (!isActive) return;
       void speak(text, { language: "ja-JP" });
     },
@@ -67,79 +77,100 @@ export function BackSection({
 
   return (
     <View style={styles.backSection}>
-      <Text
-        suppressHighlighting
-        onPress={(e) => e?.stopPropagation()}
-        style={[styles.backSectionTitle, { color: isDark ? "#999" : "#666" }]}
+      <Pressable
+        testID={`kanji-collocation-${title.toLowerCase()}-title-row`}
+        onPress={onFlip}
+        style={styles.backFlippableRow}
       >
-        {title}
-      </Text>
+        <Text
+          suppressHighlighting
+          style={[
+            styles.backSectionTitle,
+            { color: isDark ? "#999" : "#666" },
+          ]}
+        >
+          {title}
+        </Text>
+      </Pressable>
       {entries.map((entry, i) => (
         <View key={`${title}-${i}`} style={styles.backGroup}>
-          <Text
-            suppressHighlighting
-            onPress={(e) => e?.stopPropagation()}
-            style={[
-              styles.backGroupLabel,
-              { color: isDark ? "#fff" : "#1a1a1a" },
-            ]}
+          <Pressable
+            testID={`kanji-collocation-${title.toLowerCase()}-value-row-${i}`}
+            onPress={onFlip}
+            style={styles.backFlippableRow}
           >
-            {entry.value}
-          </Text>
-          <View
-            testID={`kanji-collocation-${title.toLowerCase()}-pairs-container-${i}`}
-            style={styles.backPairsContainer}
+            <Text
+              suppressHighlighting
+              style={[
+                styles.backGroupLabel,
+                { color: isDark ? "#fff" : "#1a1a1a" },
+              ]}
+            >
+              {entry.value}
+            </Text>
+          </Pressable>
+          <Pressable
+            testID={`kanji-collocation-${title.toLowerCase()}-examples-row-${i}`}
+            onPress={onFlip}
+            style={styles.backFlippableRow}
           >
-            {entry.examples.map((example, j) => {
-              const huriganaText = entry.hurigana[j] ?? "あ";
-              const hasHurigana = Boolean(entry.hurigana[j]);
+            <View
+              testID={`kanji-collocation-${title.toLowerCase()}-pairs-container-${i}`}
+              style={styles.backPairsContainer}
+            >
+              {entry.examples.map((example, j) => {
+                const huriganaText = entry.hurigana[j] ?? "あ";
+                const hasHurigana = Boolean(entry.hurigana[j]);
 
-              return (
-                <TouchableOpacity
-                  key={`${title}-${i}-ex-${j}`}
-                  onPress={() => handleSpeak(entry.hurigana[j] ?? example)}
-                  activeOpacity={0.7}
-                  testID={`kanji-collocation-${title.toLowerCase()}-pair-item-${i}-${j}`}
-                  style={styles.backPairItem}
-                >
-                  <View
-                    testID={`kanji-collocation-${title.toLowerCase()}-main-row-${i}-${j}`}
-                    style={styles.backPairMainRow}
+                return (
+                  <TouchableOpacity
+                    key={`${title}-${i}-ex-${j}`}
+                    onPress={(event) =>
+                      handleSpeak(event, entry.hurigana[j] ?? example)
+                    }
+                    activeOpacity={0.7}
+                    testID={`kanji-collocation-${title.toLowerCase()}-pair-item-${i}-${j}`}
+                    style={styles.backPairItem}
                   >
-                    <Text
-                      style={[
-                        styles.backExample,
-                        { color: isDark ? "#aaa" : "#555" },
-                      ]}
+                    <View
+                      testID={`kanji-collocation-${title.toLowerCase()}-main-row-${i}-${j}`}
+                      style={styles.backPairMainRow}
                     >
-                      {example}
-                    </Text>
-                    {entry.translations[j] ? (
                       <Text
                         style={[
-                          styles.backTranslation,
-                          { color: isDark ? "#777" : "#888" },
+                          styles.backExample,
+                          { color: isDark ? "#aaa" : "#555" },
                         ]}
                       >
-                        {entry.translations[j]}
+                        {example}
                       </Text>
-                    ) : null}
-                  </View>
-                  <Text
-                    testID={`kanji-collocation-${title.toLowerCase()}-hurigana-${i}-${j}`}
-                    style={[
-                      styles.backFurigana,
-                      hasHurigana
-                        ? { color: isDark ? "#888" : "#999" }
-                        : styles.backFuriganaSpacer,
-                    ]}
-                  >
-                    {huriganaText}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+                      {entry.translations[j] ? (
+                        <Text
+                          style={[
+                            styles.backTranslation,
+                            { color: isDark ? "#777" : "#888" },
+                          ]}
+                        >
+                          {entry.translations[j]}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <Text
+                      testID={`kanji-collocation-${title.toLowerCase()}-hurigana-${i}-${j}`}
+                      style={[
+                        styles.backFurigana,
+                        hasHurigana
+                          ? { color: isDark ? "#888" : "#999" }
+                          : styles.backFuriganaSpacer,
+                      ]}
+                    >
+                      {huriganaText}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </Pressable>
         </View>
       ))}
     </View>

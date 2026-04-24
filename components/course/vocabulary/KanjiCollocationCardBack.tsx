@@ -98,6 +98,7 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
                 isDark={isDark}
                 isActive={isActive}
                 showFurigana={showFurigana}
+                onFlip={onFlip}
               />
             ) : null}
             {hasMeaningSection && hasReadingSection ? (
@@ -118,6 +119,7 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
                 isDark={isDark}
                 isActive={isActive}
                 showFurigana={showFurigana}
+                onFlip={onFlip}
               />
             ) : null}
             {hasReadingSection && hasExampleSection ? (
@@ -136,6 +138,7 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
                 isDark={isDark}
                 isActive={isActive}
                 showFurigana={showFurigana}
+                onFlip={onFlip}
               />
             ) : null}
           </View>

@@ -731,24 +731,131 @@ describe("KanjiCollocationCard", () => {
     expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
   });
 
-  it("does not flip when a section title text on the back side is pressed", () => {
+  it("flips back to the face side when a section title row is pressed", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+    mockStopCardSpeech.mockClear();
+
+    fireEvent.press(screen.getByTestId("kanji-collocation-example-title-row"));
+
+    expect(mockStopCardSpeech).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
+    expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
+  });
+
+  it("flips back to the face side when a section title text on the back side is pressed", () => {
     const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
     flipToBack(screen);
     mockStopCardSpeech.mockClear();
 
     fireEvent.press(screen.getByText("EXAMPLE"));
 
-    expect(mockStopCardSpeech).not.toHaveBeenCalled();
-    expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
+    expect(mockStopCardSpeech).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
+    expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
   });
 
-  it("does not flip when a group label text on the back side is pressed", () => {
+  it("flips back to the face side when a group label row is pressed", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+    mockStopCardSpeech.mockClear();
+
+    fireEvent.press(screen.getByTestId("kanji-collocation-meaning-value-row-0"));
+
+    expect(mockStopCardSpeech).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
+    expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
+  });
+
+  it("flips back to the face side when a group label text on the back side is pressed", () => {
     const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
     flipToBack(screen);
     mockStopCardSpeech.mockClear();
 
     fireEvent.press(screen.getByText("word"));
 
+    expect(mockStopCardSpeech).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
+    expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
+  });
+
+  it("flips back to the face side when a meaning example row background is pressed", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+    mockStopCardSpeech.mockClear();
+
+    fireEvent.press(screen.getByTestId("kanji-collocation-meaning-examples-row-0"));
+
+    expect(mockStopCardSpeech).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
+    expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
+  });
+
+  it("speaks without flipping when a meaning example item is pressed", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+    mockSpeak.mockClear();
+    mockStopCardSpeech.mockClear();
+
+    fireEvent.press(screen.getByTestId("kanji-collocation-meaning-pair-item-0-0"));
+
+    expect(mockSpeak).toHaveBeenCalledWith("じゅくご", {
+      language: "ja-JP",
+    });
+    expect(mockStopCardSpeech).not.toHaveBeenCalled();
+    expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
+  });
+
+  it("flips back to the face side when a reading example row background is pressed", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+    mockStopCardSpeech.mockClear();
+
+    fireEvent.press(screen.getByTestId("kanji-collocation-reading-examples-row-0"));
+
+    expect(mockStopCardSpeech).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
+    expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
+  });
+
+  it("speaks without flipping when a reading example item is pressed", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+    mockSpeak.mockClear();
+    mockStopCardSpeech.mockClear();
+
+    fireEvent.press(screen.getByTestId("kanji-collocation-reading-pair-item-0-0"));
+
+    expect(mockSpeak).toHaveBeenCalledWith("にほんご", {
+      language: "ja-JP",
+    });
+    expect(mockStopCardSpeech).not.toHaveBeenCalled();
+    expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
+  });
+
+  it("flips back to the face side when the general example row background is pressed", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+    mockStopCardSpeech.mockClear();
+
+    fireEvent.press(screen.getByTestId("kanji-collocation-example-row"));
+
+    expect(mockStopCardSpeech).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
+    expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
+  });
+
+  it("speaks without flipping when a general example item is pressed", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+    mockSpeak.mockClear();
+    mockStopCardSpeech.mockClear();
+
+    fireEvent.press(screen.getByTestId("kanji-collocation-example-item-0"));
+
+    expect(mockSpeak).toHaveBeenCalledWith("ごをまなぶ。", {
+      language: "ja-JP",
+    });
     expect(mockStopCardSpeech).not.toHaveBeenCalled();
     expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
   });
