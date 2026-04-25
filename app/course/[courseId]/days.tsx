@@ -22,6 +22,7 @@ import { DayGrid, EmptyDayView } from "../../../components/course";
 import { ThemedText } from "../../../components/themed-text";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useLearningLanguage } from "../../../src/context/LearningLanguageContext";
+import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import {
   getTotalDaysForCourse,
@@ -58,6 +59,7 @@ export default function DayPickerScreen() {
   // Hooks & Context
   // ---------------------------------------------------------------------------
   const { isDark } = useTheme();
+  const bgColors = getBackgroundColors(isDark);
   const { user } = useAuth();
   const router = useRouter();
   const isFocusedRef = React.useRef(true);
@@ -283,7 +285,7 @@ export default function DayPickerScreen() {
   // ---------------------------------------------------------------------------
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      style={[styles.container, { backgroundColor: bgColors.screen }]}
       edges={["left", "right", "bottom"]}
     >
       <Stack.Screen

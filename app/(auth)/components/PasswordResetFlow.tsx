@@ -20,6 +20,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { auth } from "../../../src/services/firebase";
@@ -400,11 +401,12 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
 
 const getStyles = (isDark: boolean) => {
   const fontColors = getFontColors(isDark);
+  const bg = getBackgroundColors(isDark);
 
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: isDark ? "#000" : "#fff",
+      backgroundColor: bg.screen,
     },
     keyboardView: {
       flex: 1,
@@ -434,7 +436,7 @@ const getStyles = (isDark: boolean) => {
       marginBottom: 24,
     },
     successBanner: {
-      backgroundColor: isDark ? "#113A1A" : "#E8F7EC",
+      backgroundColor: bg.accentGreenDeep,
       borderColor: isDark ? "#1F6A2F" : "#9CD7AC",
       borderWidth: 1,
       borderRadius: 12,

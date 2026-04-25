@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ErrorBanner, LinkButton, PrimaryButton } from "./components";
+import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
@@ -199,11 +200,12 @@ export default function VerifyEmailScreen() {
 
 const getStyles = (isDark: boolean) => {
   const fontColors = getFontColors(isDark);
+  const bg = getBackgroundColors(isDark);
 
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: isDark ? "#000" : "#fff",
+      backgroundColor: bg.screen,
     },
     scrollContent: {
       flexGrow: 1,
@@ -219,7 +221,7 @@ const getStyles = (isDark: boolean) => {
       width: 140,
       height: 140,
       borderRadius: 70,
-      backgroundColor: isDark ? "#1e293b" : "#f1f5f9",
+      backgroundColor: bg.verifyEmailCard,
       justifyContent: "center",
       alignItems: "center",
       marginBottom: 32,
@@ -244,7 +246,7 @@ const getStyles = (isDark: boolean) => {
       width: "100%",
       padding: 20,
       borderRadius: 20,
-      backgroundColor: isDark ? "#111827" : "#f8fafc",
+      backgroundColor: bg.heroCard,
       borderWidth: 1,
       borderColor: isDark ? "#1f2937" : "#e2e8f0",
       marginBottom: 24,
@@ -273,7 +275,7 @@ const getStyles = (isDark: boolean) => {
       borderRadius: 16,
       borderWidth: 1,
       borderColor: isDark ? "#064e3b" : "#bbf7d0",
-      backgroundColor: isDark ? "#06201b" : "#f0fdf4",
+      backgroundColor: bg.accentGreenSoft,
       paddingHorizontal: 16,
       paddingVertical: 14,
     },

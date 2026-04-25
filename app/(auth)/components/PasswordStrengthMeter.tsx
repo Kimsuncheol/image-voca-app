@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { FontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 
@@ -74,9 +75,7 @@ export const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({
                 backgroundColor:
                   i < filledSegments
                     ? config.color
-                    : isDark
-                      ? "#2c2c2e"
-                      : "#E0E0E0",
+                    : getBackgroundColors(isDark).subtleGray,
               },
             ]}
           />

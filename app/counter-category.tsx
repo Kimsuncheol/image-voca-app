@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CountersList } from "../components/counters/CountersList";
+import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import { getCountersData } from "../src/services/countersService";
@@ -72,11 +73,11 @@ export default function CounterCategoryScreen() {
     };
   }, [activeTab, t]);
 
-  const bg = isDark ? "#000" : "#f2f2f7";
+  const bgColors = getBackgroundColors(isDark);
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: bg }]}
+      style={[styles.container, { backgroundColor: bgColors.screenAlt }]}
       edges={["bottom"]}
     >
       <Stack.Screen

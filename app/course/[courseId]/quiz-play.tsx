@@ -26,6 +26,7 @@ import {
   QuizTimer,
 } from "../../../components/course";
 import { useAuth } from "../../../src/context/AuthContext";
+import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import {
   type QuizTypeId,
@@ -76,6 +77,7 @@ const sleep = (ms: number) =>
 
 export default function QuizPlayScreen() {
   const { isDark } = useTheme();
+  const bgColors = getBackgroundColors(isDark);
   const { user } = useAuth();
   const router = useRouter();
   const { t, i18n } = useTranslation();
@@ -682,7 +684,7 @@ export default function QuizPlayScreen() {
       <SafeAreaView
         style={[
           styles.container,
-          { backgroundColor: isDark ? "#000" : "#fff" },
+          { backgroundColor: bgColors.screen },
         ]}
       >
         <Stack.Screen
@@ -700,7 +702,7 @@ export default function QuizPlayScreen() {
       <SafeAreaView
         style={[
           styles.container,
-          { backgroundColor: isDark ? "#000" : "#fff" },
+          { backgroundColor: bgColors.screen },
         ]}
         edges={["left", "right", "bottom"]}
       >
@@ -715,7 +717,7 @@ export default function QuizPlayScreen() {
       <SafeAreaView
         style={[
           styles.container,
-          { backgroundColor: isDark ? "#000" : "#fff" },
+          { backgroundColor: bgColors.screen },
         ]}
       >
         <Stack.Screen options={{ headerShown: false }} />
@@ -732,7 +734,7 @@ export default function QuizPlayScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      style={[styles.container, { backgroundColor: bgColors.screen }]}
     >
       <Stack.Screen options={{ headerShown: false }} />
       <QuizHeader title="" isDark={isDark} onQuit={handleQuit} />

@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../src/context/AuthContext";
+import { getBackgroundColors } from "../../constants/backgroundColors";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
 import { auth } from "../../src/services/firebase";
@@ -269,11 +270,12 @@ export default function LoginScreen() {
 
 // --- Styles ---
 // Generates styles based on the current theme (isDark)
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const bg = getBackgroundColors(isDark);
+  return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: isDark ? "#121212" : "#F5F7FA",
+      backgroundColor: bg.input,
     },
     keyboardView: {
       flex: 1,
@@ -295,7 +297,7 @@ const getStyles = (isDark: boolean) =>
       borderRadius: 20,
     },
     cardContainer: {
-      backgroundColor: isDark ? "#1E1E1E" : "#FFFFFF",
+      backgroundColor: bg.card,
       borderRadius: 24,
       padding: 24,
       shadowColor: isDark ? "#000000" : "#000000",
@@ -320,3 +322,4 @@ const getStyles = (isDark: boolean) =>
       alignItems: "flex-end",
     },
   });
+};

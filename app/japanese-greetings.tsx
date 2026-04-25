@@ -9,6 +9,7 @@ import {
   ElementaryTableRow,
 } from "../components/elementary-japanese/ElementaryTable";
 import { ThemedText } from "../components/themed-text";
+import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { GREETINGS_DATA } from "../src/data/greetings";
 import { useTheme } from "../src/context/ThemeContext";
@@ -66,9 +67,10 @@ export default function JapaneseGreetingsScreen() {
   const { speak } = useSpeech();
   const fontColors = getFontColors(isDark);
 
-  const bg = isDark ? "#000" : "#f2f2f7";
-  const heroCardBg = isDark ? "#121318" : "#ffffff";
-  const accentBg = isDark ? "#3f2a12" : "#ffedd5";
+  const bgColors = getBackgroundColors(isDark);
+  const bg = bgColors.screenAlt;
+  const heroCardBg = bgColors.heroCardPanel;
+  const accentBg = bgColors.greetingsAccentBg;
   const accentText = fontColors.greetingsAccentText;
   const subtitleColor = fontColors.heroSubtitle;
   const sectionLabelColor = fontColors.sectionLabelSoft;
@@ -114,13 +116,13 @@ export default function JapaneseGreetingsScreen() {
               <View
                 style={[
                   styles.heroDotLarge,
-                  { backgroundColor: isDark ? "#f97316" : "#fb923c" },
+                  { backgroundColor: bgColors.greetingsStatCard1 },
                 ]}
               />
               <View
                 style={[
                   styles.heroDotSmall,
-                  { backgroundColor: isDark ? "#ea580c" : "#fdba74" },
+                  { backgroundColor: bgColors.greetingsStatCard2 },
                 ]}
               />
             </View>

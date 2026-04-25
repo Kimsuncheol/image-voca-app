@@ -12,6 +12,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
 
 // =============================================================================
@@ -42,6 +43,7 @@ export const Divider: React.FC<DividerProps> = ({ text }) => {
 // =============================================================================
 const getStyles = (isDark: boolean) => {
   const fontColors = getFontColors(isDark);
+  const bg = getBackgroundColors(isDark);
 
   return StyleSheet.create({
     dividerContainer: {
@@ -52,7 +54,7 @@ const getStyles = (isDark: boolean) => {
     divider: {
       flex: 1,
       height: 1,
-      backgroundColor: isDark ? "#333" : "#E0E0E0",
+      backgroundColor: bg.subtleGray,
     },
     dividerText: {
       marginHorizontal: 16,

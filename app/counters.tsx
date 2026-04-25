@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CountersTabs } from "../components/counters/CountersTabs";
 import { ThemedText } from "../components/themed-text";
+import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import type { CounterTabId } from "../src/types/counters";
@@ -15,9 +16,10 @@ export default function CountersScreen() {
   const router = useRouter();
   const fontColors = getFontColors(isDark);
 
-  const bg = isDark ? "#000" : "#f2f2f7";
-  const heroCardBg = isDark ? "#121318" : "#ffffff";
-  const accentBg = isDark ? "#1e3a5f" : "#dbeafe";
+  const bgColors = getBackgroundColors(isDark);
+  const bg = bgColors.screenAlt;
+  const heroCardBg = bgColors.heroCardPanel;
+  const accentBg = bgColors.countersAccentBg;
   const accentText = fontColors.countersAccentText;
   const subtitleColor = fontColors.heroSubtitle;
   const sectionLabelColor = fontColors.sectionLabelSoft;
@@ -60,13 +62,13 @@ export default function CountersScreen() {
               <View
                 style={[
                   styles.heroDotLarge,
-                  { backgroundColor: isDark ? "#2563eb" : "#60a5fa" },
+                  { backgroundColor: bgColors.countersStatCard1 },
                 ]}
               />
               <View
                 style={[
                   styles.heroDotSmall,
-                  { backgroundColor: isDark ? "#1d4ed8" : "#bfdbfe" },
+                  { backgroundColor: bgColors.countersStatCard2 },
                 ]}
               />
             </View>

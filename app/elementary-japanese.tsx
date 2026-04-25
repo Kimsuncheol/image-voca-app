@@ -7,16 +7,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { TopInstallNativeAd } from "../components/ads/TopInstallNativeAd";
 import { ElementaryHeroCard } from "../components/elementary-japanese/ElementaryHeroCard";
 import { ElementaryModuleList } from "../components/elementary-japanese/ElementaryModuleList";
+import { getBackgroundColors } from "../constants/backgroundColors";
 import { useTheme } from "../src/context/ThemeContext";
 
 export default function ElementaryJapaneseScreen() {
   const { isDark } = useTheme();
   const { t } = useTranslation();
-  const bg = isDark ? "#000" : "#f2f2f7";
+  const bgColors = getBackgroundColors(isDark);
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: bg }]}
+      style={[styles.container, { backgroundColor: bgColors.screenAlt }]}
       edges={["bottom"]}
     >
       <Stack.Screen

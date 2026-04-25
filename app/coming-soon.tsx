@@ -3,6 +3,7 @@ import { Stack, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 
@@ -11,18 +12,19 @@ export default function ComingSoonScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const fontColors = getFontColors(isDark);
+  const bgColors = getBackgroundColors(isDark);
 
   return (
     <View
       style={[
         styles.container,
-        { backgroundColor: isDark ? "#000" : "#f2f2f7" },
+        { backgroundColor: bgColors.screenAlt },
       ]}
     >
       <Stack.Screen
         options={{
           title: t("settings.language.japanese"),
-          headerStyle: { backgroundColor: isDark ? "#1c1c1e" : "#fff" },
+          headerStyle: { backgroundColor: bgColors.card },
           headerTitleStyle: { color: fontColors.screenTitle },
           headerTintColor: "#007AFF",
         }}

@@ -12,6 +12,7 @@ import {
 import { TopInstallNativeAd } from "../../components/ads/TopInstallNativeAd";
 import { ThemedText } from "../../components/themed-text";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
+import { getBackgroundColors } from "../../constants/backgroundColors";
 import { useTheme } from "../../src/context/ThemeContext";
 import {
   Course,
@@ -22,6 +23,7 @@ import {
 
 export default function CourseSelectionScreen() {
   const { isDark } = useTheme();
+  const bgColors = getBackgroundColors(isDark);
   const router = useRouter();
   const isNavigatingRef = useRef(false);
   const { learningLanguage, recentCourseByLanguage } = useLearningLanguage();
@@ -76,7 +78,7 @@ export default function CourseSelectionScreen() {
 
   return (
     <View
-      style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      style={[styles.container, { backgroundColor: bgColors.screen }]}
     >
       <TopInstallNativeAd />
       <ScrollView
@@ -88,7 +90,7 @@ export default function CourseSelectionScreen() {
           <TouchableOpacity
             style={[
               styles.kanaButton,
-              { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
+              { backgroundColor: bgColors.cardSubtle },
             ]}
             onPress={handleKanaPress}
             activeOpacity={0.7}

@@ -6,12 +6,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { TopInstallNativeAd } from "../../components/ads/TopInstallNativeAd";
 import { JlptLevelList } from "../../components/course/JlptLevelList";
 import { ThemedText } from "../../components/themed-text";
+import { getBackgroundColors } from "../../constants/backgroundColors";
 import { useTheme } from "../../src/context/ThemeContext";
 import { getTotalDaysForCourse } from "../../src/services/vocabularyPrefetch";
 import { JLPT_LEVELS, JLPTLevelCourse } from "../../src/types/vocabulary";
 
 export default function JlptLevelsScreen() {
   const { isDark } = useTheme();
+  const bgColors = getBackgroundColors(isDark);
   const router = useRouter();
   const { t } = useTranslation();
   const [totalDaysByLevel, setTotalDaysByLevel] = useState<
@@ -65,7 +67,7 @@ export default function JlptLevelsScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      style={[styles.container, { backgroundColor: bgColors.screen }]}
       edges={["left", "right", "bottom"]}
     >
       <Stack.Screen

@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { QuizTimer } from "../components/course";
 import { ThemedText } from "../components/themed-text";
+import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import { useSpeech } from "../src/hooks/useSpeech";
@@ -120,14 +121,13 @@ interface OptionButtonProps {
 
 function OptionButton({ label, state, isDark, onPress, disabled, width }: OptionButtonProps) {
   const fontColors = getFontColors(isDark);
+  const bgColors = getBackgroundColors(isDark);
   const bg =
     state === "correct"
-      ? "#34C759"
+      ? bgColors.accentGreen
       : state === "incorrect"
-        ? "#FF3B30"
-        : isDark
-          ? "#1c1c1e"
-          : "#f5f5f5";
+        ? bgColors.accentRed
+        : bgColors.cardSubtle;
   const color =
     state !== "default"
       ? fontColors.buttonOnAccent
@@ -161,6 +161,7 @@ interface ResultsProps {
 function ResultsView({ correct, total, wrongChars, isDark, onRetry, onDone }: ResultsProps) {
   const { t } = useTranslation();
   const fontColors = getFontColors(isDark);
+  const bgColors = getBackgroundColors(isDark);
   const pct = total > 0 ? correct / total : 0;
   const headline =
     pct >= 0.9
@@ -186,7 +187,7 @@ function ResultsView({ correct, total, wrongChars, isDark, onRetry, onDone }: Re
             {wrongChars.map((c) => (
               <View
                 key={c.kana}
-                style={[styles.wrongCard, { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" }]}
+                style={[styles.wrongCard, { backgroundColor: bgColors.cardSubtle }]}
               >
                 <ThemedText style={styles.wrongKana}>{c.kana}</ThemedText>
                 <ThemedText style={styles.wrongRomaji}>{c.romaji}</ThemedText>
@@ -198,14 +199,14 @@ function ResultsView({ correct, total, wrongChars, isDark, onRetry, onDone }: Re
 
       <View style={styles.resultsButtons}>
         <TouchableOpacity
-          style={[styles.resultBtn, { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" }]}
+          style={[styles.resultBtn, { backgroundColor: bgColors.cardSubtle }]}
           onPress={onRetry}
           activeOpacity={0.7}
         >
           <ThemedText style={styles.resultBtnText}>{t("kana.quiz.results.retry")}</ThemedText>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.resultBtn, { backgroundColor: "#007AFF" }]}
+          style={[styles.resultBtn, { backgroundColor: bgColors.accent }]}
           onPress={onDone}
           activeOpacity={0.7}
         >
@@ -228,6 +229,7 @@ type KanaType = "hiragana" | "katakana";
 
 export default function KanaQuizScreen() {
   const { isDark } = useTheme();
+  const bgColors = getBackgroundColors(isDark);
   const { t } = useTranslation();
   const router = useRouter();
   const speech = useSpeech();
@@ -382,7 +384,7 @@ export default function KanaQuizScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      style={[styles.container, { backgroundColor: bgColors.screen }]}
       edges={["bottom"]}
     >
       <Stack.Screen
@@ -418,7 +420,7 @@ export default function KanaQuizScreen() {
 
           {/* Kana card — tap to skip post-answer delay */}
           <TouchableOpacity
-            style={[styles.kanaCard, { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" }]}
+            style={[styles.kanaCard, { backgroundColor: bgColors.cardSubtle }]}
             onPress={handleSkip}
             activeOpacity={isAnswered ? 0.7 : 1}
             disabled={!isAnswered}

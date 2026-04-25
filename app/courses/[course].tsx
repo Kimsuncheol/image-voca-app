@@ -19,6 +19,7 @@ import { SavedWord, WordCard } from "../../components/wordbank/WordCard";
 
 // Context, services, and types
 import { useAuth } from "../../src/context/AuthContext";
+import { getBackgroundColors } from "../../constants/backgroundColors";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
 import { CourseType, findRuntimeCourse } from "../../src/types/vocabulary";
@@ -45,6 +46,7 @@ export default function CourseWordBankScreen() {
   // === Hooks and Context ===
 
   const { isDark } = useTheme(); // Dark mode state
+  const bgColors = getBackgroundColors(isDark);
   const { user } = useAuth(); // Current authenticated user
   const { course } = useLocalSearchParams<{ course: CourseType }>(); // Course ID from URL
   const { t } = useTranslation(); // Translation function for i18n
@@ -215,7 +217,7 @@ export default function CourseWordBankScreen() {
           style={[
             styles.searchInput,
             {
-              backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5",
+              backgroundColor: bgColors.cardSubtle,
               color: isDark ? "#fff" : "#111827",
             },
           ]}
@@ -240,7 +242,7 @@ export default function CourseWordBankScreen() {
     <SafeAreaView
       // header
 
-      style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      style={[styles.container, { backgroundColor: bgColors.screen }]}
       edges={["left", "right", "bottom"]}
     >
       {/* Configure navigation header */}

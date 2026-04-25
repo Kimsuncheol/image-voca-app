@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "../components/themed-text";
+import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import {
@@ -45,16 +46,13 @@ const CharCard = React.memo(function CharCard({
   onPress,
 }: CharCardProps) {
   const fontColors = getFontColors(isDark);
+  const bgColors = getBackgroundColors(isDark);
 
   if (!item) {
     return <View style={styles.cardSlot} />;
   }
 
-  const cardBg = isActive
-    ? "#007AFF"
-    : isDark
-      ? "#1c1c1e"
-      : "#f5f5f5";
+  const cardBg = isActive ? bgColors.accent : bgColors.cardSubtle;
 
   const kanaColor = isActive
     ? fontColors.buttonOnAccent
@@ -111,12 +109,13 @@ export default function JapaneseCharactersScreen() {
     [speech],
   );
 
-  const bg = isDark ? "#000" : "#fff";
+  const bgColors = getBackgroundColors(isDark);
+  const bg = bgColors.screen;
   const tabInactiveBorder = isDark ? "#333" : "#e5e5e5";
-  const tabInactiveBg = isDark ? "#1c1c1e" : "#f5f5f5";
-  const sectionDivider = isDark ? "rgba(255,255,255,0.12)" : "rgba(17,24,39,0.1)";
+  const tabInactiveBg = bgColors.cardSubtle;
+  const sectionDivider = bgColors.sectionDividerLine;
   const sectionSubtitleColor = fontColors.sectionSubtitle;
-  const sectionAccent = isDark ? "#8ab4ff" : "#2563eb";
+  const sectionAccent = bgColors.sectionAccentLine;
 
   const renderSectionHeader = useCallback(
     (sectionId: KanaSectionId) => {
@@ -216,7 +215,7 @@ export default function JapaneseCharactersScreen() {
               style={[
                 styles.tabChip,
                 isSelected
-                  ? { backgroundColor: isDark ? "#fff" : "#111827" }
+                  ? { backgroundColor: bgColors.tabActiveBg }
                   : { backgroundColor: tabInactiveBg, borderWidth: 1, borderColor: tabInactiveBorder },
               ]}
               onPress={() => setTab(id)}

@@ -10,6 +10,7 @@ import { CalendarMonthGrid } from "../components/calendar/CalendarMonthGrid";
 import { CalendarMonthSummaryCard } from "../components/calendar/CalendarMonthSummaryCard";
 
 import { useAuth } from "../src/context/AuthContext";
+import { getBackgroundColors } from "../constants/backgroundColors";
 import { useTheme } from "../src/context/ThemeContext";
 import {
   VocabularyDayStudyEntry,
@@ -37,6 +38,7 @@ const buildWeekdayLabels = (language: string) => {
 
 export default function CalendarScreen() {
   const { isDark } = useTheme();
+  const bgColors = getBackgroundColors(isDark);
   const { user } = useAuth();
   const userId = user?.uid;
   const router = useRouter();
@@ -200,7 +202,7 @@ export default function CalendarScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: isDark ? "#000000" : "#FFFFFF" }]}
+      style={[styles.container, { backgroundColor: bgColors.screen }]}
       edges={["left", "right"]}
     >
       <TopInstallNativeAd />

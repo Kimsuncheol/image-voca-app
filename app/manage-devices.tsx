@@ -19,6 +19,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useAuth } from "../src/context/AuthContext";
 import { useTheme } from "../src/context/ThemeContext";
@@ -326,11 +327,12 @@ export default function ManageDevicesScreen() {
 
 const getStyles = (isDark: boolean) => {
   const fontColors = getFontColors(isDark);
+  const bg = getBackgroundColors(isDark);
 
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: isDark ? "#000" : "#f2f2f7",
+      backgroundColor: bg.screenAlt,
     },
     content: {
       padding: 16,
@@ -338,7 +340,7 @@ const getStyles = (isDark: boolean) => {
       paddingBottom: 32,
     },
     headerCard: {
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
+      backgroundColor: bg.card,
       borderRadius: 18,
       padding: 20,
       gap: 8,
@@ -359,7 +361,7 @@ const getStyles = (isDark: boolean) => {
       color: fontColors.deviceHelper,
     },
     stateCard: {
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
+      backgroundColor: bg.card,
       borderRadius: 18,
       padding: 20,
     },
@@ -372,13 +374,13 @@ const getStyles = (isDark: boolean) => {
       color: fontColors.dangerText,
     },
     listCard: {
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
+      backgroundColor: bg.card,
       borderRadius: 18,
       overflow: "hidden",
     },
     separator: {
       height: StyleSheet.hairlineWidth,
-      backgroundColor: isDark ? "#38383a" : "#c6c6c8",
+      backgroundColor: bg.divider,
       marginLeft: 20,
     },
     deviceRow: {
@@ -400,7 +402,7 @@ const getStyles = (isDark: boolean) => {
       color: fontColors.screenTitleCompact,
     },
     badge: {
-      backgroundColor: isDark ? "#14304d" : "#e7f0ff",
+      backgroundColor: bg.accentSoft,
       borderRadius: 999,
       paddingHorizontal: 10,
       paddingVertical: 4,
@@ -419,7 +421,7 @@ const getStyles = (isDark: boolean) => {
       flexDirection: "row",
       alignItems: "center",
       gap: 8,
-      backgroundColor: "#d92d20",
+      backgroundColor: bg.dangerStrong,
       borderRadius: 999,
       paddingHorizontal: 14,
       paddingVertical: 10,

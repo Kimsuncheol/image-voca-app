@@ -15,6 +15,7 @@ import {
   ElementaryTableRow,
 } from "../components/elementary-japanese/ElementaryTable";
 import { ThemedText } from "../components/themed-text";
+import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import { useSpeech } from "../src/hooks/useSpeech";
@@ -115,9 +116,10 @@ export default function PrenominalAdjectiveScreen() {
   const [showFurigana, setShowFurigana] = useState(false);
   const fontColors = getFontColors(isDark);
 
-  const bg = isDark ? "#000" : "#f2f2f7";
-  const heroCardBg = isDark ? "#121318" : "#ffffff";
-  const accentBg = isDark ? "#2d1f5e" : "#ede9fe";
+  const bgColors = getBackgroundColors(isDark);
+  const bg = bgColors.screenAlt;
+  const heroCardBg = bgColors.heroCardPanel;
+  const accentBg = bgColors.prenominalAccentBg;
   const accentText = fontColors.prenominalAccentText;
   const subtitleColor = fontColors.heroSubtitle;
   const sectionLabelColor = fontColors.sectionLabelSoft;
@@ -194,13 +196,13 @@ export default function PrenominalAdjectiveScreen() {
               <View
                 style={[
                   styles.heroDotLarge,
-                  { backgroundColor: isDark ? "#7c3aed" : "#a78bfa" },
+                  { backgroundColor: bgColors.accentPurple },
                 ]}
               />
               <View
                 style={[
                   styles.heroDotSmall,
-                  { backgroundColor: isDark ? "#5b21b6" : "#ddd6fe" },
+                  { backgroundColor: bgColors.accentPurpleSoft },
                 ]}
               />
             </View>

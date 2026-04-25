@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 // Contexts & Service
 import { useAuth } from "../../../src/context/AuthContext";
+import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { upsertVocabularyDayStudyHistory } from "../../../src/services/dailyStudyHistory";
 import { db } from "../../../src/services/firebase";
@@ -47,6 +48,7 @@ export default function VocabularyScreen() {
   // Section 1: Hooks & Contexts
   // ============================================================================
   const { isDark } = useTheme();
+  const bgColors = getBackgroundColors(isDark);
   const { user } = useAuth();
 
   // Zustand store actions for managing user statistics and progress
@@ -428,7 +430,7 @@ export default function VocabularyScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      style={[styles.container, { backgroundColor: bgColors.screen }]}
       edges={hasCards() ? ["bottom"] : ["top", "bottom"]}
     >
       <Stack.Screen

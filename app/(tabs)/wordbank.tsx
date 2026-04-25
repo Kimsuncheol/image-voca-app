@@ -7,12 +7,14 @@ import { TopInstallNativeAd } from "../../components/ads/TopInstallNativeAd";
 import { WordBankCourseGrid, WordBankHeader } from "../../components/wordbank";
 import { useAuth } from "../../src/context/AuthContext";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
+import { getBackgroundColors } from "../../constants/backgroundColors";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
 import { CourseType, getTopLevelCoursesForLanguage } from "../../src/types/vocabulary";
 
 export default function WordBankScreen() {
   const { isDark } = useTheme();
+  const bgColors = getBackgroundColors(isDark);
   const { user } = useAuth();
   const router = useRouter();
   const isNavigatingRef = useRef(false);
@@ -52,7 +54,7 @@ export default function WordBankScreen() {
 
   return (
     <View
-      style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      style={[styles.container, { backgroundColor: bgColors.screen }]}
     >
       <TopInstallNativeAd />
       <ScrollView

@@ -40,6 +40,7 @@ import { SpeechSection } from "../../components/settings/SpeechSection"; // Pron
 // ============================================================================
 // CONTEXT & STATE MANAGEMENT
 // ============================================================================
+import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext"; // User authentication context
 import { useTheme } from "../../src/context/ThemeContext"; // Theme preferences context
@@ -491,18 +492,19 @@ export default function SettingsScreen() {
  */
 const getStyles = (isDark: boolean) => {
   const fontColors = getFontColors(isDark);
+  const bg = getBackgroundColors(isDark);
 
   return StyleSheet.create({
     // Main container - Full screen with system background color
     container: {
       flex: 1,
-      backgroundColor: isDark ? "#000" : "#f2f2f7", // System background (iOS style)
+      backgroundColor: bg.screenAlt,
       paddingHorizontal: 16,
     },
 
     // Navigation header styles
     header: {
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
+      backgroundColor: bg.card,
     },
     headerTitle: {
       color: fontColors.screenTitle,
@@ -525,7 +527,7 @@ const getStyles = (isDark: boolean) => {
 
     // Card - Contains one or more options in a grouped list style
     card: {
-      backgroundColor: isDark ? "#1c1c1e" : "#fff", // Elevated surface
+      backgroundColor: bg.surfaceElevated,
       borderRadius: 10, // Rounded corners (iOS style)
       overflow: "hidden", // Clips child content to rounded corners
     },
@@ -553,16 +555,16 @@ const getStyles = (isDark: boolean) => {
 
     // Separator - Thin line between options in a card
     separator: {
-      height: StyleSheet.hairlineWidth, // 1px on @1x, 0.5px on @2x, etc.
-      backgroundColor: isDark ? "#38383a" : "#c6c6c8", // Subtle divider
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: bg.divider,
       marginLeft: 52, // Indent to align with option text (after icon)
     },
 
     // Sign out button - Standalone button outside of a card
     signOutButton: {
       marginTop: 24,
-      marginBottom: 40, // Extra bottom padding for scrolling
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
+      marginBottom: 40,
+      backgroundColor: bg.card,
       padding: 16,
       borderRadius: 10,
       alignItems: "center",

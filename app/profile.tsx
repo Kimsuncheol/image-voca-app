@@ -34,6 +34,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AccountActionsSection } from "../components/profile/AccountActionsSection";
 import { AccountInfoSection } from "../components/profile/AccountInfoSection";
+import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import { deleteUserDeviceRegistrations } from "../src/services/deviceRegistrationService";
@@ -368,11 +369,12 @@ export default function ProfileScreen() {
 
 const getStyles = (isDark: boolean) => {
   const fontColors = getFontColors(isDark);
+  const bg = getBackgroundColors(isDark);
 
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: isDark ? "#000" : "#F2F2F7",
+      backgroundColor: bg.screenAlt,
     },
     scrollContent: {
       paddingBottom: 40,
@@ -380,7 +382,7 @@ const getStyles = (isDark: boolean) => {
     header: {
       alignItems: "center",
       paddingVertical: 30,
-      backgroundColor: isDark ? "#1C1C1E" : "#FFF",
+      backgroundColor: bg.card,
       borderBottomLeftRadius: 24,
       borderBottomRightRadius: 24,
       shadowColor: "#000",
@@ -405,7 +407,7 @@ const getStyles = (isDark: boolean) => {
       position: "absolute",
       bottom: 0,
       right: 0,
-      backgroundColor: "#007AFF",
+      backgroundColor: bg.accent,
       padding: 8,
       borderRadius: 20,
       borderWidth: 3,
@@ -423,7 +425,7 @@ const getStyles = (isDark: boolean) => {
       marginBottom: 16,
     },
     saveButton: {
-      backgroundColor: "#007AFF",
+      backgroundColor: bg.accent,
       paddingHorizontal: 20,
       paddingVertical: 10,
       borderRadius: 20,
@@ -445,7 +447,7 @@ const getStyles = (isDark: boolean) => {
       letterSpacing: 1,
     },
     card: {
-      backgroundColor: isDark ? "#1C1C1E" : "#FFF",
+      backgroundColor: bg.card,
       borderRadius: 16,
       padding: 16,
       shadowColor: "#000",
@@ -478,7 +480,7 @@ const getStyles = (isDark: boolean) => {
     },
     separator: {
       height: 1,
-      backgroundColor: isDark ? "#333" : "#F0F0F0",
+      backgroundColor: bg.subtleGrayLight,
     },
     dangerOption: {
       flexDirection: "row",
@@ -507,7 +509,7 @@ const getStyles = (isDark: boolean) => {
       top: "30%",
       left: 20,
       right: 20,
-      backgroundColor: isDark ? "#2C2C2E" : "#FFF",
+      backgroundColor: bg.card,
       padding: 24,
       borderRadius: 16,
       shadowColor: "#000",
@@ -524,7 +526,7 @@ const getStyles = (isDark: boolean) => {
       textAlign: "center",
     },
     input: {
-      backgroundColor: isDark ? "#1C1C1E" : "#F2F2F7",
+      backgroundColor: bg.tabInactive,
       padding: 12,
       borderRadius: 12,
       color: fontColors.screenTitle,
@@ -538,7 +540,7 @@ const getStyles = (isDark: boolean) => {
       paddingVertical: 12,
       paddingHorizontal: 20,
       borderRadius: 12,
-      backgroundColor: isDark ? "#3A3A3C" : "#E5E5EA",
+      backgroundColor: bg.separator,
     },
     cancelButtonText: {
       fontSize: 16,
@@ -549,7 +551,7 @@ const getStyles = (isDark: boolean) => {
       paddingVertical: 12,
       paddingHorizontal: 20,
       borderRadius: 12,
-      backgroundColor: "#FF3B30",
+      backgroundColor: bg.accentRed,
     },
     confirmButtonText: {
       fontSize: 16,
@@ -563,7 +565,7 @@ const getStyles = (isDark: boolean) => {
     goalInput: {
       fontSize: 16,
       color: fontColors.screenTitle,
-      backgroundColor: isDark ? "#3A3A3C" : "#F2F2F7",
+      backgroundColor: bg.inputAlt,
       paddingHorizontal: 12,
       paddingVertical: 8,
       borderRadius: 8,
@@ -576,7 +578,7 @@ const getStyles = (isDark: boolean) => {
       color: fontColors.screenMutedStrong,
     },
     updateGoalButton: {
-      backgroundColor: "#007AFF",
+      backgroundColor: bg.accent,
       paddingVertical: 12,
       borderRadius: 12,
       alignItems: "center",

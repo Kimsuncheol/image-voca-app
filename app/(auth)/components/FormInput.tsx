@@ -13,6 +13,7 @@
 import React from "react";
 import { View, TextInput, Text, StyleSheet, TextInputProps } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 
@@ -91,6 +92,7 @@ export const FormInput: React.FC<FormInputProps> = ({
 // =============================================================================
 const getStyles = (isDark: boolean) => {
   const fontColors = getFontColors(isDark);
+  const bg = getBackgroundColors(isDark);
 
   return StyleSheet.create({
     inputContainer: {
@@ -102,15 +104,15 @@ const getStyles = (isDark: boolean) => {
       paddingHorizontal: 16,
       paddingVertical: 14,
       marginBottom: 16,
-      backgroundColor: isDark ? "#1c1c1e" : "#F9F9F9",
+      backgroundColor: bg.cardElevated,
     },
     inputError: {
       borderColor: isDark ? "#5C2B2E" : "#DC3545",
-      backgroundColor: isDark ? "#2C1618" : "#FFF5F5",
+      backgroundColor: bg.accentRedSoft,
     },
     inputSuccess: {
       borderColor: isDark ? "#1E4620" : "#28A745",
-      backgroundColor: isDark ? "#0F2410" : "#F0FFF4",
+      backgroundColor: bg.successSoft,
     },
     inputIcon: {
       marginRight: 12,

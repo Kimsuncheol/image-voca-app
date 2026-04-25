@@ -10,6 +10,7 @@ import {
   DashboardPopFamousQuote,
   DashboardStats,
 } from "../../components/dashboard";
+import { BackgroundColors, getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
@@ -22,6 +23,7 @@ import { useUserStatsStore } from "../../src/stores";
 export default function DashboardScreen() {
   const { isDark } = useTheme();
   const fontColors = getFontColors(isDark);
+  const bgColors = getBackgroundColors(isDark);
   const { user } = useAuth();
 
   const { t } = useTranslation();
@@ -58,7 +60,7 @@ export default function DashboardScreen() {
 
   return (
     <View
-      style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      style={[styles.container, { backgroundColor: bgColors.screen }]}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -105,7 +107,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#FF3B30",
+    backgroundColor: BackgroundColors.light.accentRed,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,

@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { QuizTypeGrid, QuizTypeHeader } from "../../../components/course";
 import { getQuizTypesForCourse } from "../../../src/course/quizModes";
+import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { prefetchVocabularyCards } from "../../../src/services/vocabularyPrefetch";
 import {
@@ -18,6 +19,7 @@ import { isPronunciationMatchEligible } from "../../../src/utils/pronunciationMa
 
 export default function QuizTypeSelectionScreen() {
   const { isDark } = useTheme();
+  const bgColors = getBackgroundColors(isDark);
   const router = useRouter();
   const { t } = useTranslation();
   const { courseId, day } = useLocalSearchParams<{
@@ -103,12 +105,12 @@ export default function QuizTypeSelectionScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: isDark ? "#000" : "#fff" }]}
+      style={[styles.container, { backgroundColor: bgColors.screen }]}
       edges={["left", "right", "bottom"]}
     >
       <Stack.Screen
         options={{
-          headerStyle: { backgroundColor: isDark ? "#000" : "#fff" },
+          headerStyle: { backgroundColor: bgColors.screen },
           headerShadowVisible: false,
           title: t("quiz.typeTitle"),
           headerBackTitle: t("common.back"),

@@ -12,6 +12,7 @@
 
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
+import { BackgroundColors } from "../../../constants/backgroundColors";
 import { FontColors } from "../../../constants/fontColors";
 
 // =============================================================================
@@ -53,7 +54,7 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
 // =============================================================================
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "#007AFF",
+    backgroundColor: BackgroundColors.light.accent,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",

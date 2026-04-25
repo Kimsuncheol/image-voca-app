@@ -25,6 +25,7 @@ import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
 import { LearningLanguage } from "../../src/types/vocabulary";
 import { auth } from "../../src/services/firebase";
 import { ensureUserProfileDocument } from "../../src/services/userProfileService";
+import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import {
   AvatarPicker,
@@ -527,6 +528,7 @@ export default function RegisterScreen() {
  */
 const getStyles = (isDark: boolean) => {
   const fontColors = getFontColors(isDark);
+  const bg = getBackgroundColors(isDark);
 
   return StyleSheet.create({
     // -------------------------------------------------------------------------
@@ -536,7 +538,7 @@ const getStyles = (isDark: boolean) => {
     /** Main container - Full screen with theme-aware background */
     container: {
       flex: 1,
-      backgroundColor: isDark ? "#000" : "#fff",
+      backgroundColor: bg.screen,
     },
 
     /** Keyboard avoiding view wrapper */
@@ -594,19 +596,19 @@ const getStyles = (isDark: boolean) => {
       paddingHorizontal: 16,
       paddingVertical: 14,
       marginBottom: 16,
-      backgroundColor: isDark ? "#1c1c1e" : "#F9F9F9",
+      backgroundColor: bg.cardElevated,
     },
 
     /** Input error state - Red border for invalid input */
     inputError: {
       borderColor: isDark ? "#5C2B2E" : "#DC3545",
-      backgroundColor: isDark ? "#2C1618" : "#FFF5F5",
+      backgroundColor: bg.accentRedSoft,
     },
 
     /** Input success state - Green border for valid input */
     inputSuccess: {
       borderColor: isDark ? "#1E4620" : "#28A745",
-      backgroundColor: isDark ? "#0F2410" : "#F0FFF4",
+      backgroundColor: bg.successSoft,
     },
 
     /** Input field icon - Spacing for icons next to inputs */
@@ -656,7 +658,7 @@ const getStyles = (isDark: boolean) => {
 
     /** Primary register button - Blue with shadow effect */
     button: {
-      backgroundColor: "#007AFF",
+      backgroundColor: bg.accent,
       paddingVertical: 16,
       borderRadius: 12,
       alignItems: "center",
@@ -697,7 +699,7 @@ const getStyles = (isDark: boolean) => {
     divider: {
       flex: 1,
       height: 1,
-      backgroundColor: isDark ? "#333" : "#E0E0E0",
+      backgroundColor: bg.subtleGray,
     },
 
     /** Divider text - "OR" text between divider lines */
@@ -716,7 +718,7 @@ const getStyles = (isDark: boolean) => {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: isDark ? "#1c1c1e" : "#fff",
+      backgroundColor: bg.card,
       borderWidth: 1,
       borderColor: isDark ? "#333" : "#E0E0E0",
       paddingVertical: 16,
@@ -787,8 +789,8 @@ const getStyles = (isDark: boolean) => {
     avatarPlaceholder: {
       width: 100,
       height: 100,
-      borderRadius: 50, // Makes it circular
-      backgroundColor: isDark ? "#1c1c1e" : "#F9F9F9",
+      borderRadius: 50,
+      backgroundColor: bg.cardElevated,
       borderWidth: 2,
       borderColor: isDark ? "#333" : "#E0E0E0",
       borderStyle: "dashed", // Dashed border indicates clickable area
@@ -810,7 +812,7 @@ const getStyles = (isDark: boolean) => {
     errorBanner: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: isDark ? "#2C1618" : "#FEE",
+      backgroundColor: bg.dangerSoft,
       borderWidth: 1,
       borderColor: isDark ? "#5C2B2E" : "#FCC",
       borderRadius: 12,
@@ -850,7 +852,7 @@ const getStyles = (isDark: boolean) => {
       borderRadius: 12,
       borderWidth: 2,
       borderColor: isDark ? "#333" : "#E0E0E0",
-      backgroundColor: isDark ? "#1c1c1e" : "#F9F9F9",
+      backgroundColor: bg.cardElevated,
       alignItems: "center",
       marginBottom: 16,
     },
@@ -858,7 +860,7 @@ const getStyles = (isDark: boolean) => {
     /** Admin toggle button active state - When admin is selected */
     adminToggleButtonActive: {
       borderColor: "#007AFF",
-      backgroundColor: isDark ? "#0A1F3D" : "#E6F2FF",
+      backgroundColor: bg.accentBlueSoft,
     },
 
     /** Admin toggle text - Default text color */
@@ -889,7 +891,7 @@ const getStyles = (isDark: boolean) => {
       letterSpacing: 0.5,
     },
     learningOptionsCard: {
-      backgroundColor: isDark ? "#1c1c1e" : "#F9F9F9",
+      backgroundColor: bg.cardElevated,
       borderRadius: 12,
       borderWidth: 1,
       borderColor: isDark ? "#333" : "#E0E0E0",
@@ -913,7 +915,7 @@ const getStyles = (isDark: boolean) => {
     },
     learningOptionSeparator: {
       height: StyleSheet.hairlineWidth,
-      backgroundColor: isDark ? "#333" : "#E0E0E0",
+      backgroundColor: bg.subtleGray,
       marginLeft: 48,
     },
   });

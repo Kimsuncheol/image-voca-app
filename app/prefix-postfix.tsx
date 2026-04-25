@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getBackgroundColors } from "../constants/backgroundColors";
 import { useTheme } from "../src/context/ThemeContext";
 import { getPrefixPostfixData } from "../src/services/prefixPostfixService";
 import type { PostfixWord, PrefixWord } from "../src/types/prefixPostfix";
@@ -61,10 +62,10 @@ export default function PrefixPostfixScreen() {
   const data: (PrefixWord | PostfixWord)[] =
     tab === "prefix" ? prefixes : postfixes;
 
-  const bg = isDark ? "#000" : "#f2f2f7";
+  const bgColors = getBackgroundColors(isDark);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: bg }]} edges={["bottom"]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: bgColors.screenAlt }]} edges={["bottom"]}>
       <Stack.Screen
         options={{
           title: t("prefixPostfix.title"),

@@ -13,6 +13,7 @@
 import React, { useState } from "react";
 import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 
@@ -70,6 +71,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
 // =============================================================================
 const getStyles = (isDark: boolean) => {
   const fontColors = getFontColors(isDark);
+  const bg = getBackgroundColors(isDark);
 
   return StyleSheet.create({
     inputContainer: {
@@ -81,7 +83,7 @@ const getStyles = (isDark: boolean) => {
       paddingHorizontal: 16,
       paddingVertical: 14,
       marginBottom: 16,
-      backgroundColor: isDark ? "#1c1c1e" : "#F9F9F9",
+      backgroundColor: bg.cardElevated,
     },
     inputIcon: {
       marginRight: 12,
