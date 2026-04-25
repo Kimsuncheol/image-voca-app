@@ -54,6 +54,11 @@ describe("WordCardExample collocation layout", () => {
     expect(screen.getByText("지금 출발하자.")).toBeTruthy();
     expect(screen.queryByText("Narrator")).toBeNull();
     expect(screen.queryByText("Extra")).toBeNull();
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId("word-card-collocation-translation").props.style,
+      ),
+    ).toEqual(expect.objectContaining({ color: "#888" }));
   });
 
   it("keeps an empty character cell and overflow-safe text column for plain turns", () => {
@@ -101,7 +106,7 @@ describe("WordCardExample collocation layout", () => {
       screen.getByTestId("word-card-example-toggle").props.style,
     );
 
-    expect(contentContainerStyle.borderLeftWidth).toBe(3);
+    expect(contentContainerStyle.marginTop).toBe(4);
     expect(toggleStyle.marginTop).toBe(12);
 
     fireEvent.press(screen.getByText("Expand"));

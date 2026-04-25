@@ -39,7 +39,7 @@ describe("ExampleSection", () => {
   });
 
   test("renders two-line items with role, example, and translation", () => {
-    const { getByText, queryByText } = render(
+    const { getByTestId, getByText, queryByText } = render(
       <ExampleSection
         example="John: I want to go to the beach. Mary: Let's go to the mountains."
         translation="Jane: 난 해변에 가고 싶어. Michelle: 이번엔 산에 가자."
@@ -55,6 +55,9 @@ describe("ExampleSection", () => {
     expect(getByText("이번엔 산에 가자.")).toBeTruthy();
     expect(queryByText("Jane")).toBeNull();
     expect(queryByText("Michelle")).toBeNull();
+    expect(
+      StyleSheet.flatten(getByTestId("collocation-back-translation").props.style),
+    ).toEqual(expect.objectContaining({ color: "#888" }));
   });
 
   test("does not render the old speaker button", () => {

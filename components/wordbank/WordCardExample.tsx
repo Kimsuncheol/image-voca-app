@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import {
@@ -71,6 +72,7 @@ export function WordCardExample({
   const { t } = useTranslation();
   const isCollocation = course === "COLLOCATION";
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const fontColors = getFontColors(isDark);
 
   const processedExample = React.useMemo(
     () => (showKana ? example : stripKanaParens(example)),
@@ -217,7 +219,10 @@ export function WordCardExample({
           </ThemedText>
         </TouchableOpacity>
         {translations[index] ? (
-          <ThemedText style={styles.translation}>
+          <ThemedText
+            testID={index === 0 ? "word-card-translation" : undefined}
+            style={[styles.translation, { color: fontColors.translation }]}
+          >
             {translations[index].trim()}
           </ThemedText>
         ) : null}
@@ -268,7 +273,12 @@ export function WordCardExample({
                 <ThemedText style={styles.example}>{item.exampleText.trim()}</ThemedText>
               </TouchableOpacity>
               {item.translationText ? (
-                <ThemedText style={styles.translation}>
+                <ThemedText
+                  testID={
+                    index === 0 ? "word-card-collocation-translation" : undefined
+                  }
+                  style={[styles.translation, { color: fontColors.translation }]}
+                >
                   {item.translationText.trim()}
                 </ThemedText>
               ) : null}
@@ -397,7 +407,6 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     marginTop: 4,
     opacity: 0.92,
-    color: "#4B5563",
     flexShrink: 1,
   },
   synonyms: {

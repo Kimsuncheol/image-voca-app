@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import Collapsible from "react-native-collapsible";
+import { getFontColors } from "../../constants/fontColors";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import {
   stripRoleLabels,
@@ -45,6 +46,7 @@ export default React.memo(function ExampleSection({
   maxHeight,
 }: ExampleSectionProps) {
   const { speak } = useSpeech();
+  const fontColors = getFontColors(isDark);
   const spokenExampleText = useMemo(() => stripRoleLabels(example), [example]);
   const exampleTurns = useMemo(() => toDialogueTurns(example), [example]);
   const translationTurns = useMemo(
@@ -164,10 +166,15 @@ export default React.memo(function ExampleSection({
                             />
                             <View style={styles.contentCell}>
                               <Text
+                                testID={
+                                  index === 0
+                                    ? "collocation-back-translation"
+                                    : undefined
+                                }
                                 style={[
                                   styles.value,
                                   styles.translationValue,
-                                  isDark && styles.translationDark,
+                                  { color: fontColors.translation },
                                 ]}
                                 onPress={handleSpeakExample}
                               >
@@ -280,12 +287,8 @@ const styles = StyleSheet.create({
   translationValue: {
     fontSize: 12,
     lineHeight: 16,
-    color: "#666",
     fontStyle: "normal",
     flexShrink: 1,
     opacity: 0.7,
-  },
-  translationDark: {
-    color: "#D1D1D6",
   },
 });
