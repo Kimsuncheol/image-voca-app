@@ -13,6 +13,7 @@ import { TopInstallNativeAd } from "../../components/ads/TopInstallNativeAd";
 import { ThemedText } from "../../components/themed-text";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { getBackgroundColors } from "../../constants/backgroundColors";
+import { getFontColors } from "../../constants/fontColors";
 import { useTheme } from "../../src/context/ThemeContext";
 import {
   Course,
@@ -24,6 +25,7 @@ import {
 export default function CourseSelectionScreen() {
   const { isDark } = useTheme();
   const bgColors = getBackgroundColors(isDark);
+  const fontColors = getFontColors(isDark);
   const router = useRouter();
   const isNavigatingRef = useRef(false);
   const { learningLanguage, recentCourseByLanguage } = useLearningLanguage();
@@ -99,7 +101,7 @@ export default function CourseSelectionScreen() {
               <Ionicons
                 name="school-outline"
                 size={22}
-                color={isDark ? "#fff" : "#111827"}
+                color={fontColors.screenTitleStrong}
               />
               <View style={styles.kanaButtonTextGroup}>
                 <ThemedText style={styles.kanaButtonText}>
@@ -117,7 +119,7 @@ export default function CourseSelectionScreen() {
             <Ionicons
               name="chevron-forward"
               size={18}
-              color={isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.3)"}
+              color={fontColors.iconMutedOverlay}
             />
           </TouchableOpacity>
         )}

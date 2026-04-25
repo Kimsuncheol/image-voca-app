@@ -33,7 +33,7 @@ export default function ComingSoonScreen() {
         <Ionicons
           name="time-outline"
           size={72}
-          color={isDark ? "#555" : "#c7c7cc"}
+          color={fontColors.iconSubtle}
         />
         <Text style={[styles.title, { color: fontColors.screenTitle }]}>
           {t("comingSoon.title")}

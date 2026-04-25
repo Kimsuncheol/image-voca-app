@@ -50,7 +50,24 @@ export type FontColorRole =
   | "authErrorTitle"
   | "authErrorMessage"
   | "passwordResetSuccessText"
-  | "passwordStrengthFair";
+  | "passwordStrengthFair"
+  | "iconSubtle"
+  | "iconMutedOverlay"
+  | "inputPlaceholderDim"
+  | "iconBlue"
+  | "iconGreenSuccess"
+  | "iconError"
+  | "mutedLabel"
+  | "inputBorder"
+  | "inputBorderError"
+  | "inputBorderSuccess"
+  | "inputBorderErrorSoft"
+  | "cardBorder"
+  | "successBorder"
+  | "successBorderAlt"
+  | "errorBannerBorder"
+  | "avatarBorder"
+  | "surfaceBorder";
 
 export type FontColorTokens = Record<FontColorRole, string>;
 
@@ -106,6 +123,23 @@ export const FontColors: Record<FontColorScheme, FontColorTokens> = {
     authErrorMessage: "#8A1C1C",
     passwordResetSuccessText: "#1D6B2F",
     passwordStrengthFair: "#FF9500",
+    iconSubtle: "#c7c7cc",
+    iconMutedOverlay: "rgba(0,0,0,0.3)",
+    inputPlaceholderDim: "rgba(0,0,0,0.35)",
+    iconBlue: "#2563eb",
+    iconGreenSuccess: "#166534",
+    iconError: "#D93025",
+    mutedLabel: "#666",
+    inputBorder: "#E0E0E0",
+    inputBorderError: "#DC3545",
+    inputBorderSuccess: "#28A745",
+    inputBorderErrorSoft: "#FCC",
+    cardBorder: "#e2e8f0",
+    successBorder: "#bbf7d0",
+    successBorderAlt: "#9CD7AC",
+    errorBannerBorder: "#F5B5B5",
+    avatarBorder: "#FFF",
+    surfaceBorder: "#FFF",
   },
   dark: {
     primary: "#fff",
@@ -158,6 +192,23 @@ export const FontColors: Record<FontColorScheme, FontColorTokens> = {
     authErrorMessage: "#FFD5D5",
     passwordResetSuccessText: "#B8F5C4",
     passwordStrengthFair: "#FF9500",
+    iconSubtle: "#555",
+    iconMutedOverlay: "rgba(255,255,255,0.4)",
+    inputPlaceholderDim: "rgba(255,255,255,0.4)",
+    iconBlue: "#3b82f6",
+    iconGreenSuccess: "#a7f3d0",
+    iconError: "#FF8A8A",
+    mutedLabel: "#888",
+    inputBorder: "#333",
+    inputBorderError: "#5C2B2E",
+    inputBorderSuccess: "#1E4620",
+    inputBorderErrorSoft: "#5C2B2E",
+    cardBorder: "#1f2937",
+    successBorder: "#064e3b",
+    successBorderAlt: "#1F6A2F",
+    errorBannerBorder: "#5C1F1F",
+    avatarBorder: "#333",
+    surfaceBorder: "#1C1C1E",
   },
 };
 

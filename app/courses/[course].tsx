@@ -20,6 +20,7 @@ import { SavedWord, WordCard } from "../../components/wordbank/WordCard";
 // Context, services, and types
 import { useAuth } from "../../src/context/AuthContext";
 import { getBackgroundColors } from "../../constants/backgroundColors";
+import { getFontColors } from "../../constants/fontColors";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
 import { CourseType, findRuntimeCourse } from "../../src/types/vocabulary";
@@ -47,6 +48,7 @@ export default function CourseWordBankScreen() {
 
   const { isDark } = useTheme(); // Dark mode state
   const bgColors = getBackgroundColors(isDark);
+  const fontColors = getFontColors(isDark);
   const { user } = useAuth(); // Current authenticated user
   const { course } = useLocalSearchParams<{ course: CourseType }>(); // Course ID from URL
   const { t } = useTranslation(); // Translation function for i18n
