@@ -1,5 +1,6 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
+import { StyleSheet } from "react-native";
 import { JlptVocabularyCard } from "../components/course/vocabulary/JlptVocabularyCard";
 import { VocabularyCard } from "../src/types/vocabulary";
 
@@ -56,6 +57,14 @@ jest.mock("../components/swipe/SwipeCardItemImageSection", () => ({
 jest.mock("../components/swipe/SwipeCardItemAddToWordBankButton", () => ({
   __esModule: true,
   SwipeCardItemAddToWordBankButton: () => null,
+}));
+
+jest.mock("../components/common/DayBadge", () => ({
+  DayBadge: ({ day }: { day: number }) => {
+    const React = require("react");
+    const { Text } = require("react-native");
+    return <Text>{`Day ${day}`}</Text>;
+  },
 }));
 
 function buildCard(overrides: Partial<VocabularyCard> = {}): VocabularyCard {
@@ -147,13 +156,16 @@ describe("JlptVocabularyCard", () => {
   });
 
   it("renders translation below the example without rendering exampleRoman", () => {
-    const { getByText, queryByText, toJSON } = render(
+    const { getByTestId, getByText, queryByText, toJSON } = render(
       <JlptVocabularyCard item={buildCard()} />,
     );
 
     expect(getByText("駅とホテルの間")).toBeTruthy();
     expect(getByText("between the station and the hotel")).toBeTruthy();
     expect(queryByText("eki to hoteru no aida")).toBeNull();
+    expect(StyleSheet.flatten(getByTestId("jlpt-card-translation").props.style)).toEqual(
+      expect.objectContaining({ color: "#888" }),
+    );
 
     const renderedTree = JSON.stringify(toJSON());
     expect(renderedTree.indexOf("駅とホテルの間")).toBeLessThan(
