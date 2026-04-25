@@ -25,6 +25,7 @@ import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
 import { LearningLanguage } from "../../src/types/vocabulary";
 import { auth } from "../../src/services/firebase";
 import { ensureUserProfileDocument } from "../../src/services/userProfileService";
+import { getFontColors } from "../../constants/fontColors";
 import {
   AvatarPicker,
   Divider,
@@ -524,8 +525,10 @@ export default function RegisterScreen() {
  * @param isDark - Boolean indicating dark mode is active
  * @returns StyleSheet object with all component styles
  */
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
     // -------------------------------------------------------------------------
     // LAYOUT STYLES - Main container and structural elements
     // -------------------------------------------------------------------------
@@ -562,14 +565,14 @@ const getStyles = (isDark: boolean) =>
     title: {
       fontSize: 32,
       fontWeight: "bold",
-      color: isDark ? "#fff" : "#333",
+      color: fontColors.body,
       marginBottom: 8,
     },
 
     /** Subtitle text - Smaller, lighter color */
     subtitle: {
       fontSize: 16,
-      color: isDark ? "#ccc" : "#666",
+      color: fontColors.supporting,
     },
 
     // -------------------------------------------------------------------------
@@ -615,7 +618,7 @@ const getStyles = (isDark: boolean) =>
     input: {
       flex: 1,
       fontSize: 16,
-      color: isDark ? "#fff" : "#333",
+      color: fontColors.body,
     },
 
     // -------------------------------------------------------------------------
@@ -638,13 +641,13 @@ const getStyles = (isDark: boolean) =>
     /** Hint text - Default gray color for unmet requirements */
     hintText: {
       marginLeft: 8,
-      color: isDark ? "#ccc" : "#666",
+      color: fontColors.supporting,
       fontSize: 12,
     },
 
     /** Valid hint text - Green color when requirement is met */
     hintTextValid: {
-      color: "green",
+      color: fontColors.success,
     },
 
     // -------------------------------------------------------------------------
@@ -674,7 +677,7 @@ const getStyles = (isDark: boolean) =>
 
     /** Button text - White, bold text */
     buttonText: {
-      color: "#fff",
+      color: fontColors.inverse,
       fontSize: 16,
       fontWeight: "bold",
     },
@@ -700,7 +703,7 @@ const getStyles = (isDark: boolean) =>
     /** Divider text - "OR" text between divider lines */
     dividerText: {
       marginHorizontal: 16,
-      color: isDark ? "#888" : "#999",
+      color: fontColors.tertiary,
       fontWeight: "600",
     },
 
@@ -727,7 +730,7 @@ const getStyles = (isDark: boolean) =>
 
     /** Google button text - Theme-aware text color */
     googleButtonText: {
-      color: isDark ? "#fff" : "#333",
+      color: fontColors.body,
       fontSize: 16,
       fontWeight: "600",
     },
@@ -745,13 +748,13 @@ const getStyles = (isDark: boolean) =>
 
     /** Footer text - Theme-aware gray text */
     footerText: {
-      color: isDark ? "#ccc" : "#666",
+      color: fontColors.supporting,
       fontSize: 14,
     },
 
     /** Login link - Blue, bold clickable text */
     link: {
-      color: "#007AFF",
+      color: fontColors.link,
       fontSize: 14,
       fontWeight: "bold",
     },
@@ -796,7 +799,7 @@ const getStyles = (isDark: boolean) =>
     /** Avatar label - Small text below avatar picker */
     avatarLabel: {
       fontSize: 12,
-      color: isDark ? "#888" : "#999",
+      color: fontColors.tertiary,
     },
 
     // -------------------------------------------------------------------------
@@ -823,14 +826,14 @@ const getStyles = (isDark: boolean) =>
     /** Error banner text - Message text in error banner */
     errorBannerText: {
       flex: 1,
-      color: isDark ? "#FF6B6B" : "#DC3545",
+      color: fontColors.error,
       fontSize: 14,
       lineHeight: 20,
     },
 
     /** Error text - Small inline error text below inputs */
     errorText: {
-      color: isDark ? "#FF6B6B" : "#DC3545",
+      color: fontColors.error,
       fontSize: 12,
       marginTop: 4,
       paddingHorizontal: 4,
@@ -862,12 +865,12 @@ const getStyles = (isDark: boolean) =>
     adminToggleText: {
       fontSize: 14,
       fontWeight: "600",
-      color: isDark ? "#888" : "#666",
+      color: isDark ? fontColors.tertiary : fontColors.supporting,
     },
 
     /** Admin toggle text active - When admin is selected */
     adminToggleTextActive: {
-      color: "#007AFF",
+      color: fontColors.link,
     },
 
     // -------------------------------------------------------------------------
@@ -879,7 +882,7 @@ const getStyles = (isDark: boolean) =>
     learningSectionLabel: {
       fontSize: 13,
       fontWeight: "600",
-      color: isDark ? "#8e8e93" : "#6e6e73",
+      color: fontColors.sectionMeta,
       marginBottom: 8,
       marginLeft: 4,
       textTransform: "uppercase",
@@ -906,7 +909,7 @@ const getStyles = (isDark: boolean) =>
     },
     learningOptionText: {
       fontSize: 16,
-      color: isDark ? "#fff" : "#333",
+      color: fontColors.body,
     },
     learningOptionSeparator: {
       height: StyleSheet.hairlineWidth,
@@ -914,3 +917,4 @@ const getStyles = (isDark: boolean) =>
       marginLeft: 48,
     },
   });
+};

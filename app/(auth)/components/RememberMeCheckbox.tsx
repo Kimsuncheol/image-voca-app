@@ -13,6 +13,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { getFontColors } from "../../../constants/fontColors";
 
 // =============================================================================
 // PROPS INTERFACE
@@ -51,8 +52,10 @@ export const RememberMeCheckbox: React.FC<RememberMeCheckboxProps> = ({
 // =============================================================================
 // STYLES
 // =============================================================================
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
     container: {
       flexDirection: "row",
       alignItems: "center",
@@ -72,7 +75,8 @@ const getStyles = (isDark: boolean) =>
       borderColor: "#007AFF",
     },
     label: {
-      color: isDark ? "#ccc" : "#666",
+      color: fontColors.supporting,
       fontSize: 14,
     },
   });
+};

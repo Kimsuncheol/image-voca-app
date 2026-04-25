@@ -15,6 +15,7 @@ import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { getFontColors } from "../../../constants/fontColors";
 
 // =============================================================================
 // PROPS INTERFACE
@@ -62,8 +63,10 @@ export const AvatarPicker: React.FC<AvatarPickerProps> = ({
 // =============================================================================
 // STYLES
 // =============================================================================
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
     avatarContainer: {
       alignItems: "center",
       marginBottom: 24,
@@ -91,12 +94,13 @@ const getStyles = (isDark: boolean) =>
     },
     avatarLabel: {
       fontSize: 12,
-      color: isDark ? "#888" : "#999",
+      color: fontColors.tertiary,
     },
     errorText: {
-      color: isDark ? "#FF6B6B" : "#DC3545",
+      color: fontColors.error,
       fontSize: 12,
       marginTop: 4,
       paddingHorizontal: 4,
     },
   });
+};
