@@ -13,6 +13,7 @@
 import React, { useState } from "react";
 import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 
 // =============================================================================
@@ -34,6 +35,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
 }) => {
   const { isDark } = useTheme();
   const styles = getStyles(isDark);
+  const fontColors = getFontColors(isDark);
   const [isVisible, setIsVisible] = useState(false);
 
   return (
@@ -50,7 +52,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
         value={value}
         onChangeText={onChangeText}
         secureTextEntry={!isVisible}
-        placeholderTextColor={isDark ? "#666" : "#999"}
+        placeholderTextColor={fontColors.placeholder}
       />
       <TouchableOpacity onPress={() => setIsVisible(!isVisible)}>
         <Ionicons
@@ -66,8 +68,10 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
 // =============================================================================
 // STYLES
 // =============================================================================
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
     inputContainer: {
       flexDirection: "row",
       alignItems: "center",
@@ -85,6 +89,7 @@ const getStyles = (isDark: boolean) =>
     input: {
       flex: 1,
       fontSize: 16,
-      color: isDark ? "#fff" : "#333",
+      color: fontColors.body,
     },
   });
+};

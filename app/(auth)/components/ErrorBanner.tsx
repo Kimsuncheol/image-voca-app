@@ -14,6 +14,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 
 // =============================================================================
@@ -69,8 +70,10 @@ export const ErrorBanner: React.FC<ErrorBannerProps> = ({
 // =============================================================================
 // STYLES
 // =============================================================================
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
     errorBanner: {
       flexDirection: "row",
       alignItems: "center",
@@ -91,11 +94,12 @@ const getStyles = (isDark: boolean) =>
     errorTitle: {
       fontSize: 14,
       fontWeight: "700",
-      color: isDark ? "#FFB3B3" : "#D93025",
+      color: fontColors.authErrorTitle,
       marginBottom: 2,
     },
     errorMessage: {
       fontSize: 13,
-      color: isDark ? "#FFD5D5" : "#8A1C1C",
+      color: fontColors.authErrorMessage,
     },
   });
+};

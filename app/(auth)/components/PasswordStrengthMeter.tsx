@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { FontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 
 interface PasswordStrengthMeterProps {
@@ -16,9 +17,21 @@ const STRENGTH_CONFIG: Record<
   Exclude<StrengthLevel, "empty">,
   { label: string; color: string; icon: "close-circle" | "alert-circle" | "checkmark-circle" }
 > = {
-  weak:   { label: "Weak",   color: "#FF3B30", icon: "close-circle" },
-  fair:   { label: "Fair",   color: "#FF9500", icon: "alert-circle" },
-  strong: { label: "Strong", color: "#34C759", icon: "checkmark-circle" },
+  weak: {
+    label: "Weak",
+    color: FontColors.light.dangerAction,
+    icon: "close-circle",
+  },
+  fair: {
+    label: "Fair",
+    color: FontColors.light.passwordStrengthFair,
+    icon: "alert-circle",
+  },
+  strong: {
+    label: "Strong",
+    color: FontColors.light.quizCorrect,
+    icon: "checkmark-circle",
+  },
 };
 
 function getStrength(

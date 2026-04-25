@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CountersList } from "../components/counters/CountersList";
+import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import { getCountersData } from "../src/services/countersService";
 import type { CounterTabId, CounterWord } from "../src/types/counters";
@@ -17,6 +18,7 @@ export default function CounterCategoryScreen() {
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   const { isDark } = useTheme();
   const { t } = useTranslation();
+  const fontColors = getFontColors(isDark);
 
   const [data, setData] = useState<CounterWord[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +92,13 @@ export default function CounterCategoryScreen() {
               style={{ marginRight: 4 }}
               activeOpacity={0.7}
             >
-              <ThemedText style={{ fontSize: 15, color: "#007AFF", fontWeight: "600" }}>
+              <ThemedText
+                style={{
+                  fontSize: 15,
+                  color: fontColors.actionAccent,
+                  fontWeight: "600",
+                }}
+              >
                 {showFurigana
                   ? t("counters.hideFurigana", { defaultValue: "Hide Furigana" })
                   : t("counters.showFurigana", { defaultValue: "Show Furigana" })}

@@ -19,6 +19,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { getFontColors } from "../constants/fontColors";
 import { useAuth } from "../src/context/AuthContext";
 import { useTheme } from "../src/context/ThemeContext";
 import {
@@ -323,8 +324,10 @@ export default function ManageDevicesScreen() {
   );
 }
 
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: isDark ? "#000" : "#f2f2f7",
@@ -343,17 +346,17 @@ const getStyles = (isDark: boolean) =>
     title: {
       fontSize: 24,
       fontWeight: "700",
-      color: isDark ? "#fff" : "#111",
+      color: fontColors.screenTitleCompact,
     },
     subtitle: {
       fontSize: 16,
       fontWeight: "600",
-      color: isDark ? "#8ab4ff" : "#1f5fbf",
+      color: fontColors.actionAccentStrong,
     },
     helper: {
       fontSize: 14,
       lineHeight: 20,
-      color: isDark ? "#c7c7cc" : "#666",
+      color: fontColors.deviceHelper,
     },
     stateCard: {
       backgroundColor: isDark ? "#1c1c1e" : "#fff",
@@ -362,11 +365,11 @@ const getStyles = (isDark: boolean) =>
     },
     stateText: {
       fontSize: 15,
-      color: isDark ? "#fff" : "#333",
+      color: fontColors.screenBodyStrong,
     },
     errorText: {
       fontSize: 15,
-      color: isDark ? "#ffb4ab" : "#b3261e",
+      color: fontColors.dangerText,
     },
     listCard: {
       backgroundColor: isDark ? "#1c1c1e" : "#fff",
@@ -394,7 +397,7 @@ const getStyles = (isDark: boolean) =>
     deviceTitle: {
       fontSize: 18,
       fontWeight: "700",
-      color: isDark ? "#fff" : "#111",
+      color: fontColors.screenTitleCompact,
     },
     badge: {
       backgroundColor: isDark ? "#14304d" : "#e7f0ff",
@@ -405,11 +408,11 @@ const getStyles = (isDark: boolean) =>
     badgeText: {
       fontSize: 12,
       fontWeight: "700",
-      color: isDark ? "#8ab4ff" : "#1f5fbf",
+      color: fontColors.actionAccentStrong,
     },
     deviceMeta: {
       fontSize: 14,
-      color: isDark ? "#c7c7cc" : "#555",
+      color: fontColors.deviceMeta,
     },
     removeButton: {
       alignSelf: "flex-start",
@@ -424,6 +427,7 @@ const getStyles = (isDark: boolean) =>
     removeButtonText: {
       fontSize: 14,
       fontWeight: "700",
-      color: "#fff",
+      color: fontColors.buttonOnAccent,
     },
   });
+};

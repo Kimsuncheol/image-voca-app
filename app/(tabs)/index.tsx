@@ -10,6 +10,7 @@ import {
   DashboardPopFamousQuote,
   DashboardStats,
 } from "../../components/dashboard";
+import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import {
@@ -20,6 +21,7 @@ import { useUserStatsStore } from "../../src/stores";
 
 export default function DashboardScreen() {
   const { isDark } = useTheme();
+  const fontColors = getFontColors(isDark);
   const { user } = useAuth();
 
   const { t } = useTranslation();
@@ -69,7 +71,12 @@ export default function DashboardScreen() {
             onPress={clearStreakBroken}
             activeOpacity={0.8}
           >
-            <ThemedText style={styles.streakBrokenText}>
+            <ThemedText
+              style={[
+                styles.streakBrokenText,
+                { color: fontColors.buttonOnAccent },
+              ]}
+            >
               {t("streak.broken.banner", { streak: streakBrokenAt })}
             </ThemedText>
             <Ionicons name="close" size={18} color="#fff" />
@@ -107,7 +114,6 @@ const styles = StyleSheet.create({
   },
   streakBrokenText: {
     flex: 1,
-    color: "#fff",
     fontSize: 14,
     fontWeight: "600",
   },

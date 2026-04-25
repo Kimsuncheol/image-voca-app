@@ -34,6 +34,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AccountActionsSection } from "../components/profile/AccountActionsSection";
 import { AccountInfoSection } from "../components/profile/AccountInfoSection";
+import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import { deleteUserDeviceRegistrations } from "../src/services/deviceRegistrationService";
 import { auth, db, storage } from "../src/services/firebase";
@@ -43,6 +44,7 @@ import { getDeviceCountryDisplayName } from "../src/utils/deviceCountry";
 export default function ProfileScreen() {
   const { isDark } = useTheme();
   const styles = getStyles(isDark);
+  const fontColors = getFontColors(isDark);
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState<string | null>(null);
@@ -335,7 +337,7 @@ export default function ProfileScreen() {
                 secureTextEntry
                 value={password}
                 onChangeText={setPassword}
-                placeholderTextColor="#999"
+                placeholderTextColor={fontColors.placeholder}
               />
               <View style={styles.reauthButtons}>
                 <TouchableOpacity
@@ -364,8 +366,10 @@ export default function ProfileScreen() {
   );
 }
 
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: isDark ? "#000" : "#F2F2F7",
@@ -410,12 +414,12 @@ const getStyles = (isDark: boolean) =>
     displayNameText: {
       fontSize: 24,
       fontWeight: "bold",
-      color: isDark ? "#FFF" : "#000",
+      color: fontColors.screenTitle,
       marginBottom: 4,
     },
     emailText: {
       fontSize: 16,
-      color: isDark ? "#AAA" : "#666",
+      color: fontColors.screenMutedStrong,
       marginBottom: 16,
     },
     saveButton: {
@@ -425,7 +429,7 @@ const getStyles = (isDark: boolean) =>
       borderRadius: 20,
     },
     saveButtonText: {
-      color: "#FFF",
+      color: fontColors.buttonOnAccent,
       fontWeight: "600",
     },
     section: {
@@ -435,7 +439,7 @@ const getStyles = (isDark: boolean) =>
     sectionTitle: {
       fontSize: 14,
       fontWeight: "600",
-      color: isDark ? "#AAA" : "#666",
+      color: fontColors.screenMutedStrong,
       marginBottom: 8,
       textTransform: "uppercase",
       letterSpacing: 1,
@@ -458,16 +462,16 @@ const getStyles = (isDark: boolean) =>
     },
     infoLabel: {
       fontSize: 16,
-      color: isDark ? "#FFF" : "#000",
+      color: fontColors.screenTitle,
       fontWeight: "500",
     },
     infoValue: {
       fontSize: 16,
-      color: isDark ? "#AAA" : "#666",
+      color: fontColors.screenMutedStrong,
     },
     infoValueInput: {
       fontSize: 16,
-      color: isDark ? "#AAA" : "#666",
+      color: fontColors.screenMutedStrong,
       textAlign: "right",
       flex: 1,
       marginLeft: 16,
@@ -490,12 +494,12 @@ const getStyles = (isDark: boolean) =>
     },
     actionText: {
       fontSize: 16,
-      color: isDark ? "#FFF" : "#000",
+      color: fontColors.screenTitle,
       fontWeight: "600",
     },
     dangerText: {
       fontSize: 16,
-      color: "#FF3B30",
+      color: fontColors.dangerAction,
       fontWeight: "600",
     },
     reauthContainer: {
@@ -515,7 +519,7 @@ const getStyles = (isDark: boolean) =>
     reauthTitle: {
       fontSize: 20,
       fontWeight: "bold",
-      color: isDark ? "#FFF" : "#000",
+      color: fontColors.screenTitle,
       marginBottom: 16,
       textAlign: "center",
     },
@@ -523,7 +527,7 @@ const getStyles = (isDark: boolean) =>
       backgroundColor: isDark ? "#1C1C1E" : "#F2F2F7",
       padding: 12,
       borderRadius: 12,
-      color: isDark ? "#FFF" : "#000",
+      color: fontColors.screenTitle,
       marginBottom: 20,
     },
     reauthButtons: {
@@ -539,7 +543,7 @@ const getStyles = (isDark: boolean) =>
     cancelButtonText: {
       fontSize: 16,
       fontWeight: "600",
-      color: isDark ? "#FFF" : "#000",
+      color: fontColors.screenTitle,
     },
     confirmButton: {
       paddingVertical: 12,
@@ -550,7 +554,7 @@ const getStyles = (isDark: boolean) =>
     confirmButtonText: {
       fontSize: 16,
       fontWeight: "600",
-      color: "#FFF",
+      color: fontColors.buttonOnAccent,
     },
     goalInputContainer: {
       flexDirection: "row",
@@ -558,7 +562,7 @@ const getStyles = (isDark: boolean) =>
     },
     goalInput: {
       fontSize: 16,
-      color: isDark ? "#FFF" : "#000",
+      color: fontColors.screenTitle,
       backgroundColor: isDark ? "#3A3A3C" : "#F2F2F7",
       paddingHorizontal: 12,
       paddingVertical: 8,
@@ -569,7 +573,7 @@ const getStyles = (isDark: boolean) =>
     },
     goalUnit: {
       fontSize: 14,
-      color: isDark ? "#AAA" : "#666",
+      color: fontColors.screenMutedStrong,
     },
     updateGoalButton: {
       backgroundColor: "#007AFF",
@@ -579,8 +583,9 @@ const getStyles = (isDark: boolean) =>
       marginTop: 16,
     },
     updateGoalButtonText: {
-      color: "#FFF",
+      color: fontColors.buttonOnAccent,
       fontSize: 16,
       fontWeight: "600",
     },
   });
+};

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ErrorBanner, LinkButton, PrimaryButton } from "./components";
+import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { auth } from "../../src/services/firebase";
@@ -196,8 +197,10 @@ export default function VerifyEmailScreen() {
   );
 }
 
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: isDark ? "#000" : "#fff",
@@ -224,7 +227,7 @@ const getStyles = (isDark: boolean) =>
     title: {
       fontSize: 28,
       fontWeight: "800",
-      color: isDark ? "#fff" : "#111827",
+      color: fontColors.screenTitleStrong,
       textAlign: "center",
       marginBottom: 12,
       letterSpacing: -0.5,
@@ -232,7 +235,7 @@ const getStyles = (isDark: boolean) =>
     subtitle: {
       fontSize: 16,
       lineHeight: 24,
-      color: isDark ? "#94a3b8" : "#4b5563",
+      color: fontColors.screenMutedCool,
       textAlign: "center",
       paddingHorizontal: 20,
       marginBottom: 32,
@@ -250,14 +253,14 @@ const getStyles = (isDark: boolean) =>
       fontSize: 12,
       fontWeight: "600",
       textTransform: "uppercase",
-      color: isDark ? "#64748b" : "#94a3b8",
+      color: fontColors.screenMetaCool,
       marginBottom: 6,
       letterSpacing: 0.5,
     },
     emailValue: {
       fontSize: 18,
       fontWeight: "700",
-      color: isDark ? "#fff" : "#1e293b",
+      color: fontColors.verifyEmailValue,
     },
     alertContainer: {
       width: "100%",
@@ -279,7 +282,7 @@ const getStyles = (isDark: boolean) =>
     },
     successText: {
       flex: 1,
-      color: isDark ? "#a7f3d0" : "#15803d",
+      color: fontColors.successText,
       fontSize: 14,
       fontWeight: "500",
       lineHeight: 20,
@@ -296,3 +299,4 @@ const getStyles = (isDark: boolean) =>
       alignItems: "center",
     },
   });
+};

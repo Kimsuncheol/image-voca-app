@@ -12,6 +12,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Link } from "expo-router";
+import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 
 // =============================================================================
@@ -49,21 +50,24 @@ export const FooterLink: React.FC<FooterLinkProps> = ({
 // =============================================================================
 // STYLES
 // =============================================================================
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
     footerContainer: {
       flexDirection: "row",
       justifyContent: "center",
       marginTop: 16,
     },
     footerText: {
-      color: isDark ? "#ccc" : "#666",
+      color: fontColors.supporting,
       fontSize: 14,
     },
     link: {
-      color: "#007AFF",
+      color: fontColors.actionAccent,
       fontSize: 14,
       fontWeight: "bold",
       marginLeft: 4,
     },
   });
+};

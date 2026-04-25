@@ -11,6 +11,7 @@
 
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
+import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 
 // =============================================================================
@@ -58,8 +59,10 @@ export const AdminToggleButton: React.FC<AdminToggleButtonProps> = ({
 // =============================================================================
 // STYLES
 // =============================================================================
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
     adminToggleButton: {
       paddingVertical: 12,
       paddingHorizontal: 16,
@@ -77,9 +80,10 @@ const getStyles = (isDark: boolean) =>
     adminToggleText: {
       fontSize: 14,
       fontWeight: "600",
-      color: isDark ? "#888" : "#666",
+      color: isDark ? fontColors.tertiary : fontColors.supporting,
     },
     adminToggleTextActive: {
-      color: "#007AFF",
+      color: fontColors.actionAccent,
     },
   });
+};

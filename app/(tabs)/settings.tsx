@@ -40,6 +40,7 @@ import { SpeechSection } from "../../components/settings/SpeechSection"; // Pron
 // ============================================================================
 // CONTEXT & STATE MANAGEMENT
 // ============================================================================
+import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext"; // User authentication context
 import { useTheme } from "../../src/context/ThemeContext"; // Theme preferences context
 import { setLanguage, SupportedLanguage } from "../../src/i18n"; // Language configuration
@@ -488,8 +489,10 @@ export default function SettingsScreen() {
  * @param {boolean} isDark - Whether dark mode is active
  * @returns {StyleSheet} Theme-aware styles object
  */
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
     // Main container - Full screen with system background color
     container: {
       flex: 1,
@@ -502,7 +505,7 @@ const getStyles = (isDark: boolean) =>
       backgroundColor: isDark ? "#1c1c1e" : "#fff",
     },
     headerTitle: {
-      color: isDark ? "#fff" : "#000",
+      color: fontColors.screenTitle,
     },
 
     // Section container - Groups related settings
@@ -514,7 +517,7 @@ const getStyles = (isDark: boolean) =>
     sectionTitle: {
       fontSize: 14,
       fontWeight: "600",
-      color: isDark ? "#8e8e93" : "#6e6e73", // System gray
+      color: fontColors.screenMuted, // System gray
       marginBottom: 8,
       marginLeft: 12, // Align with card content
       textTransform: "uppercase",
@@ -544,7 +547,7 @@ const getStyles = (isDark: boolean) =>
     // Option label text
     optionText: {
       fontSize: 17, // iOS standard text size
-      color: isDark ? "#fff" : "#000",
+      color: fontColors.screenTitle,
       marginLeft: 8, // Spacing after icon
     },
 
@@ -567,8 +570,9 @@ const getStyles = (isDark: boolean) =>
 
     // Sign out button text - Red color indicates destructive action
     signOutText: {
-      color: "#FF3B30", // iOS destructive red
+      color: fontColors.dangerAction, // iOS destructive red
       fontSize: 17,
       fontWeight: "600",
     },
   });
+};

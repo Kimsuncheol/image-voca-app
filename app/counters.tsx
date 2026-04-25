@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CountersTabs } from "../components/counters/CountersTabs";
 import { ThemedText } from "../components/themed-text";
+import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import type { CounterTabId } from "../src/types/counters";
 
@@ -12,17 +13,14 @@ export default function CountersScreen() {
   const { isDark } = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
+  const fontColors = getFontColors(isDark);
 
   const bg = isDark ? "#000" : "#f2f2f7";
   const heroCardBg = isDark ? "#121318" : "#ffffff";
   const accentBg = isDark ? "#1e3a5f" : "#dbeafe";
-  const accentText = isDark ? "#c6dbff" : "#1d4ed8";
-  const subtitleColor = isDark
-    ? "rgba(255,255,255,0.66)"
-    : "rgba(17,24,39,0.65)";
-  const sectionLabelColor = isDark
-    ? "rgba(255,255,255,0.54)"
-    : "rgba(17,24,39,0.5)";
+  const accentText = fontColors.countersAccentText;
+  const subtitleColor = fontColors.heroSubtitle;
+  const sectionLabelColor = fontColors.sectionLabelSoft;
 
   const handleSelect = (tab: CounterTabId) => {
     router.push({

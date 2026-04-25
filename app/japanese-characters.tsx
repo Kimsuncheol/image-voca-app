@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "../components/themed-text";
+import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import {
   KanaSection,
@@ -43,6 +44,8 @@ const CharCard = React.memo(function CharCard({
   isActive,
   onPress,
 }: CharCardProps) {
+  const fontColors = getFontColors(isDark);
+
   if (!item) {
     return <View style={styles.cardSlot} />;
   }
@@ -53,12 +56,12 @@ const CharCard = React.memo(function CharCard({
       ? "#1c1c1e"
       : "#f5f5f5";
 
-  const kanaColor = isActive ? "#fff" : isDark ? "#fff" : "#111827";
+  const kanaColor = isActive
+    ? fontColors.buttonOnAccent
+    : fontColors.screenTitleStrong;
   const romajiColor = isActive
-    ? "rgba(255,255,255,0.75)"
-    : isDark
-      ? "rgba(255,255,255,0.4)"
-      : "rgba(0,0,0,0.38)";
+    ? fontColors.kanaRomajiActive
+    : fontColors.kanaRomaji;
 
   return (
     <TouchableOpacity
@@ -87,6 +90,7 @@ export default function JapaneseCharactersScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const speech = useSpeech();
+  const fontColors = getFontColors(isDark);
 
   const [tab, setTab] = useState<Tab>("hiragana");
   const [speakingKana, setSpeakingKana] = useState<string | null>(null);
@@ -111,7 +115,7 @@ export default function JapaneseCharactersScreen() {
   const tabInactiveBorder = isDark ? "#333" : "#e5e5e5";
   const tabInactiveBg = isDark ? "#1c1c1e" : "#f5f5f5";
   const sectionDivider = isDark ? "rgba(255,255,255,0.12)" : "rgba(17,24,39,0.1)";
-  const sectionSubtitleColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(17,24,39,0.55)";
+  const sectionSubtitleColor = fontColors.sectionSubtitle;
   const sectionAccent = isDark ? "#8ab4ff" : "#2563eb";
 
   const renderSectionHeader = useCallback(
@@ -188,7 +192,13 @@ export default function JapaneseCharactersScreen() {
               style={{ marginRight: 4 }}
               activeOpacity={0.7}
             >
-              <ThemedText style={{ fontSize: 15, color: "#007AFF", fontWeight: "600" }}>
+              <ThemedText
+                style={{
+                  fontSize: 15,
+                  color: fontColors.actionAccent,
+                  fontWeight: "600",
+                }}
+              >
                 {t("kana.quiz.title", { defaultValue: "Quiz" })}
               </ThemedText>
             </TouchableOpacity>
@@ -217,8 +227,8 @@ export default function JapaneseCharactersScreen() {
                   styles.tabLabel,
                   {
                     color: isSelected
-                      ? isDark ? "#111827" : "#fff"
-                      : isDark ? "#fff" : "#111827",
+                      ? fontColors.selectedOnLight
+                      : fontColors.screenTitleStrong,
                     fontWeight: isSelected ? "600" : "400",
                   },
                 ]}

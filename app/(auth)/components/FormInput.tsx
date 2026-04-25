@@ -13,6 +13,7 @@
 import React from "react";
 import { View, TextInput, Text, StyleSheet, TextInputProps } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 
 // =============================================================================
@@ -45,6 +46,7 @@ export const FormInput: React.FC<FormInputProps> = ({
 }) => {
   const { isDark } = useTheme();
   const styles = getStyles(isDark);
+  const fontColors = getFontColors(isDark);
 
   return (
     <View>
@@ -66,7 +68,7 @@ export const FormInput: React.FC<FormInputProps> = ({
           placeholder={placeholder}
           value={value}
           onChangeText={onChangeText}
-          placeholderTextColor={isDark ? "#666" : "#999"}
+          placeholderTextColor={fontColors.placeholder}
           {...rest}
         />
         {showValidation && isTouched && value && (
@@ -87,8 +89,10 @@ export const FormInput: React.FC<FormInputProps> = ({
 // =============================================================================
 // STYLES
 // =============================================================================
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
     inputContainer: {
       flexDirection: "row",
       alignItems: "center",
@@ -114,13 +118,14 @@ const getStyles = (isDark: boolean) =>
     input: {
       flex: 1,
       fontSize: 16,
-      color: isDark ? "#fff" : "#333",
+      color: fontColors.body,
     },
     errorText: {
-      color: isDark ? "#FF6B6B" : "#DC3545",
+      color: fontColors.error,
       fontSize: 12,
       marginTop: -12,
       marginBottom: 12,
       paddingHorizontal: 4,
     },
   });
+};

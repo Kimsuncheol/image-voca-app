@@ -9,6 +9,7 @@ import {
   ElementaryTableRow,
 } from "../components/elementary-japanese/ElementaryTable";
 import { ThemedText } from "../components/themed-text";
+import { getFontColors } from "../constants/fontColors";
 import { GREETINGS_DATA } from "../src/data/greetings";
 import { useTheme } from "../src/context/ThemeContext";
 import { useSpeech } from "../src/hooks/useSpeech";
@@ -30,8 +31,9 @@ function GreetingRow({
   isKorean,
   onSpeak,
 }: GreetingRowProps) {
-  const primaryText = isDark ? "#fff" : "#2a3437";
-  const mutedText = isDark ? "#8e8e93" : "#6e6e73";
+  const fontColors = getFontColors(isDark);
+  const primaryText = fontColors.tablePrimary;
+  const mutedText = fontColors.screenMuted;
 
   return (
     <ElementaryTableRow index={index}>
@@ -62,17 +64,14 @@ export default function JapaneseGreetingsScreen() {
   const { isDark } = useTheme();
   const { t, i18n } = useTranslation();
   const { speak } = useSpeech();
+  const fontColors = getFontColors(isDark);
 
   const bg = isDark ? "#000" : "#f2f2f7";
   const heroCardBg = isDark ? "#121318" : "#ffffff";
   const accentBg = isDark ? "#3f2a12" : "#ffedd5";
-  const accentText = isDark ? "#fed7aa" : "#c2410c";
-  const subtitleColor = isDark
-    ? "rgba(255,255,255,0.66)"
-    : "rgba(17,24,39,0.65)";
-  const sectionLabelColor = isDark
-    ? "rgba(255,255,255,0.54)"
-    : "rgba(17,24,39,0.5)";
+  const accentText = fontColors.greetingsAccentText;
+  const subtitleColor = fontColors.heroSubtitle;
+  const sectionLabelColor = fontColors.sectionLabelSoft;
   const isKorean = i18n.language === "ko";
 
   const handleSpeak = useCallback(

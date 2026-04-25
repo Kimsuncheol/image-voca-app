@@ -15,6 +15,7 @@ import {
   ElementaryTableRow,
 } from "../components/elementary-japanese/ElementaryTable";
 import { ThemedText } from "../components/themed-text";
+import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import { useSpeech } from "../src/hooks/useSpeech";
 import { PRENOMINAL_ADJECTIVE_DATA } from "../src/data/prenominalAdjective";
@@ -44,8 +45,9 @@ function PrenominalAdjectiveRow({
   onSpeakWord,
   onSpeakExample,
 }: RowProps) {
-  const primaryText = isDark ? "#fff" : "#2a3437";
-  const mutedText = isDark ? "#8e8e93" : "#6e6e73";
+  const fontColors = getFontColors(isDark);
+  const primaryText = fontColors.tablePrimary;
+  const mutedText = fontColors.screenMuted;
 
   const meaning = isKorean ? item.meaningKorean : item.meaningEnglish;
   const translation = isKorean ? item.translationKorean : item.translationEnglish;
@@ -111,17 +113,14 @@ export default function PrenominalAdjectiveScreen() {
   const { t, i18n } = useTranslation();
   const { speak } = useSpeech();
   const [showFurigana, setShowFurigana] = useState(false);
+  const fontColors = getFontColors(isDark);
 
   const bg = isDark ? "#000" : "#f2f2f7";
   const heroCardBg = isDark ? "#121318" : "#ffffff";
   const accentBg = isDark ? "#2d1f5e" : "#ede9fe";
-  const accentText = isDark ? "#c4b5fd" : "#6d28d9";
-  const subtitleColor = isDark
-    ? "rgba(255,255,255,0.66)"
-    : "rgba(17,24,39,0.65)";
-  const sectionLabelColor = isDark
-    ? "rgba(255,255,255,0.54)"
-    : "rgba(17,24,39,0.5)";
+  const accentText = fontColors.prenominalAccentText;
+  const subtitleColor = fontColors.heroSubtitle;
+  const sectionLabelColor = fontColors.sectionLabelSoft;
   const isKorean = i18n.language === "ko";
 
   const handleSpeakWord = useCallback(
@@ -163,7 +162,12 @@ export default function PrenominalAdjectiveScreen() {
               style={{ marginRight: 4 }}
               activeOpacity={0.7}
             >
-              <ThemedText style={styles.furiganaToggle}>
+              <ThemedText
+                style={[
+                  styles.furiganaToggle,
+                  { color: fontColors.actionAccent },
+                ]}
+              >
                 {showFurigana
                   ? t("counters.hideFurigana", { defaultValue: "Hide Furigana" })
                   : t("counters.showFurigana", { defaultValue: "Show Furigana" })}
@@ -370,7 +374,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   furiganaToggle: {
-    color: "#007AFF",
     fontSize: 15,
     fontWeight: "600",
   },

@@ -13,6 +13,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 
 // =============================================================================
@@ -43,6 +44,7 @@ export const PasswordHints: React.FC<PasswordHintsProps> = ({
 }) => {
   const { isDark } = useTheme();
   const styles = getStyles(isDark);
+  const fontColors = getFontColors(isDark);
 
   const requirements = [
     { met: hasMinLength, text: hints.length },
@@ -58,7 +60,7 @@ export const PasswordHints: React.FC<PasswordHintsProps> = ({
           <Ionicons
             name={req.met ? "checkmark-circle" : "ellipse-outline"}
             size={16}
-            color={req.met ? "green" : isDark ? "#666" : "#666"}
+            color={req.met ? fontColors.success : fontColors.supporting}
           />
           <Text style={[styles.hintText, req.met && styles.hintTextValid]}>
             {req.text}
@@ -72,8 +74,10 @@ export const PasswordHints: React.FC<PasswordHintsProps> = ({
 // =============================================================================
 // STYLES
 // =============================================================================
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
     hintsContainer: {
       marginBottom: 24,
       paddingHorizontal: 4,
@@ -85,10 +89,11 @@ const getStyles = (isDark: boolean) =>
     },
     hintText: {
       marginLeft: 8,
-      color: isDark ? "#ccc" : "#666",
+      color: fontColors.supporting,
       fontSize: 12,
     },
     hintTextValid: {
-      color: "green",
+      color: fontColors.success,
     },
   });
+};

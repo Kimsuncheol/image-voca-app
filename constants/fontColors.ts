@@ -18,7 +18,39 @@ export type FontColorRole =
   | "sectionMeta"
   | "iconMuted"
   | "inverse"
-  | "transparent";
+  | "transparent"
+  | "screenTitle"
+  | "screenTitleCompact"
+  | "screenTitleStrong"
+  | "screenBodyStrong"
+  | "screenMuted"
+  | "screenMutedStrong"
+  | "screenMutedCool"
+  | "screenMetaCool"
+  | "tablePrimary"
+  | "actionAccent"
+  | "actionAccentStrong"
+  | "dangerAction"
+  | "dangerText"
+  | "successText"
+  | "quizCorrect"
+  | "buttonOnAccent"
+  | "selectedOnLight"
+  | "kanaRomaji"
+  | "kanaRomajiActive"
+  | "heroSubtitle"
+  | "sectionLabelSoft"
+  | "sectionSubtitle"
+  | "countersAccentText"
+  | "greetingsAccentText"
+  | "prenominalAccentText"
+  | "deviceHelper"
+  | "deviceMeta"
+  | "verifyEmailValue"
+  | "authErrorTitle"
+  | "authErrorMessage"
+  | "passwordResetSuccessText"
+  | "passwordStrengthFair";
 
 export type FontColorTokens = Record<FontColorRole, string>;
 
@@ -42,6 +74,38 @@ export const FontColors: Record<FontColorScheme, FontColorTokens> = {
     iconMuted: "#666",
     inverse: "#fff",
     transparent: "transparent",
+    screenTitle: "#000",
+    screenTitleCompact: "#111",
+    screenTitleStrong: "#111827",
+    screenBodyStrong: "#333",
+    screenMuted: "#6e6e73",
+    screenMutedStrong: "#666",
+    screenMutedCool: "#4b5563",
+    screenMetaCool: "#94a3b8",
+    tablePrimary: "#2a3437",
+    actionAccent: "#007AFF",
+    actionAccentStrong: "#1f5fbf",
+    dangerAction: "#FF3B30",
+    dangerText: "#b3261e",
+    successText: "#15803d",
+    quizCorrect: "#34C759",
+    buttonOnAccent: "#fff",
+    selectedOnLight: "#fff",
+    kanaRomaji: "rgba(0,0,0,0.38)",
+    kanaRomajiActive: "rgba(255,255,255,0.75)",
+    heroSubtitle: "rgba(17,24,39,0.65)",
+    sectionLabelSoft: "rgba(17,24,39,0.5)",
+    sectionSubtitle: "rgba(17,24,39,0.55)",
+    countersAccentText: "#1d4ed8",
+    greetingsAccentText: "#c2410c",
+    prenominalAccentText: "#6d28d9",
+    deviceHelper: "#666",
+    deviceMeta: "#555",
+    verifyEmailValue: "#1e293b",
+    authErrorTitle: "#D93025",
+    authErrorMessage: "#8A1C1C",
+    passwordResetSuccessText: "#1D6B2F",
+    passwordStrengthFair: "#FF9500",
   },
   dark: {
     primary: "#fff",
@@ -62,6 +126,38 @@ export const FontColors: Record<FontColorScheme, FontColorTokens> = {
     iconMuted: "#888",
     inverse: "#fff",
     transparent: "transparent",
+    screenTitle: "#fff",
+    screenTitleCompact: "#fff",
+    screenTitleStrong: "#fff",
+    screenBodyStrong: "#fff",
+    screenMuted: "#8e8e93",
+    screenMutedStrong: "#AAA",
+    screenMutedCool: "#94a3b8",
+    screenMetaCool: "#64748b",
+    tablePrimary: "#fff",
+    actionAccent: "#007AFF",
+    actionAccentStrong: "#8ab4ff",
+    dangerAction: "#FF3B30",
+    dangerText: "#ffb4ab",
+    successText: "#a7f3d0",
+    quizCorrect: "#34C759",
+    buttonOnAccent: "#fff",
+    selectedOnLight: "#111827",
+    kanaRomaji: "rgba(255,255,255,0.4)",
+    kanaRomajiActive: "rgba(255,255,255,0.75)",
+    heroSubtitle: "rgba(255,255,255,0.66)",
+    sectionLabelSoft: "rgba(255,255,255,0.54)",
+    sectionSubtitle: "rgba(255,255,255,0.6)",
+    countersAccentText: "#c6dbff",
+    greetingsAccentText: "#fed7aa",
+    prenominalAccentText: "#c4b5fd",
+    deviceHelper: "#c7c7cc",
+    deviceMeta: "#c7c7cc",
+    verifyEmailValue: "#fff",
+    authErrorTitle: "#FFB3B3",
+    authErrorMessage: "#FFD5D5",
+    passwordResetSuccessText: "#B8F5C4",
+    passwordStrengthFair: "#FF9500",
   },
 };
 

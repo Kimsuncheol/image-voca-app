@@ -3,12 +3,14 @@ import { Stack, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 
 export default function ComingSoonScreen() {
   const { isDark } = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
+  const fontColors = getFontColors(isDark);
 
   return (
     <View
@@ -21,7 +23,7 @@ export default function ComingSoonScreen() {
         options={{
           title: t("settings.language.japanese"),
           headerStyle: { backgroundColor: isDark ? "#1c1c1e" : "#fff" },
-          headerTitleStyle: { color: isDark ? "#fff" : "#000" },
+          headerTitleStyle: { color: fontColors.screenTitle },
           headerTintColor: "#007AFF",
         }}
       />
@@ -31,11 +33,11 @@ export default function ComingSoonScreen() {
           size={72}
           color={isDark ? "#555" : "#c7c7cc"}
         />
-        <Text style={[styles.title, { color: isDark ? "#fff" : "#000" }]}>
+        <Text style={[styles.title, { color: fontColors.screenTitle }]}>
           {t("comingSoon.title")}
         </Text>
         <Text
-          style={[styles.description, { color: isDark ? "#8e8e93" : "#6e6e73" }]}
+          style={[styles.description, { color: fontColors.screenMuted }]}
         >
           {t("comingSoon.description")}
         </Text>
@@ -44,7 +46,9 @@ export default function ComingSoonScreen() {
           activeOpacity={0.6}
           style={styles.link}
         >
-          <Text style={styles.linkText}>{t("kana.title")}</Text>
+          <Text style={[styles.linkText, { color: fontColors.actionAccent }]}>
+            {t("kana.title")}
+          </Text>
           <Ionicons name="chevron-forward" size={15} color="#007AFF" />
         </TouchableOpacity>
         <TouchableOpacity
@@ -52,7 +56,9 @@ export default function ComingSoonScreen() {
           activeOpacity={0.6}
           style={styles.link}
         >
-          <Text style={styles.linkText}>{t("comingSoon.links.jlptVocabulary")}</Text>
+          <Text style={[styles.linkText, { color: fontColors.actionAccent }]}>
+            {t("comingSoon.links.jlptVocabulary")}
+          </Text>
           <Ionicons name="chevron-forward" size={15} color="#007AFF" />
         </TouchableOpacity>
         <TouchableOpacity
@@ -60,7 +66,9 @@ export default function ComingSoonScreen() {
           activeOpacity={0.6}
           style={styles.link}
         >
-          <Text style={styles.linkText}>{t("comingSoon.links.wordBank")}</Text>
+          <Text style={[styles.linkText, { color: fontColors.actionAccent }]}>
+            {t("comingSoon.links.wordBank")}
+          </Text>
           <Ionicons name="chevron-forward" size={15} color="#007AFF" />
         </TouchableOpacity>
       </View>
@@ -98,7 +106,6 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 15,
-    color: "#007AFF",
     fontWeight: "500",
   },
 });

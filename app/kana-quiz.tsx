@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { QuizTimer } from "../components/course";
 import { ThemedText } from "../components/themed-text";
+import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import { useSpeech } from "../src/hooks/useSpeech";
 import { Char, CharCell, HIRAGANA, HIRAGANA_FLAT, KATAKANA, KATAKANA_FLAT } from "../src/data/kana";
@@ -118,6 +119,7 @@ interface OptionButtonProps {
 }
 
 function OptionButton({ label, state, isDark, onPress, disabled, width }: OptionButtonProps) {
+  const fontColors = getFontColors(isDark);
   const bg =
     state === "correct"
       ? "#34C759"
@@ -126,7 +128,10 @@ function OptionButton({ label, state, isDark, onPress, disabled, width }: Option
         : isDark
           ? "#1c1c1e"
           : "#f5f5f5";
-  const color = state !== "default" ? "#fff" : isDark ? "#fff" : "#111827";
+  const color =
+    state !== "default"
+      ? fontColors.buttonOnAccent
+      : fontColors.screenTitleStrong;
 
   return (
     <TouchableOpacity
@@ -155,6 +160,7 @@ interface ResultsProps {
 
 function ResultsView({ correct, total, wrongChars, isDark, onRetry, onDone }: ResultsProps) {
   const { t } = useTranslation();
+  const fontColors = getFontColors(isDark);
   const pct = total > 0 ? correct / total : 0;
   const headline =
     pct >= 0.9
@@ -203,7 +209,9 @@ function ResultsView({ correct, total, wrongChars, isDark, onRetry, onDone }: Re
           onPress={onDone}
           activeOpacity={0.7}
         >
-          <ThemedText style={[styles.resultBtnText, { color: "#fff" }]}>
+          <ThemedText
+            style={[styles.resultBtnText, { color: fontColors.buttonOnAccent }]}
+          >
             {t("kana.quiz.results.done")}
           </ThemedText>
         </TouchableOpacity>
@@ -223,6 +231,7 @@ export default function KanaQuizScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const speech = useSpeech();
+  const fontColors = getFontColors(isDark);
   const { type } = useLocalSearchParams<{ type: KanaType }>();
   const { width: screenWidth } = useWindowDimensions();
 
@@ -424,7 +433,14 @@ export default function KanaQuizScreen() {
           <View style={styles.feedbackSlot}>
             {isAnswered && (
               <ThemedText
-                style={[styles.feedback, { color: isCorrectAnswer ? "#34C759" : "#FF3B30" }]}
+                style={[
+                  styles.feedback,
+                  {
+                    color: isCorrectAnswer
+                      ? fontColors.quizCorrect
+                      : fontColors.dangerAction,
+                  },
+                ]}
               >
                 {isCorrectAnswer
                   ? t("kana.quiz.correct")

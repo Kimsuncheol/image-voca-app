@@ -14,6 +14,7 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 
 // =============================================================================
@@ -62,8 +63,10 @@ export const GoogleButton: React.FC<GoogleButtonProps> = ({
 // =============================================================================
 // STYLES
 // =============================================================================
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
     googleButton: {
       flexDirection: "row",
       alignItems: "center",
@@ -81,8 +84,9 @@ const getStyles = (isDark: boolean) =>
       marginRight: 12,
     },
     googleButtonText: {
-      color: isDark ? "#fff" : "#333",
+      color: fontColors.body,
       fontSize: 16,
       fontWeight: "600",
     },
   });
+};

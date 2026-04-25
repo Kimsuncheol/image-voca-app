@@ -20,6 +20,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { auth } from "../../../src/services/firebase";
 import { ErrorBanner } from "./ErrorBanner";
@@ -397,8 +398,10 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
   );
 };
 
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: isDark ? "#000" : "#fff",
@@ -418,13 +421,13 @@ const getStyles = (isDark: boolean) =>
     title: {
       fontSize: 32,
       fontWeight: "bold",
-      color: isDark ? "#fff" : "#333",
+      color: fontColors.body,
       marginBottom: 8,
       textAlign: "center",
     },
     subtitle: {
       fontSize: 16,
-      color: isDark ? "#ccc" : "#666",
+      color: fontColors.supporting,
       textAlign: "center",
     },
     formContainer: {
@@ -440,12 +443,12 @@ const getStyles = (isDark: boolean) =>
       marginBottom: 16,
     },
     successText: {
-      color: isDark ? "#B8F5C4" : "#1D6B2F",
+      color: fontColors.passwordResetSuccessText,
       fontSize: 13,
       fontWeight: "600",
     },
     infoText: {
-      color: isDark ? "#ccc" : "#666",
+      color: fontColors.supporting,
       fontSize: 14,
       marginBottom: 12,
       textAlign: "center",
@@ -456,10 +459,11 @@ const getStyles = (isDark: boolean) =>
       gap: 12,
     },
     helperText: {
-      color: isDark ? "#ccc" : "#666",
+      color: fontColors.supporting,
       fontSize: 13,
       textAlign: "center",
     },
   });
+};
 
 export default PasswordResetFlow;
