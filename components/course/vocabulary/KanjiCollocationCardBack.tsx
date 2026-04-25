@@ -1,10 +1,8 @@
 import React from "react";
-import { View, Text, Pressable, ScrollView, TouchableOpacity } from "react-native";
+import { Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import type { KanjiWord } from "../../../src/types/vocabulary";
-import { styles } from "./KanjiCollocationCardStyles";
 import { BackSection } from "./KanjiCollocationCardBackSection";
-import { GeneralBackSection } from "./KanjiCollocationCardGeneralBackSection";
-import { DottedDivider } from "./KanjiCollocationCardDivider";
+import { styles } from "./KanjiCollocationCardStyles";
 
 /**
  * Props passed to the back face component of the Kanji Collocation Card.
@@ -98,48 +96,7 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
                 isDark={isDark}
                 isActive={isActive}
                 showFurigana={showFurigana}
-                onFlip={onFlip}
-              />
-            ) : null}
-            {hasMeaningSection && hasReadingSection ? (
-              <Pressable onPress={(e) => { e?.stopPropagation(); onFlip(); }}>
-                <DottedDivider
-                  isDark={isDark}
-                  testID="kanji-collocation-divider-meaning-reading"
-                />
-              </Pressable>
-            ) : null}
-            {hasReadingSection ? (
-              <BackSection
-                title="READING"
-                values={readings}
-                examples={item.readingExample}
-                hurigana={item.readingExampleHurigana}
-                translations={readingTranslations}
-                isDark={isDark}
-                isActive={isActive}
-                showFurigana={showFurigana}
-                onFlip={onFlip}
-              />
-            ) : null}
-            {hasReadingSection && hasExampleSection ? (
-              <Pressable onPress={(e) => { e?.stopPropagation(); onFlip(); }}>
-                <DottedDivider
-                  isDark={isDark}
-                  testID="kanji-collocation-divider-reading-example"
-                />
-              </Pressable>
-            ) : null}
-            {hasExampleSection ? (
-              <GeneralBackSection
-                examples={item.example}
-                hurigana={item.exampleHurigana}
-                translations={exampleTranslations}
-                isDark={isDark}
-                isActive={isActive}
-                showFurigana={showFurigana}
-                onFlip={onFlip}
-              />
+r              />
             ) : null}
           </View>
         </Pressable>

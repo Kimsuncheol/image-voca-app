@@ -648,6 +648,26 @@ describe("KanjiCollocationCard", () => {
     ).toBe(12);
   });
 
+  it("lays out general examples above their localized translations", () => {
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+
+    const generalExampleItem = screen.getByTestId(
+      "kanji-collocation-example-item-0",
+    );
+
+    expect(textChildrenOf(generalExampleItem)).toEqual(
+      expect.arrayContaining(["語を学ぶ。", "Learn words."]),
+    );
+    expect(flattenStyleOf(generalExampleItem)).toEqual(
+      expect.objectContaining({
+        flexDirection: "column",
+        alignItems: "flex-start",
+        alignSelf: "flex-start",
+      }),
+    );
+  });
+
   it("uses exampleHurigana for Japanese TTS when available", () => {
     const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
     flipToBack(screen);

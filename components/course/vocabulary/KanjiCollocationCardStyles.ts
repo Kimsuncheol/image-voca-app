@@ -176,6 +176,12 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
+  backGeneralExampleItem: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+    alignSelf: "flex-start",
+    gap: 2,
+  },
   backPairItem: {
     flexDirection: "column",
     alignItems: "stretch",

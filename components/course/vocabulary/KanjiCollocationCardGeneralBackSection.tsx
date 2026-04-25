@@ -109,7 +109,7 @@ export function GeneralBackSection({
                 }
                 activeOpacity={0.7}
                 testID={`kanji-collocation-example-item-${item.originalIndex}`}
-                style={styles.backItemRow}
+                style={styles.backGeneralExampleItem}
               >
                 <View
                   testID={`kanji-collocation-example-frame-${item.originalIndex}`}
