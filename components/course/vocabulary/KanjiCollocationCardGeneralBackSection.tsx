@@ -6,6 +6,7 @@ import {
   View,
   type GestureResponderEvent,
 } from "react-native";
+import { getFontColors } from "../../../constants/fontColors";
 import { useSpeech } from "../../../src/hooks/useSpeech";
 import {
   splitJapaneseTextSegments,
@@ -52,6 +53,7 @@ export function GeneralBackSection({
   onFlip,
 }: GeneralBackSectionProps) {
   const { speak } = useSpeech();
+  const fontColors = getFontColors(isDark);
   const items = examples
     .map((example, index) => ({
       example: example.trim(),
@@ -83,7 +85,7 @@ export function GeneralBackSection({
           suppressHighlighting
           style={[
             styles.backSectionTitle,
-            { color: isDark ? "#999" : "#666" },
+            { color: fontColors.muted },
           ]}
         >
           EXAMPLE
@@ -143,7 +145,7 @@ export function GeneralBackSection({
                     style={[
                       styles.backExample,
                       styles.backExampleOverlay,
-                      { color: isDark ? "#aaa" : "#555" },
+                      { color: fontColors.example },
                     ]}
                   >
                     {visibleSegments.map((segment, segmentIndex) => (
@@ -158,7 +160,7 @@ export function GeneralBackSection({
                           segment.isKanaParen
                             ? [
                                 styles.backInlineFurigana,
-                                { color: isDark ? "#888" : "#999" },
+                                { color: fontColors.furigana },
                               ]
                             : undefined
                         }
@@ -172,7 +174,7 @@ export function GeneralBackSection({
                   <Text
                     style={[
                       styles.backTranslation,
-                      { color: isDark ? "#777" : "#888" },
+                      { color: fontColors.translation },
                     ]}
                   >
                     {item.translation}

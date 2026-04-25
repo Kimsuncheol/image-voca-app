@@ -5,6 +5,7 @@ import {
   View,
   type GestureResponderEvent,
 } from "react-native";
+import { getFontColors } from "../../../constants/fontColors";
 import { useSpeech } from "../../../src/hooks/useSpeech";
 import type { KanjiWord } from "../../../src/types/vocabulary";
 import {
@@ -57,6 +58,7 @@ export function FaceSide({
   language = "en",
 }: FaceSideProps) {
   const { speak } = useSpeech();
+  const fontColors = getFontColors(isDark);
 
   const handleSpeakItem = React.useCallback(
     (text: string) => {
@@ -110,7 +112,7 @@ export function FaceSide({
         <View style={styles.faceContent}>
           <View style={styles.kanjiSectionRow}>
             <Text
-              style={[styles.kanjiText, { color: isDark ? "#fff" : "#1a1a1a" }]}
+              style={[styles.kanjiText, { color: fontColors.primary }]}
             >
               {item.kanji}
             </Text>
@@ -122,7 +124,7 @@ export function FaceSide({
               <Text
                 style={[
                   styles.faceSectionLabel,
-                  { color: isDark ? "#999" : "#666" },
+                  { color: fontColors.muted },
                 ]}
               >
                 MEANING
@@ -142,7 +144,7 @@ export function FaceSide({
                       <Text
                         style={[
                           styles.faceListItem,
-                          { color: isDark ? "#aaa" : "#666", fontSize: 14 },
+                          { color: fontColors.subtle, fontSize: 14 },
                         ]}
                       >
                         {m.localizedText}
@@ -158,7 +160,7 @@ export function FaceSide({
                         <Text
                           style={[
                             styles.faceListItem,
-                            { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                            { color: fontColors.secondary },
                           ]}
                         >
                           {m.baseText}
@@ -179,7 +181,7 @@ export function FaceSide({
               <Text
                 style={[
                   styles.faceSectionLabel,
-                  { color: isDark ? "#999" : "#666" },
+                  { color: fontColors.muted },
                 ]}
               >
                 READING
@@ -199,7 +201,7 @@ export function FaceSide({
                       <Text
                         style={[
                           styles.faceListItem,
-                          { color: isDark ? "#aaa" : "#666", fontSize: 14 },
+                          { color: fontColors.subtle, fontSize: 14 },
                         ]}
                       >
                         {r.localizedText}
@@ -215,7 +217,7 @@ export function FaceSide({
                         <Text
                           style={[
                             styles.faceListItem,
-                            { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                            { color: fontColors.secondary },
                           ]}
                         >
                           {r.baseText}

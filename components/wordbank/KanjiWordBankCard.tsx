@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import {
@@ -31,6 +32,7 @@ export function KanjiWordBankCard({
   const { i18n } = useTranslation();
   const useKorean = i18n.language === "ko";
   const language = i18n.language;
+  const fontColors = getFontColors(isDark);
 
   const [showFurigana, setShowFurigana] = React.useState(false);
 
@@ -66,7 +68,7 @@ export function KanjiWordBankCard({
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={handleSpeakKanji} activeOpacity={0.7}>
             <Text
-              style={[styles.kanjiText, { color: isDark ? "#fff" : "#1a1a1a" }]}
+              style={[styles.kanjiText, { color: fontColors.primary }]}
             >
               {word.kanji}
             </Text>
@@ -104,7 +106,7 @@ export function KanjiWordBankCard({
       {meanings.length > 0 && (
         <View style={styles.chipsSection}>
           <Text
-            style={[styles.sectionLabel, { color: isDark ? "#999" : "#666" }]}
+            style={[styles.sectionLabel, { color: fontColors.muted }]}
           >
             MEANING
           </Text>
@@ -118,7 +120,7 @@ export function KanjiWordBankCard({
                   <Text
                     style={[
                       styles.chipText,
-                      { color: isDark ? "#aaa" : "#666", fontSize: 14 },
+                      { color: fontColors.subtle, fontSize: 14 },
                     ]}
                   >
                     {row.localizedText}
@@ -128,7 +130,7 @@ export function KanjiWordBankCard({
                   <Text
                     style={[
                       styles.chipText,
-                      { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                      { color: fontColors.secondary },
                     ]}
                   >
                     {row.baseText}
@@ -144,7 +146,7 @@ export function KanjiWordBankCard({
       {readings.length > 0 && (
         <View style={styles.chipsSection}>
           <Text
-            style={[styles.sectionLabel, { color: isDark ? "#999" : "#666" }]}
+            style={[styles.sectionLabel, { color: fontColors.muted }]}
           >
             READING
           </Text>
@@ -158,7 +160,7 @@ export function KanjiWordBankCard({
                   <Text
                     style={[
                       styles.chipText,
-                      { color: isDark ? "#aaa" : "#666", fontSize: 14 },
+                      { color: fontColors.subtle, fontSize: 14 },
                     ]}
                   >
                     {row.localizedText}
@@ -168,7 +170,7 @@ export function KanjiWordBankCard({
                   <Text
                     style={[
                       styles.chipText,
-                      { color: isDark ? "#e0e0e0" : "#1a1a1a" },
+                      { color: fontColors.secondary },
                     ]}
                   >
                     {row.baseText}
@@ -204,7 +206,11 @@ export function KanjiWordBankCard({
               <Text
                 style={[
                   styles.furiganaButtonText,
-                  { color: showFurigana ? "#fff" : isDark ? "#aaa" : "#666" },
+                  {
+                    color: showFurigana
+                      ? fontColors.inverse
+                      : fontColors.subtle,
+                  },
                 ]}
               >
                 がな

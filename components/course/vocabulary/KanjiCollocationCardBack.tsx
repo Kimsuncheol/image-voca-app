@@ -1,7 +1,10 @@
 import React from "react";
 import { Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { getFontColors } from "../../../constants/fontColors";
 import type { KanjiWord } from "../../../src/types/vocabulary";
 import { BackSection } from "./KanjiCollocationCardBackSection";
+import { GeneralBackSection } from "./KanjiCollocationCardGeneralBackSection";
+import { DottedDivider } from "./KanjiCollocationCardDivider";
 import { styles } from "./KanjiCollocationCardStyles";
 
 /**
@@ -30,6 +33,7 @@ export interface BackSideProps {
  * It also holds the "がな" (Furigana) toggle button to show or hide reading aids.
  */
 export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }: BackSideProps) {
+  const fontColors = getFontColors(isDark);
   const meanings = item.meaning;
   const readings = item.reading;
   const meaningTranslations = useKorean ? item.meaningKoreanTranslation : item.meaningEnglishTranslation;
@@ -67,7 +71,14 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
                 },
           ]}
         >
-          <Text style={[styles.furiganaButtonText, { color: showFurigana ? "#fff" : isDark ? "#aaa" : "#666" }]}>
+          <Text
+            style={[
+              styles.furiganaButtonText,
+              {
+                color: showFurigana ? fontColors.inverse : fontColors.subtle,
+              },
+            ]}
+          >
             がな
           </Text>
         </TouchableOpacity>
@@ -96,7 +107,48 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
                 isDark={isDark}
                 isActive={isActive}
                 showFurigana={showFurigana}
-r              />
+                onFlip={onFlip}
+              />
+            ) : null}
+            {hasMeaningSection && hasReadingSection ? (
+              <Pressable onPress={(e) => { e?.stopPropagation(); onFlip(); }}>
+                <DottedDivider
+                  isDark={isDark}
+                  testID="kanji-collocation-divider-meaning-reading"
+                />
+              </Pressable>
+            ) : null}
+            {hasReadingSection ? (
+              <BackSection
+                title="READING"
+                values={readings}
+                examples={item.readingExample}
+                hurigana={item.readingExampleHurigana}
+                translations={readingTranslations}
+                isDark={isDark}
+                isActive={isActive}
+                showFurigana={showFurigana}
+                onFlip={onFlip}
+              />
+            ) : null}
+            {hasReadingSection && hasExampleSection ? (
+              <Pressable onPress={(e) => { e?.stopPropagation(); onFlip(); }}>
+                <DottedDivider
+                  isDark={isDark}
+                  testID="kanji-collocation-divider-reading-example"
+                />
+              </Pressable>
+            ) : null}
+            {hasExampleSection ? (
+              <GeneralBackSection
+                examples={item.example}
+                hurigana={item.exampleHurigana}
+                translations={exampleTranslations}
+                isDark={isDark}
+                isActive={isActive}
+                showFurigana={showFurigana}
+                onFlip={onFlip}
+              />
             ) : null}
           </View>
         </Pressable>

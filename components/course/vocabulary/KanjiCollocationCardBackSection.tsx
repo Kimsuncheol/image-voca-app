@@ -6,6 +6,7 @@ import {
   View,
   type GestureResponderEvent,
 } from "react-native";
+import { getFontColors } from "../../../constants/fontColors";
 import { useSpeech } from "../../../src/hooks/useSpeech";
 import type { KanjiNestedListGroup } from "../../../src/types/vocabulary";
 import { styles } from "./KanjiCollocationCardStyles";
@@ -54,6 +55,7 @@ export function BackSection({
   onFlip,
 }: BackSectionProps) {
   const { speak } = useSpeech();
+  const fontColors = getFontColors(isDark);
 
   const entries = values
     .map((value, index) => ({
@@ -86,7 +88,7 @@ export function BackSection({
           suppressHighlighting
           style={[
             styles.backSectionTitle,
-            { color: isDark ? "#999" : "#666" },
+            { color: fontColors.muted },
           ]}
         >
           {title}
@@ -103,7 +105,7 @@ export function BackSection({
               suppressHighlighting
               style={[
                 styles.backGroupLabel,
-                { color: isDark ? "#fff" : "#1a1a1a" },
+                { color: fontColors.primary },
               ]}
             >
               {entry.value}
@@ -139,7 +141,7 @@ export function BackSection({
                       <Text
                         style={[
                           styles.backExample,
-                          { color: isDark ? "#aaa" : "#555" },
+                          { color: fontColors.example },
                         ]}
                       >
                         {example}
@@ -148,7 +150,7 @@ export function BackSection({
                         <Text
                           style={[
                             styles.backTranslation,
-                            { color: isDark ? "#777" : "#888" },
+                            { color: fontColors.translation },
                           ]}
                         >
                           {entry.translations[j]}
@@ -160,7 +162,7 @@ export function BackSection({
                       style={[
                         styles.backFurigana,
                         hasHurigana
-                          ? { color: isDark ? "#888" : "#999" }
+                          ? { color: fontColors.furigana }
                           : styles.backFuriganaSpacer,
                       ]}
                     >

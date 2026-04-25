@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { FontColors } from "../../../constants/fontColors";
 import { CARD_HEIGHT, CARD_WIDTH } from "../../../src/constants/layout";
 
 // const { width } = Dimensions.get("window");
@@ -211,11 +212,11 @@ export const styles = StyleSheet.create({
     textAlign: "left",
   },
   backFuriganaPlaceholder: {
-    color: "transparent",
+    color: FontColors.light.transparent,
     backgroundColor: "transparent",
   },
   backFuriganaSpacer: {
-    color: "transparent",
+    color: FontColors.light.transparent,
     backgroundColor: "transparent",
   },
   backInlineFurigana: {
@@ -226,7 +227,7 @@ export const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   backExampleSizer: {
-    color: "transparent",
+    color: FontColors.light.transparent,
     backgroundColor: "transparent",
   },
   backExampleOverlay: {
