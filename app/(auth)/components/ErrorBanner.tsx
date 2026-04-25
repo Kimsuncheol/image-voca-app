@@ -37,6 +37,7 @@ export const ErrorBanner: React.FC<ErrorBannerProps> = ({
 }) => {
   const { isDark } = useTheme();
   const styles = getStyles(isDark);
+  const fontColors = getFontColors(isDark);
 
   if (!message) return null;
 
@@ -45,7 +46,7 @@ export const ErrorBanner: React.FC<ErrorBannerProps> = ({
       <Ionicons
         name="alert-circle"
         size={18}
-        color={isDark ? "#FF8A8A" : "#D93025"}
+        color={fontColors.iconError}
         style={styles.errorIcon}
       />
       <View style={styles.errorTextContainer}>
@@ -60,7 +61,7 @@ export const ErrorBanner: React.FC<ErrorBannerProps> = ({
           <Ionicons
             name="close"
             size={18}
-            color={isDark ? "#FF8A8A" : "#D93025"}
+            color={fontColors.iconError}
           />
         </TouchableOpacity>
       )}
@@ -85,7 +86,7 @@ const getStyles = (isDark: boolean) => {
       borderRadius: 12,
       borderWidth: 1,
       backgroundColor: bg.accentRedDeep,
-      borderColor: isDark ? "#5C1F1F" : "#F5B5B5",
+      borderColor: fontColors.errorBannerBorder,
     },
     errorIcon: {
       marginRight: 10,

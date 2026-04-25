@@ -22,6 +22,7 @@ const RESEND_COOLDOWN_SECONDS = 60;
 export default function VerifyEmailScreen() {
   const { isDark } = useTheme();
   const styles = getStyles(isDark);
+  const fontColors = getFontColors(isDark);
   const { t } = useTranslation();
   const router = useRouter();
   const {
@@ -128,7 +129,7 @@ export default function VerifyEmailScreen() {
             <Ionicons
               name="mail-unread-outline"
               size={80}
-              color={isDark ? "#3b82f6" : "#2563eb"}
+              color={fontColors.iconBlue}
             />
           </View>
 
@@ -155,7 +156,7 @@ export default function VerifyEmailScreen() {
                 <Ionicons
                   name="checkmark-circle"
                   size={20}
-                  color={isDark ? "#a7f3d0" : "#166534"}
+                  color={fontColors.iconGreenSuccess}
                   style={styles.successIcon}
                 />
                 <Text style={styles.successText}>{successMessage}</Text>
@@ -248,7 +249,7 @@ const getStyles = (isDark: boolean) => {
       borderRadius: 20,
       backgroundColor: bg.heroCard,
       borderWidth: 1,
-      borderColor: isDark ? "#1f2937" : "#e2e8f0",
+      borderColor: fontColors.cardBorder,
       marginBottom: 24,
     },
     emailLabel: {
@@ -274,7 +275,7 @@ const getStyles = (isDark: boolean) => {
       alignItems: "center",
       borderRadius: 16,
       borderWidth: 1,
-      borderColor: isDark ? "#064e3b" : "#bbf7d0",
+      borderColor: fontColors.successBorder,
       backgroundColor: bg.accentGreenSoft,
       paddingHorizontal: 16,
       paddingVertical: 14,

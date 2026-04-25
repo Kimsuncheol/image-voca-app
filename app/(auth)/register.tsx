@@ -43,6 +43,7 @@ import {
 export default function RegisterScreen() {
   const { isDark } = useTheme();
   const styles = getStyles(isDark);
+  const fontColors = getFontColors(isDark);
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -441,7 +442,7 @@ export default function RegisterScreen() {
                         <Ionicons
                           name="globe-outline"
                           size={22}
-                          color={isDark ? "#fff" : "#333"}
+                          color={fontColors.screenBodyStrong}
                         />
                         <Text style={styles.learningOptionText}>{label}</Text>
                       </View>
@@ -591,7 +592,7 @@ const getStyles = (isDark: boolean) => {
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
-      borderColor: isDark ? "#333" : "#E0E0E0",
+      borderColor: fontColors.inputBorder,
       borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 14,
@@ -601,13 +602,13 @@ const getStyles = (isDark: boolean) => {
 
     /** Input error state - Red border for invalid input */
     inputError: {
-      borderColor: isDark ? "#5C2B2E" : "#DC3545",
+      borderColor: fontColors.inputBorderError,
       backgroundColor: bg.accentRedSoft,
     },
 
     /** Input success state - Green border for valid input */
     inputSuccess: {
-      borderColor: isDark ? "#1E4620" : "#28A745",
+      borderColor: fontColors.inputBorderSuccess,
       backgroundColor: bg.successSoft,
     },
 
@@ -720,7 +721,7 @@ const getStyles = (isDark: boolean) => {
       justifyContent: "center",
       backgroundColor: bg.card,
       borderWidth: 1,
-      borderColor: isDark ? "#333" : "#E0E0E0",
+      borderColor: fontColors.inputBorder,
       paddingVertical: 16,
       borderRadius: 12,
     },
@@ -792,7 +793,7 @@ const getStyles = (isDark: boolean) => {
       borderRadius: 50,
       backgroundColor: bg.cardElevated,
       borderWidth: 2,
-      borderColor: isDark ? "#333" : "#E0E0E0",
+      borderColor: fontColors.inputBorder,
       borderStyle: "dashed", // Dashed border indicates clickable area
       justifyContent: "center",
       alignItems: "center",
@@ -814,7 +815,7 @@ const getStyles = (isDark: boolean) => {
       alignItems: "center",
       backgroundColor: bg.dangerSoft,
       borderWidth: 1,
-      borderColor: isDark ? "#5C2B2E" : "#FCC",
+      borderColor: fontColors.inputBorderErrorSoft,
       borderRadius: 12,
       padding: 12,
       marginBottom: 16,
@@ -851,7 +852,7 @@ const getStyles = (isDark: boolean) => {
       paddingHorizontal: 16,
       borderRadius: 12,
       borderWidth: 2,
-      borderColor: isDark ? "#333" : "#E0E0E0",
+      borderColor: fontColors.inputBorder,
       backgroundColor: bg.cardElevated,
       alignItems: "center",
       marginBottom: 16,
@@ -867,7 +868,7 @@ const getStyles = (isDark: boolean) => {
     adminToggleText: {
       fontSize: 14,
       fontWeight: "600",
-      color: isDark ? fontColors.tertiary : fontColors.supporting,
+      color: fontColors.mutedLabel,
     },
 
     /** Admin toggle text active - When admin is selected */
@@ -894,7 +895,7 @@ const getStyles = (isDark: boolean) => {
       backgroundColor: bg.cardElevated,
       borderRadius: 12,
       borderWidth: 1,
-      borderColor: isDark ? "#333" : "#E0E0E0",
+      borderColor: fontColors.inputBorder,
       overflow: "hidden",
     },
     learningOption: {

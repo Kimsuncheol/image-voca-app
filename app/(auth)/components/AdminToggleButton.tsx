@@ -70,7 +70,7 @@ const getStyles = (isDark: boolean) => {
       paddingHorizontal: 16,
       borderRadius: 12,
       borderWidth: 2,
-      borderColor: isDark ? "#333" : "#E0E0E0",
+      borderColor: fontColors.inputBorder,
       backgroundColor: bg.cardElevated,
       alignItems: "center",
       marginBottom: 16,
@@ -82,7 +82,7 @@ const getStyles = (isDark: boolean) => {
     adminToggleText: {
       fontSize: 14,
       fontWeight: "600",
-      color: isDark ? fontColors.tertiary : fontColors.supporting,
+      color: fontColors.mutedLabel,
     },
     adminToggleTextActive: {
       color: fontColors.actionAccent,

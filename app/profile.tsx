@@ -401,7 +401,7 @@ const getStyles = (isDark: boolean) => {
       height: 100,
       borderRadius: 50,
       borderWidth: 4,
-      borderColor: isDark ? "#333" : "#FFF",
+      borderColor: fontColors.avatarBorder,
     },
     editIconContainer: {
       position: "absolute",
@@ -411,7 +411,7 @@ const getStyles = (isDark: boolean) => {
       padding: 8,
       borderRadius: 20,
       borderWidth: 3,
-      borderColor: isDark ? "#1C1C1E" : "#FFF",
+      borderColor: fontColors.surfaceBorder,
     },
     displayNameText: {
       fontSize: 24,

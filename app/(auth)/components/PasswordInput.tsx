@@ -44,7 +44,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
       <Ionicons
         name="lock-closed-outline"
         size={20}
-        color={isDark ? "#ccc" : "#666"}
+        color={fontColors.supporting}
         style={styles.inputIcon}
       />
       <TextInput
@@ -59,7 +59,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
         <Ionicons
           name={isVisible ? "eye-off-outline" : "eye-outline"}
           size={20}
-          color={isDark ? "#ccc" : "#666"}
+          color={fontColors.supporting}
         />
       </TouchableOpacity>
     </View>
@@ -78,7 +78,7 @@ const getStyles = (isDark: boolean) => {
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
-      borderColor: isDark ? "#333" : "#E0E0E0",
+      borderColor: fontColors.inputBorder,
       borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 14,

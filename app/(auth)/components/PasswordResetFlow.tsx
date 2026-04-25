@@ -437,7 +437,7 @@ const getStyles = (isDark: boolean) => {
     },
     successBanner: {
       backgroundColor: bg.accentGreenDeep,
-      borderColor: isDark ? "#1F6A2F" : "#9CD7AC",
+      borderColor: fontColors.successBorderAlt,
       borderWidth: 1,
       borderRadius: 12,
       paddingVertical: 12,

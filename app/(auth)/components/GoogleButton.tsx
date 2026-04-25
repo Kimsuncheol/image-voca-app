@@ -75,7 +75,7 @@ const getStyles = (isDark: boolean) => {
       justifyContent: "center",
       backgroundColor: bg.card,
       borderWidth: 1,
-      borderColor: isDark ? "#333" : "#E0E0E0",
+      borderColor: fontColors.inputBorder,
       paddingVertical: 16,
       borderRadius: 12,
     },

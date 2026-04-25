@@ -39,6 +39,7 @@ export const AvatarPicker: React.FC<AvatarPickerProps> = ({
 }) => {
   const { isDark } = useTheme();
   const styles = getStyles(isDark);
+  const fontColors = getFontColors(isDark);
 
   return (
     <View style={styles.avatarContainer}>
@@ -50,7 +51,7 @@ export const AvatarPicker: React.FC<AvatarPickerProps> = ({
             <Ionicons
               name="camera-outline"
               size={32}
-              color={isDark ? "#666" : "#999"}
+              color={fontColors.placeholder}
             />
           </View>
         )}
@@ -89,7 +90,7 @@ const getStyles = (isDark: boolean) => {
       borderRadius: 50,
       backgroundColor: bg.cardElevated,
       borderWidth: 2,
-      borderColor: isDark ? "#333" : "#E0E0E0",
+      borderColor: fontColors.inputBorder,
       borderStyle: "dashed",
       justifyContent: "center",
       alignItems: "center",

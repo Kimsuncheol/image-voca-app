@@ -61,7 +61,7 @@ export const FormInput: React.FC<FormInputProps> = ({
         <Ionicons
           name={icon}
           size={20}
-          color={isDark ? "#ccc" : "#666"}
+          color={fontColors.supporting}
           style={styles.inputIcon}
         />
         <TextInput
@@ -99,7 +99,7 @@ const getStyles = (isDark: boolean) => {
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
-      borderColor: isDark ? "#333" : "#E0E0E0",
+      borderColor: fontColors.inputBorder,
       borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 14,
@@ -107,11 +107,11 @@ const getStyles = (isDark: boolean) => {
       backgroundColor: bg.cardElevated,
     },
     inputError: {
-      borderColor: isDark ? "#5C2B2E" : "#DC3545",
+      borderColor: fontColors.inputBorderError,
       backgroundColor: bg.accentRedSoft,
     },
     inputSuccess: {
-      borderColor: isDark ? "#1E4620" : "#28A745",
+      borderColor: fontColors.inputBorderSuccess,
       backgroundColor: bg.successSoft,
     },
     inputIcon: {

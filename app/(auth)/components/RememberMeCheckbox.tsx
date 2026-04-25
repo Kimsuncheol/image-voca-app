@@ -67,7 +67,7 @@ const getStyles = (isDark: boolean) => {
       height: 20,
       borderRadius: 6,
       borderWidth: 1.5,
-      borderColor: isDark ? "#888" : "#666",
+      borderColor: fontColors.iconMuted,
       marginRight: 8,
       alignItems: "center",
       justifyContent: "center",

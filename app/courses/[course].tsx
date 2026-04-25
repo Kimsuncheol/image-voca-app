@@ -220,13 +220,11 @@ export default function CourseWordBankScreen() {
             styles.searchInput,
             {
               backgroundColor: bgColors.cardSubtle,
-              color: isDark ? "#fff" : "#111827",
+              color: fontColors.screenTitleStrong,
             },
           ]}
           placeholder={t("wordBank.searchPlaceholder")}
-          placeholderTextColor={
-            isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.35)"
-          }
+          placeholderTextColor={fontColors.inputPlaceholderDim}
           value={searchQuery}
           onChangeText={setSearchQuery}
           returnKeyType="search"
