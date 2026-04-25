@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { stripKanaParens } from "../../src/utils/japaneseText";
@@ -35,6 +36,7 @@ export function SwipeCardItemExampleSentenceSection({
   const { t } = useTranslation();
   useCardSpeechCleanup(isActive);
   const { speak } = useSpeech();
+  const fontColors = getFontColors(isDark);
 
   // Split examples and translations by newlines
   // Remove number prefixes (e.g., "1. ", "2. ") from the raw text
@@ -108,7 +110,7 @@ export function SwipeCardItemExampleSentenceSection({
               <Text
                 style={[
                   styles.cardTranslation,
-                  { color: isDark ? "#a8e6a1" : "#2d5f2d" },
+                  { color: fontColors.translation },
                 ]}
                 numberOfLines={2}
               >
