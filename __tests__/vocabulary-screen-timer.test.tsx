@@ -1,5 +1,6 @@
-import { act, fireEvent, render } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
+import { Alert } from "react-native";
 import VocabularyScreen from "../app/course/[courseId]/vocabulary";
 
 const mockBufferWordLearned = jest.fn();
@@ -8,6 +9,14 @@ const mockUpdateCourseDayProgress = jest.fn();
 const mockFetchCourseProgress = jest.fn();
 const mockReplace = jest.fn();
 const mockPush = jest.fn();
+const mockNavigationDispatch = jest.fn();
+const mockNavigationAddListener = jest.fn();
+const mockGetResumeProgress: jest.Mock = jest.fn(async () => null);
+const mockSaveResumeProgress: jest.Mock = jest.fn(async () => null);
+const mockClearResumeProgress: jest.Mock = jest.fn(async () => undefined);
+let mockUser: { uid: string } | null = null;
+let mockCourseProgress: Record<string, Record<number, { completed?: boolean }>> =
+  {};
 
 const cards = [
   {
@@ -38,6 +47,10 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({
     replace: mockReplace,
     push: mockPush,
+  }),
+  useNavigation: () => ({
+    addListener: mockNavigationAddListener,
+    dispatch: mockNavigationDispatch,
   }),
 }));
 
@@ -72,6 +85,30 @@ jest.mock("react-i18next", () => ({
       if (key === "common.back") {
         return "Back";
       }
+      if (key === "common.cancel") {
+        return "Cancel";
+      }
+      if (key === "course.resume.leaveTitle") {
+        return "Leave this day?";
+      }
+      if (key === "course.resume.leaveMessage") {
+        return "Your current word will be saved.";
+      }
+      if (key === "course.resume.leave") {
+        return "Leave";
+      }
+      if (key === "course.resume.resumeTitle") {
+        return "Continue where you left off?";
+      }
+      if (key === "course.resume.resumeMessage") {
+        return "Resume message";
+      }
+      if (key === "course.resume.continue") {
+        return "Continue";
+      }
+      if (key === "course.resume.startOver") {
+        return "Start Over";
+      }
       return key;
     },
   }),
@@ -79,7 +116,7 @@ jest.mock("react-i18next", () => ({
 
 jest.mock("../src/context/AuthContext", () => ({
   useAuth: () => ({
-    user: null,
+    user: mockUser,
   }),
 }));
 
@@ -108,13 +145,19 @@ jest.mock("../src/services/vocabularyPrefetch", () => ({
   isVocabularyCacheFresh: jest.fn(() => true),
 }));
 
+jest.mock("../src/services/vocabularyDayResume", () => ({
+  getResumeProgress: (args: unknown) => mockGetResumeProgress(args),
+  saveResumeProgress: (args: unknown) => mockSaveResumeProgress(args),
+  clearResumeProgress: (args: unknown) => mockClearResumeProgress(args),
+}));
+
 jest.mock("../src/stores", () => ({
   useUserStatsStore: Object.assign(
     jest.fn(() => ({
       bufferWordLearned: mockBufferWordLearned,
       flushWordStats: mockFlushWordStats,
       updateCourseDayProgress: mockUpdateCourseDayProgress,
-      courseProgress: {},
+      courseProgress: mockCourseProgress,
       fetchCourseProgress: mockFetchCourseProgress,
     })),
     {
@@ -144,7 +187,7 @@ jest.mock("../components/course/vocabulary/VocabularyEmptyState", () => ({
 
 jest.mock("../components/course/vocabulary/VocabularyFinishView", () => ({
   VocabularyFinishView: () => {
-    const { Text, TouchableOpacity, View } = require("react-native");
+    const { Text, View } = require("react-native");
     return (
       <View>
         <Text>Finish View</Text>
@@ -158,15 +201,18 @@ jest.mock("../components/course/vocabulary/VocabularySwipeDeck", () => ({
   VocabularySwipeDeck: ({
     onIndexChange,
     onFinish,
+    initialIndex,
   }: {
     onIndexChange: (index: number) => void;
     onFinish: () => void;
+    initialIndex: number;
   }) => {
     const { Text, TouchableOpacity, View } = require("react-native");
 
     return (
       <View>
         <Text>Vocabulary Deck</Text>
+        <Text>{`Initial Index ${initialIndex}`}</Text>
         <TouchableOpacity onPress={() => onIndexChange(1)}>
           <Text>Advance Deck</Text>
         </TouchableOpacity>
@@ -179,9 +225,32 @@ jest.mock("../components/course/vocabulary/VocabularySwipeDeck", () => ({
 }));
 
 describe("VocabularyScreen deck state", () => {
+  let alertSpy: jest.SpyInstance;
+  let beforeRemoveHandler:
+    | ((event: { preventDefault: jest.Mock; data: { action: object } }) => void)
+    | undefined;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockCards = cards;
+    mockUser = null;
+    mockCourseProgress = {};
+    mockFetchCourseProgress.mockResolvedValue(undefined);
+    mockGetResumeProgress.mockResolvedValue(null);
+    mockSaveResumeProgress.mockResolvedValue(null);
+    mockClearResumeProgress.mockResolvedValue(undefined);
+    beforeRemoveHandler = undefined;
+    mockNavigationAddListener.mockImplementation((eventName, handler) => {
+      if (eventName === "beforeRemove") {
+        beforeRemoveHandler = handler;
+      }
+      return jest.fn();
+    });
+    alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    alertSpy.mockRestore();
   });
 
   it("renders the deck when cards exist", async () => {
@@ -250,6 +319,151 @@ describe("VocabularyScreen deck state", () => {
 
     await Promise.resolve();
     expect(screen.getByText("Finish View")).toBeTruthy();
+  });
+
+  it("prompts to continue from saved progress and applies the saved index", async () => {
+    mockUser = { uid: "user-1" };
+    mockGetResumeProgress.mockResolvedValue({
+      courseId: "TOEIC",
+      dayNumber: 1,
+      currentIndex: 1,
+      cardId: "word-2",
+      updatedAt: "2026-04-27T00:00:00.000Z",
+    });
+
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Continue where you left off?",
+        "Resume message",
+        expect.any(Array),
+      );
+    });
+
+    const buttons = alertSpy.mock.calls[0][2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+    act(() => {
+      buttons.find((button) => button.text === "Continue")?.onPress?.();
+    });
+
+    expect(screen.getByText("Initial Index 1")).toBeTruthy();
+  });
+
+  it("starts from the beginning when saved progress is canceled", async () => {
+    mockUser = { uid: "user-1" };
+    mockGetResumeProgress.mockResolvedValue({
+      courseId: "TOEIC",
+      dayNumber: 1,
+      currentIndex: 1,
+      cardId: "word-2",
+      updatedAt: "2026-04-27T00:00:00.000Z",
+    });
+
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Continue where you left off?",
+        "Resume message",
+        expect.any(Array),
+      );
+    });
+
+    const buttons = alertSpy.mock.calls[0][2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+    act(() => {
+      buttons.find((button) => button.text === "Start Over")?.onPress?.();
+    });
+
+    expect(screen.getByText("Initial Index 0")).toBeTruthy();
+    await waitFor(() => {
+      expect(mockClearResumeProgress).toHaveBeenCalledWith({
+        userId: "user-1",
+        courseId: "TOEIC",
+        dayNumber: 1,
+      });
+    });
+  });
+
+  it("saves the current index before confirmed leave", async () => {
+    mockUser = { uid: "user-1" };
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Advance Deck")).toBeTruthy();
+      expect(beforeRemoveHandler).toBeDefined();
+    });
+
+    fireEvent.press(screen.getByText("Advance Deck"));
+
+    const event = {
+      preventDefault: jest.fn(),
+      data: { action: { type: "GO_BACK" } },
+    };
+
+    act(() => {
+      beforeRemoveHandler?.(event);
+    });
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Leave this day?",
+      "Your current word will be saved.",
+      expect.any(Array),
+    );
+
+    const leaveCall = alertSpy.mock.calls.find(
+      (call) => call[0] === "Leave this day?",
+    );
+    const buttons = leaveCall?.[2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+
+    act(() => {
+      buttons.find((button) => button.text === "Leave")?.onPress?.();
+    });
+
+    await waitFor(() => {
+      expect(mockSaveResumeProgress).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          currentIndex: 1,
+          courseId: "TOEIC",
+          dayNumber: 1,
+        }),
+      );
+      expect(mockNavigationDispatch).toHaveBeenCalledWith({ type: "GO_BACK" });
+    });
+  });
+
+  it("does not prompt for completed days and clears stale progress", async () => {
+    mockUser = { uid: "user-1" };
+    mockCourseProgress = { TOEIC: { 1: { completed: true } } };
+    mockGetResumeProgress.mockResolvedValue({
+      courseId: "TOEIC",
+      dayNumber: 1,
+      currentIndex: 1,
+      cardId: "word-2",
+      updatedAt: "2026-04-27T00:00:00.000Z",
+    });
+
+    render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(mockClearResumeProgress).toHaveBeenCalledWith({
+        userId: "user-1",
+        courseId: "TOEIC",
+        dayNumber: 1,
+      });
+    });
+
+    expect(mockGetResumeProgress).not.toHaveBeenCalled();
+    expect(Alert.alert).not.toHaveBeenCalled();
   });
 
   it("does not mount the deck when the empty state is shown", async () => {

@@ -23,6 +23,7 @@ interface VocabularySwipeDeckProps {
   onSwipeLeft: (item: CourseVocabularyCard) => void;
   onIndexChange: (index: number) => void;
   onFinish: () => void;
+  initialIndex?: number;
   renderFinishView?: () => React.ReactNode;
   isStudyCompleted?: boolean;
 }
@@ -38,6 +39,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
   onSwipeLeft,
   onIndexChange,
   onFinish,
+  initialIndex = 0,
   renderFinishView,
   isStudyCompleted,
 }) => {
@@ -49,6 +51,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
       <CollocationSwipeable
         data={vocabularyCards}
         isDark={isDark}
+        initialIndex={initialIndex}
         onIndexChange={onIndexChange}
         onFinish={onFinish}
         renderFinalPage={renderFinishView}
@@ -74,6 +77,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         onSwipeLeft={onSwipeLeft as (item: VocabularyCard) => void}
         onIndexChange={onIndexChange}
         onFinish={onFinish}
+        initialIndex={initialIndex}
       />
     );
   }
@@ -90,6 +94,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         onSwipeLeft={onSwipeLeft as (item: KanjiWord) => void}
         onIndexChange={onIndexChange}
         onFinish={onFinish}
+        initialIndex={initialIndex}
       />
     );
   }
@@ -108,6 +113,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
       onSwipeLeft={onSwipeLeft as (item: VocabularyCard) => void}
       onIndexChange={onIndexChange}
       onFinish={onFinish}
+      initialIndex={initialIndex}
     />
   );
 };

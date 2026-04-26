@@ -48,6 +48,7 @@ interface CarouselSwipeDeckProps<
   onSwipeLeft: (item: TCard) => void;
   onIndexChange: (index: number) => void;
   onFinish: () => void;
+  initialIndex?: number;
   onSwipeStart?: () => void;
   renderCard?: (params: {
     item: TCard;
@@ -134,22 +135,27 @@ export function CarouselSwipeDeck<TCard extends CourseVocabularyCard>({
   onSwipeLeft,
   onIndexChange,
   onFinish,
+  initialIndex = 0,
   onSwipeStart,
   renderCard,
 }: CarouselSwipeDeckProps<TCard>) {
   const translateX = useSharedValue(0);
   // Use shared value instead of ref so it's readable inside worklets
   const currentIndex = useSharedValue(0);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const normalizedInitialIndex = Math.min(
+    Math.max(0, Math.floor(initialIndex)),
+    Math.max(0, cards.length - 1),
+  );
+  const [activeIndex, setActiveIndex] = useState(normalizedInitialIndex);
   const prefetchedImageUrlsRef = useRef<Set<string>>(new Set());
   const maxIndex = cards.length - 1;
 
   useEffect(() => {
-    currentIndex.value = 0;
-    translateX.value = 0;
-    setActiveIndex(0);
+    currentIndex.value = normalizedInitialIndex;
+    translateX.value = -normalizedInitialIndex * SNAP_INTERVAL;
+    setActiveIndex(normalizedInitialIndex);
     prefetchedImageUrlsRef.current.clear();
-  }, [cards, currentIndex, translateX]);
+  }, [cards, currentIndex, normalizedInitialIndex, translateX]);
 
   useEffect(() => {
     const candidateUrls = Array.from(

@@ -1,9 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import {
+  Stack,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { Alert, Dimensions, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Contexts & Service
@@ -12,6 +17,11 @@ import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { upsertVocabularyDayStudyHistory } from "../../../src/services/dailyStudyHistory";
 import { db } from "../../../src/services/firebase";
+import {
+  clearResumeProgress,
+  getResumeProgress,
+  saveResumeProgress,
+} from "../../../src/services/vocabularyDayResume";
 import {
   fetchVocabularyCards,
   getCachedVocabularyCards,
@@ -67,6 +77,7 @@ export default function VocabularyScreen() {
     day: string;
   }>();
   const router = useRouter();
+  const navigation = useNavigation();
   const { t } = useTranslation();
 
   // ============================================================================
@@ -75,10 +86,15 @@ export default function VocabularyScreen() {
 
   // Tracks if the user has completed swiping through all cards
   const [isFinished, setIsFinished] = useState(false);
+  const [initialDeckIndex, setInitialDeckIndex] = useState(0);
+  const [courseProgressLoaded, setCourseProgressLoaded] = useState(false);
 
   // Track session-learned words outside React state so finish-time writes
   // cannot lag behind the last learn action.
   const sessionLearnedWordIdsRef = useRef<Set<string>>(new Set());
+  const currentIndexRef = useRef(0);
+  const leaveConfirmedRef = useRef(false);
+  const resumePromptShownRef = useRef<string | null>(null);
 
   // Streak milestone modal
   const [streakModalVisible, setStreakModalVisible] = useState(false);
@@ -100,9 +116,17 @@ export default function VocabularyScreen() {
   const [splashVisible, setSplashVisible] = useState(true);
 
   const dayNumber = parseInt(day || "1", 10);
+  const typedCourseId = courseId as CourseType;
+  const isStudyCompleted =
+    isFinished || courseProgress[courseId as string]?.[dayNumber]?.completed ||
+    false;
 
   useEffect(() => {
     sessionLearnedWordIdsRef.current = new Set();
+    currentIndexRef.current = 0;
+    leaveConfirmedRef.current = false;
+    resumePromptShownRef.current = null;
+    setInitialDeckIndex(0);
   }, [courseId, dayNumber]);
 
   const trackSessionLearnedWord = useCallback((wordId: string) => {
@@ -250,9 +274,163 @@ export default function VocabularyScreen() {
    */
   useEffect(() => {
     if (user && courseId) {
-      void fetchCourseProgress(user.uid, courseId as string);
+      let isActive = true;
+      setCourseProgressLoaded(false);
+      void fetchCourseProgress(user.uid, courseId as string).finally(() => {
+        if (isActive) {
+          setCourseProgressLoaded(true);
+        }
+      });
+      return () => {
+        isActive = false;
+      };
     }
+
+    setCourseProgressLoaded(true);
   }, [user, courseId, fetchCourseProgress]);
+
+  const persistCurrentResumeProgress = useCallback(async () => {
+    if (!user || !courseId || cards.length === 0 || isStudyCompleted) {
+      return;
+    }
+
+    await saveResumeProgress({
+      userId: user.uid,
+      courseId: typedCourseId,
+      dayNumber,
+      cards,
+      currentIndex: currentIndexRef.current,
+    });
+  }, [cards, courseId, dayNumber, isStudyCompleted, typedCourseId, user]);
+
+  useEffect(() => {
+    if (!user || !courseId || cards.length === 0 || !courseProgressLoaded) {
+      return;
+    }
+
+    if (isStudyCompleted) {
+      void clearResumeProgress({
+        userId: user.uid,
+        courseId: typedCourseId,
+        dayNumber,
+      }).catch((error) => {
+        console.warn("Failed to clear completed day resume progress:", error);
+      });
+      return;
+    }
+
+    const promptKey = `${user.uid}:${courseId}:${dayNumber}`;
+    if (resumePromptShownRef.current === promptKey) {
+      return;
+    }
+
+    let isActive = true;
+    void getResumeProgress({
+      userId: user.uid,
+      courseId: typedCourseId,
+      dayNumber,
+      cards,
+    })
+      .then((progress) => {
+        if (!isActive || !progress) return;
+        resumePromptShownRef.current = promptKey;
+
+        Alert.alert(
+          t("course.resume.resumeTitle"),
+          t("course.resume.resumeMessage"),
+          [
+            {
+              text: t("course.resume.startOver"),
+              style: "cancel",
+              onPress: () => {
+                currentIndexRef.current = 0;
+                setInitialDeckIndex(0);
+                void clearResumeProgress({
+                  userId: user.uid,
+                  courseId: typedCourseId,
+                  dayNumber,
+                }).catch((error) => {
+                  console.warn("Failed to clear resume progress:", error);
+                });
+              },
+            },
+            {
+              text: t("course.resume.continue"),
+              onPress: () => {
+                currentIndexRef.current = progress.currentIndex;
+                setInitialDeckIndex(progress.currentIndex);
+              },
+            },
+          ],
+        );
+      })
+      .catch((error) => {
+        console.warn("Failed to load vocabulary resume progress:", error);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [
+    cards,
+    courseId,
+    courseProgressLoaded,
+    dayNumber,
+    isStudyCompleted,
+    t,
+    typedCourseId,
+    user,
+  ]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("beforeRemove", (event) => {
+      if (
+        leaveConfirmedRef.current ||
+        !user ||
+        !courseId ||
+        loading ||
+        cards.length === 0 ||
+        isStudyCompleted
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+
+      Alert.alert(
+        t("course.resume.leaveTitle"),
+        t("course.resume.leaveMessage"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("course.resume.leave"),
+            style: "destructive",
+            onPress: () => {
+              void persistCurrentResumeProgress()
+                .catch((error) => {
+                  console.warn("Failed to save vocabulary resume progress:", error);
+                })
+                .finally(() => {
+                  leaveConfirmedRef.current = true;
+                  navigation.dispatch(event.data.action);
+                });
+            },
+          },
+        ],
+      );
+    });
+
+    return unsubscribe;
+  }, [
+    cards.length,
+    courseId,
+    isStudyCompleted,
+    loading,
+    navigation,
+    persistCurrentResumeProgress,
+    t,
+    user,
+  ]);
 
   // ============================================================================
   // Section 4: Event Handlers (Swipe & Progress)
@@ -335,6 +513,12 @@ export default function VocabularyScreen() {
             completedAt,
           },
         });
+
+        await clearResumeProgress({
+          userId: user.uid,
+          courseId,
+          dayNumber,
+        });
       } catch (error) {
         console.error("Error marking day as completed:", error);
       }
@@ -347,6 +531,11 @@ export default function VocabularyScreen() {
    * we simply record the word as learned when the user navigates to its page.
    */
   const handlePageChange = (index: number) => {
+    currentIndexRef.current = index;
+    void persistCurrentResumeProgress().catch((error) => {
+      console.warn("Failed to save vocabulary resume progress:", error);
+    });
+
     if (cards[index]) {
       const item = cards[index];
       if (user) {
@@ -462,11 +651,9 @@ export default function VocabularyScreen() {
                 onSwipeLeft={onSwipeLeft}
                 onIndexChange={handlePageChange}
                 onFinish={handleRunOutOfCards}
+                initialIndex={initialDeckIndex}
                 renderFinishView={renderFinishedView}
-                isStudyCompleted={
-                  courseProgress[courseId as string]?.[dayNumber]?.completed ||
-                  false
-                }
+                isStudyCompleted={isStudyCompleted}
               />
             )
           ) : (

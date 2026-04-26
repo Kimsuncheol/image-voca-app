@@ -24,7 +24,7 @@ jest.mock("react-native-gesture-handler", () => {
     ),
     Gesture: {
       Pan: () => {
-        const builder = {
+        const builder: any = {
           runOnJS: jest.fn(() => builder),
           activeOffsetX: jest.fn(() => builder),
           failOffsetY: jest.fn(() => builder),
@@ -102,7 +102,7 @@ jest.mock("../components/swipe/SwipeCardItem", () => {
 
 function buildCards(
   count = 4,
-  overrides: Array<Partial<VocabularyCard>> = [],
+  overrides: Partial<VocabularyCard>[] = [],
 ): VocabularyCard[] {
   return [
     {
@@ -213,6 +213,52 @@ describe("CarouselSwipeDeck", () => {
     expect(queryByTestId("card-2")).toBeTruthy();
     expect(queryByTestId("card-3")).toBeTruthy();
     expect(queryByTestId("card-4")).toBeNull();
+  });
+
+  it("starts from the provided initial index", () => {
+    const { queryByTestId } = render(
+      <CarouselSwipeDeck
+        cards={buildCards()}
+        dayNumber={1}
+        savedWordIds={new Set()}
+        onSwipeRight={jest.fn()}
+        onSwipeLeft={jest.fn()}
+        onIndexChange={jest.fn()}
+        onFinish={jest.fn()}
+        initialIndex={2}
+      />,
+    );
+
+    expect(queryByTestId("card-1")).toBeNull();
+    expect(queryByTestId("card-2")).toBeTruthy();
+    expect(queryByTestId("card-3")).toBeTruthy();
+    expect(queryByTestId("card-4")).toBeTruthy();
+  });
+
+  it("continues swiping from the provided initial index", () => {
+    const cards = buildCards();
+    const onSwipeLeft = jest.fn();
+    const onIndexChange = jest.fn();
+
+    render(
+      <CarouselSwipeDeck
+        cards={cards}
+        dayNumber={1}
+        savedWordIds={new Set()}
+        onSwipeRight={jest.fn()}
+        onSwipeLeft={onSwipeLeft}
+        onIndexChange={onIndexChange}
+        onFinish={jest.fn()}
+        initialIndex={1}
+      />,
+    );
+
+    act(() => {
+      panEndHandler?.({ translationX: -1000, velocityX: 0 });
+    });
+
+    expect(onIndexChange).toHaveBeenCalledWith(2);
+    expect(onSwipeLeft).toHaveBeenCalledWith(cards[2]);
   });
 
   it("calls the optional swipe start callback when a pan begins", () => {

@@ -12,6 +12,7 @@ interface JlptSwipeDeckProps {
   onSwipeLeft: (item: VocabularyCard) => void;
   onIndexChange: (index: number) => void;
   onFinish: () => void;
+  initialIndex?: number;
 }
 
 interface JlptDeckCardProps {

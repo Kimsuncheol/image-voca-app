@@ -13,6 +13,7 @@ interface KanjiSwipeDeckProps {
   onSwipeLeft: (item: KanjiWord) => void;
   onIndexChange: (index: number) => void;
   onFinish: () => void;
+  initialIndex?: number;
 }
 
 export const KanjiSwipeDeck: React.FC<KanjiSwipeDeckProps> = (props) => {

@@ -6,9 +6,14 @@ const mockBufferWordLearned = jest.fn();
 const mockFlushWordStats = jest.fn(async () => undefined);
 const mockUpdateCourseDayProgress = jest.fn();
 const mockFetchCourseProgress = jest.fn();
-const mockUpsertVocabularyDayStudyHistory = jest.fn(async () => undefined);
-const mockUpdateDoc = jest.fn(async () => undefined);
-const mockGetDoc = jest.fn(async () => ({
+const mockUpsertVocabularyDayStudyHistory: jest.Mock = jest.fn(
+  async () => undefined,
+);
+const mockUpdateDoc: jest.Mock = jest.fn(async () => undefined);
+const mockClearResumeProgress: jest.Mock = jest.fn(async () => undefined);
+const mockNavigationAddListener = jest.fn(() => jest.fn());
+const mockNavigationDispatch = jest.fn();
+const mockGetDoc: jest.Mock = jest.fn(async () => ({
   exists: () => false,
 }));
 
@@ -33,6 +38,10 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({
     replace: jest.fn(),
     push: jest.fn(),
+  }),
+  useNavigation: () => ({
+    addListener: mockNavigationAddListener,
+    dispatch: mockNavigationDispatch,
   }),
 }));
 
@@ -80,8 +89,8 @@ jest.mock("../src/context/ThemeContext", () => ({
 
 jest.mock("firebase/firestore", () => ({
   doc: jest.fn(() => "mock-doc-ref"),
-  getDoc: (...args: unknown[]) => mockGetDoc(...args),
-  updateDoc: (...args: unknown[]) => mockUpdateDoc(...args),
+  getDoc: (arg: unknown) => mockGetDoc(arg),
+  updateDoc: (arg: unknown, patch: unknown) => mockUpdateDoc(arg, patch),
 }));
 
 jest.mock("../src/services/firebase", () => ({
@@ -96,8 +105,14 @@ jest.mock("../src/services/vocabularyPrefetch", () => ({
 }));
 
 jest.mock("../src/services/dailyStudyHistory", () => ({
-  upsertVocabularyDayStudyHistory: (...args: unknown[]) =>
-    mockUpsertVocabularyDayStudyHistory(...args),
+  upsertVocabularyDayStudyHistory: (args: unknown) =>
+    mockUpsertVocabularyDayStudyHistory(args),
+}));
+
+jest.mock("../src/services/vocabularyDayResume", () => ({
+  getResumeProgress: jest.fn(async () => null),
+  saveResumeProgress: jest.fn(async () => null),
+  clearResumeProgress: (args: unknown) => mockClearResumeProgress(args),
 }));
 
 jest.mock("../src/stores", () => ({
@@ -147,7 +162,7 @@ jest.mock("../components/course/vocabulary/VocabularySwipeDeck", () => ({
     onSwipeRight,
     onFinish,
   }: {
-    cards: Array<{ id: string; word: string; meaning: string; example: string; course: string }>;
+    cards: { id: string; word: string; meaning: string; example: string; course: string }[];
     onSwipeRight: (item: { id: string; word: string; meaning: string; example: string; course: string }) => void;
     onFinish: () => void;
   }) => {
@@ -173,6 +188,7 @@ describe("VocabularyScreen completion persistence", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFetchCourseProgress.mockResolvedValue(undefined);
     mockCards = [
       {
         id: "word-1",
@@ -222,6 +238,11 @@ describe("VocabularyScreen completion persistence", () => {
         wordsLearned: 1,
         totalWords: 1,
       }),
+    });
+    expect(mockClearResumeProgress).toHaveBeenCalledWith({
+      userId: "user-1",
+      courseId: "TOEIC",
+      dayNumber: 1,
     });
   });
 });

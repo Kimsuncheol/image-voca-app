@@ -650,6 +650,17 @@ const ko = {
     checked: "확인됨",
     premiumLimitMessage:
       "{{day}}일차 이후 학습은 Voca Unlimited 요금제가 필요합니다.",
+    resume: {
+      leaveTitle: "학습을 나가시겠어요?",
+      leaveMessage:
+        "현재 단어를 저장해두고 다음에 이 위치에서 이어서 학습할 수 있어요.",
+      leave: "나가기",
+      resumeTitle: "이어서 학습할까요?",
+      resumeMessage:
+        "이 일차에 저장된 단어가 있어요. 그 단어부터 이어서 보거나 처음부터 시작할 수 있어요.",
+      continue: "이어서 하기",
+      startOver: "처음부터",
+    },
   },
   quiz: {
     typeTitle: "퀴즈 유형",

@@ -644,6 +644,17 @@ const ja = {
     checked: "確認済み",
     premiumLimitMessage:
       "{{day}}日目以降の学習にはVoca Unlimitedプランが必要です。",
+    resume: {
+      leaveTitle: "この日の学習を終了しますか？",
+      leaveMessage:
+        "現在の単語を保存し、次回ここから再開できるようにします。",
+      leave: "終了",
+      resumeTitle: "続きから学習しますか？",
+      resumeMessage:
+        "この日に保存された単語があります。その単語から続けるか、最初から始められます。",
+      continue: "続ける",
+      startOver: "最初から",
+    },
   },
   quiz: {
     typeTitle: "クイズタイプ",

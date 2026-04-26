@@ -661,6 +661,17 @@ const en = {
     checked: "Checked",
     premiumLimitMessage:
       "Learning after Day {{day}} requires the Voca Unlimited plan.",
+    resume: {
+      leaveTitle: "Leave this day?",
+      leaveMessage:
+        "Your current word will be saved so you can continue from here next time.",
+      leave: "Leave",
+      resumeTitle: "Continue where you left off?",
+      resumeMessage:
+        "You have a saved word for this day. Continue from that word or start from the beginning.",
+      continue: "Continue",
+      startOver: "Start Over",
+    },
   },
   quiz: {
     typeTitle: "Quiz Type",
