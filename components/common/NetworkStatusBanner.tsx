@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect } from "react";
 import { StyleSheet, Text } from "react-native";
-import Animated, {
 import { FontSizes } from "@/constants/fontSizes";
+import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,

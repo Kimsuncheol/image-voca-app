@@ -4,6 +4,7 @@ import { JlptSwipeDeck } from "../components/course/vocabulary/JlptSwipeDeck";
 import { VocabularyCard } from "../src/types/vocabulary";
 
 let mockVisibleIndices = [0];
+let mockActiveIndex = 0;
 const mockJlptCardRenders = new Map<string, number>();
 
 jest.mock("../components/course/vocabulary/CarouselSwipeDeck", () => {
@@ -26,6 +27,7 @@ jest.mock("../components/course/vocabulary/CarouselSwipeDeck", () => {
       renderCard?: (params: {
         item: VocabularyCard;
         isSaved: boolean;
+        isActive: boolean;
         dayNumber: number;
         onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
       }) => React.ReactNode;
@@ -40,6 +42,7 @@ jest.mock("../components/course/vocabulary/CarouselSwipeDeck", () => {
               {renderCard?.({
                 item,
                 isSaved: savedWordIds.has(item.id),
+                isActive: index === mockActiveIndex,
                 dayNumber,
                 onSavedWordChange,
               })}
@@ -112,11 +115,12 @@ function buildCards(): VocabularyCard[] {
 describe("JlptSwipeDeck", () => {
   beforeEach(() => {
     mockVisibleIndices = [0];
+    mockActiveIndex = 0;
     mockJlptCardRenders.clear();
     jest.clearAllMocks();
   });
 
-  it("tracks kana visibility independently per card within the same deck session", () => {
+  it("resets kana visibility after a successful swipe away from a card", () => {
     const props = {
       cards: buildCards(),
       dayNumber: 1,
@@ -140,24 +144,20 @@ describe("JlptSwipeDeck", () => {
       "N5_Day1_1:on",
     );
 
-    mockVisibleIndices = [1];
+    mockVisibleIndices = [0, 1];
+    mockActiveIndex = 1;
     rerender(<JlptSwipeDeck {...props} />);
 
     expect(getByTestId("mock-jlpt-card-state-N5_Day1_2").props.children).toBe(
       "N5_Day1_2:off",
     );
 
-    fireEvent.press(getByTestId("mock-jlpt-card-toggle-N5_Day1_2"));
-
-    expect(getByTestId("mock-jlpt-card-state-N5_Day1_2").props.children).toBe(
-      "N5_Day1_2:on",
-    );
-
     mockVisibleIndices = [0];
+    mockActiveIndex = 0;
     rerender(<JlptSwipeDeck {...props} />);
 
     expect(getByTestId("mock-jlpt-card-state-N5_Day1_1").props.children).toBe(
-      "N5_Day1_1:on",
+      "N5_Day1_1:off",
     );
   });
 

@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Image as NativeImage, StyleSheet, Text, View } from "react-native";
-import type {
 import { FontSizes } from "@/constants/fontSizes";
+import type {
   NativeAdView as NativeAdViewT,
   NativeAsset as NativeAssetT,
   NativeAssetType as NativeAssetTypeT,

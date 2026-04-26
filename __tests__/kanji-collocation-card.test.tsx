@@ -648,6 +648,36 @@ describe("KanjiCollocationCard", () => {
     ).toBe(12);
   });
 
+  it("resets parenthetical kana visibility after the card becomes inactive", () => {
+    const item = buildKanjiWord({
+      kanji: "一",
+      example: ["一(いち)月(がつ)に行く。"],
+      exampleHurigana: ["いちがつにいく。"],
+      exampleEnglishTranslation: ["Go in January."],
+    });
+    const screen = render(<KanjiCollocationCard item={item} isActive />);
+    flipToBack(screen);
+    const { getByText, getAllByText, getByTestId, queryByText, rerender } =
+      screen;
+
+    fireEvent.press(getByText("がな"));
+
+    expect(getAllByText("(いち)").length).toBeGreaterThanOrEqual(1);
+    expect(textChildrenOf(getByTestId("kanji-collocation-example-visible-0"))).toEqual(
+      expect.arrayContaining(["一", "(いち)", "月", "(がつ)"]),
+    );
+
+    rerender(<KanjiCollocationCard item={item} isActive={false} />);
+    rerender(<KanjiCollocationCard item={item} isActive />);
+    flipToBack(screen);
+
+    expect(queryByText("(いち)")).toBeNull();
+    expect(queryByText("(がつ)")).toBeNull();
+    expect(textChildrenOf(getByTestId("kanji-collocation-example-visible-0"))).toEqual([
+      "一月に行く。",
+    ]);
+  });
+
   it("lays out general examples above their localized translations", () => {
     const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
     flipToBack(screen);

@@ -1,6 +1,6 @@
 import React from "react";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   Pressable,
   Text,
   View,

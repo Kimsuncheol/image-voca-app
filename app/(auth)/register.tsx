@@ -1,8 +1,8 @@
+import { FontSizes } from "@/constants/fontSizes";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import {
-import { FontSizes } from "@/constants/fontSizes";
   createUserWithEmailAndPassword,
   sendEmailVerification,
   updateProfile,
@@ -19,15 +19,15 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
-import { useAuth } from "../../src/context/AuthContext";
-import { useTheme } from "../../src/context/ThemeContext";
-import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
-import { LearningLanguage } from "../../src/types/vocabulary";
-import { auth } from "../../src/services/firebase";
-import { ensureUserProfileDocument } from "../../src/services/userProfileService";
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
+import { useAuth } from "../../src/context/AuthContext";
+import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
+import { useTheme } from "../../src/context/ThemeContext";
+import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
+import { auth } from "../../src/services/firebase";
+import { ensureUserProfileDocument } from "../../src/services/userProfileService";
+import { LearningLanguage } from "../../src/types/vocabulary";
 import {
   AvatarPicker,
   Divider,

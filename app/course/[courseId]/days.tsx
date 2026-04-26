@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   Stack,
   useFocusEffect,
   useLocalSearchParams,

@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   ScrollView,
   StyleSheet,
   Text,

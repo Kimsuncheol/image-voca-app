@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   launchImageLibraryAsync,
   requestMediaLibraryPermissionsAsync,
 } from "expo-image-picker";

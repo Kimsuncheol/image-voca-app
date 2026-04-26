@@ -2,6 +2,9 @@ module.exports = {
   preset: "react-native",
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   setupFilesAfterEnv: ["<rootDir>/setup-jest.js"],
+  moduleNameMapper: {
+    "^@/(.*)$": "<rootDir>/$1",
+  },
   modulePathIgnorePatterns: ["<rootDir>/.claude/"],
   testPathIgnorePatterns: ["<rootDir>/.claude/"],
   transformIgnorePatterns: [

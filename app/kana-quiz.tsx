@@ -1,8 +1,8 @@
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   Alert,
   BackHandler,
   ScrollView,

@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   ScrollView,
   StyleSheet,
   Text,

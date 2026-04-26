@@ -5,8 +5,8 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   buildKanjiMeaningDisplayRows,
   buildKanjiReadingDisplayRows,
 } from "../../src/utils/kanjiDisplayRows";

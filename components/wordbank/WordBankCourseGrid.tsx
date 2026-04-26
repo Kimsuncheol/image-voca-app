@@ -3,8 +3,8 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   Course,
   CourseType,
 } from "../../src/types/vocabulary";

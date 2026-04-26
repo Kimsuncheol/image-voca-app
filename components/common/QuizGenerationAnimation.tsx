@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   Animated,
   Easing,
   StyleSheet,

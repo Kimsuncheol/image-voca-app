@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from "react-native";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   formatIdiomMeaningForDisplay,
   isNumberedMeaningDisplayCourseId,
 } from "../../src/utils/idiomDisplay";

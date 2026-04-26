@@ -1,8 +1,8 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import Animated, {
 import { FontSizes } from "@/constants/fontSizes";
+import Animated, {
   Easing,
   runOnJS,
   useAnimatedStyle,

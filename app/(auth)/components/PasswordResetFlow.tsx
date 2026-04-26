@@ -2,8 +2,8 @@ import Constants from "expo-constants";
 import * as Linking from "expo-linking";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { FirebaseError } from "firebase/app";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   ActionCodeSettings,
   confirmPasswordReset,
   sendPasswordResetEmail,

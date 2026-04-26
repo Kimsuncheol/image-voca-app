@@ -37,6 +37,13 @@ const JlptDeckCard = React.memo(function JlptDeckCard({
     () => Boolean(kanaStateCacheRef.current[item.id]),
   );
 
+  React.useEffect(() => {
+    if (!isActive) {
+      kanaStateCacheRef.current[item.id] = false;
+      setShowKana(false);
+    }
+  }, [isActive, item.id, kanaStateCacheRef]);
+
   const handleToggleKana = React.useCallback(() => {
     setShowKana((current) => {
       const next = !current;

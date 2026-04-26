@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useSpeechPreferences } from "../../src/hooks/useSpeechPreferences";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   SpeechPreferenceLanguage,
   getNextSpeechSpeedPreset,
 } from "../../src/services/speechPreferences";

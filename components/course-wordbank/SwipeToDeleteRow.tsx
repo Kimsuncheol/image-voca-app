@@ -3,8 +3,8 @@ import React, { useCallback } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, {
 import { FontSizes } from "@/constants/fontSizes";
+import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,

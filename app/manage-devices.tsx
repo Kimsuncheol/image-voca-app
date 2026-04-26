@@ -1,8 +1,8 @@
 import { Stack } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   Alert,
   ScrollView,
   StyleSheet,

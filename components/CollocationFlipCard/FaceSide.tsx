@@ -1,8 +1,8 @@
 import { CARD_HEIGHT } from "@/src/constants/layout";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   Dimensions,
   Platform,
   Pressable,

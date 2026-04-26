@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   StyleSheet,
   Text,
   TouchableOpacity,

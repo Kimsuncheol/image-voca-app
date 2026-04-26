@@ -5,8 +5,8 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
-import type {
 import { FontSizes } from "@/constants/fontSizes";
+import type {
   KanjiNestedListGroup,
   VocabularyLocalizationMap,
 } from "../../src/types/vocabulary";

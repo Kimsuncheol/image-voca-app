@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   ScrollView,
   StyleSheet,
   Text,

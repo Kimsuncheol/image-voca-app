@@ -16,8 +16,8 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   ActivityIndicator,
   StyleSheet,
   Text,

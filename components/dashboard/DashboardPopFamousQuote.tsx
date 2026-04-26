@@ -6,8 +6,8 @@ import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
 import { LearningLanguage } from "../../src/types/vocabulary";
-import {
 import { FontSizes } from "@/constants/fontSizes";
+import {
   splitJapaneseTextSegments,
   stripKanaParens,
 } from "../../src/utils/japaneseText";
