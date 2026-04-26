@@ -6,6 +6,7 @@ import { useTheme } from "../../src/context/ThemeContext";
 import type { CounterTabId } from "../../src/types/counters";
 import { COUNTER_TAB_IDS } from "../../src/types/counters";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface Props {
   onSelect: (tab: CounterTabId) => void;
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
     width: 42,
   },
   tabLabel: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     lineHeight: 18,
     textAlign: "center",
     width: "100%",

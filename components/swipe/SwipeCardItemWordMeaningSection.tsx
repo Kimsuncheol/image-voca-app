@@ -7,6 +7,7 @@ import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { speakWordVariants } from "../../src/utils/wordVariants";
 import { DayBadge } from "../common/DayBadge";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface SwipeCardItemWordMeaningSectionProps {
   item: VocabularyCard;
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   cardTitle: {
-    fontSize: 32,
+    fontSize: FontSizes.headingXl,
     fontWeight: "bold",
     color: "#1a1a1a",
     flexShrink: 1,
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
     lineHeight: 38,
   },
   cardSubtitle: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     color: "#666",
     fontStyle: "italic",
     marginTop: 2,
@@ -176,7 +177,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   cardDescription: {
-    fontSize: 17,
+    fontSize: FontSizes.subhead,
     color: "#2c2c2c",
     lineHeight: 24,
     fontWeight: "500",

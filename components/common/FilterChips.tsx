@@ -1,5 +1,6 @@
 import React from "react";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -113,6 +114,6 @@ const styles = StyleSheet.create({
     borderColor: "#e5e5e5",
   },
   label: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
   },
 });

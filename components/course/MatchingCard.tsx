@@ -3,6 +3,7 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 const MATCHING_POS_MARKER_REGEX = /\b(?:prep|ad|n|v|a)\.(?=\s|$)/gi;
 
@@ -199,7 +200,7 @@ const styles = StyleSheet.create({
   },
   matchingItemText: {
     textAlign: "center",
-    fontSize: 14,
+    fontSize: FontSizes.body,
     fontWeight: "600",
     lineHeight: 20,
   },
@@ -218,7 +219,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   wordText: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     fontWeight: "700",
   },
   meaningContainer: {
@@ -228,18 +229,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   meaningText: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     lineHeight: 20,
     textAlign: "center",
   },
   pronunciationText: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     lineHeight: 22,
     textAlign: "center",
     fontWeight: "600",
   },
   synonymText: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     lineHeight: 18,
     textAlign: "center",
     fontWeight: "600",
@@ -248,7 +249,7 @@ const styles = StyleSheet.create({
     color: "#9CA3AF",
   },
   pronunciationCaption: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     lineHeight: 16,
     textAlign: "center",
     opacity: 0.75,

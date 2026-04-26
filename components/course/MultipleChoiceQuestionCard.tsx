@@ -5,6 +5,7 @@ import { useTheme } from "../../src/context/ThemeContext";
 import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { RoleplayRenderer } from "../CollocationFlipCard/RoleplayRenderer";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface MultipleChoiceQuestionCardProps {
   word?: string;
@@ -155,13 +156,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   questionLabel: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     opacity: 0.6,
     marginBottom: 8,
     textAlign: "center",
   },
   wordText: {
-    fontSize: 32,
+    fontSize: FontSizes.headingXl,
     textAlign: "center",
     fontWeight: "700",
   },
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   roleplayText: {
-    fontSize: 24,
+    fontSize: FontSizes.heading,
     fontWeight: "600",
     textAlign: "left",
     lineHeight: 32,

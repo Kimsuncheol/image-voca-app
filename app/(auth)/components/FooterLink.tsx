@@ -14,6 +14,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Link } from "expo-router";
 import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { FontSizes } from "@/constants/fontSizes";
 
 // =============================================================================
 // PROPS INTERFACE
@@ -61,11 +62,11 @@ const getStyles = (isDark: boolean) => {
     },
     footerText: {
       color: fontColors.supporting,
-      fontSize: 14,
+      fontSize: FontSizes.body,
     },
     link: {
       color: fontColors.actionAccent,
-      fontSize: 14,
+      fontSize: FontSizes.body,
       fontWeight: "bold",
       marginLeft: 4,
     },

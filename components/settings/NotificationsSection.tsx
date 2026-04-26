@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { ToggleSwitch } from "../common/ToggleSwitch";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface NotificationsSectionProps {
   styles: Record<string, any>;
@@ -53,7 +54,7 @@ export function NotificationsSection({
           <TouchableOpacity onPress={onOpenPermissionSettings}>
             <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 8, gap: 6 }}>
               <Ionicons name="warning-outline" size={14} color="#FF9500" />
-              <Text style={{ fontSize: 12, color: "#FF9500", flexShrink: 1 }}>
+              <Text style={{ fontSize: FontSizes.caption, color: "#FF9500", flexShrink: 1 }}>
                 {t("settings.notifications.permissionRequired")}
               </Text>
             </View>

@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { FontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface PasswordStrengthMeterProps {
   password: string;
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   label: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "600",
   },
 });

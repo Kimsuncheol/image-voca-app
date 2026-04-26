@@ -2,6 +2,7 @@ import { Stack, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   Dimensions,
   ScrollView,
   StyleSheet,
@@ -193,7 +194,7 @@ export default function JapaneseCharactersScreen() {
             >
               <ThemedText
                 style={{
-                  fontSize: 15,
+                  fontSize: FontSizes.bodyMd,
                   color: fontColors.actionAccent,
                   fontWeight: "600",
                 }}
@@ -271,7 +272,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   tabLabel: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
   },
   grid: {
     paddingHorizontal: H_PAD,
@@ -294,11 +295,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: FontSizes.subhead,
     fontWeight: "700",
   },
   sectionSubtitle: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
   },
   sectionAccent: {
     width: 10,
@@ -325,11 +326,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   kana: {
-    fontSize: 26,
+    fontSize: FontSizes.headingMd,
     fontWeight: "500",
   },
   romaji: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "500",
   },
 });

@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet } from "react-native";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface DayBadgeProps {
   day: number;
@@ -12,7 +13,7 @@ export function DayBadge({ day }: DayBadgeProps) {
 
 const styles = StyleSheet.create({
   badge: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     opacity: 0.6,
     paddingHorizontal: 8,
     paddingVertical: 2,

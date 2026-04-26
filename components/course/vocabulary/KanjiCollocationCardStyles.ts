@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
 import { FontColors } from "../../../constants/fontColors";
 import { CARD_HEIGHT, CARD_WIDTH } from "../../../src/constants/layout";
+import { FontSizes } from "@/constants/fontSizes";
 
 // const { width } = Dimensions.get("window");
 
@@ -65,7 +66,7 @@ export const styles = StyleSheet.create({
     width: "100%",
   },
   kanjiText: {
-    fontSize: 64,
+    fontSize: FontSizes.displayMega,
     fontWeight: "bold",
     textAlign: "left",
   },
@@ -73,7 +74,7 @@ export const styles = StyleSheet.create({
     gap: 4,
   },
   faceSectionLabel: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "700",
     letterSpacing: 0.5,
     textTransform: "uppercase",
@@ -85,7 +86,7 @@ export const styles = StyleSheet.create({
     gap: 8,
   },
   faceListItem: {
-    fontSize: 18,
+    fontSize: FontSizes.title,
     fontWeight: "600",
     lineHeight: 26,
   },
@@ -120,7 +121,7 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
   },
   furiganaButtonText: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     fontWeight: "600",
   },
   backScroll: {
@@ -139,7 +140,7 @@ export const styles = StyleSheet.create({
     alignSelf: "stretch",
   },
   backSectionTitle: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "700",
     letterSpacing: 0.5,
     textTransform: "uppercase",
@@ -159,7 +160,7 @@ export const styles = StyleSheet.create({
     marginTop: 4,
   },
   backGroupLabel: {
-    fontSize: 18,
+    fontSize: FontSizes.title,
     fontWeight: "700",
     lineHeight: 24,
   },
@@ -201,12 +202,12 @@ export const styles = StyleSheet.create({
     gap: 1,
   },
   backExample: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     fontWeight: "500",
     lineHeight: 22,
   },
   backFurigana: {
-    fontSize: 8,
+    fontSize: FontSizes.micro,
     lineHeight: 12,
     alignSelf: "stretch",
     textAlign: "left",
@@ -220,7 +221,7 @@ export const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   backInlineFurigana: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
   },
   backExampleFrame: {
     position: "relative",
@@ -237,7 +238,7 @@ export const styles = StyleSheet.create({
     right: 0,
   },
   backTranslation: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "500",
     lineHeight: 18,
   },

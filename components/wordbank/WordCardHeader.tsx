@@ -4,6 +4,7 @@ import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { parseWordVariants } from "../../src/utils/wordVariants";
 import { DayBadge } from "../common/DayBadge";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface WordCardHeaderProps {
   word: string;
@@ -110,7 +111,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   wordTitle: {
-    fontSize: 22,
+    fontSize: FontSizes.titleLg,
     flexShrink: 1,
     flexWrap: "wrap",
   },
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   pronunciation: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     opacity: 0.6,
     marginTop: 2,
   },

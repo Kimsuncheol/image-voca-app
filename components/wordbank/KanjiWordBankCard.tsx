@@ -6,6 +6,7 @@ import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   buildKanjiMeaningDisplayRows,
   buildKanjiReadingDisplayRows,
 } from "../../src/utils/kanjiDisplayRows";
@@ -120,7 +121,7 @@ export function KanjiWordBankCard({
                   <Text
                     style={[
                       styles.chipText,
-                      { color: fontColors.subtle, fontSize: 14 },
+                      { color: fontColors.subtle, fontSize: FontSizes.body },
                     ]}
                   >
                     {row.localizedText}
@@ -160,7 +161,7 @@ export function KanjiWordBankCard({
                   <Text
                     style={[
                       styles.chipText,
-                      { color: fontColors.subtle, fontSize: 14 },
+                      { color: fontColors.subtle, fontSize: FontSizes.body },
                     ]}
                   >
                     {row.localizedText}
@@ -267,7 +268,7 @@ const styles = StyleSheet.create({
     zIndex: 3,
   },
   kanjiText: {
-    fontSize: 52,
+    fontSize: FontSizes.displayXxl,
     fontWeight: "bold",
   },
   thumbnail: {
@@ -279,7 +280,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   sectionLabel: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "700",
     letterSpacing: 0.5,
     textTransform: "uppercase",
@@ -290,7 +291,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   chipText: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     fontWeight: "600",
     lineHeight: 24,
   },
@@ -307,7 +308,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   furiganaButtonText: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     fontWeight: "600",
   },
 });

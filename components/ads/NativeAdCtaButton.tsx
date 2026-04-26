@@ -1,4 +1,5 @@
 import { StyleSheet, Text } from "react-native";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface NativeAdCtaButtonProps {
   label: string;
@@ -36,7 +37,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 6,
     color: "#ffffff",
-    fontSize: 10,
+    fontSize: FontSizes.xs,
     fontWeight: "700",
     letterSpacing: 0.5,
     textTransform: "uppercase",

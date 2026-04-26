@@ -1,5 +1,6 @@
 import React from "react";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   Pressable,
   Text,
   View,
@@ -144,7 +145,7 @@ export function FaceSide({
                       <Text
                         style={[
                           styles.faceListItem,
-                          { color: fontColors.subtle, fontSize: 14 },
+                          { color: fontColors.subtle, fontSize: FontSizes.body },
                         ]}
                       >
                         {m.localizedText}
@@ -201,7 +202,7 @@ export function FaceSide({
                       <Text
                         style={[
                           styles.faceListItem,
-                          { color: fontColors.subtle, fontSize: 14 },
+                          { color: fontColors.subtle, fontSize: FontSizes.body },
                         ]}
                       >
                         {r.localizedText}

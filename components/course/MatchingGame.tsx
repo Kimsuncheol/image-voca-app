@@ -4,6 +4,7 @@ import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../themed-text";
 import { GameScore } from "./GameScore";
 import { MatchingCard } from "./MatchingCard";
+import { FontSizes } from "@/constants/fontSizes";
 
 const PAGE_SIZE = 5;
 
@@ -186,7 +187,7 @@ const styles = StyleSheet.create({
   matchingHint: {
     textAlign: "center",
     opacity: 0.7,
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     marginBottom: 8,
     fontWeight: "500",
   },

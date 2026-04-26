@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface GameScoreProps {
   current: number;
@@ -64,12 +65,12 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   progressText: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     opacity: 0.6,
     textAlign: "right",
   },
   currentScoreHighlight: {
-    fontSize: 20,
+    fontSize: FontSizes.titleMd,
     fontWeight: "700",
     opacity: 1,
   },

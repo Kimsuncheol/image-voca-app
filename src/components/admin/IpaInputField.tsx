@@ -17,6 +17,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   ActivityIndicator,
   StyleSheet,
   Text,
@@ -221,7 +222,7 @@ const getStyles = (isDark: boolean) =>
       marginBottom: 8,
     },
     label: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       fontWeight: "600",
       color: isDark ? "#fff" : "#000",
     },
@@ -238,12 +239,12 @@ const getStyles = (isDark: boolean) =>
       marginBottom: 6,
     },
     sublabel: {
-      fontSize: 14,
+      fontSize: FontSizes.body,
       fontWeight: "500",
       color: isDark ? "#aaa" : "#666",
     },
     notFoundText: {
-      fontSize: 12,
+      fontSize: FontSizes.caption,
       color: "#FF9500",
       fontStyle: "italic",
     },
@@ -253,12 +254,12 @@ const getStyles = (isDark: boolean) =>
       borderColor: isDark ? "#38383a" : "#d1d1d6",
       borderRadius: 8,
       padding: 12,
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       color: isDark ? "#fff" : "#000",
       fontFamily: "monospace", // Better for IPA symbols
     },
     helperText: {
-      fontSize: 12,
+      fontSize: FontSizes.caption,
       color: isDark ? "#666" : "#999",
       marginTop: 4,
       fontStyle: "italic",

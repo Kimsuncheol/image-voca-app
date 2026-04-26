@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
+import { FontSizes } from "@/constants/fontSizes";
 
 // =============================================================================
 // PROPS INTERFACE
@@ -96,12 +97,12 @@ const getStyles = (isDark: boolean) => {
       alignItems: "center",
     },
     avatarLabel: {
-      fontSize: 12,
+      fontSize: FontSizes.caption,
       color: fontColors.tertiary,
     },
     errorText: {
       color: fontColors.error,
-      fontSize: 12,
+      fontSize: FontSizes.caption,
       marginTop: 4,
       paddingHorizontal: 4,
     },

@@ -14,6 +14,7 @@ import React from "react";
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import { BackgroundColors } from "../../../constants/backgroundColors";
 import { FontColors } from "../../../constants/fontColors";
+import { FontSizes } from "@/constants/fontSizes";
 
 // =============================================================================
 // PROPS INTERFACE
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: FontColors.light.buttonOnAccent,
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     fontWeight: "bold",
   },
 });

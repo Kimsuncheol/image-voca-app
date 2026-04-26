@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   createUserWithEmailAndPassword,
   sendEmailVerification,
   updateProfile,
@@ -566,7 +567,7 @@ const getStyles = (isDark: boolean) => {
 
     /** Main title text - Large, bold, theme-aware */
     title: {
-      fontSize: 32,
+      fontSize: FontSizes.headingXl,
       fontWeight: "bold",
       color: fontColors.body,
       marginBottom: 8,
@@ -574,7 +575,7 @@ const getStyles = (isDark: boolean) => {
 
     /** Subtitle text - Smaller, lighter color */
     subtitle: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       color: fontColors.supporting,
     },
 
@@ -620,7 +621,7 @@ const getStyles = (isDark: boolean) => {
     /** Text input field - Flexible width, theme-aware text */
     input: {
       flex: 1,
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       color: fontColors.body,
     },
 
@@ -645,7 +646,7 @@ const getStyles = (isDark: boolean) => {
     hintText: {
       marginLeft: 8,
       color: fontColors.supporting,
-      fontSize: 12,
+      fontSize: FontSizes.caption,
     },
 
     /** Valid hint text - Green color when requirement is met */
@@ -681,7 +682,7 @@ const getStyles = (isDark: boolean) => {
     /** Button text - White, bold text */
     buttonText: {
       color: fontColors.inverse,
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       fontWeight: "bold",
     },
 
@@ -734,7 +735,7 @@ const getStyles = (isDark: boolean) => {
     /** Google button text - Theme-aware text color */
     googleButtonText: {
       color: fontColors.body,
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       fontWeight: "600",
     },
 
@@ -752,13 +753,13 @@ const getStyles = (isDark: boolean) => {
     /** Footer text - Theme-aware gray text */
     footerText: {
       color: fontColors.supporting,
-      fontSize: 14,
+      fontSize: FontSizes.body,
     },
 
     /** Login link - Blue, bold clickable text */
     link: {
       color: fontColors.link,
-      fontSize: 14,
+      fontSize: FontSizes.body,
       fontWeight: "bold",
     },
 
@@ -801,7 +802,7 @@ const getStyles = (isDark: boolean) => {
 
     /** Avatar label - Small text below avatar picker */
     avatarLabel: {
-      fontSize: 12,
+      fontSize: FontSizes.caption,
       color: fontColors.tertiary,
     },
 
@@ -830,14 +831,14 @@ const getStyles = (isDark: boolean) => {
     errorBannerText: {
       flex: 1,
       color: fontColors.error,
-      fontSize: 14,
+      fontSize: FontSizes.body,
       lineHeight: 20,
     },
 
     /** Error text - Small inline error text below inputs */
     errorText: {
       color: fontColors.error,
-      fontSize: 12,
+      fontSize: FontSizes.caption,
       marginTop: 4,
       paddingHorizontal: 4,
     },
@@ -866,7 +867,7 @@ const getStyles = (isDark: boolean) => {
 
     /** Admin toggle text - Default text color */
     adminToggleText: {
-      fontSize: 14,
+      fontSize: FontSizes.body,
       fontWeight: "600",
       color: fontColors.mutedLabel,
     },
@@ -883,7 +884,7 @@ const getStyles = (isDark: boolean) => {
       marginBottom: 16,
     },
     learningSectionLabel: {
-      fontSize: 13,
+      fontSize: FontSizes.label,
       fontWeight: "600",
       color: fontColors.sectionMeta,
       marginBottom: 8,
@@ -911,7 +912,7 @@ const getStyles = (isDark: boolean) => {
       gap: 10,
     },
     learningOptionText: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       color: fontColors.body,
     },
     learningOptionSeparator: {

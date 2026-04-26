@@ -5,6 +5,7 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import { JLPTLevelCourse } from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface JlptLevelCardProps {
   level: JLPTLevelCourse;
@@ -85,19 +86,19 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   badgeText: {
-    fontSize: 22,
+    fontSize: FontSizes.titleLg,
     fontWeight: "800",
   },
   content: {
     flex: 1,
   },
   description: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     opacity: 0.65,
     marginTop: 3,
   },
   meta: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     opacity: 0.55,
     marginTop: 6,
   },

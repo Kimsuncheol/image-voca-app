@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Image as NativeImage, StyleSheet, Text, View } from "react-native";
 import type {
+import { FontSizes } from "@/constants/fontSizes";
   NativeAdView as NativeAdViewT,
   NativeAsset as NativeAssetT,
   NativeAssetType as NativeAssetTypeT,
@@ -163,7 +164,7 @@ const styles = StyleSheet.create({
   },
   headline: {
     color: "#111827",
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "700",
     lineHeight: 14,
   },
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
   },
   metadataText: {
     color: "#4b5563",
-    fontSize: 10,
+    fontSize: FontSizes.xs,
     lineHeight: 12,
   },
 });

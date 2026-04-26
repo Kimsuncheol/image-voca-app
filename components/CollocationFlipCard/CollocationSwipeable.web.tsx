@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -240,17 +241,17 @@ const styles = StyleSheet.create({
   },
   buttonTextLight: {
     color: "#111",
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     fontWeight: "600",
   },
   buttonTextDark: {
     color: "#fff",
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     fontWeight: "600",
   },
   buttonTextPrimary: {
     color: "#fff",
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     fontWeight: "700",
   },
   hintContainer: {
@@ -268,12 +269,12 @@ const styles = StyleSheet.create({
   },
   hintTextLight: {
     color: "#FFFFFF",
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "600",
   },
   hintTextDark: {
     color: "#FFFFFF",
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "600",
   },
 });

@@ -4,6 +4,7 @@ import React, { useCallback } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { ThemedText } from "../../components/themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 import {
   DashboardHeader,
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
   },
   streakBrokenText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: FontSizes.body,
     fontWeight: "600",
   },
 });

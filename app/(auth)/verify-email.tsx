@@ -4,6 +4,7 @@ import { sendEmailVerification, signOut } from "firebase/auth";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   ScrollView,
   StyleSheet,
   Text,
@@ -228,7 +229,7 @@ const getStyles = (isDark: boolean) => {
       marginBottom: 32,
     },
     title: {
-      fontSize: 28,
+      fontSize: FontSizes.headingLg,
       fontWeight: "800",
       color: fontColors.screenTitleStrong,
       textAlign: "center",
@@ -236,7 +237,7 @@ const getStyles = (isDark: boolean) => {
       letterSpacing: -0.5,
     },
     subtitle: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       lineHeight: 24,
       color: fontColors.screenMutedCool,
       textAlign: "center",
@@ -253,7 +254,7 @@ const getStyles = (isDark: boolean) => {
       marginBottom: 24,
     },
     emailLabel: {
-      fontSize: 12,
+      fontSize: FontSizes.caption,
       fontWeight: "600",
       textTransform: "uppercase",
       color: fontColors.screenMetaCool,
@@ -261,7 +262,7 @@ const getStyles = (isDark: boolean) => {
       letterSpacing: 0.5,
     },
     emailValue: {
-      fontSize: 18,
+      fontSize: FontSizes.title,
       fontWeight: "700",
       color: fontColors.verifyEmailValue,
     },
@@ -286,7 +287,7 @@ const getStyles = (isDark: boolean) => {
     successText: {
       flex: 1,
       color: fontColors.successText,
-      fontSize: 14,
+      fontSize: FontSizes.body,
       fontWeight: "500",
       lineHeight: 20,
     },

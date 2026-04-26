@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   ScrollView,
   StyleSheet,
   Text,
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   label: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "700",
     color: "#999",
     letterSpacing: 1.2,
@@ -242,7 +243,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   value: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     color: "#333",
     lineHeight: 24,
     fontWeight: "400",
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   characterText: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     fontWeight: "600",
     color: "#666",
     lineHeight: 22,
@@ -285,7 +286,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   translationValue: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     lineHeight: 16,
     fontStyle: "normal",
     flexShrink: 1,

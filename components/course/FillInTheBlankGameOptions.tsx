@@ -5,6 +5,7 @@ import type { QuizWordOption } from "../../src/course/quizUtils";
 import { useTheme } from "../../src/context/ThemeContext";
 import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface FillInTheBlankGameOptionsProps {
   options: (QuizWordOption | string)[];
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   optionsLabel: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     opacity: 0.6,
     marginBottom: 4,
   },
@@ -109,11 +110,11 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   optionText: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     textAlign: "center",
   },
   pronunciationText: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     textAlign: "center",
     marginTop: 4,
     opacity: 0.8,

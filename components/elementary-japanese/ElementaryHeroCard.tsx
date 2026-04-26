@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 type ElementaryHeroCardProps = {
   title: string;
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   accentPillText: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "700",
   },
   heroDots: {
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     lineHeight: 22,
     maxWidth: "92%",
   },

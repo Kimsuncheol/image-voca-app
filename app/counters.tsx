@@ -9,6 +9,7 @@ import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import type { CounterTabId } from "../src/types/counters";
+import { FontSizes } from "@/constants/fontSizes";
 
 export default function CountersScreen() {
   const { isDark } = useTheme();
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   accentPillText: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "700",
   },
   heroDots: {
@@ -150,7 +151,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     lineHeight: 22,
     maxWidth: "92%",
   },
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   sectionLabel: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "700",
     letterSpacing: 0.8,
     textTransform: "uppercase",

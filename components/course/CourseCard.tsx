@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "../../src/context/ThemeContext";
 import { RuntimeCourse } from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface CourseCardProps {
   course: RuntimeCourse;
@@ -83,12 +84,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   description: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     opacity: 0.6,
     marginTop: 2,
   },
   wordCount: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     opacity: 0.5,
     marginTop: 4,
   },
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   recentText: {
-    fontSize: 10,
+    fontSize: FontSizes.xs,
     color: "#fff",
     fontWeight: "600",
   },

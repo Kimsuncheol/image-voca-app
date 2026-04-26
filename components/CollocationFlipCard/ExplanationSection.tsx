@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Collapsible from "react-native-collapsible";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface ExplanationSectionProps {
   explanation: string;
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   label: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "700",
     color: "#999",
     letterSpacing: 1.2,
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   value: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     color: "#333",
     lineHeight: 22,
     fontWeight: "400",

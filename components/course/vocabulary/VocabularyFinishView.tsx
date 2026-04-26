@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface VocabularyFinishViewProps {
   isDark: boolean;
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   checkedLabel: {
-    fontSize: 40,
+    fontSize: FontSizes.displayLg,
     fontWeight: "900",
     lineHeight: 48,
     textAlign: "center",
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
   },
 
   buttonText: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     fontWeight: "700",
     color: "#1a1a1a",
   },

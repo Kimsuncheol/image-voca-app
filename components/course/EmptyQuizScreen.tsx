@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 export function EmptyQuizScreen() {
   const { isDark } = useTheme();
@@ -75,12 +76,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyStateText: {
-    fontSize: 18,
+    fontSize: FontSizes.title,
     fontWeight: "700",
     textAlign: "center",
   },
   emptyStateDescription: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     opacity: 0.7,
     textAlign: "center",
     marginTop: 8,
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   backButtonText: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     fontWeight: "600",
   },
 });

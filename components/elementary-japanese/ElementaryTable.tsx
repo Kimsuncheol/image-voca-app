@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { FontSizes } from "@/constants/fontSizes";
 
 import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   headerCell: {
-    fontSize: 10,
+    fontSize: FontSizes.xs,
     fontWeight: "700",
     letterSpacing: 0.8,
     textTransform: "uppercase",
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
   bodyText: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "500",
     lineHeight: 16,
   },

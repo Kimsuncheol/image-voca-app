@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   Animated,
   Easing,
   StyleSheet,
@@ -366,13 +367,13 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   title: {
-    fontSize: 20,
+    fontSize: FontSizes.titleMd,
     fontWeight: "700",
     textAlign: "center",
   },
   step: {
     marginTop: 8,
-    fontSize: 14,
+    fontSize: FontSizes.body,
     textAlign: "center",
   },
   dotRow: {

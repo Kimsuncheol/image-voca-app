@@ -4,6 +4,7 @@ import { Colors } from "../../constants/theme";
 import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
 import { IconSymbol, IconSymbolName } from "../ui/icon-symbol";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface DashboardCardProps {
   title: string;
@@ -64,16 +65,16 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   title: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     opacity: 0.7,
     marginBottom: 4,
   },
   value: {
-    fontSize: 28,
+    fontSize: FontSizes.headingLg,
     lineHeight: 34,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     opacity: 0.5,
     marginTop: 4,
   },

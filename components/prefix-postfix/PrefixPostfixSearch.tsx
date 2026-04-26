@@ -2,6 +2,7 @@ import React from 'react';
 import { View, TextInput, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../src/context/ThemeContext';
+import { FontSizes } from "@/constants/fontSizes";
 
 interface Props {
   search: string;
@@ -41,6 +42,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
   },
 });

@@ -10,6 +10,7 @@ import { getBackgroundColors } from "../../constants/backgroundColors";
 import { useTheme } from "../../src/context/ThemeContext";
 import { getTotalDaysForCourse } from "../../src/services/vocabularyPrefetch";
 import { JLPT_LEVELS, JLPTLevelCourse } from "../../src/types/vocabulary";
+import { FontSizes } from "@/constants/fontSizes";
 
 export default function JlptLevelsScreen() {
   const { isDark } = useTheme();
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     opacity: 0.6,
     marginTop: 4,
   },

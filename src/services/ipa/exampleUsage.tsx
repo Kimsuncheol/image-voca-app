@@ -10,6 +10,7 @@
 import { useState } from "react";
 import { Alert, Button, Text, TextInput, View } from "react-native";
 import { batchGetIpaUSUK, clearIpaCache, getIpaUSUK } from "./wiktionaryIpaService";
+import { FontSizes } from "@/constants/fontSizes";
 
 // =============================================================================
 // EXAMPLE 1: Simple IPA Fetch
@@ -312,7 +313,7 @@ export function Example6_CacheManagement() {
       <Button title="Clear IPA Cache" onPress={handleClearCache} />
       {cacheCleared && <Text>✓ Cache cleared</Text>}
 
-      <Text style={{ marginTop: 20, fontSize: 12, color: "#666" }}>
+      <Text style={{ marginTop: 20, fontSize: FontSizes.caption, color: "#666" }}>
         Cache stores fetched IPA data for the current session to avoid
         repeated API calls. Clear it if you need fresh data or to free memory.
       </Text>

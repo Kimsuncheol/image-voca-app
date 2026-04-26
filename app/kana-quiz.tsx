@@ -2,6 +2,7 @@ import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-rou
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   Alert,
   BackHandler,
   ScrollView,
@@ -489,7 +490,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   progress: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     opacity: 0.5,
     textAlign: "center",
     marginBottom: 8,
@@ -501,12 +502,12 @@ const styles = StyleSheet.create({
     marginTop: 28,
   },
   kanaChar: {
-    fontSize: 80,
+    fontSize: FontSizes.hero,
     fontWeight: "500",
     lineHeight: 96,
   },
   prompt: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     opacity: 0.5,
     marginTop: 8,
   },
@@ -518,7 +519,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   feedback: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     fontWeight: "600",
     textAlign: "center",
   },
@@ -534,7 +535,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   optionText: {
-    fontSize: 18,
+    fontSize: FontSizes.title,
     fontWeight: "500",
   },
   // Results
@@ -545,17 +546,17 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   resultsTitle: {
-    fontSize: 22,
+    fontSize: FontSizes.titleLg,
     fontWeight: "700",
     marginBottom: 12,
   },
   resultsScore: {
-    fontSize: 40,
+    fontSize: FontSizes.displayLg,
     fontWeight: "700",
     marginBottom: 12,
   },
   resultsHeadline: {
-    fontSize: 18,
+    fontSize: FontSizes.title,
     opacity: 0.6,
     marginBottom: 32,
   },
@@ -564,7 +565,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   wrongSectionTitle: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     fontWeight: "600",
     opacity: 0.5,
     textTransform: "uppercase",
@@ -586,11 +587,11 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   wrongKana: {
-    fontSize: 26,
+    fontSize: FontSizes.headingMd,
     fontWeight: "500",
   },
   wrongRomaji: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     opacity: 0.5,
     fontWeight: "500",
   },
@@ -606,7 +607,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   resultBtnText: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     fontWeight: "600",
   },
 });

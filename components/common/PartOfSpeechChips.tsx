@@ -1,5 +1,6 @@
 import React from "react";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   StyleProp,
   StyleSheet,
   Text,
@@ -50,7 +51,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   label: {
-    fontSize: 10,
+    fontSize: FontSizes.xs,
     fontWeight: "700",
     lineHeight: 12,
     textTransform: "lowercase",

@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -195,7 +196,7 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
   },
   tabLabel: {
-    fontSize: 10,
+    fontSize: FontSizes.xs,
     fontWeight: "600",
     marginTop: 2,
   },

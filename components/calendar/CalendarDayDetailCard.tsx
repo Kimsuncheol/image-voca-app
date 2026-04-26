@@ -7,6 +7,7 @@ import type { VocabularyDayStudyEntry } from "../../src/services/dailyStudyHisto
 import { findRuntimeCourse } from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
 import { DayBadge } from "../common/DayBadge";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface CalendarDayDetailCardProps {
   title: string;
@@ -186,12 +187,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   metricBoxLabel: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     opacity: 0.66,
     textAlign: "center",
   },
   metricBoxValue: {
-    fontSize: 22,
+    fontSize: FontSizes.titleLg,
     fontWeight: "700",
     textAlign: "center",
   },
@@ -222,12 +223,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   historyCourseTitle: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     fontWeight: "700",
     marginBottom: 4,
   },
   historyMeta: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     opacity: 0.62,
   },
   badgeWrapper: {

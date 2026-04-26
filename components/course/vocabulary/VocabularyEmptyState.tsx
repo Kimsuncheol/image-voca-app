@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface VocabularyEmptyStateProps {
   isDark: boolean;
@@ -64,13 +65,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 18,
+    fontSize: FontSizes.title,
     fontWeight: "600",
     marginBottom: 8,
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     textAlign: "center",
     lineHeight: 20,
   },
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   buttonText: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     fontWeight: "500",
   },
 });

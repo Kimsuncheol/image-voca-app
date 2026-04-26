@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Colors } from "../../constants/theme";
 import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface ProgressCardProps {
   title: string;
@@ -59,7 +60,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   stats: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     opacity: 0.7,
   },
   progressBg: {
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   percentage: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     opacity: 0.5,
     marginTop: 8,
   },

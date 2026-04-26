@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface SettingsHeaderProps {
   isDark: boolean;
@@ -26,13 +27,13 @@ const getStyles = (isDark: boolean) =>
       paddingBottom: 24,
     },
     title: {
-      fontSize: 34,
+      fontSize: FontSizes.display,
       fontWeight: "bold",
       color: isDark ? "#fff" : "#000",
       marginBottom: 4,
     },
     subtitle: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       color: isDark ? "#8e8e93" : "#6e6e73",
     },
   });

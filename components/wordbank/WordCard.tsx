@@ -6,6 +6,7 @@ import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import type {
+import { FontSizes } from "@/constants/fontSizes";
   KanjiNestedListGroup,
   VocabularyLocalizationMap,
 } from "../../src/types/vocabulary";
@@ -296,7 +297,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#2EA043",
   },
   kanaToggleText: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "600",
     letterSpacing: 0.5,
   },

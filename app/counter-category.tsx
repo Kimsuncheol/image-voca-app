@@ -11,6 +11,7 @@ import { useTheme } from "../src/context/ThemeContext";
 import { getCountersData } from "../src/services/countersService";
 import type { CounterTabId, CounterWord } from "../src/types/counters";
 import { COUNTER_TAB_IDS } from "../src/types/counters";
+import { FontSizes } from "@/constants/fontSizes";
 
 const isCounterTabId = (value: string): value is CounterTabId =>
   COUNTER_TAB_IDS.includes(value as CounterTabId);
@@ -95,7 +96,7 @@ export default function CounterCategoryScreen() {
             >
               <ThemedText
                 style={{
-                  fontSize: 15,
+                  fontSize: FontSizes.bodyMd,
                   color: fontColors.actionAccent,
                   fontWeight: "600",
                 }}

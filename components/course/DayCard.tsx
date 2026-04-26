@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 import { DayProgress } from "../../src/stores";
 
@@ -91,7 +92,7 @@ export function DayCard({
               style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
             >
               <ThemedText
-                style={{ color: "#fff", fontSize: 12, fontWeight: "800" }}
+                style={{ color: "#fff", fontSize: FontSizes.caption, fontWeight: "800" }}
               >
                 {progress.quizScore}%
               </ThemedText>
@@ -136,10 +137,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   dayNumber: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
   },
   progressText: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     opacity: 0.6,
   },
   quizButton: {
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   quizButtonText: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     color: "#fff",
     fontWeight: "600",
   },

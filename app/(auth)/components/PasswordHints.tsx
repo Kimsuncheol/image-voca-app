@@ -15,6 +15,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { FontSizes } from "@/constants/fontSizes";
 
 // =============================================================================
 // PROPS INTERFACE
@@ -90,7 +91,7 @@ const getStyles = (isDark: boolean) => {
     hintText: {
       marginLeft: 8,
       color: fontColors.supporting,
-      fontSize: 12,
+      fontSize: FontSizes.caption,
     },
     hintTextValid: {
       color: fontColors.success,

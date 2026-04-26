@@ -3,6 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ThemedText } from '../themed-text';
 import { useTheme } from '../../src/context/ThemeContext';
+import { FontSizes } from "@/constants/fontSizes";
 
 export type Tab = "prefix" | "postfix";
 
@@ -78,6 +79,6 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   tabLabel: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
   },
 });

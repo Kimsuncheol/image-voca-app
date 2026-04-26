@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { FontSizes } from "@/constants/fontSizes";
 
 // =============================================================================
 // PROPS INTERFACE
@@ -90,7 +91,7 @@ const getStyles = (isDark: boolean) => {
     },
     input: {
       flex: 1,
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       color: fontColors.body,
     },
   });

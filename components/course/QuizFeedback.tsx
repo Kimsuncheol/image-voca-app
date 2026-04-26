@@ -3,6 +3,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface QuizFeedbackProps {
   isCorrect: boolean;
@@ -47,11 +48,11 @@ const styles = StyleSheet.create({
   },
   feedbackText: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: FontSizes.title,
     fontWeight: "600",
   },
   correctAnswerText: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     opacity: 0.8,
   },
 });

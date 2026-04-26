@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
+import { FontSizes } from "@/constants/fontSizes";
 
 // =============================================================================
 // PROPS INTERFACE
@@ -78,7 +79,7 @@ const getStyles = (isDark: boolean) => {
     },
     label: {
       color: fontColors.supporting,
-      fontSize: 14,
+      fontSize: FontSizes.body,
     },
   });
 };

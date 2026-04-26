@@ -4,6 +4,7 @@ import { StyleSheet, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import type { CalendarMonthSummary } from "../../src/utils/calendarStats";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface CalendarMonthSummaryCardProps {
   summary: CalendarMonthSummary;
@@ -94,12 +95,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   metricLabel: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     opacity: 0.66,
     textAlign: "center",
   },
   metricValue: {
-    fontSize: 22,
+    fontSize: FontSizes.titleLg,
     fontWeight: "700",
     textAlign: "center",
   },

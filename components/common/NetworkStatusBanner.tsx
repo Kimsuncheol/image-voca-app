@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect } from "react";
 import { StyleSheet, Text } from "react-native";
 import Animated, {
+import { FontSizes } from "@/constants/fontSizes";
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -82,7 +83,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: "#fff",
-    fontSize: 13,
+    fontSize: FontSizes.label,
     fontWeight: "600",
   },
 });

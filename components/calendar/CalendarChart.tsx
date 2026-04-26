@@ -6,6 +6,7 @@ import { useTheme } from "../../src/context/ThemeContext";
 import type { DailyStats } from "../../src/stores";
 import { buildLast30DaysChartData } from "../../src/utils/calendarStats";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface CalendarChartProps {
   dailyStats: DailyStats[];
@@ -110,8 +111,8 @@ export function CalendarChart({ dailyStats }: CalendarChartProps) {
             noOfSections={4}
             rulesColor={rulesColor}
             rulesType="solid"
-            yAxisTextStyle={{ color: axisTextColor, fontSize: 10 }}
-            xAxisLabelTextStyle={{ color: axisTextColor, fontSize: 9 }}
+            yAxisTextStyle={{ color: axisTextColor, fontSize: FontSizes.xs }}
+            xAxisLabelTextStyle={{ color: axisTextColor, fontSize: FontSizes.xxs }}
             hideAxesAndRules={false}
             isAnimated
             animationDuration={500}
@@ -135,11 +136,11 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     marginBottom: 14,
   },
   empty: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     marginTop: 4,
     opacity: 0.7,
   },

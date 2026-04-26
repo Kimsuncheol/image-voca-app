@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from "react-native";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   formatIdiomMeaningForDisplay,
   isNumberedMeaningDisplayCourseId,
 } from "../../src/utils/idiomDisplay";
@@ -377,7 +378,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   baseText: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     lineHeight: 24,
   },
   prefix: {
@@ -393,7 +394,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   chipLabel: {
-    fontSize: 10,
+    fontSize: FontSizes.xs,
     lineHeight: 12,
     fontWeight: "700",
     textTransform: "lowercase",

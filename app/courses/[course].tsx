@@ -6,6 +6,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next"; // Internationalization
 import { Alert, FlatList, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { FontSizes } from "@/constants/fontSizes";
 
 // Custom components
 import { TopInstallNativeAd } from "../../components/ads/TopInstallNativeAd";
@@ -324,7 +325,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     marginBottom: 12,
   },
 });

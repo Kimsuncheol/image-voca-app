@@ -5,6 +5,7 @@ import { useTheme } from "../../src/context/ThemeContext";
 import { stripKanaParens } from "../../src/utils/japaneseText";
 import { RoleplayRenderer } from "../CollocationFlipCard/RoleplayRenderer";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface FillInTheBlankGameClozeSentenceCardProps {
   clozeSentence: string;
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(0,0,0,0.05)",
   },
   sentenceLabel: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     opacity: 0.6,
     marginBottom: 12,
   },
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sentenceText: {
-    fontSize: 18,
+    fontSize: FontSizes.title,
     lineHeight: 28,
     textAlign: "left",
   },
@@ -177,13 +178,13 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderStyle: "dashed",
     fontWeight: "600",
-    fontSize: 18,
+    fontSize: FontSizes.title,
     minWidth: 80,
     textAlign: "center",
     overflow: "hidden",
   },
   translationText: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     opacity: 0.7,
     marginTop: 8,
   },

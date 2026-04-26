@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FontSizes } from "@/constants/fontSizes";
 
 import type { CounterWord } from "../../src/types/counters";
 import { useTheme } from "../../src/context/ThemeContext";
@@ -207,26 +208,26 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   wordText: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     fontWeight: "700",
   },
   bodyText: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "500",
     lineHeight: 16,
   },
   exampleText: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     fontWeight: "700",
     lineHeight: 20,
   },
   furiganaText: {
-    fontSize: 10,
+    fontSize: FontSizes.xs,
     fontWeight: "500",
     color: "#8e8e93",
   },
   subText: {
-    fontSize: 10,
+    fontSize: FontSizes.xs,
     lineHeight: 15,
     marginTop: 1,
   },

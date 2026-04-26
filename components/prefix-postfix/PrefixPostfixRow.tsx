@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { FontSizes } from "@/constants/fontSizes";
 
 import { useTheme } from "../../src/context/ThemeContext";
 import { useSpeech } from "../../src/hooks/useSpeech";
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   indexText: {
-    fontSize: 10,
+    fontSize: FontSizes.xs,
     lineHeight: 16,
     marginRight: 3,
     minWidth: 13,
@@ -186,26 +187,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   wordText: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     fontWeight: "700",
   },
   bodyText: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "500",
     lineHeight: 16,
   },
   exampleText: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "700",
     lineHeight: 16,
   },
   furiganaText: {
-    fontSize: 10,
+    fontSize: FontSizes.xs,
     lineHeight: 15,
     marginTop: 1,
   },
   subText: {
-    fontSize: 10,
+    fontSize: FontSizes.xs,
     lineHeight: 15,
     marginTop: 1,
   },

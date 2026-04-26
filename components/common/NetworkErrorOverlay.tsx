@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
+import { FontSizes } from "@/constants/fontSizes";
   Easing,
   runOnJS,
   useAnimatedStyle,
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#1A3320",
   },
   badgeText: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "700",
     color: "#8A9BB0",
     letterSpacing: 1,
@@ -171,7 +172,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
-    fontSize: 26,
+    fontSize: FontSizes.headingMd,
     fontWeight: "800",
     color: "#FFFFFF",
     textAlign: "center",
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     color: "#8A9BB0",
     textAlign: "center",
     lineHeight: 21,

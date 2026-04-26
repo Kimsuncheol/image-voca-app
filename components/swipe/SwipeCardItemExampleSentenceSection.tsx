@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   ScrollView,
   StyleSheet,
   Text,
@@ -181,32 +182,32 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   metaText: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     lineHeight: 18,
     marginTop: 2,
   },
   sectionLabel: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "700",
     letterSpacing: 0.3,
     marginBottom: 4,
     textTransform: "uppercase",
   },
   cardExample: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     fontWeight: "500",
     color: "#444",
     lineHeight: 20,
   },
   cardTranslation: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     color: "#2d5f2d",
     fontWeight: "500",
     marginTop: 4,
     lineHeight: 22,
   },
   cardSynonyms: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     fontWeight: "500",
     lineHeight: 22,
   },
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   expandButtonText: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     fontWeight: "600",
   },
 });

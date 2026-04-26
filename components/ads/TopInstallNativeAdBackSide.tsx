@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { FontSizes } from "@/constants/fontSizes";
 
 const WHY_THIS_AD_URL = "https://adssettings.google.com/whythisad";
 
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
   disclosureTitle: {
     color: "#1f2937",
     flex: 1,
-    fontSize: 10,
+    fontSize: FontSizes.xs,
     fontWeight: "600",
     lineHeight: 12,
     textAlign: "center",
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
   },
   disclosureGoogleBadgeText: {
     color: "#1d4ed8",
-    fontSize: 9,
+    fontSize: FontSizes.xxs,
     fontWeight: "600",
     lineHeight: 11,
   },
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
   },
   disclosureWhyButtonText: {
     color: "#374151",
-    fontSize: 9,
+    fontSize: FontSizes.xxs,
     fontWeight: "600",
     lineHeight: 11,
   },

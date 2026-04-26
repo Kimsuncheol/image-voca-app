@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   Dimensions,
   Pressable,
   ScrollView,
@@ -407,7 +408,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#2EA043",
   },
   kanaToggleText: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     fontWeight: "600",
     letterSpacing: 0.5,
   },
@@ -424,13 +425,13 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   cardTitle: {
-    fontSize: 32,
+    fontSize: FontSizes.headingXl,
     fontWeight: "bold",
     color: "#1a1a1a",
     flexShrink: 1,
   },
   cardSubtitle: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     color: "#666",
     marginTop: 2,
     marginBottom: 6,
@@ -445,7 +446,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   sectionLabel: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "700",
     letterSpacing: 0.3,
     textTransform: "uppercase",
@@ -457,7 +458,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   cardDescription: {
-    fontSize: 17,
+    fontSize: FontSizes.subhead,
     color: "#2c2c2c",
     lineHeight: 24,
     fontWeight: "500",
@@ -469,19 +470,19 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   cardExample: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     fontWeight: "500",
     color: "#444",
     lineHeight: 20,
   },
   cardTranslation: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "500",
     marginTop: 4,
     lineHeight: 22,
   },
   cardFurigana: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     color: "#9A9A9A",
   },
 });

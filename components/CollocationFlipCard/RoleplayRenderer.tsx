@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { StyleSheet, Text } from "react-native";
 import { parseRoleplaySegments } from "../../src/utils/roleplayUtils";
 import { RoleplayDialogueRow } from "../RoleplayDialogueRow";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface RoleplayRendererProps {
   content: string;
@@ -96,7 +97,7 @@ RoleplayRenderer.displayName = "RoleplayRenderer";
 
 const styles = StyleSheet.create({
   value: {
-    fontSize: 18,
+    fontSize: FontSizes.title,
     color: "#333",
     lineHeight: 26,
     fontWeight: "400",

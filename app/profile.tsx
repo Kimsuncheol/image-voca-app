@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   launchImageLibraryAsync,
   requestMediaLibraryPermissionsAsync,
 } from "expo-image-picker";
@@ -414,13 +415,13 @@ const getStyles = (isDark: boolean) => {
       borderColor: fontColors.surfaceBorder,
     },
     displayNameText: {
-      fontSize: 24,
+      fontSize: FontSizes.heading,
       fontWeight: "bold",
       color: fontColors.screenTitle,
       marginBottom: 4,
     },
     emailText: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       color: fontColors.screenMutedStrong,
       marginBottom: 16,
     },
@@ -439,7 +440,7 @@ const getStyles = (isDark: boolean) => {
       marginBottom: 24,
     },
     sectionTitle: {
-      fontSize: 14,
+      fontSize: FontSizes.body,
       fontWeight: "600",
       color: fontColors.screenMutedStrong,
       marginBottom: 8,
@@ -463,16 +464,16 @@ const getStyles = (isDark: boolean) => {
       paddingVertical: 12,
     },
     infoLabel: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       color: fontColors.screenTitle,
       fontWeight: "500",
     },
     infoValue: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       color: fontColors.screenMutedStrong,
     },
     infoValueInput: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       color: fontColors.screenMutedStrong,
       textAlign: "right",
       flex: 1,
@@ -495,12 +496,12 @@ const getStyles = (isDark: boolean) => {
       paddingVertical: 12,
     },
     actionText: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       color: fontColors.screenTitle,
       fontWeight: "600",
     },
     dangerText: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       color: fontColors.dangerAction,
       fontWeight: "600",
     },
@@ -519,7 +520,7 @@ const getStyles = (isDark: boolean) => {
       elevation: 10,
     },
     reauthTitle: {
-      fontSize: 20,
+      fontSize: FontSizes.titleMd,
       fontWeight: "bold",
       color: fontColors.screenTitle,
       marginBottom: 16,
@@ -543,7 +544,7 @@ const getStyles = (isDark: boolean) => {
       backgroundColor: bg.separator,
     },
     cancelButtonText: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       fontWeight: "600",
       color: fontColors.screenTitle,
     },
@@ -554,7 +555,7 @@ const getStyles = (isDark: boolean) => {
       backgroundColor: bg.accentRed,
     },
     confirmButtonText: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       fontWeight: "600",
       color: fontColors.buttonOnAccent,
     },
@@ -563,7 +564,7 @@ const getStyles = (isDark: boolean) => {
       alignItems: "center",
     },
     goalInput: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       color: fontColors.screenTitle,
       backgroundColor: bg.inputAlt,
       paddingHorizontal: 12,
@@ -574,7 +575,7 @@ const getStyles = (isDark: boolean) => {
       marginRight: 8,
     },
     goalUnit: {
-      fontSize: 14,
+      fontSize: FontSizes.body,
       color: fontColors.screenMutedStrong,
     },
     updateGoalButton: {
@@ -586,7 +587,7 @@ const getStyles = (isDark: boolean) => {
     },
     updateGoalButtonText: {
       color: fontColors.buttonOnAccent,
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       fontWeight: "600",
     },
   });

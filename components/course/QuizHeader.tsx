@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface QuizHeaderProps {
   title: string;
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   title: {
-    fontSize: 18,
+    fontSize: FontSizes.title,
     flex: 1,
     textAlign: "center",
   },

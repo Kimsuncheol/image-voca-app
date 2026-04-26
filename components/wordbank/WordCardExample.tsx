@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   ScrollView,
   StyleSheet,
   Text,
@@ -388,29 +389,29 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   metaText: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     lineHeight: 18,
     opacity: 0.72,
     marginTop: 6,
   },
   example: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     lineHeight: 22,
     opacity: 0.8,
     flexShrink: 1,
   },
   exampleFurigana: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
   },
   translation: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     lineHeight: 19,
     marginTop: 4,
     opacity: 0.92,
     flexShrink: 1,
   },
   synonyms: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     lineHeight: 19,
     marginTop: 4,
   },
@@ -423,7 +424,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   expandButtonText: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     fontWeight: "600",
   },
   collocationList: {
@@ -448,7 +449,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   characterText: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     lineHeight: 18,
     fontWeight: "600",
     color: "#007AFF",
@@ -480,7 +481,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.08)",
   },
   collocationToggleText: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     fontWeight: "600",
     letterSpacing: 0.1,
     textAlign: "center",

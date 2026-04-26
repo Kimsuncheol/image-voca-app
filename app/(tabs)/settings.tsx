@@ -11,6 +11,7 @@
 // NAVIGATION & ROUTING
 // ============================================================================
 import { Stack, useFocusEffect, useRouter } from "expo-router"; // Stack for screen options, useRouter for navigation
+import { FontSizes } from "@/constants/fontSizes";
 
 // ============================================================================
 // AUTHENTICATION
@@ -517,7 +518,7 @@ const getStyles = (isDark: boolean) => {
 
     // Section title - Uppercase label above each card
     sectionTitle: {
-      fontSize: 14,
+      fontSize: FontSizes.body,
       fontWeight: "600",
       color: fontColors.screenMuted, // System gray
       marginBottom: 8,
@@ -548,7 +549,7 @@ const getStyles = (isDark: boolean) => {
 
     // Option label text
     optionText: {
-      fontSize: 17, // iOS standard text size
+      fontSize: FontSizes.subhead, // iOS standard text size
       color: fontColors.screenTitle,
       marginLeft: 8, // Spacing after icon
     },
@@ -573,7 +574,7 @@ const getStyles = (isDark: boolean) => {
     // Sign out button text - Red color indicates destructive action
     signOutText: {
       color: fontColors.dangerAction, // iOS destructive red
-      fontSize: 17,
+      fontSize: FontSizes.subhead,
       fontWeight: "600",
     },
   });

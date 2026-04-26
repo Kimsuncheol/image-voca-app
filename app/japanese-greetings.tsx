@@ -3,6 +3,7 @@ import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { FontSizes } from "@/constants/fontSizes";
 
 import {
   ElementaryTable,
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   accentPillText: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "700",
   },
   heroDots: {
@@ -233,7 +234,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     lineHeight: 22,
     maxWidth: "92%",
   },
@@ -242,7 +243,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   sectionLabel: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "700",
     letterSpacing: 0.8,
     textTransform: "uppercase",
@@ -265,11 +266,11 @@ const styles = StyleSheet.create({
     flex: 0.95,
   },
   wordText: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     fontWeight: "700",
   },
   bodyText: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "500",
     lineHeight: 16,
   },

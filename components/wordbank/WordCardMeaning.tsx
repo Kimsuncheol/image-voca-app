@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet } from "react-native";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface WordCardMeaningProps {
   meaning: string;
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   meaning: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     lineHeight: 22,
   },
 });

@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "./themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface RoleplayDialogueRowProps {
   role: string;
@@ -34,7 +35,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   roleText: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     fontWeight: "600",
     opacity: 0.8,
   },

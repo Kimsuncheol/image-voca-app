@@ -6,6 +6,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
+import { FontSizes } from "@/constants/fontSizes";
 
 export default function ComingSoonScreen() {
   const { isDark } = useTheme();
@@ -91,12 +92,12 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   title: {
-    fontSize: 28,
+    fontSize: FontSizes.headingLg,
     fontWeight: "700",
     textAlign: "center",
   },
   description: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     textAlign: "center",
     lineHeight: 24,
   },
@@ -107,7 +108,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   linkText: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     fontWeight: "500",
   },
 });

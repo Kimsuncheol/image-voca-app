@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   Stack,
   useFocusEffect,
   useLocalSearchParams,
@@ -395,12 +396,12 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   continueBannerLabel: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "600",
     opacity: 0.8,
   },
   continueBannerDay: {
-    fontSize: 18,
+    fontSize: FontSizes.title,
     fontWeight: "700",
   },
 });

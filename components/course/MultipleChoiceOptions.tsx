@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface MultipleChoiceOptionsProps {
   options: string[];
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   optionText: {
-    fontSize: 18,
+    fontSize: FontSizes.title,
     textAlign: "center",
   },
 });

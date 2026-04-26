@@ -4,6 +4,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface EmptyWordBankViewProps {
   courseId: string;
@@ -73,12 +74,12 @@ const styles = StyleSheet.create({
     paddingTop: 100,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: FontSizes.title,
     fontWeight: "600",
     marginTop: 16,
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     opacity: 0.6,
     textAlign: "center",
     marginTop: 8,
@@ -97,7 +98,7 @@ const styles = StyleSheet.create({
   },
   startButtonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     fontWeight: "600",
     textAlign: "center",
   },

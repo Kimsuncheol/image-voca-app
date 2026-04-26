@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import React, { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { FontSizes } from "@/constants/fontSizes";
 
 import {
   AllCoursesSection,
@@ -163,7 +164,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   kanaButtonText: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     fontWeight: "500",
   },
   kanaButtonTextGroup: {
@@ -171,7 +172,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   kanaButtonSubtitle: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     opacity: 0.65,
     lineHeight: 16,
   },

@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 export function WordBankHeader() {
   const { t } = useTranslation();
@@ -24,7 +25,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     opacity: 0.6,
     marginTop: 4,
   },

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface DashboardHeaderProps {
   userName?: string;
@@ -61,7 +62,7 @@ const getStyles = (isDark: boolean) =>
       alignItems: "center",
     },
     greeting: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       opacity: 0.6,
       marginBottom: 4,
     },

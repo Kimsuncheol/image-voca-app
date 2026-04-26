@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "../../src/context/ThemeContext";
 import type { CalendarDayCell } from "../../src/utils/calendarStats";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface CalendarMonthGridProps {
   monthLabel: string;
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   monthLabel: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     opacity: 0.66,
     marginTop: 4,
   },
@@ -183,7 +184,7 @@ const styles = StyleSheet.create({
   weekday: {
     width: 42,
     textAlign: "center",
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     opacity: 0.56,
     fontWeight: "600",
   },
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   dayNumber: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     fontWeight: "700",
   },
   streakDot: {

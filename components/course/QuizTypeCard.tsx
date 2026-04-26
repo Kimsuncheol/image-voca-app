@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface QuizType {
   id: string;
@@ -73,12 +74,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   quizTitle: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     textAlign: "center",
     marginBottom: 4,
   },
   quizDescription: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     opacity: 0.6,
     textAlign: "center",
   },

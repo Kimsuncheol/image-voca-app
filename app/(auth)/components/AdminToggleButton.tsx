@@ -14,6 +14,7 @@ import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { FontSizes } from "@/constants/fontSizes";
 
 // =============================================================================
 // PROPS INTERFACE
@@ -80,7 +81,7 @@ const getStyles = (isDark: boolean) => {
       backgroundColor: bg.accentBlueSoft,
     },
     adminToggleText: {
-      fontSize: 14,
+      fontSize: FontSizes.body,
       fontWeight: "600",
       color: fontColors.mutedLabel,
     },

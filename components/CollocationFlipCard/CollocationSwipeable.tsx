@@ -7,6 +7,7 @@ import PagerView from "react-native-pager-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { CollocationFlipCard } from "./index";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface Props {
   data: VocabularyCard[];
@@ -313,12 +314,12 @@ const styles = StyleSheet.create({
   },
   hintTextLight: {
     color: "#FFFFFF",
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "600",
   },
   hintTextDark: {
     color: "#FFFFFF",
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "600",
   },
 });

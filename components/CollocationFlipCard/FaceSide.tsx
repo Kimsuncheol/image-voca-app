@@ -2,6 +2,7 @@ import { CARD_HEIGHT } from "@/src/constants/layout";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   Dimensions,
   Platform,
   Pressable,
@@ -411,7 +412,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   collocationText: {
-    fontSize: 48,
+    fontSize: FontSizes.displayXl,
     fontWeight: "700",
     textAlign: "left",
     color: "#111",
@@ -426,7 +427,7 @@ const styles = StyleSheet.create({
     lineHeight: 50,
   },
   meaningText: {
-    fontSize: 18,
+    fontSize: FontSizes.title,
     fontWeight: "400",
     textAlign: "left",
     color: "#666",

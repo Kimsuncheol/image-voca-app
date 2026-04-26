@@ -7,6 +7,7 @@ import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
 import { LearningLanguage } from "../../src/types/vocabulary";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   splitJapaneseTextSegments,
   stripKanaParens,
 } from "../../src/utils/japaneseText";
@@ -307,30 +308,30 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   label: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "600",
     letterSpacing: 0.8,
     textTransform: "uppercase",
     marginBottom: 10,
   },
   quoteText: {
-    fontSize: 22,
+    fontSize: FontSizes.titleLg,
     fontWeight: "bold",
     lineHeight: 32,
   },
   translation: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     lineHeight: 20,
     marginTop: 10,
   },
   author: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     fontWeight: "bold",
     marginTop: 12,
     textAlign: "right",
   },
   furigana: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     color: "#9A9A9A",
   },
   kanaToggleBar: {
@@ -352,7 +353,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#2EA043",
   },
   kanaToggleText: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "600",
     letterSpacing: 0.5,
   },

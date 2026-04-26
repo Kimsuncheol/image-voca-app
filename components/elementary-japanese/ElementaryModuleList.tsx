@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../themed-text";
 import { ElementaryModuleCard } from "./ElementaryModuleCard";
+import { FontSizes } from "@/constants/fontSizes";
 
 type ElementaryModuleListProps = {
   isDark: boolean;
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   sectionLabel: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "700",
     letterSpacing: 0.8,
     textTransform: "uppercase",

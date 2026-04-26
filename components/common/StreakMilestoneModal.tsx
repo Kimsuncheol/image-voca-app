@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   Modal,
   StyleSheet,
   Text,
@@ -84,15 +85,15 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   flame: {
-    fontSize: 56,
+    fontSize: FontSizes.displayHuge,
   },
   title: {
-    fontSize: 24,
+    fontSize: FontSizes.heading,
     fontWeight: "700",
     textAlign: "center",
   },
   message: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     textAlign: "center",
     lineHeight: 22,
   },
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     fontWeight: "700",
   },
 });

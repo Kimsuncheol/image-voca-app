@@ -4,6 +4,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+import { FontSizes } from "@/constants/fontSizes";
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     color: "#fff",
-    fontSize: 13,
+    fontSize: FontSizes.label,
     fontWeight: "700",
   },
   card: {},

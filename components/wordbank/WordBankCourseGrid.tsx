@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   Course,
   CourseType,
 } from "../../src/types/vocabulary";
@@ -88,17 +89,17 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   courseTitle: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     textAlign: "center",
   },
   courseDescription: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     opacity: 0.6,
     textAlign: "center",
     marginTop: 4,
   },
   wordCountBadge: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "600",
     marginTop: 6,
   },

@@ -3,6 +3,7 @@ import * as Linking from "expo-linking";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { FirebaseError } from "firebase/app";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   ActionCodeSettings,
   confirmPasswordReset,
   sendPasswordResetEmail,
@@ -421,14 +422,14 @@ const getStyles = (isDark: boolean) => {
       alignItems: "center",
     },
     title: {
-      fontSize: 32,
+      fontSize: FontSizes.headingXl,
       fontWeight: "bold",
       color: fontColors.body,
       marginBottom: 8,
       textAlign: "center",
     },
     subtitle: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       color: fontColors.supporting,
       textAlign: "center",
     },
@@ -446,12 +447,12 @@ const getStyles = (isDark: boolean) => {
     },
     successText: {
       color: fontColors.passwordResetSuccessText,
-      fontSize: 13,
+      fontSize: FontSizes.label,
       fontWeight: "600",
     },
     infoText: {
       color: fontColors.supporting,
-      fontSize: 14,
+      fontSize: FontSizes.body,
       marginBottom: 12,
       textAlign: "center",
     },
@@ -462,7 +463,7 @@ const getStyles = (isDark: boolean) => {
     },
     helperText: {
       color: fontColors.supporting,
-      fontSize: 13,
+      fontSize: FontSizes.label,
       textAlign: "center",
     },
   });

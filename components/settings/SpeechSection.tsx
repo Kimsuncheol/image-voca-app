@@ -5,6 +5,7 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useSpeechPreferences } from "../../src/hooks/useSpeechPreferences";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   SpeechPreferenceLanguage,
   getNextSpeechSpeedPreset,
 } from "../../src/services/speechPreferences";
@@ -93,7 +94,7 @@ const localStyles = StyleSheet.create({
   },
   presetText: {
     color: "#fff",
-    fontSize: 13,
+    fontSize: FontSizes.label,
     fontWeight: "700",
   },
 });

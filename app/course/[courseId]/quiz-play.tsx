@@ -1,4 +1,5 @@
 import {
+import { FontSizes } from "@/constants/fontSizes";
   Stack,
   useFocusEffect,
   useLocalSearchParams,
@@ -860,7 +861,7 @@ const styles = StyleSheet.create({
   },
   nextButtonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     fontWeight: "600",
   },
 });

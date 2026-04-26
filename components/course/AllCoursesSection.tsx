@@ -6,6 +6,7 @@ import { useTheme } from "../../src/context/ThemeContext";
 import { Course } from "../../src/types/vocabulary";
 import { CourseCard } from "../course";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface AllCoursesSectionProps {
   courses: Course[];
@@ -53,6 +54,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: FontSizes.title,
   },
 });

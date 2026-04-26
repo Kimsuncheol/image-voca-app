@@ -12,6 +12,7 @@
 import React from "react";
 import { Text, TouchableOpacity, StyleSheet } from "react-native";
 import { FontColors } from "../../../constants/fontColors";
+import { FontSizes } from "@/constants/fontSizes";
 
 // =============================================================================
 // PROPS INTERFACE
@@ -38,7 +39,7 @@ export const LinkButton: React.FC<LinkButtonProps> = ({ text, onPress }) => {
 const styles = StyleSheet.create({
   text: {
     color: FontColors.light.actionAccent,
-    fontSize: 14,
+    fontSize: FontSizes.body,
     fontWeight: "600",
   },
 });

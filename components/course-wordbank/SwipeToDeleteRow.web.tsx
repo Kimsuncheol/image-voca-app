@@ -1,5 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface SwipeToDeleteRowProps {
   itemId: string;
@@ -60,7 +61,7 @@ const styles = StyleSheet.create({
   },
   deleteActionText: {
     color: "#fff",
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     fontWeight: "700",
   },
 });

@@ -3,6 +3,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 interface QuizFinishViewProps {
   score: number;
@@ -89,14 +90,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   scoreText: {
-    fontSize: 40,
+    fontSize: FontSizes.displayLg,
   },
   scoreLabel: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     opacity: 0.6,
   },
   resultMessage: {
-    fontSize: 24,
+    fontSize: FontSizes.heading,
     marginBottom: 32,
   },
   resultButtons: {
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
   },
   resultButtonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     fontWeight: "600",
   },
 });

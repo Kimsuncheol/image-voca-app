@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   ScrollView,
   StyleSheet,
   Text,
@@ -295,7 +296,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   accentPillText: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "700",
   },
   heroDots: {
@@ -317,7 +318,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     lineHeight: 22,
     maxWidth: "92%",
   },
@@ -326,7 +327,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   sectionLabel: {
-    fontSize: 12,
+    fontSize: FontSizes.caption,
     fontWeight: "700",
     letterSpacing: 0.8,
     textTransform: "uppercase",
@@ -349,25 +350,25 @@ const styles = StyleSheet.create({
     paddingRight: 0,
   },
   wordText: {
-    fontSize: 14,
+    fontSize: FontSizes.body,
     fontWeight: "700",
   },
   bodyText: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "500",
     lineHeight: 16,
   },
   exampleText: {
-    fontSize: 11,
+    fontSize: FontSizes.sm,
     fontWeight: "600",
     lineHeight: 17,
   },
   furiganaText: {
-    fontSize: 9,
+    fontSize: FontSizes.xxs,
     fontWeight: "500",
   },
   subText: {
-    fontSize: 10,
+    fontSize: FontSizes.xs,
     lineHeight: 15,
     marginTop: 2,
   },
@@ -376,7 +377,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   furiganaToggle: {
-    fontSize: 15,
+    fontSize: FontSizes.bodyMd,
     fontWeight: "600",
   },
 });

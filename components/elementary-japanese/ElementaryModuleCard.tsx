@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "../themed-text";
+import { FontSizes } from "@/constants/fontSizes";
 
 export type ElementaryModuleCardProps = {
   title: string;
@@ -81,11 +82,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: FontSizes.bodyLg,
     fontWeight: "600",
   },
   cardDescription: {
-    fontSize: 13,
+    fontSize: FontSizes.label,
     lineHeight: 18,
     opacity: 0.65,
   },

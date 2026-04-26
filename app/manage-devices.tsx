@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+import { FontSizes } from "@/constants/fontSizes";
   Alert,
   ScrollView,
   StyleSheet,
@@ -346,17 +347,17 @@ const getStyles = (isDark: boolean) => {
       gap: 8,
     },
     title: {
-      fontSize: 24,
+      fontSize: FontSizes.heading,
       fontWeight: "700",
       color: fontColors.screenTitleCompact,
     },
     subtitle: {
-      fontSize: 16,
+      fontSize: FontSizes.bodyLg,
       fontWeight: "600",
       color: fontColors.actionAccentStrong,
     },
     helper: {
-      fontSize: 14,
+      fontSize: FontSizes.body,
       lineHeight: 20,
       color: fontColors.deviceHelper,
     },
@@ -366,11 +367,11 @@ const getStyles = (isDark: boolean) => {
       padding: 20,
     },
     stateText: {
-      fontSize: 15,
+      fontSize: FontSizes.bodyMd,
       color: fontColors.screenBodyStrong,
     },
     errorText: {
-      fontSize: 15,
+      fontSize: FontSizes.bodyMd,
       color: fontColors.dangerText,
     },
     listCard: {
@@ -397,7 +398,7 @@ const getStyles = (isDark: boolean) => {
       flexWrap: "wrap",
     },
     deviceTitle: {
-      fontSize: 18,
+      fontSize: FontSizes.title,
       fontWeight: "700",
       color: fontColors.screenTitleCompact,
     },
@@ -408,12 +409,12 @@ const getStyles = (isDark: boolean) => {
       paddingVertical: 4,
     },
     badgeText: {
-      fontSize: 12,
+      fontSize: FontSizes.caption,
       fontWeight: "700",
       color: fontColors.actionAccentStrong,
     },
     deviceMeta: {
-      fontSize: 14,
+      fontSize: FontSizes.body,
       color: fontColors.deviceMeta,
     },
     removeButton: {
@@ -427,7 +428,7 @@ const getStyles = (isDark: boolean) => {
       paddingVertical: 10,
     },
     removeButtonText: {
-      fontSize: 14,
+      fontSize: FontSizes.body,
       fontWeight: "700",
       color: fontColors.buttonOnAccent,
     },
