@@ -6,7 +6,6 @@
  * =============================================================================
  */
 
-export { AdminToggleButton } from "./AdminToggleButton";
 export { AvatarPicker } from "./AvatarPicker";
 export { Divider } from "./Divider";
 export { ErrorBanner } from "./ErrorBanner";
