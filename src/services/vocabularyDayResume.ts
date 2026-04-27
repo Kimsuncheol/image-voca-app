@@ -20,7 +20,7 @@ const makeStorageKey = (
 const normalizeIndex = (value: unknown) => {
   if (typeof value !== "number" || !Number.isFinite(value)) return null;
   const index = Math.floor(value);
-  return index >= 0 ? index : null;
+  return index > 0 ? index : null;
 };
 
 export const validateResumeProgress = ({
@@ -104,6 +104,11 @@ export const saveResumeProgress = async ({
   cards: CourseVocabularyCard[];
   currentIndex: number;
 }): Promise<VocabularyDayResumeProgress | null> => {
+  if (currentIndex <= 0) {
+    await clearResumeProgress({ userId, courseId, dayNumber });
+    return null;
+  }
+
   const card = cards[currentIndex];
   if (!card) return null;
 

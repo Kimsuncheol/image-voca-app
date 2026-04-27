@@ -441,6 +441,67 @@ describe("VocabularyScreen deck state", () => {
     });
   });
 
+  it("shows leave confirmation on the first word without creating resumable progress", async () => {
+    mockUser = { uid: "user-1" };
+    render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(beforeRemoveHandler).toBeDefined();
+    });
+
+    const event = {
+      preventDefault: jest.fn(),
+      data: { action: { type: "GO_BACK" } },
+    };
+
+    act(() => {
+      beforeRemoveHandler?.(event);
+    });
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Leave this day?",
+      "Your current word will be saved.",
+      expect.any(Array),
+    );
+
+    const leaveCall = alertSpy.mock.calls.find(
+      (call) => call[0] === "Leave this day?",
+    );
+    const buttons = leaveCall?.[2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+
+    act(() => {
+      buttons.find((button) => button.text === "Leave")?.onPress?.();
+    });
+
+    await waitFor(() => {
+      expect(mockSaveResumeProgress).toHaveBeenCalledWith(
+        expect.objectContaining({
+          currentIndex: 0,
+          courseId: "TOEIC",
+          dayNumber: 1,
+        }),
+      );
+      expect(mockNavigationDispatch).toHaveBeenCalledWith({ type: "GO_BACK" });
+    });
+
+    const secondRender = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(secondRender.getByText("Vocabulary Deck")).toBeTruthy();
+    });
+
+    expect(secondRender.getByText("Initial Index 0")).toBeTruthy();
+    expect(Alert.alert).not.toHaveBeenCalledWith(
+      "Continue where you left off?",
+      "Resume message",
+      expect.any(Array),
+    );
+  });
+
   it("does not prompt for completed days and clears stale progress", async () => {
     mockUser = { uid: "user-1" };
     mockCourseProgress = { TOEIC: { 1: { completed: true } } };

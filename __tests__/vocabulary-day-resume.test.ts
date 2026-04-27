@@ -68,7 +68,7 @@ describe("vocabulary day resume storage", () => {
       courseId: "TOEIC",
       dayNumber: 1,
       cards,
-      currentIndex: 0,
+      currentIndex: 1,
     });
 
     await clearResumeProgress({
@@ -76,6 +76,27 @@ describe("vocabulary day resume storage", () => {
       courseId: "TOEIC",
       dayNumber: 1,
     });
+
+    await expect(
+      getResumeProgress({
+        userId: "user-1",
+        courseId: "TOEIC",
+        dayNumber: 1,
+        cards,
+      }),
+    ).resolves.toBeNull();
+  });
+
+  it("does not save first-card resume progress", async () => {
+    const saved = await saveResumeProgress({
+      userId: "user-1",
+      courseId: "TOEIC",
+      dayNumber: 1,
+      cards,
+      currentIndex: 0,
+    });
+
+    expect(saved).toBeNull();
 
     await expect(
       getResumeProgress({
@@ -108,6 +129,19 @@ describe("vocabulary day resume storage", () => {
     expect(
       validateResumeProgress({
         value: { ...validShape, dayNumber: 2 },
+        courseId: "TOEIC",
+        dayNumber: 1,
+        cards,
+      }),
+    ).toBeNull();
+
+    expect(
+      validateResumeProgress({
+        value: {
+          ...validShape,
+          currentIndex: 0,
+          cardId: "word-1",
+        },
         courseId: "TOEIC",
         dayNumber: 1,
         cards,
