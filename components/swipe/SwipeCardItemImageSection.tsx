@@ -5,6 +5,7 @@ import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import {
   blackCardColors,
   blackCardSharedStyles,
+  blackCardSpacing,
 } from "../course/vocabulary/blackCardStyles";
 
 interface SwipeCardItemImageSectionProps {
@@ -51,11 +52,12 @@ const styles = StyleSheet.create({
     backgroundColor: blackCardColors.surface,
     alignItems: "center",
     justifyContent: "center",
-    paddingTop: 48,
+    paddingHorizontal: 4,
+    paddingTop: blackCardSpacing.contentTop,
   },
   cardImage: {
     height: "86%",
-    width: "88%",
+    width: "100%",
     resizeMode: "cover",
     borderRadius: 0,
   },

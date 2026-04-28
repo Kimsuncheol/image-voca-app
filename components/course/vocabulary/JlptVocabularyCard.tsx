@@ -10,7 +10,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useCardSpeechCleanup } from "../../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../../src/hooks/useSpeech";
@@ -20,10 +19,10 @@ import {
   stripKanaParens,
 } from "../../../src/utils/japaneseText";
 import { resolveVocabularyContent } from "../../../src/utils/localizedVocabulary";
-import { DayBadge } from "../../common/DayBadge";
 import { InlineMeaningWithChips } from "../../common/InlineMeaningWithChips";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
 import { SwipeCardItemImageSection } from "../../swipe/SwipeCardItemImageSection";
+import { blackCardColors, blackCardSharedStyles } from "./blackCardStyles";
 
 const { width } = Dimensions.get("window");
 
@@ -83,7 +82,7 @@ function LabeledMeaningRow({
         isDark={isDark}
         textStyle={[
           styles.cardDescription,
-          { color: isDark ? "#e0e0e0" : "#2c2c2c" },
+          { color: blackCardColors.secondary },
         ]}
         containerStyle={styles.inlineMeaning}
         chipStyle={styles.inlineChip}
@@ -104,7 +103,6 @@ const ExampleBlock = React.memo(function ExampleBlock({
 }: ExampleBlockProps) {
   useCardSpeechCleanup(isActive);
   const { speak } = useSpeech();
-  const fontColors = getFontColors(isDark);
   const hiddenExample = React.useMemo(
     () => (example ? stripKanaParens(example) : example),
     [example],
@@ -154,7 +152,7 @@ const ExampleBlock = React.memo(function ExampleBlock({
                 <Text
                   style={[
                     styles.cardExample,
-                    { color: isDark ? "#b0b0b0" : "#444" },
+                    { color: blackCardColors.primary },
                   ]}
                   numberOfLines={2}
                 >
@@ -180,7 +178,7 @@ const ExampleBlock = React.memo(function ExampleBlock({
                 testID={index === 0 ? "jlpt-card-translation" : undefined}
                 style={[
                   styles.cardTranslation,
-                  { color: fontColors.translation },
+                  { color: blackCardColors.muted },
                 ]}
                 numberOfLines={2}
               >
@@ -212,27 +210,6 @@ export function JlptVocabularyCard({
     () => resolveVocabularyContent(item, i18n.language),
     [i18n.language, item],
   );
-  React.useEffect(() => {
-    console.log("[JlptVocabularyCard] fields", {
-      image: resolved.imageUrl ?? "(none)",
-      word: resolved.word,
-      pronunciation: resolved.sharedPronunciation ?? "(none)",
-      meaning: resolved.meaning,
-      example: resolved.example || "(none)",
-      exampleFurigana: resolved.exampleFurigana ?? "(none)",
-      translation: resolved.translation ?? "(none)",
-      showKana,
-    });
-  }, [
-    resolved.example,
-    resolved.exampleFurigana,
-    resolved.imageUrl,
-    resolved.meaning,
-    resolved.sharedPronunciation,
-    resolved.translation,
-    resolved.word,
-    showKana,
-  ]);
   const displayWord = toDisplayValue(item.word);
   const pronunciation = React.useMemo(() => {
     const candidate = toDisplayValue(resolved.sharedPronunciation);
@@ -253,8 +230,7 @@ export function JlptVocabularyCard({
     <View
       style={[
         styles.card,
-        { backgroundColor: isDark ? "#1a1a1a" : "#fff" },
-        { borderColor: isDark ? "#333" : "#E0E0E0" },
+        { backgroundColor: blackCardColors.surface },
       ]}
     >
       <SwipeCardItemImageSection
@@ -278,7 +254,7 @@ export function JlptVocabularyCard({
         testID="jlpt-card-info"
         style={[
           styles.cardInfo,
-          { backgroundColor: isDark ? "#1a1a1a" : "#fff" },
+          { backgroundColor: blackCardColors.surface },
         ]}
       >
         <ScrollView
@@ -294,7 +270,7 @@ export function JlptVocabularyCard({
                 <Text
                   style={[
                     styles.cardTitle,
-                    { color: isDark ? "#fff" : "#1a1a1a" },
+                    { color: blackCardColors.primary },
                   ]}
                   numberOfLines={1}
                 >
@@ -302,13 +278,17 @@ export function JlptVocabularyCard({
                 </Text>
               </TouchableOpacity>
             </View>
-            {day !== undefined && <DayBadge day={day} />}
+            {day !== undefined && (
+              <View style={blackCardSharedStyles.dayPill}>
+                <Text style={blackCardSharedStyles.dayPillText}>Day {day}</Text>
+              </View>
+            )}
           </View>
 
           {pronunciation ? (
             <Text
               testID="jlpt-card-pronunciation"
-              style={[styles.cardSubtitle, { color: isDark ? "#999" : "#666" }]}
+              style={[styles.cardSubtitle, { color: blackCardColors.muted }]}
             >
               {pronunciation}
             </Text>
@@ -352,7 +332,7 @@ export function JlptVocabularyCard({
               <Text
                 style={[
                   styles.kanaToggleText,
-                  { color: showKana ? "#FFFFFF" : isDark ? "#8e8e93" : "#666" },
+                  { color: showKana ? "#FFFFFF" : blackCardColors.muted },
                 ]}
               >
                 がな
@@ -369,34 +349,35 @@ const styles = StyleSheet.create({
   card: {
     height: "100%",
     width: width * 0.9,
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
+    backgroundColor: blackCardColors.surface,
+    borderRadius: 0,
+    borderWidth: 0,
+    borderColor: blackCardColors.surface,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.44,
-    shadowRadius: 10.32,
-    elevation: 16,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
     overflow: "hidden",
   },
   cardInfo: {
     height: "65%",
-    backgroundColor: "#fff",
+    backgroundColor: blackCardColors.surface,
     flexDirection: "column",
   },
   cardInfoScroll: {
     flex: 1,
   },
   cardInfoContent: {
-    padding: 24,
+    paddingHorizontal: 4,
+    paddingTop: 12,
     paddingBottom: 32,
   },
   kanaToggleBar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",
-    paddingHorizontal: 24,
+    paddingHorizontal: 4,
     paddingVertical: 12,
   },
   kanaTogglePill: {
@@ -430,13 +411,13 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: FontSizes.headingXl,
-    fontWeight: "bold",
-    color: "#1a1a1a",
+    fontWeight: "900",
+    color: blackCardColors.primary,
     flexShrink: 1,
   },
   cardSubtitle: {
     fontSize: FontSizes.bodyMd,
-    color: "#666",
+    color: blackCardColors.muted,
     marginTop: 2,
     marginBottom: 6,
     letterSpacing: 0.2,
@@ -463,7 +444,7 @@ const styles = StyleSheet.create({
   },
   cardDescription: {
     fontSize: FontSizes.subhead,
-    color: "#2c2c2c",
+    color: blackCardColors.secondary,
     lineHeight: 24,
     fontWeight: "500",
   },
@@ -476,7 +457,7 @@ const styles = StyleSheet.create({
   cardExample: {
     fontSize: FontSizes.bodyLg,
     fontWeight: "500",
-    color: "#444",
+    color: blackCardColors.primary,
     lineHeight: 20,
   },
   cardTranslation: {
@@ -487,6 +468,6 @@ const styles = StyleSheet.create({
   },
   cardFurigana: {
     fontSize: FontSizes.caption,
-    color: "#9A9A9A",
+    color: blackCardColors.muted,
   },
 });

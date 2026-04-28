@@ -22,6 +22,7 @@ import { SavedWord } from "../wordbank/WordCard";
 import {
   blackCardColors,
   blackCardSharedStyles,
+  blackCardSpacing,
 } from "../course/vocabulary/blackCardStyles";
 import { CollocationData, CollocationWordBankConfig } from "./types";
 
@@ -381,7 +382,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "flex-start",
     paddingTop: 22,
-    paddingHorizontal: 24,
+    paddingHorizontal: 4,
     gap: 12,
     width: "100%",
   },
@@ -475,11 +476,11 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     flex: 4.5,
-    width: "88%",
-    alignSelf: "center",
+    alignSelf: "stretch",
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
     overflow: "hidden",
-    marginTop: 48,
+    marginHorizontal: 4,
+    marginTop: blackCardSpacing.contentTop,
   },
 });

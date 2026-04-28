@@ -1,6 +1,7 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
 import { StyleSheet } from "react-native";
+import { blackCardColors } from "../components/course/vocabulary/blackCardStyles";
 import { JlptVocabularyCard } from "../components/course/vocabulary/JlptVocabularyCard";
 import { VocabularyCard } from "../src/types/vocabulary";
 
@@ -40,23 +41,30 @@ jest.mock("../components/swipe/SwipeCardItemImageSection", () => ({
   SwipeCardItemImageSection: ({
     imageUrl,
     testID,
+    topRightOverlay,
   }: {
     imageUrl?: string;
     testID?: string;
+    topRightOverlay?: React.ReactNode;
   }) => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { Text: MockText } = require("react-native");
+    const { Text: MockText, View } = require("react-native");
     return (
-      <MockText testID={testID ?? "mock-image-section"}>
-        {imageUrl ?? "placeholder"}
-      </MockText>
+      <View testID={testID ?? "mock-image-section"}>
+        <MockText>{imageUrl ?? "placeholder"}</MockText>
+        {topRightOverlay}
+      </View>
     );
   },
 }));
 
 jest.mock("../components/swipe/SwipeCardItemAddToWordBankButton", () => ({
   __esModule: true,
-  SwipeCardItemAddToWordBankButton: () => null,
+  SwipeCardItemAddToWordBankButton: () => {
+    const React = require("react");
+    const { Text } = require("react-native");
+    return <Text testID="mock-save-control">save</Text>;
+  },
 }));
 
 jest.mock("../components/common/DayBadge", () => ({
@@ -105,9 +113,7 @@ describe("JlptVocabularyCard", () => {
     );
 
     expect(getByTestId("jlpt-card-image-shell")).toBeTruthy();
-    expect(getByTestId("jlpt-card-image-shell").props.children).toBe(
-      "https://cdn.example.com/jlpt.jpg",
-    );
+    expect(getByText("https://cdn.example.com/jlpt.jpg")).toBeTruthy();
     expect(getByTestId("jlpt-card-info")).toBeTruthy();
     expect(getByTestId("jlpt-card-info-scroll")).toBeTruthy();
     expect(getByText("間")).toBeTruthy();
@@ -118,6 +124,30 @@ describe("JlptVocabularyCard", () => {
     expect(queryByText("eki to hoteru no aida")).toBeNull();
     expect(queryByText("Meaning")).toBeNull();
     expect(queryByText("Example")).toBeNull();
+  });
+
+  it("uses the improved black card surface while keeping save hidden in preview", () => {
+    const normal = render(
+      <JlptVocabularyCard item={buildCard()} initialIsSaved={true} day={1} />,
+    );
+    const infoStyle = StyleSheet.flatten(
+      normal.getByTestId("jlpt-card-info").props.style,
+    );
+    const titleStyle = StyleSheet.flatten(normal.getByText("間").props.style);
+
+    expect(infoStyle).toEqual(
+      expect.objectContaining({ backgroundColor: blackCardColors.surface }),
+    );
+    expect(titleStyle).toEqual(
+      expect.objectContaining({ color: blackCardColors.primary }),
+    );
+    expect(normal.getByTestId("mock-save-control")).toBeTruthy();
+
+    const preview = render(
+      <JlptVocabularyCard item={buildCard()} initialIsSaved={true} day={1} isPreviewMode />,
+    );
+
+    expect(preview.queryByTestId("mock-save-control")).toBeNull();
   });
 
   it("renders Korean meaning and translation for Korean UI", () => {
@@ -164,7 +194,7 @@ describe("JlptVocabularyCard", () => {
     expect(getByText("between the station and the hotel")).toBeTruthy();
     expect(queryByText("eki to hoteru no aida")).toBeNull();
     expect(StyleSheet.flatten(getByTestId("jlpt-card-translation").props.style)).toEqual(
-      expect.objectContaining({ color: "#888" }),
+      expect.objectContaining({ color: blackCardColors.muted }),
     );
 
     const renderedTree = JSON.stringify(toJSON());
@@ -209,7 +239,7 @@ describe("JlptVocabularyCard", () => {
   });
 
   it("hides empty JLPT rows while keeping the card render stable", () => {
-    const { queryByTestId, getByTestId } = render(
+    const { queryByTestId, getByText } = render(
       <JlptVocabularyCard
         item={buildCard({
           pronunciation: " ",
@@ -225,9 +255,7 @@ describe("JlptVocabularyCard", () => {
 
     expect(queryByTestId("jlpt-card-pronunciation")).toBeNull();
     expect(queryByTestId("jlpt-card-translation")).toBeNull();
-    expect(getByTestId("jlpt-card-image-shell").props.children).toBe(
-      "placeholder",
-    );
+    expect(getByText("placeholder")).toBeTruthy();
   });
 
   it("renders the pronunciation value without any romanization", () => {
@@ -311,7 +339,7 @@ describe("JlptVocabularyCard", () => {
     );
 
     expect(getByTestId("jlpt-card-furigana-0-1")).toHaveStyle({
-      color: "#9A9A9A",
+      color: blackCardColors.muted,
       fontSize: 12,
     });
   });

@@ -14,6 +14,10 @@ export const blackCardColors = {
   pillBorder: "rgba(255,255,255,0.08)",
 };
 
+export const blackCardSpacing = {
+  contentTop: 10,
+};
+
 export const blackCardSharedStyles = StyleSheet.create({
   dayPill: {
     minHeight: 40,

@@ -2,6 +2,10 @@ import { StyleSheet } from "react-native";
 import { FontColors } from "../../../constants/fontColors";
 import { CARD_HEIGHT, CARD_WIDTH } from "../../../src/constants/layout";
 import { FontSizes } from "@/constants/fontSizes";
+import {
+  blackCardColors,
+  blackCardSpacing,
+} from "./blackCardStyles";
 
 // const { width } = Dimensions.get("window");
 
@@ -16,18 +20,22 @@ export const styles = StyleSheet.create({
   // Face
   face: {
     flex: 1,
-    borderRadius: 20,
-    borderWidth: 1,
+    backgroundColor: blackCardColors.surface,
+    borderRadius: 0,
+    borderWidth: 0,
+    borderColor: blackCardColors.surface,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.44,
-    shadowRadius: 10.32,
-    elevation: 16,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
     overflow: "hidden",
   },
   faceInnerContainer: {
     flex: 6,
-    padding: 24,
+    paddingTop: 22,
+    paddingBottom: 24,
+    paddingHorizontal: 4,
   },
   imageContainer: {
     flex: 4,
@@ -35,8 +43,10 @@ export const styles = StyleSheet.create({
     width: "100%",
   },
   cardImage: {
-    width: "100%",
-    height: "100%",
+    flex: 1,
+    alignSelf: "stretch",
+    marginHorizontal: 4,
+    marginTop: blackCardSpacing.contentTop,
     overflow: "hidden",
   },
   imageTopRightOverlay: {
@@ -57,7 +67,7 @@ export const styles = StyleSheet.create({
   faceContent: {
     flex: 1,
     justifyContent: "flex-start",
-    gap: 20,
+    gap: 18,
   },
   kanjiSectionRow: {
     flexDirection: "row",
@@ -74,9 +84,9 @@ export const styles = StyleSheet.create({
     gap: 4,
   },
   faceSectionLabel: {
-    fontSize: FontSizes.sm,
-    fontWeight: "700",
-    letterSpacing: 0.5,
+    fontSize: FontSizes.bodyLg,
+    fontWeight: "800",
+    letterSpacing: 0.8,
     textTransform: "uppercase",
     marginBottom: 2,
   },
@@ -99,24 +109,26 @@ export const styles = StyleSheet.create({
   // Back
   back: {
     flex: 1,
-    borderRadius: 20,
-    borderWidth: 1,
+    backgroundColor: blackCardColors.surface,
+    borderRadius: 0,
+    borderWidth: 0,
+    borderColor: blackCardColors.surface,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.44,
-    shadowRadius: 10.32,
-    elevation: 16,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
     overflow: "hidden",
   },
   backHeader: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    paddingHorizontal: 20,
+    paddingHorizontal: 4,
     paddingTop: 14,
     paddingBottom: 4,
   },
   furiganaButton: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 6,
     paddingVertical: 4,
     borderRadius: 12,
   },
@@ -128,7 +140,8 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   backScrollContent: {
-    padding: 24,
+    paddingHorizontal: 4,
+    paddingTop: 18,
     paddingBottom: 32,
     gap: 16,
   },
@@ -154,6 +167,7 @@ export const styles = StyleSheet.create({
     height: 2,
     borderWidth: 1,
     borderStyle: "dashed",
+    borderColor: blackCardColors.dividerMuted,
   },
   backGroup: {
     gap: 6,

@@ -1,6 +1,6 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
-import { Alert } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import VocabularyScreen from "../app/course/[courseId]/vocabulary";
 
 const mockBufferWordLearned = jest.fn();
@@ -297,6 +297,28 @@ describe("VocabularyScreen deck state", () => {
         }),
       );
     });
+  });
+
+  it("top-aligns the active deck close to the header", async () => {
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Vocabulary Deck")).toBeTruthy();
+    });
+
+    const viewNodes = screen.UNSAFE_getAllByType(View);
+    const hasTopAlignedDeckContainer = viewNodes.some((node) => {
+      const style = StyleSheet.flatten(node.props.style);
+      return (
+        style?.flex === 1 &&
+        style?.width === "100%" &&
+        style?.alignItems === "center" &&
+        style?.justifyContent === "flex-start" &&
+        style?.paddingTop == null
+      );
+    });
+
+    expect(hasTopAlignedDeckContainer).toBe(true);
   });
 
   it("keeps the deck active when the index changes in the same session", async () => {

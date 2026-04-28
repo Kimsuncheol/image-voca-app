@@ -6,13 +6,13 @@ import {
   View,
   type GestureResponderEvent,
 } from "react-native";
-import { getFontColors } from "../../../constants/fontColors";
 import { useSpeech } from "../../../src/hooks/useSpeech";
 import {
   splitJapaneseTextSegments,
   stripKanaParens,
 } from "../../../src/utils/japaneseText";
 import { styles } from "./KanjiCollocationCardStyles";
+import { blackCardColors } from "./blackCardStyles";
 import { trimmedStringAt } from "./kanjiCollocationUtils";
 
 /**
@@ -53,7 +53,6 @@ export function GeneralBackSection({
   onFlip,
 }: GeneralBackSectionProps) {
   const { speak } = useSpeech();
-  const fontColors = getFontColors(isDark);
   const items = examples
     .map((example, index) => ({
       example: example.trim(),
@@ -85,7 +84,7 @@ export function GeneralBackSection({
           suppressHighlighting
           style={[
             styles.backSectionTitle,
-            { color: fontColors.muted },
+            { color: blackCardColors.muted },
           ]}
         >
           EXAMPLE
@@ -145,7 +144,7 @@ export function GeneralBackSection({
                     style={[
                       styles.backExample,
                       styles.backExampleOverlay,
-                      { color: fontColors.example },
+                      { color: blackCardColors.primary },
                     ]}
                   >
                     {visibleSegments.map((segment, segmentIndex) => (
@@ -160,7 +159,7 @@ export function GeneralBackSection({
                           segment.isKanaParen
                             ? [
                                 styles.backInlineFurigana,
-                                { color: fontColors.furigana },
+                                { color: blackCardColors.muted },
                               ]
                             : undefined
                         }
@@ -174,7 +173,7 @@ export function GeneralBackSection({
                   <Text
                     style={[
                       styles.backTranslation,
-                      { color: fontColors.translation },
+                      { color: blackCardColors.muted },
                     ]}
                   >
                     {item.translation}

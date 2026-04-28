@@ -6,7 +6,6 @@ import {
   View,
   type GestureResponderEvent,
 } from "react-native";
-import { getFontColors } from "../../../constants/fontColors";
 import { useSpeech } from "../../../src/hooks/useSpeech";
 import type { KanjiWord } from "../../../src/types/vocabulary";
 import {
@@ -14,10 +13,13 @@ import {
   buildKanjiReadingDisplayRows,
 } from "../../../src/utils/kanjiDisplayRows";
 import { CollocationCardImage } from "../../common/CollocationCardImage";
-import { DayBadge } from "../../common/DayBadge";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
 import { DottedDivider } from "./KanjiCollocationCardDivider";
 import { styles } from "./KanjiCollocationCardStyles";
+import {
+  blackCardColors,
+  blackCardSharedStyles,
+} from "./blackCardStyles";
 
 /**
  * Props passed to the front face component of the Kanji Collocation Card.
@@ -31,7 +33,7 @@ export interface FaceSideProps {
   isActive: boolean;
   /** Current app language used to choose localized meaning/reading labels */
   language?: string;
-  /** The day integer identifier associated with the word (used for indexing in DayBadge) */
+  /** The day integer identifier associated with the word */
   day?: number;
   /** Whether the word is initially tagged as saved in the user's wordbank */
   initialIsSaved?: boolean;
@@ -62,7 +64,6 @@ export function FaceSide({
   language = "en",
 }: FaceSideProps) {
   const { speak } = useSpeech();
-  const fontColors = getFontColors(isDark);
 
   const handleSpeakItem = React.useCallback(
     (text: string) => {
@@ -89,8 +90,8 @@ export function FaceSide({
       style={[
         styles.face,
         {
-          backgroundColor: isDark ? "#1a1a1a" : "#fff",
-          borderColor: isDark ? "#333" : "#E0E0E0",
+          backgroundColor: blackCardColors.surface,
+          borderColor: blackCardColors.surface,
         },
       ]}
       onPress={onFlip}
@@ -118,11 +119,15 @@ export function FaceSide({
         <View style={styles.faceContent}>
           <View style={styles.kanjiSectionRow}>
             <Text
-              style={[styles.kanjiText, { color: fontColors.primary }]}
+              style={[styles.kanjiText, { color: blackCardColors.primary }]}
             >
               {item.kanji}
             </Text>
-            {day !== undefined && <DayBadge day={day} />}
+            {day !== undefined && (
+              <View style={blackCardSharedStyles.dayPill}>
+                <Text style={blackCardSharedStyles.dayPillText}>Day {day}</Text>
+              </View>
+            )}
           </View>
 
           {meanings.length > 0 && (
@@ -130,7 +135,7 @@ export function FaceSide({
               <Text
                 style={[
                   styles.faceSectionLabel,
-                  { color: fontColors.muted },
+                  { color: blackCardColors.muted },
                 ]}
               >
                 MEANING
@@ -150,7 +155,7 @@ export function FaceSide({
                       <Text
                         style={[
                           styles.faceListItem,
-                          { color: fontColors.subtle, fontSize: FontSizes.body },
+                          { color: blackCardColors.muted, fontSize: FontSizes.body },
                         ]}
                       >
                         {m.localizedText}
@@ -166,7 +171,7 @@ export function FaceSide({
                         <Text
                           style={[
                             styles.faceListItem,
-                            { color: fontColors.secondary },
+                            { color: blackCardColors.secondary },
                           ]}
                         >
                           {m.baseText}
@@ -187,7 +192,7 @@ export function FaceSide({
               <Text
                 style={[
                   styles.faceSectionLabel,
-                  { color: fontColors.muted },
+                  { color: blackCardColors.muted },
                 ]}
               >
                 READING
@@ -207,7 +212,7 @@ export function FaceSide({
                       <Text
                         style={[
                           styles.faceListItem,
-                          { color: fontColors.subtle, fontSize: FontSizes.body },
+                          { color: blackCardColors.muted, fontSize: FontSizes.body },
                         ]}
                       >
                         {r.localizedText}
@@ -223,7 +228,7 @@ export function FaceSide({
                         <Text
                           style={[
                             styles.faceListItem,
-                            { color: fontColors.secondary },
+                            { color: blackCardColors.secondary },
                           ]}
                         >
                           {r.baseText}

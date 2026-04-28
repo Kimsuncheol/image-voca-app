@@ -2,6 +2,7 @@ import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
 import { StyleSheet, Text } from "react-native";
 import { KanjiCollocationCard } from "../components/course/vocabulary/KanjiCollocationCard";
+import { blackCardColors } from "../components/course/vocabulary/blackCardStyles";
 import type { KanjiWord } from "../src/types/vocabulary";
 
 let mockLanguage = "en";
@@ -36,7 +37,11 @@ jest.mock("../src/hooks/useCardSpeechCleanup", () => ({
 
 jest.mock("../components/swipe/SwipeCardItemAddToWordBankButton", () => ({
   __esModule: true,
-  SwipeCardItemAddToWordBankButton: () => null,
+  SwipeCardItemAddToWordBankButton: () => {
+    const React = require("react");
+    const { Text } = require("react-native");
+    return <Text testID="mock-save-control">save</Text>;
+  },
 }));
 
 jest.mock("../components/common/DayBadge", () => ({
@@ -124,6 +129,33 @@ describe("KanjiCollocationCard", () => {
     expect(getByText("word")).toBeTruthy();
     expect(getByText("go")).toBeTruthy();
     expect(getByText("ご")).toBeTruthy();
+  });
+
+  it("uses the improved black surfaces and hides save in preview", () => {
+    const normal = render(
+      <KanjiCollocationCard item={buildKanjiWord()} day={1} />,
+    );
+    const faceStyle = flattenStyleOf(
+      normal.getByTestId("kanji-collocation-face-side"),
+    );
+    const kanjiStyle = flattenStyleOf(normal.getByText("語"));
+
+    expect(faceStyle).toEqual(
+      expect.objectContaining({
+        backgroundColor: blackCardColors.surface,
+        borderColor: blackCardColors.surface,
+      }),
+    );
+    expect(kanjiStyle).toEqual(
+      expect.objectContaining({ color: blackCardColors.primary }),
+    );
+    expect(normal.getByTestId("mock-save-control")).toBeTruthy();
+
+    const preview = render(
+      <KanjiCollocationCard item={buildKanjiWord()} day={1} isPreviewMode />,
+    );
+
+    expect(preview.queryByTestId("mock-save-control")).toBeNull();
   });
 
   it("renders combined rows independently of UI language", () => {
@@ -280,10 +312,10 @@ describe("KanjiCollocationCard", () => {
     const meaningTexts = screen.getByTestId("kanji-collocation-face-meaning-0").findAllByType(Text);
     const readingTexts = screen.getByTestId("kanji-collocation-face-reading-0").findAllByType(Text);
 
-    expect(flattenStyleOf(meaningTexts[0]).color).toBe("#666");
-    expect(flattenStyleOf(meaningTexts[1]).color).toBe("#1a1a1a");
-    expect(flattenStyleOf(readingTexts[0]).color).toBe("#666");
-    expect(flattenStyleOf(readingTexts[1]).color).toBe("#1a1a1a");
+    expect(flattenStyleOf(meaningTexts[0]).color).toBe(blackCardColors.muted);
+    expect(flattenStyleOf(meaningTexts[1]).color).toBe(blackCardColors.secondary);
+    expect(flattenStyleOf(readingTexts[0]).color).toBe(blackCardColors.muted);
+    expect(flattenStyleOf(readingTexts[1]).color).toBe(blackCardColors.secondary);
   });
 
   it("hides the divider above reading when the meaning section has no visible entries", () => {
@@ -368,13 +400,13 @@ describe("KanjiCollocationCard", () => {
     expect(flattenStyleOf(meaningHurigana)).toEqual(
       expect.objectContaining({
         fontSize: 8,
-        color: "#999",
+        color: blackCardColors.muted,
       }),
     );
     expect(flattenStyleOf(readingHurigana)).toEqual(
       expect.objectContaining({
         fontSize: 8,
-        color: "#999",
+        color: blackCardColors.muted,
       }),
     );
     expect(queryByText("ごをまなぶ。")).toBeNull();
@@ -444,24 +476,24 @@ describe("KanjiCollocationCard", () => {
     flipToBack(screen);
     const { getAllByText, queryByText, getByText, getByTestId } = screen;
 
-    expect(flattenStyleOf(getByTestId("kanji-collocation-meaning-hurigana-0-0")).color).toBe("#999");
-    expect(flattenStyleOf(getByTestId("kanji-collocation-reading-hurigana-0-0")).color).toBe("#999");
+    expect(flattenStyleOf(getByTestId("kanji-collocation-meaning-hurigana-0-0")).color).toBe(blackCardColors.muted);
+    expect(flattenStyleOf(getByTestId("kanji-collocation-reading-hurigana-0-0")).color).toBe(blackCardColors.muted);
     expect(queryByText("ごをまなぶ。")).toBeNull();
     expect(textChildrenOf(getByTestId("kanji-collocation-example-visible-0"))).toEqual(["語を学ぶ。"]);
 
     fireEvent.press(getByText("がな"));
 
     expect(getByTestId("kanji-collocation-back-side")).toBeTruthy();
-    expect(flattenStyleOf(getByTestId("kanji-collocation-meaning-hurigana-0-0")).color).toBe("#999");
-    expect(flattenStyleOf(getByTestId("kanji-collocation-reading-hurigana-0-0")).color).toBe("#999");
+    expect(flattenStyleOf(getByTestId("kanji-collocation-meaning-hurigana-0-0")).color).toBe(blackCardColors.muted);
+    expect(flattenStyleOf(getByTestId("kanji-collocation-reading-hurigana-0-0")).color).toBe(blackCardColors.muted);
     expect(queryByText("ごをまなぶ。")).toBeNull();
     expect(getAllByText("(ご)").length).toBeGreaterThanOrEqual(1);
     expect(getAllByText("(まな)").length).toBeGreaterThanOrEqual(1);
 
     fireEvent.press(getByText("がな"));
 
-    expect(flattenStyleOf(getByTestId("kanji-collocation-meaning-hurigana-0-0")).color).toBe("#999");
-    expect(flattenStyleOf(getByTestId("kanji-collocation-reading-hurigana-0-0")).color).toBe("#999");
+    expect(flattenStyleOf(getByTestId("kanji-collocation-meaning-hurigana-0-0")).color).toBe(blackCardColors.muted);
+    expect(flattenStyleOf(getByTestId("kanji-collocation-reading-hurigana-0-0")).color).toBe(blackCardColors.muted);
     expect(textChildrenOf(getByTestId("kanji-collocation-example-visible-0"))).toEqual(["語を学ぶ。"]);
   });
 
@@ -555,14 +587,14 @@ describe("KanjiCollocationCard", () => {
       expect.objectContaining({
         alignSelf: "stretch",
         textAlign: "left",
-        color: "#999",
+        color: blackCardColors.muted,
       }),
     );
     expect(flattenStyleOf(screen.getByTestId("kanji-collocation-reading-hurigana-0-0"))).toEqual(
       expect.objectContaining({
         alignSelf: "stretch",
         textAlign: "left",
-        color: "#999",
+        color: blackCardColors.muted,
       }),
     );
 

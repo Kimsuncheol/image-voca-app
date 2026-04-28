@@ -708,7 +708,14 @@ export default function VocabularyScreen() {
         }}
       />
       <View style={styles.swipeContainer}>
-        <View style={styles.deckContainer}>
+        <View
+          style={[
+            styles.deckContainer,
+            hasCards() &&
+              !(isFinished && courseId !== "COLLOCATION") &&
+              styles.activeDeckContainer,
+          ]}
+        >
           {hasCards() ? (
             isFinished && courseId !== "COLLOCATION" ? (
               renderFinishedView()
@@ -767,6 +774,9 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
+  },
+  activeDeckContainer: {
+    justifyContent: "flex-start",
   },
   previewFinishContainer: {
     flex: 1,

@@ -1,5 +1,6 @@
 import { render } from "@testing-library/react-native";
 import React from "react";
+import { StyleSheet, View } from "react-native";
 import { SwipeCardItemImageSection } from "../components/swipe/SwipeCardItemImageSection";
 
 describe("SwipeCardItemImageSection", () => {
@@ -41,5 +42,20 @@ describe("SwipeCardItemImageSection", () => {
 
     expect(getByTestId("swipe-card-image-top-right-overlay")).toBeTruthy();
     expect(getByText("save")).toBeTruthy();
+  });
+
+  it("uses the tight content top inset for the image content area", () => {
+    const { UNSAFE_getByType } = render(
+      <SwipeCardItemImageSection isDark={false} />,
+    );
+
+    const containerStyle = StyleSheet.flatten(UNSAFE_getByType(View).props.style);
+
+    expect(containerStyle).toEqual(
+      expect.objectContaining({
+        paddingHorizontal: 4,
+        paddingTop: 10,
+      }),
+    );
   });
 });

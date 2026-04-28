@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { doc, runTransaction } from "firebase/firestore";
 import React from "react";
-import { Alert } from "react-native";
+import { Alert, StyleSheet } from "react-native";
 import FaceSide from "../components/CollocationFlipCard/FaceSide";
 
 const mockSpeak = jest.fn();
@@ -61,6 +61,7 @@ function buildFaceSide(initialIsSaved = false) {
         explanation: "",
         example: "She made a decision quickly.",
         translation: "그녀는 빨리 결정을 내렸다.",
+        imageUrl: "https://cdn.example.com/collocation.png",
       }}
       isDark={false}
       wordBankConfig={{
@@ -133,5 +134,18 @@ describe("Collocation FaceSide word bank toggle", () => {
       "swipe.errors.alreadyAdded",
     );
     expect(Alert.alert).not.toHaveBeenCalled();
+  });
+
+  it("uses the tight content top inset for the image content area", () => {
+    const screen = render(buildFaceSide());
+    const image = screen.getByTestId("mock-expo-image");
+    const imageStyle = StyleSheet.flatten(image.props.style);
+
+    expect(imageStyle).toEqual(
+      expect.objectContaining({
+        marginHorizontal: 4,
+        marginTop: 10,
+      }),
+    );
   });
 });

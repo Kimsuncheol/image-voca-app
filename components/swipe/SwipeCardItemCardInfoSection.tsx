@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   cardInfo: {
     height: "62%",
     justifyContent: "flex-start",
-    paddingHorizontal: 24,
+    paddingHorizontal: 4,
     paddingTop: 12,
     paddingBottom: 24,
     backgroundColor: blackCardColors.surface,
