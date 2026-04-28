@@ -1,5 +1,5 @@
-import { StyleSheet } from "react-native";
 import { FontSizes } from "@/constants/fontSizes";
+import { StyleSheet } from "react-native";
 
 export const blackCardColors = {
   surface: "#000000",
@@ -15,16 +15,16 @@ export const blackCardColors = {
 };
 
 export const blackCardSpacing = {
-  contentTop: 10,
+  contentTop: 0,
 };
 
 export const blackCardSharedStyles = StyleSheet.create({
   dayPill: {
-    minHeight: 40,
-    paddingHorizontal: 16,
-    borderRadius: 14,
+    minHeight: 32,
+    paddingHorizontal: 12,
+    borderRadius: 8,
     backgroundColor: blackCardColors.pill,
-    borderWidth: 1,
+    borderWidth: 0.5,
     borderColor: blackCardColors.pillBorder,
     alignItems: "center",
     justifyContent: "center",
@@ -32,7 +32,7 @@ export const blackCardSharedStyles = StyleSheet.create({
   },
   dayPillText: {
     color: blackCardColors.primary,
-    fontSize: FontSizes.bodyLg,
+    fontSize: FontSizes.body,
     fontWeight: "700",
   },
   topLeftControl: {
@@ -44,7 +44,7 @@ export const blackCardSharedStyles = StyleSheet.create({
   topRightControl: {
     position: "absolute",
     top: 28,
-    right: 24,
+    right: 12,
     zIndex: 5,
   },
   sectionLabel: {

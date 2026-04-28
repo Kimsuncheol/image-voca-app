@@ -1,6 +1,7 @@
 import React from "react";
 import { FontSizes } from "@/constants/fontSizes";
 import {
+  Dimensions,
   Pressable,
   Text,
   View,
@@ -45,6 +46,22 @@ export interface FaceSideProps {
   onFlip: () => void;
 }
 
+const getDynamicFontSize = (text: string, baseFontSize: number, minFontSize: number): number => {
+  const { width } = Dimensions.get("window");
+  const availableWidth = width * 0.8;
+  const textLength = text.length;
+
+  const charWidthRatio = 0.6;
+  const estimatedWidth = textLength * baseFontSize * charWidthRatio;
+
+  if (estimatedWidth <= availableWidth) {
+    return baseFontSize;
+  }
+
+  const scaledFontSize = availableWidth / (textLength * charWidthRatio);
+  return Math.max(minFontSize, Math.min(baseFontSize, scaledFontSize));
+};
+
 /**
  * FaceSide
  *
@@ -72,6 +89,10 @@ export function FaceSide({
     },
     [isActive, speak],
   );
+
+  const dynamicFontSize = React.useMemo(() => {
+    return getDynamicFontSize(item.kanji, 64, 32);
+  }, [item.kanji]);
 
   const meanings = buildKanjiMeaningDisplayRows(item, language);
   const readings = buildKanjiReadingDisplayRows(item, language);
@@ -119,7 +140,13 @@ export function FaceSide({
         <View style={styles.faceContent}>
           <View style={styles.kanjiSectionRow}>
             <Text
-              style={[styles.kanjiText, { color: blackCardColors.primary }]}
+              style={[
+                styles.kanjiText,
+                { color: blackCardColors.primary, fontSize: dynamicFontSize },
+              ]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
             >
               {item.kanji}
             </Text>

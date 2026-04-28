@@ -103,7 +103,6 @@ export default function DayPickerScreen() {
     return isNaN(parsed) ? 0 : parsed;
   });
   const [loadingDay, setLoadingDay] = useState<number | null>(null);
-  const [previewPickerVisible, setPreviewPickerVisible] = useState(false);
   const [initialLoading, setInitialLoading] = useState(
     !initialTotalDays || isNaN(parseInt(initialTotalDays, 10)),
   );
@@ -123,7 +122,7 @@ export default function DayPickerScreen() {
     }
     return totalDays;
   }, [dayProgress, totalDays]);
-  const canPreviewCourse = PREVIEWABLE_COURSES.has(courseId as TopLevelCourseType);
+
 
   // ---------------------------------------------------------------------------
   // Effects
@@ -316,26 +315,7 @@ export default function DayPickerScreen() {
     [courseId],
   );
 
-  const handlePreviewDayPress = useCallback(
-    async (day: number) => {
-      if (!courseId) return;
-      setPreviewPickerVisible(false);
-      setLoadingDay(day);
-      try {
-        await prefetchDayAssets(day);
-      } catch {
-        // Preview screen handles its own loading if prefetch fails or times out.
-      } finally {
-        setLoadingDay(null);
-      }
-      if (!isFocusedRef.current) return;
-      router.push({
-        pathname: "/course/[courseId]/vocabulary",
-        params: { courseId, day: day.toString(), preview: "1" },
-      });
-    },
-    [courseId, prefetchDayAssets, router],
-  );
+
 
 
 
@@ -369,45 +349,7 @@ export default function DayPickerScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Continue banner — shown when the user has prior progress */}
-        {canPreviewCourse && totalDays > 0 && (
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel={t("course.preview", { defaultValue: "Preview" })}
-            style={[
-              styles.previewBanner,
-              {
-                backgroundColor: bgColors.cardSubtle,
-                borderColor: course?.color ?? "#007AFF",
-              },
-            ]}
-            onPress={() => setPreviewPickerVisible(true)}
-            disabled={loadingDay !== null}
-            activeOpacity={0.75}
-          >
-            <View style={styles.previewBannerLeft}>
-              <Ionicons
-                name="eye-outline"
-                size={22}
-                color={course?.color ?? "#007AFF"}
-              />
-              <View style={styles.previewBannerCopy}>
-                <ThemedText style={styles.previewBannerTitle}>
-                  {t("course.preview", { defaultValue: "Preview" })}
-                </ThemedText>
-                <ThemedText style={styles.previewBannerSubtitle}>
-                  {t("course.previewSelectDay", {
-                    defaultValue: "Select a day to preview",
-                  })}
-                </ThemedText>
-              </View>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={course?.color ?? "#007AFF"}
-            />
-          </TouchableOpacity>
-        )}
+
 
         {firstIncompleteDay > 1 && (
           <TouchableOpacity
@@ -467,69 +409,6 @@ export default function DayPickerScreen() {
           onHidden={() => setSplashVisible(false)}
         />
       )}
-      <Modal
-        visible={previewPickerVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setPreviewPickerVisible(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          <View
-            style={[
-              styles.previewSheet,
-              { backgroundColor: bgColors.cardSubtle },
-            ]}
-          >
-            <View style={styles.previewSheetHeader}>
-              <ThemedText style={styles.previewSheetTitle}>
-                {t("course.previewSelectDay", {
-                  defaultValue: "Select a day to preview",
-                })}
-              </ThemedText>
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityLabel={t("common.cancel", {
-                  defaultValue: "Cancel",
-                })}
-                onPress={() => setPreviewPickerVisible(false)}
-                style={styles.previewCloseButton}
-              >
-                <Ionicons
-                  name="close"
-                  size={20}
-                  color={isDark ? "#fff" : "#111"}
-                />
-              </TouchableOpacity>
-            </View>
-            <ScrollView
-              contentContainerStyle={styles.previewDayGrid}
-              showsVerticalScrollIndicator={false}
-            >
-              {Array.from({ length: totalDays }, (_, i) => i + 1).map((day) => (
-                <TouchableOpacity
-                  key={day}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${t("course.preview", {
-                    defaultValue: "Preview",
-                  })} ${t("course.dayTitle", { day })}`}
-                  style={[
-                    styles.previewDayButton,
-                    {
-                      borderColor: course?.color ?? "#007AFF",
-                      backgroundColor: isDark ? "#1c1c1e" : "#fff",
-                    },
-                  ]}
-                  onPress={() => handlePreviewDayPress(day)}
-                >
-                  <ThemedText style={styles.previewDayText}>
-                    {t("course.dayTitle", { day })}
-                  </ThemedText>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }

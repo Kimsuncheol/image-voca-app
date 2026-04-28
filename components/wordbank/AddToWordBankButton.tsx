@@ -64,7 +64,9 @@ export function AddToWordBankButton({
         );
 
         if (dedupedWords.some((word) => word.id === itemId)) {
-          const updatedWords = dedupedWords.filter((word) => word.id !== itemId);
+          const updatedWords = dedupedWords.filter(
+            (word) => word.id !== itemId,
+          );
           transaction.set(wordRef, { words: updatedWords }, { merge: true });
           return "removed" as const;
         }
@@ -105,13 +107,23 @@ export function AddToWordBankButton({
     user,
   ]);
 
-  const iconName = variant === "bookmark"
-    ? (isAdded ? "bookmark" : "bookmark-outline")
-    : (isAdded ? "star" : "star-outline");
-  const iconColor = variant === "bookmark"
-    ? (isAdded ? "#fff" : isDark ? "#0a84ff" : "#007AFF")
-    : (isAdded ? "#4A3600" : "#FFFFFF");
-  const iconSize = variant === "bookmark" ? 20 : 18;
+  const iconName =
+    variant === "bookmark"
+      ? isAdded
+        ? "bookmark"
+        : "bookmark-outline"
+      : isAdded
+        ? "star"
+        : "star-outline";
+  const iconColor =
+    variant === "bookmark"
+      ? isDark
+        ? "#0a84ff"
+        : "#007AFF"
+      : isAdded
+        ? "#4A3600"
+        : "#FFFFFF";
+  const iconSize = variant === "bookmark" ? 28 : 18;
 
   if (variant === "bookmark") {
     return (
@@ -120,9 +132,6 @@ export function AddToWordBankButton({
         style={({ pressed }) => [
           styles.baseButton,
           styles.bookmarkButton,
-          isAdded ? styles.bookmarkButtonAdded : (
-            isDark ? styles.bookmarkButtonDark : styles.bookmarkButtonLight
-          ),
           isAdding && styles.buttonDisabled,
           pressed && styles.buttonPressed,
         ]}
@@ -181,25 +190,12 @@ const styles = StyleSheet.create({
     borderColor: "#F4C542",
   },
   bookmarkButton: {
-    position: "absolute",
-    top: 28,
-    right: 28,
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     borderRadius: 10,
     zIndex: 3,
-  },
-  bookmarkButtonLight: {
-    backgroundColor: "rgba(0, 122, 255, 0.1)",
-    borderColor: "rgba(0, 122, 255, 0.2)",
-  },
-  bookmarkButtonDark: {
-    backgroundColor: "rgba(10, 132, 255, 0.15)",
-    borderColor: "rgba(10, 132, 255, 0.25)",
-  },
-  bookmarkButtonAdded: {
-    backgroundColor: "#007AFF",
-    borderColor: "#007AFF",
+    borderWidth: 0,
+    backgroundColor: "transparent",
   },
   buttonDisabled: {
     opacity: 0.6,

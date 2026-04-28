@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import {
-  blackCardColors,
-} from "../course/vocabulary/blackCardStyles";
+import { blackCardColors } from "../course/vocabulary/blackCardStyles";
 import ExampleSection from "./ExampleSection";
 import ExplanationSection from "./ExplanationSection";
 import { CollocationData } from "./types";
@@ -136,7 +134,6 @@ const styles = StyleSheet.create({
   backContentContainer: {
     flex: 1,
     minHeight: 0,
-    paddingTop: 72,
     justifyContent: "flex-start",
   },
   footer: {

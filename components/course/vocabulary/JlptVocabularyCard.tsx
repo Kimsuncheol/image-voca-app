@@ -1,6 +1,6 @@
+import { FontSizes } from "@/constants/fontSizes";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { FontSizes } from "@/constants/fontSizes";
 import {
   Dimensions,
   Pressable,
@@ -51,6 +51,22 @@ interface ExampleBlockProps {
   isActive: boolean;
   showKana: boolean;
 }
+
+const getDynamicFontSize = (text: string, baseFontSize: number, minFontSize: number): number => {
+  const { width } = Dimensions.get("window");
+  const availableWidth = width * 0.8;
+  const textLength = text.length;
+
+  const charWidthRatio = 0.6;
+  const estimatedWidth = textLength * baseFontSize * charWidthRatio;
+
+  if (estimatedWidth <= availableWidth) {
+    return baseFontSize;
+  }
+
+  const scaledFontSize = availableWidth / (textLength * charWidthRatio);
+  return Math.max(minFontSize, Math.min(baseFontSize, scaledFontSize));
+};
 
 const toDisplayValue = (value?: string) => {
   if (typeof value !== "string") return undefined;
@@ -108,26 +124,35 @@ const ExampleBlock = React.memo(function ExampleBlock({
     [example],
   );
   const processedExample = showKana ? example : hiddenExample;
-  const examples = React.useMemo(() => splitLines(processedExample), [processedExample]);
-  const furiganaLines = React.useMemo(() => splitLines(exampleFurigana), [exampleFurigana]);
-  const translations = React.useMemo(() => splitLines(translation), [translation]);
-
-  const rowCount = Math.max(
-    examples.length,
-    translations.length,
+  const examples = React.useMemo(
+    () => splitLines(processedExample),
+    [processedExample],
   );
+  const furiganaLines = React.useMemo(
+    () => splitLines(exampleFurigana),
+    [exampleFurigana],
+  );
+  const translations = React.useMemo(
+    () => splitLines(translation),
+    [translation],
+  );
+
+  const rowCount = Math.max(examples.length, translations.length);
   const rowIndices = React.useMemo(
     () => Array.from({ length: rowCount }, (_, index) => index),
     [rowCount],
   );
 
-  const handleSpeak = React.useCallback((text: string, index: number) => {
-    if (!isActive) {
-      return;
-    }
-    const ttsText = furiganaLines[index] ?? stripKanaParens(text);
-    void speak(ttsText, { language: "ja-JP" });
-  }, [isActive, speak, furiganaLines]);
+  const handleSpeak = React.useCallback(
+    (text: string, index: number) => {
+      if (!isActive) {
+        return;
+      }
+      const ttsText = furiganaLines[index] ?? stripKanaParens(text);
+      void speak(ttsText, { language: "ja-JP" });
+    },
+    [isActive, speak, furiganaLines],
+  );
 
   if (rowCount === 0) {
     return null;
@@ -164,7 +189,9 @@ const ExampleBlock = React.memo(function ExampleBlock({
                           ? `jlpt-card-furigana-${index}-${segmentIndex}`
                           : undefined
                       }
-                      style={segment.isKanaParen ? styles.cardFurigana : undefined}
+                      style={
+                        segment.isKanaParen ? styles.cardFurigana : undefined
+                      }
                     >
                       {segment.text}
                     </Text>
@@ -223,16 +250,17 @@ export function JlptVocabularyCard({
     if (!isActive) {
       return;
     }
-    void speak(resolved.sharedPronunciation ?? item.word, { language: "ja-JP" });
+    void speak(resolved.sharedPronunciation ?? item.word, {
+      language: "ja-JP",
+    });
   }, [isActive, item.word, resolved.sharedPronunciation, speak]);
 
+  const dynamicFontSize = React.useMemo(() => {
+    return getDynamicFontSize(item.word, 48, 24);
+  }, [item.word]);
+
   return (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: blackCardColors.surface },
-      ]}
-    >
+    <View style={[styles.card, { backgroundColor: blackCardColors.surface }]}>
       <SwipeCardItemImageSection
         testID="jlpt-card-image-shell"
         imageUrl={item.imageUrl}
@@ -252,10 +280,7 @@ export function JlptVocabularyCard({
 
       <View
         testID="jlpt-card-info"
-        style={[
-          styles.cardInfo,
-          { backgroundColor: blackCardColors.surface },
-        ]}
+        style={[styles.cardInfo, { backgroundColor: blackCardColors.surface }]}
       >
         <ScrollView
           testID="jlpt-card-info-scroll"
@@ -270,9 +295,11 @@ export function JlptVocabularyCard({
                 <Text
                   style={[
                     styles.cardTitle,
-                    { color: blackCardColors.primary },
+                    { color: blackCardColors.primary, fontSize: dynamicFontSize },
                   ]}
                   numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.5}
                 >
                   {item.word}
                 </Text>
@@ -378,7 +405,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-end",
     paddingHorizontal: 4,
-    paddingVertical: 12,
+    marginBottom: 20,
   },
   kanaTogglePill: {
     minHeight: 34,
@@ -388,6 +415,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "transparent",
+    marginBottom: 0,
   },
   kanaTogglePillActive: {
     backgroundColor: "#2EA043",

@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import React, { useCallback } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -15,6 +15,7 @@ import { BackgroundColors, getBackgroundColors } from "../../constants/backgroun
 import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
+import { useTabLayout } from "../../src/context/TabLayoutContext";
 import {
   useDashboardSettingsStore,
   type DashboardElement,
@@ -26,10 +27,9 @@ export default function DashboardScreen() {
   const fontColors = getFontColors(isDark);
   const bgColors = getBackgroundColors(isDark);
   const { user } = useAuth();
+  const tabLayout = useTabLayout();
 
   const { t } = useTranslation();
-
-  const router = useRouter();
 
   const {
     stats,
@@ -89,7 +89,7 @@ export default function DashboardScreen() {
         <DashboardStats
           streak={stats?.currentStreak ?? 0}
           todayLearned={getTodayProgress().current}
-          onCalendarPress={() => router.push("/calendar")}
+          onCalendarPress={() => tabLayout?.goToTab("calendar")}
         />
       </ScrollView>
     </View>

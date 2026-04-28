@@ -38,13 +38,12 @@ export default function CourseSelectionScreen() {
     try {
       if (isJlptParentCourseId(course.id)) {
         router.push("/course/jlpt-levels");
-        return;
+      } else {
+        router.push({
+          pathname: "/course/[courseId]/days",
+          params: { courseId: course.id },
+        });
       }
-
-      router.push({
-        pathname: "/course/[courseId]/days",
-        params: { courseId: course.id },
-      });
     } catch (error) {
       console.error("Error navigating to course:", error);
       isNavigatingRef.current = false;

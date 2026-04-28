@@ -32,7 +32,7 @@ export function SwipeCardItemAddToWordBankButton({
       initialIsSaved={initialIsSaved}
       onSavedStateChange={onSavedWordChange}
       testIDPrefix="swipe-card-add-to-wordbank"
-      variant="star"
+      variant="bookmark"
       buildSavedWord={() => {
         if (isKanjiWord(item)) {
           return {

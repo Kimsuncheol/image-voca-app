@@ -256,7 +256,7 @@ export default React.memo(function FaceSide({
             initialIsSaved={wordBankConfig?.initialIsSaved ?? false}
             onSavedStateChange={wordBankConfig?.onSavedStateChange}
             onRemoved={wordBankConfig?.onDelete}
-            variant="star"
+            variant="bookmark"
             buildSavedWord={() =>
               ({
                 id: wordBankConfig!.id,

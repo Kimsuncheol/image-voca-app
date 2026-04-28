@@ -1,7 +1,7 @@
+import { FontSizes } from "@/constants/fontSizes";
 import React from "react";
 import { StyleSheet } from "react-native";
 import { ThemedText } from "../themed-text";
-import { FontSizes } from "@/constants/fontSizes";
 
 interface DayBadgeProps {
   day: number;

@@ -1,11 +1,8 @@
+import { FontSizes } from "@/constants/fontSizes";
 import { StyleSheet } from "react-native";
 import { FontColors } from "../../../constants/fontColors";
 import { CARD_HEIGHT, CARD_WIDTH } from "../../../src/constants/layout";
-import { FontSizes } from "@/constants/fontSizes";
-import {
-  blackCardColors,
-  blackCardSpacing,
-} from "./blackCardStyles";
+import { blackCardColors, blackCardSpacing } from "./blackCardStyles";
 
 // const { width } = Dimensions.get("window");
 
@@ -51,8 +48,8 @@ export const styles = StyleSheet.create({
   },
   imageTopRightOverlay: {
     position: "absolute",
-    top: 12,
-    right: 12,
+    top: 20,
+    right: 8,
     zIndex: 3,
   },
   faceTopRow: {

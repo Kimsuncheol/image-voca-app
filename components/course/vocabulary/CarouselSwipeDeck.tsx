@@ -10,11 +10,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import {
-  CARD_HEIGHT,
-  CARD_WIDTH,
-  SCREEN_WIDTH,
-} from "../../../src/constants/layout";
+import { CARD_HEIGHT, SCREEN_WIDTH } from "../../../src/constants/layout";
 import {
   CourseVocabularyCard,
   isKanjiWord,
@@ -22,8 +18,7 @@ import {
 } from "../../../src/types/vocabulary";
 import { SwipeCardItem } from "../../swipe/SwipeCardItem";
 
-const PEEK = (SCREEN_WIDTH - CARD_WIDTH) / 2;
-const SNAP_INTERVAL = CARD_WIDTH;
+const SNAP_INTERVAL = SCREEN_WIDTH;
 
 const SPRING = { damping: 22, stiffness: 200, mass: 0.8 };
 
@@ -193,7 +188,7 @@ export function CarouselSwipeDeck<TCard extends CourseVocabularyCard>({
   }, [activeIndex, cards]);
 
   const rowStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: PEEK + translateX.value }],
+    transform: [{ translateX: translateX.value }],
   }));
 
   // Called from the UI thread via runOnJS — fires JS callbacks
@@ -303,8 +298,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cardSlot: {
-    width: CARD_WIDTH,
+    width: SCREEN_WIDTH,
     height: CARD_HEIGHT,
+    alignItems: "center",
+    marginTop: 0,
   },
   virtualizedCard: {
     flex: 1,

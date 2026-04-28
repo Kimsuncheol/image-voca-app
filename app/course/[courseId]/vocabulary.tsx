@@ -416,6 +416,14 @@ export default function VocabularyScreen() {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (event) => {
+      // Only intercept explicit back-button / swipe-back gestures (POP).
+      // NAVIGATE and RESET actions are programmatic or tab-switch events
+      // that should always be allowed through (e.g. after a language change).
+      const actionType = event.data.action.type;
+      if (actionType !== "POP" && actionType !== "GO_BACK") {
+        return;
+      }
+
       if (
         leaveConfirmedRef.current ||
         !user ||
