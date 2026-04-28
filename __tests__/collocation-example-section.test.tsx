@@ -57,7 +57,7 @@ describe("ExampleSection", () => {
     expect(queryByText("Michelle")).toBeNull();
     expect(
       StyleSheet.flatten(getByTestId("collocation-back-translation").props.style),
-    ).toEqual(expect.objectContaining({ color: "#888" }));
+    ).toEqual(expect.objectContaining({ color: "#9B9BA1" }));
   });
 
   test("does not render the old speaker button", () => {

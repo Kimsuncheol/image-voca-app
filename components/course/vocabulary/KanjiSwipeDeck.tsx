@@ -14,6 +14,7 @@ interface KanjiSwipeDeckProps {
   onIndexChange: (index: number) => void;
   onFinish: () => void;
   initialIndex?: number;
+  isPreviewMode?: boolean;
 }
 
 export const KanjiSwipeDeck: React.FC<KanjiSwipeDeckProps> = (props) => {
@@ -23,20 +24,23 @@ export const KanjiSwipeDeck: React.FC<KanjiSwipeDeckProps> = (props) => {
       isSaved,
       isActive,
       dayNumber,
+      isPreviewMode,
       onSavedWordChange,
     }: {
       item: KanjiWord;
       isSaved: boolean;
       isActive: boolean;
       dayNumber: number;
+      isPreviewMode: boolean;
       onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
     }) => (
       <KanjiCollocationCard
         item={item}
-        initialIsSaved={isSaved}
+        initialIsSaved={isPreviewMode ? false : isSaved}
         day={dayNumber}
         isActive={isActive}
-        onSavedWordChange={onSavedWordChange}
+        onSavedWordChange={isPreviewMode ? undefined : onSavedWordChange}
+        isPreviewMode={isPreviewMode}
       />
     ),
     [],

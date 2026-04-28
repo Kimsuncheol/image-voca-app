@@ -11,6 +11,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
+  Modal,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -38,12 +39,22 @@ import {
   CourseType,
   findRuntimeCourse,
   getLearningLanguageForCourse,
+  TopLevelCourseType,
 } from "../../../src/types/vocabulary";
 
 // -----------------------------------------------------------------------------
 // Type Definitions
 // -----------------------------------------------------------------------------
 // DayProgress, CourseProgress imported from store
+
+const PREVIEWABLE_COURSES = new Set<TopLevelCourseType>([
+  "수능",
+  "CSAT_IDIOMS",
+  "TOEIC",
+  "TOEFL_IELTS",
+  "EXTREMELY_ADVANCED",
+  "COLLOCATION",
+]);
 
 /**
  * DayPickerScreen Component
@@ -92,6 +103,7 @@ export default function DayPickerScreen() {
     return isNaN(parsed) ? 0 : parsed;
   });
   const [loadingDay, setLoadingDay] = useState<number | null>(null);
+  const [previewPickerVisible, setPreviewPickerVisible] = useState(false);
   const [initialLoading, setInitialLoading] = useState(
     !initialTotalDays || isNaN(parseInt(initialTotalDays, 10)),
   );
@@ -111,6 +123,7 @@ export default function DayPickerScreen() {
     }
     return totalDays;
   }, [dayProgress, totalDays]);
+  const canPreviewCourse = PREVIEWABLE_COURSES.has(courseId as TopLevelCourseType);
 
   // ---------------------------------------------------------------------------
   // Effects
@@ -279,6 +292,51 @@ export default function DayPickerScreen() {
     [courseId, router],
   );
 
+  const prefetchDayAssets = useCallback(
+    async (day: number) => {
+      if (!courseId) return;
+
+      const PREFETCH_TIMEOUT_MS = 8000;
+      const cards = await Promise.race([
+        prefetchVocabularyCards(courseId as CourseType, day),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("prefetch timeout")),
+            PREFETCH_TIMEOUT_MS,
+          ),
+        ),
+      ]);
+      const imageUrls = cards
+        .map((c) => ("imageUrl" in c ? c.imageUrl : undefined))
+        .filter((url): url is string => Boolean(url));
+      if (imageUrls.length > 0) {
+        await Image.prefetch(imageUrls, "memory-disk").catch(() => {});
+      }
+    },
+    [courseId],
+  );
+
+  const handlePreviewDayPress = useCallback(
+    async (day: number) => {
+      if (!courseId) return;
+      setPreviewPickerVisible(false);
+      setLoadingDay(day);
+      try {
+        await prefetchDayAssets(day);
+      } catch {
+        // Preview screen handles its own loading if prefetch fails or times out.
+      } finally {
+        setLoadingDay(null);
+      }
+      if (!isFocusedRef.current) return;
+      router.push({
+        pathname: "/course/[courseId]/vocabulary",
+        params: { courseId, day: day.toString(), preview: "1" },
+      });
+    },
+    [courseId, prefetchDayAssets, router],
+  );
+
 
 
   // ---------------------------------------------------------------------------
@@ -300,6 +358,9 @@ export default function DayPickerScreen() {
                 : t("course.days"),
           headerBackTitle: t("common.back"),
           headerBackVisible: loadingDay === null ? true : false,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: bgColors.screen },
+          headerTintColor: isDark ? "#fff" : "#000",
         }}
       />
       <TopInstallNativeAd />
@@ -308,6 +369,46 @@ export default function DayPickerScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Continue banner — shown when the user has prior progress */}
+        {canPreviewCourse && totalDays > 0 && (
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t("course.preview", { defaultValue: "Preview" })}
+            style={[
+              styles.previewBanner,
+              {
+                backgroundColor: bgColors.cardSubtle,
+                borderColor: course?.color ?? "#007AFF",
+              },
+            ]}
+            onPress={() => setPreviewPickerVisible(true)}
+            disabled={loadingDay !== null}
+            activeOpacity={0.75}
+          >
+            <View style={styles.previewBannerLeft}>
+              <Ionicons
+                name="eye-outline"
+                size={22}
+                color={course?.color ?? "#007AFF"}
+              />
+              <View style={styles.previewBannerCopy}>
+                <ThemedText style={styles.previewBannerTitle}>
+                  {t("course.preview", { defaultValue: "Preview" })}
+                </ThemedText>
+                <ThemedText style={styles.previewBannerSubtitle}>
+                  {t("course.previewSelectDay", {
+                    defaultValue: "Select a day to preview",
+                  })}
+                </ThemedText>
+              </View>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={course?.color ?? "#007AFF"}
+            />
+          </TouchableOpacity>
+        )}
+
         {firstIncompleteDay > 1 && (
           <TouchableOpacity
             style={[
@@ -366,6 +467,69 @@ export default function DayPickerScreen() {
           onHidden={() => setSplashVisible(false)}
         />
       )}
+      <Modal
+        visible={previewPickerVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPreviewPickerVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View
+            style={[
+              styles.previewSheet,
+              { backgroundColor: bgColors.cardSubtle },
+            ]}
+          >
+            <View style={styles.previewSheetHeader}>
+              <ThemedText style={styles.previewSheetTitle}>
+                {t("course.previewSelectDay", {
+                  defaultValue: "Select a day to preview",
+                })}
+              </ThemedText>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={t("common.cancel", {
+                  defaultValue: "Cancel",
+                })}
+                onPress={() => setPreviewPickerVisible(false)}
+                style={styles.previewCloseButton}
+              >
+                <Ionicons
+                  name="close"
+                  size={20}
+                  color={isDark ? "#fff" : "#111"}
+                />
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              contentContainerStyle={styles.previewDayGrid}
+              showsVerticalScrollIndicator={false}
+            >
+              {Array.from({ length: totalDays }, (_, i) => i + 1).map((day) => (
+                <TouchableOpacity
+                  key={day}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t("course.preview", {
+                    defaultValue: "Preview",
+                  })} ${t("course.dayTitle", { day })}`}
+                  style={[
+                    styles.previewDayButton,
+                    {
+                      borderColor: course?.color ?? "#007AFF",
+                      backgroundColor: isDark ? "#1c1c1e" : "#fff",
+                    },
+                  ]}
+                  onPress={() => handlePreviewDayPress(day)}
+                >
+                  <ThemedText style={styles.previewDayText}>
+                    {t("course.dayTitle", { day })}
+                  </ThemedText>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -391,6 +555,83 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     marginBottom: 20,
+  },
+  previewBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  previewBannerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+  },
+  previewBannerCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  previewBannerTitle: {
+    fontSize: FontSizes.bodyLg,
+    fontWeight: "700",
+  },
+  previewBannerSubtitle: {
+    fontSize: FontSizes.caption,
+    opacity: 0.65,
+  },
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.45)",
+  },
+  previewSheet: {
+    maxHeight: "72%",
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingTop: 18,
+    paddingHorizontal: 20,
+    paddingBottom: 28,
+  },
+  previewSheetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  previewSheetTitle: {
+    fontSize: FontSizes.title,
+    fontWeight: "700",
+  },
+  previewCloseButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  previewDayGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    paddingBottom: 8,
+  },
+  previewDayButton: {
+    width: "30%",
+    minHeight: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 6,
+  },
+  previewDayText: {
+    fontSize: FontSizes.bodyMd,
+    fontWeight: "700",
   },
   continueBannerLeft: {
     gap: 2,

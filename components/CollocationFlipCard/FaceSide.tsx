@@ -17,9 +17,12 @@ import {
   speakWordVariants,
 } from "../../src/utils/wordVariants";
 import { CollocationCardImage } from "../common/CollocationCardImage";
-import { DayBadge } from "../common/DayBadge";
 import { AddToWordBankButton } from "../wordbank/AddToWordBankButton";
 import { SavedWord } from "../wordbank/WordCard";
+import {
+  blackCardColors,
+  blackCardSharedStyles,
+} from "../course/vocabulary/blackCardStyles";
 import { CollocationData, CollocationWordBankConfig } from "./types";
 
 interface FaceSideProps {
@@ -210,7 +213,6 @@ export default React.memo(function FaceSide({
     <Pressable
       style={[
         styles.face,
-        isDark && styles.faceDark,
         isDeleteMode &&
           (isDark ? styles.faceDeleteModeDark : styles.faceDeleteModeLight),
         isSelected &&
@@ -303,7 +305,11 @@ export default React.memo(function FaceSide({
             {/* Section: Day chip */}
             {wordBankConfig?.day !== undefined && (
               <View style={styles.dayBadgeContainerRow}>
-                <DayBadge day={wordBankConfig.day} />
+                <View style={blackCardSharedStyles.dayPill}>
+                  <Text style={blackCardSharedStyles.dayPillText}>
+                    Day {wordBankConfig.day}
+                  </Text>
+                </View>
               </View>
             )}
           </View>
@@ -338,22 +344,16 @@ export default React.memo(function FaceSide({
 const styles = StyleSheet.create({
   face: {
     flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 24,
+    backgroundColor: blackCardColors.surface,
+    borderRadius: 0,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
     justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.02)",
-  },
-  faceDark: {
-    backgroundColor: "#1c1c1e",
-    borderColor: "#333",
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
+    borderWidth: 0,
+    borderColor: blackCardColors.surface,
   },
   faceDeleteModeLight: {
     borderColor: "#d0d0d0",
@@ -376,13 +376,13 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   textContainer: {
-    flex: 6,
+    flex: 5.5,
     flexDirection: "column",
     justifyContent: "flex-start",
     alignItems: "flex-start",
-    paddingTop: 24,
-    paddingHorizontal: 16,
-    gap: 8,
+    paddingTop: 22,
+    paddingHorizontal: 24,
+    gap: 12,
     width: "100%",
   },
   collocationRow: {
@@ -413,12 +413,12 @@ const styles = StyleSheet.create({
   },
   collocationText: {
     fontSize: FontSizes.displayXl,
-    fontWeight: "700",
+    fontWeight: "900",
     textAlign: "left",
-    color: "#111",
+    color: blackCardColors.primary,
     lineHeight: 56,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-    letterSpacing: -0.5,
+    letterSpacing: 0,
   },
   collocationVariantsContainer: {
     gap: 6,
@@ -427,15 +427,15 @@ const styles = StyleSheet.create({
     lineHeight: 50,
   },
   meaningText: {
-    fontSize: FontSizes.title,
-    fontWeight: "400",
+    fontSize: FontSizes.titleLg,
+    fontWeight: "500",
     textAlign: "left",
-    color: "#666",
-    lineHeight: 26,
+    color: blackCardColors.secondary,
+    lineHeight: 30,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
   textDark: {
-    color: "#FFFFFF",
+    color: blackCardColors.primary,
   },
   footer: {
     width: "100%",
@@ -471,16 +471,15 @@ const styles = StyleSheet.create({
     borderColor: "#636366",
   },
   topRightOverlay: {
-    position: "absolute",
-    top: 28,
-    right: 28,
-    zIndex: 3,
+    ...blackCardSharedStyles.topRightControl,
   },
   cardImage: {
-    flex: 4,
-    width: "100%",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    flex: 4.5,
+    width: "88%",
+    alignSelf: "center",
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
     overflow: "hidden",
+    marginTop: 48,
   },
 });

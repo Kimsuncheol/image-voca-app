@@ -8,7 +8,14 @@ import {
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Dimensions, StyleSheet, View } from "react-native";
+import {
+  Alert,
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Contexts & Service
@@ -72,9 +79,10 @@ export default function VocabularyScreen() {
 
 
   // Navigation parameters: courseId (e.g., 'TOEIC') and day (e.g., '1')
-  const { courseId, day } = useLocalSearchParams<{
+  const { courseId, day, preview } = useLocalSearchParams<{
     courseId: CourseType;
     day: string;
+    preview?: string;
   }>();
   const router = useRouter();
   const navigation = useNavigation();
@@ -117,8 +125,11 @@ export default function VocabularyScreen() {
 
   const dayNumber = parseInt(day || "1", 10);
   const typedCourseId = courseId as CourseType;
+  const isPreviewMode = preview === "1";
   const isStudyCompleted =
-    isFinished || courseProgress[courseId as string]?.[dayNumber]?.completed ||
+    (!isPreviewMode &&
+      (isFinished ||
+        courseProgress[courseId as string]?.[dayNumber]?.completed)) ||
     false;
 
   useEffect(() => {
@@ -241,7 +252,7 @@ export default function VocabularyScreen() {
    */
   useEffect(() => {
     const fetchSavedWords = async () => {
-      if (!user || !courseId) {
+      if (isPreviewMode || !user || !courseId) {
         setSavedWordIds(new Set());
         return;
       }
@@ -265,7 +276,7 @@ export default function VocabularyScreen() {
     };
 
     fetchSavedWords();
-  }, [user, courseId]);
+  }, [user, courseId, isPreviewMode]);
 
   /**
    * Effect: Fetch User's Course Progress
@@ -273,7 +284,7 @@ export default function VocabularyScreen() {
    * Retrieves the course progress to check if the day has been completed.
    */
   useEffect(() => {
-    if (user && courseId) {
+    if (!isPreviewMode && user && courseId) {
       let isActive = true;
       setCourseProgressLoaded(false);
       void fetchCourseProgress(user.uid, courseId as string).finally(() => {
@@ -287,10 +298,16 @@ export default function VocabularyScreen() {
     }
 
     setCourseProgressLoaded(true);
-  }, [user, courseId, fetchCourseProgress]);
+  }, [user, courseId, fetchCourseProgress, isPreviewMode]);
 
   const persistCurrentResumeProgress = useCallback(async () => {
-    if (!user || !courseId || cards.length === 0 || isStudyCompleted) {
+    if (
+      isPreviewMode ||
+      !user ||
+      !courseId ||
+      cards.length === 0 ||
+      isStudyCompleted
+    ) {
       return;
     }
 
@@ -301,10 +318,24 @@ export default function VocabularyScreen() {
       cards,
       currentIndex: currentIndexRef.current,
     });
-  }, [cards, courseId, dayNumber, isStudyCompleted, typedCourseId, user]);
+  }, [
+    cards,
+    courseId,
+    dayNumber,
+    isPreviewMode,
+    isStudyCompleted,
+    typedCourseId,
+    user,
+  ]);
 
   useEffect(() => {
-    if (!user || !courseId || cards.length === 0 || !courseProgressLoaded) {
+    if (
+      isPreviewMode ||
+      !user ||
+      !courseId ||
+      cards.length === 0 ||
+      !courseProgressLoaded
+    ) {
       return;
     }
 
@@ -376,6 +407,7 @@ export default function VocabularyScreen() {
     courseId,
     courseProgressLoaded,
     dayNumber,
+    isPreviewMode,
     isStudyCompleted,
     t,
     typedCourseId,
@@ -388,6 +420,7 @@ export default function VocabularyScreen() {
         leaveConfirmedRef.current ||
         !user ||
         !courseId ||
+        isPreviewMode ||
         loading ||
         cards.length === 0 ||
         isStudyCompleted
@@ -424,6 +457,7 @@ export default function VocabularyScreen() {
   }, [
     cards.length,
     courseId,
+    isPreviewMode,
     isStudyCompleted,
     loading,
     navigation,
@@ -441,6 +475,10 @@ export default function VocabularyScreen() {
    * Records the word as learned in the local buffer.
    */
   const onSwipeRight = (item: CourseVocabularyCard) => {
+    if (isPreviewMode) {
+      return;
+    }
+
     if (user) {
       const wordId = `${courseId}-${item.id}`;
       trackSessionLearnedWord(wordId);
@@ -465,6 +503,10 @@ export default function VocabularyScreen() {
    */
   const handleRunOutOfCards = async () => {
     setIsFinished(true);
+    if (isPreviewMode) {
+      return;
+    }
+
     if (user && courseId) {
       const learnedCount = sessionLearnedWordIdsRef.current.size;
 
@@ -532,6 +574,11 @@ export default function VocabularyScreen() {
    */
   const handlePageChange = (index: number) => {
     currentIndexRef.current = index;
+
+    if (isPreviewMode) {
+      return;
+    }
+
     void persistCurrentResumeProgress().catch((error) => {
       console.warn("Failed to save vocabulary resume progress:", error);
     });
@@ -605,14 +652,36 @@ export default function VocabularyScreen() {
   // ============================================================================
 
   const renderFinishedView = () => (
-    <VocabularyFinishView
-      isDark={isDark}
-      day={dayNumber}
-      onQuiz={handleQuiz}
-      onRestart={handleRestart}
-      onDays={handleDays}
-      t={t}
-    />
+    isPreviewMode ? (
+      <View style={styles.previewFinishContainer}>
+        <Text
+          style={[
+            styles.previewFinishTitle,
+            { color: isDark ? "#fff" : "#1a1a1a" },
+          ]}
+        >
+          {t("course.previewComplete", { defaultValue: "Preview complete" })}
+        </Text>
+        <TouchableOpacity
+          style={styles.previewReturnButton}
+          onPress={handleDays}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.previewReturnButtonText}>
+            {t("course.previewReturn", { defaultValue: "Back to days" })}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    ) : (
+      <VocabularyFinishView
+        isDark={isDark}
+        day={dayNumber}
+        onQuiz={handleQuiz}
+        onRestart={handleRestart}
+        onDays={handleDays}
+        t={t}
+      />
+    )
   );
 
   const hasCards = () => cards.length > 0;
@@ -626,8 +695,12 @@ export default function VocabularyScreen() {
         options={{
           headerShown: hasCards() && !isFinished,
           headerShadowVisible: false,
+          headerStyle: { backgroundColor: bgColors.screen },
           headerTintColor: isDark ? "#fff" : "#000",
           headerBackTitle: t("common.back"),
+          title: isPreviewMode
+            ? t("course.preview", { defaultValue: "Preview" })
+            : "",
           // headerTitle: `Day ${dayNumber}`,
           headerBackVisible: !splashVisible && hasCards() ? true : false,
           gestureEnabled: !loading,
@@ -653,7 +726,8 @@ export default function VocabularyScreen() {
                 onFinish={handleRunOutOfCards}
                 initialIndex={initialDeckIndex}
                 renderFinishView={renderFinishedView}
-                isStudyCompleted={isStudyCompleted}
+                isStudyCompleted={isStudyCompleted || isPreviewMode}
+                isPreviewMode={isPreviewMode}
               />
             )
           ) : (
@@ -693,5 +767,31 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
+  },
+  previewFinishContainer: {
+    flex: 1,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    gap: 18,
+  },
+  previewFinishTitle: {
+    fontSize: 28,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  previewReturnButton: {
+    minHeight: 48,
+    borderRadius: 24,
+    paddingHorizontal: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFD166",
+  },
+  previewReturnButtonText: {
+    color: "#1a1a1a",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });

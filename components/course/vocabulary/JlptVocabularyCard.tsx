@@ -35,6 +35,7 @@ interface JlptVocabularyCardProps {
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   showKana?: boolean;
   onToggleKana?: () => void;
+  isPreviewMode?: boolean;
 }
 
 interface LabeledMeaningRowProps {
@@ -201,6 +202,7 @@ export function JlptVocabularyCard({
   onSavedWordChange,
   showKana = false,
   onToggleKana = () => {},
+  isPreviewMode = false,
 }: JlptVocabularyCardProps) {
   const { isDark } = useTheme();
   const { i18n } = useTranslation();
@@ -260,13 +262,15 @@ export function JlptVocabularyCard({
         imageUrl={item.imageUrl}
         isDark={isDark}
         topRightOverlay={
-          <SwipeCardItemAddToWordBankButton
-            item={item}
-            isDark={isDark}
-            initialIsSaved={initialIsSaved}
-            day={day}
-            onSavedWordChange={onSavedWordChange}
-          />
+          isPreviewMode ? null : (
+            <SwipeCardItemAddToWordBankButton
+              item={item}
+              isDark={isDark}
+              initialIsSaved={initialIsSaved}
+              day={day}
+              onSavedWordChange={onSavedWordChange}
+            />
+          )
         }
       />
 

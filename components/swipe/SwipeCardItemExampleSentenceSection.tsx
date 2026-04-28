@@ -9,11 +9,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { stripKanaParens } from "../../src/utils/japaneseText";
 import { formatSynonyms } from "../../src/utils/synonyms";
+import { blackCardColors } from "../course/vocabulary/blackCardStyles";
 
 interface SwipeCardItemExampleSentenceSectionProps {
   example: string;
@@ -31,13 +31,12 @@ export function SwipeCardItemExampleSentenceSection({
   pronunciation,
   synonyms,
   courseId,
-  isDark,
+  isDark: _isDark,
   isActive = true,
 }: SwipeCardItemExampleSentenceSectionProps) {
   const { t } = useTranslation();
   useCardSpeechCleanup(isActive);
   const { speak } = useSpeech();
-  const fontColors = getFontColors(isDark);
 
   // Split examples and translations by newlines
   // Remove number prefixes (e.g., "1. ", "2. ") from the raw text
@@ -71,12 +70,7 @@ export function SwipeCardItemExampleSentenceSection({
   return (
     <>
       {pronunciation ? (
-        <Text
-          style={[
-            styles.metaText,
-            { color: isDark ? "#b0b0b0" : "#5c5c5c" },
-          ]}
-        >
+        <Text style={styles.metaText}>
           {`${t("notifications.labels.pronunciation", {
             defaultValue: "Pronunciation",
           })}: ${pronunciation}`}
@@ -99,7 +93,7 @@ export function SwipeCardItemExampleSentenceSection({
               <Text
                 style={[
                   styles.cardExample,
-                  { color: isDark ? "#b0b0b0" : "#444" },
+                  { color: blackCardColors.primary },
                 ]}
                 numberOfLines={2}
               >
@@ -111,7 +105,7 @@ export function SwipeCardItemExampleSentenceSection({
               <Text
                 style={[
                   styles.cardTranslation,
-                  { color: fontColors.translation },
+                  { color: blackCardColors.muted },
                 ]}
                 numberOfLines={2}
               >
@@ -125,7 +119,7 @@ export function SwipeCardItemExampleSentenceSection({
             <Text
               style={[
                 styles.sectionLabel,
-                { color: isDark ? "#b0b0b0" : "#5c5c5c" },
+                { color: blackCardColors.muted },
               ]}
             >
               {t("notifications.labels.synonyms", {
@@ -136,7 +130,7 @@ export function SwipeCardItemExampleSentenceSection({
               testID="swipe-card-synonyms"
               style={[
                 styles.cardSynonyms,
-                { color: isDark ? "#9A9A9A" : "#2F2F2F" },
+                { color: blackCardColors.secondary },
               ]}
               numberOfLines={2}
             >
@@ -150,14 +144,14 @@ export function SwipeCardItemExampleSentenceSection({
         <TouchableOpacity
           style={[
             styles.expandButton,
-            { backgroundColor: isDark ? "#1a1a1a" : "#f5f5f5" },
+            { backgroundColor: "rgba(255,255,255,0.08)" },
           ]}
           onPress={() => setIsExpanded(!isExpanded)}
         >
           <Text
             style={[
               styles.expandButtonText,
-              { color: isDark ? "#0a84ff" : "#007AFF" },
+              { color: blackCardColors.primary },
             ]}
           >
             {isExpanded ? "Show less" : `Show ${examples.length - 3} more`}
@@ -165,7 +159,7 @@ export function SwipeCardItemExampleSentenceSection({
           <Ionicons
             name={isExpanded ? "chevron-up" : "chevron-down"}
             size={16}
-            color={isDark ? "#0a84ff" : "#007AFF"}
+            color={blackCardColors.primary}
           />
         </TouchableOpacity>
       )}
@@ -175,16 +169,17 @@ export function SwipeCardItemExampleSentenceSection({
 
 const styles = StyleSheet.create({
   examplesScrollContainer: {
-    maxHeight: 200,
-    marginTop: 4,
+    maxHeight: 190,
+    marginTop: 2,
   },
   exampleGroup: {
-    marginTop: 8,
+    marginTop: 14,
   },
   metaText: {
     fontSize: FontSizes.body,
     lineHeight: 18,
     marginTop: 2,
+    color: blackCardColors.muted,
   },
   sectionLabel: {
     fontSize: FontSizes.caption,
@@ -194,16 +189,16 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   cardExample: {
-    fontSize: FontSizes.bodyLg,
-    fontWeight: "500",
-    color: "#444",
-    lineHeight: 20,
+    fontSize: FontSizes.titleMd,
+    fontWeight: "600",
+    color: blackCardColors.primary,
+    lineHeight: 28,
   },
   cardTranslation: {
-    fontSize: FontSizes.caption,
-    color: "#2d5f2d",
+    fontSize: FontSizes.bodyMd,
+    color: blackCardColors.muted,
     fontWeight: "500",
-    marginTop: 4,
+    marginTop: 2,
     lineHeight: 22,
   },
   cardSynonyms: {

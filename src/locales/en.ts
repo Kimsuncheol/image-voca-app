@@ -654,6 +654,10 @@ const en = {
     preparingVocabulary: "Preparing vocabulary...",
     dayCompleted: "Day completed!",
     takeQuiz: "Take Quiz",
+    preview: "Preview",
+    previewSelectDay: "Select a day to preview",
+    previewComplete: "Preview complete",
+    previewReturn: "Back to days",
 
     progress: "{{learned}}/{{total}} words",
     retake: "Retake",

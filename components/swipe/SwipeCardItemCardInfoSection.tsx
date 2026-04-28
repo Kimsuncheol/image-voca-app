@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { VocabularyCard } from "../../src/types/vocabulary";
+import { blackCardColors } from "../course/vocabulary/blackCardStyles";
 import { SwipeCardItemMeaningExampleSentenceSection } from "./SwipeCardItemMeaningExampleSentenceSection";
 
 interface CardInfoSectionProps {
@@ -40,7 +41,7 @@ export function SwipeCardItemCardInfoSection({
     <View
       style={[
         styles.cardInfo,
-        { backgroundColor: isDark ? "#1a1a1a" : "#fff" },
+        { backgroundColor: blackCardColors.surface },
       ]}
     >
       {/* Merged Word, Meaning & Example Section */}
@@ -67,9 +68,11 @@ export function SwipeCardItemCardInfoSection({
 
 const styles = StyleSheet.create({
   cardInfo: {
-    height: "65%",
+    height: "62%",
     justifyContent: "flex-start",
-    padding: 24,
-    backgroundColor: "#fff",
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 24,
+    backgroundColor: blackCardColors.surface,
   },
 });

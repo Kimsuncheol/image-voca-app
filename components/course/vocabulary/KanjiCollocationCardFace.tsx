@@ -37,6 +37,8 @@ export interface FaceSideProps {
   initialIsSaved?: boolean;
   /** Callback triggered when the word is successfully added or removed from the saved wordbank */
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
+  /** Whether the card is rendered in read-only preview mode */
+  isPreviewMode?: boolean;
   /** Callback triggered to flip the card horizontally to the back */
   onFlip: () => void;
 }
@@ -55,6 +57,7 @@ export function FaceSide({
   day,
   initialIsSaved,
   onSavedWordChange,
+  isPreviewMode = false,
   onFlip,
   language = "en",
 }: FaceSideProps) {
@@ -98,15 +101,17 @@ export function FaceSide({
           isDark={isDark}
           style={styles.cardImage}
         />
-        <View style={styles.imageTopRightOverlay}>
-          <SwipeCardItemAddToWordBankButton
-            item={item}
-            isDark={isDark}
-            initialIsSaved={initialIsSaved ?? false}
-            day={day}
-            onSavedWordChange={onSavedWordChange}
-          />
-        </View>
+        {!isPreviewMode && (
+          <View style={styles.imageTopRightOverlay}>
+            <SwipeCardItemAddToWordBankButton
+              item={item}
+              isDark={isDark}
+              initialIsSaved={initialIsSaved ?? false}
+              day={day}
+              onSavedWordChange={onSavedWordChange}
+            />
+          </View>
+        )}
       </View>
 
       <View style={styles.faceInnerContainer}>

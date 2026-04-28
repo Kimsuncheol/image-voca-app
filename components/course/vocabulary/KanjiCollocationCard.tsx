@@ -14,6 +14,7 @@ interface KanjiCollocationCardProps {
   day?: number;
   isActive?: boolean;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
+  isPreviewMode?: boolean;
 }
 
 export function KanjiCollocationCard({
@@ -22,6 +23,7 @@ export function KanjiCollocationCard({
   day,
   isActive = true,
   onSavedWordChange,
+  isPreviewMode = false,
 }: KanjiCollocationCardProps) {
   const { isDark } = useTheme();
   const { i18n } = useTranslation();
@@ -61,6 +63,7 @@ export function KanjiCollocationCard({
         day={day}
         initialIsSaved={initialIsSaved}
         onSavedWordChange={onSavedWordChange}
+        isPreviewMode={isPreviewMode}
         onFlip={() => flip(true)}
       />
       <BackSide

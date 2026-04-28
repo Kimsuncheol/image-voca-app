@@ -22,6 +22,7 @@ interface Props {
   savedWordIds?: Set<string>;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isStudyCompleted?: boolean;
+  isPreviewMode?: boolean;
 }
 
 const HINT_TIMEOUT_MS = 1200;
@@ -37,6 +38,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
   savedWordIds,
   onSavedWordChange,
   isStudyCompleted = false,
+  isPreviewMode = false,
 }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -125,16 +127,19 @@ export const CollocationSwipeable: React.FC<Props> = ({
               explanation: currentItem.pronunciation || "",
               example: currentItem.example,
               translation: currentItem.translation || "",
+              imageUrl: currentItem.imageUrl,
             }}
             isDark={isDark}
             wordBankConfig={{
               id: currentItem.id,
               course: currentItem.course,
               day,
-              initialIsSaved: savedWordIds?.has(currentItem.id) ?? false,
-              enableAdd: true,
+              initialIsSaved: isPreviewMode
+                ? false
+                : (savedWordIds?.has(currentItem.id) ?? false),
+              enableAdd: !isPreviewMode,
               enableDelete: false,
-              onSavedStateChange: onSavedWordChange,
+              onSavedStateChange: isPreviewMode ? undefined : onSavedWordChange,
             }}
             onFirstFlipToBack={handleCardFirstFlip}
             isActive={true}

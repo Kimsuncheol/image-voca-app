@@ -3,6 +3,7 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Collapsible from "react-native-collapsible";
 import { FontSizes } from "@/constants/fontSizes";
+import { blackCardColors } from "../course/vocabulary/blackCardStyles";
 
 interface ExplanationSectionProps {
   explanation: string;
@@ -15,7 +16,7 @@ export default React.memo(function ExplanationSection({
   explanation,
   isOpen,
   onToggle,
-  isDark,
+  isDark: _isDark,
 }: ExplanationSectionProps) {
   return (
     <View>
@@ -26,15 +27,15 @@ export default React.memo(function ExplanationSection({
       >
         <Text style={styles.label}>EXPLANATION</Text>
         <Ionicons
-          name={isOpen ? "chevron-down" : "chevron-forward"}
-          size={16}
-          color="#999"
+          name={isOpen ? "chevron-up" : "chevron-forward"}
+          size={24}
+          color={blackCardColors.primary}
         />
       </TouchableOpacity>
 
       <Collapsible collapsed={!isOpen}>
         <View style={styles.sectionContent}>
-          <Text style={[styles.value, isDark && styles.textDark]}>
+          <Text style={styles.value}>
             {explanation}
           </Text>
         </View>
@@ -49,27 +50,24 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-    marginBottom: 8,
+    borderBottomWidth: 1.5,
+    borderBottomColor: blackCardColors.divider,
+    marginBottom: 16,
   },
   label: {
-    fontSize: FontSizes.sm,
-    fontWeight: "700",
-    color: "#999",
+    fontSize: FontSizes.titleMd,
+    fontWeight: "800",
+    color: blackCardColors.muted,
     letterSpacing: 1.2,
   },
   sectionContent: {
-    paddingVertical: 8,
-    marginBottom: 16,
+    paddingVertical: 12,
+    marginBottom: 28,
   },
   value: {
-    fontSize: FontSizes.bodyMd,
-    color: "#333",
-    lineHeight: 22,
-    fontWeight: "400",
-  },
-  textDark: {
-    color: "#FFFFFF",
+    fontSize: FontSizes.heading,
+    color: blackCardColors.primary,
+    lineHeight: 36,
+    fontWeight: "500",
   },
 });

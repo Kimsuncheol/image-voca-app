@@ -110,7 +110,7 @@ export function AddToWordBankButton({
     : (isAdded ? "star" : "star-outline");
   const iconColor = variant === "bookmark"
     ? (isAdded ? "#fff" : isDark ? "#0a84ff" : "#007AFF")
-    : (isAdded ? "#4A3600" : "#000000");
+    : (isAdded ? "#4A3600" : "#FFFFFF");
   const iconSize = variant === "bookmark" ? 20 : 18;
 
   if (variant === "bookmark") {
@@ -168,13 +168,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   starButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
   },
   starButtonIdle: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#000000",
+    backgroundColor: "rgba(0,0,0,0.18)",
+    borderColor: "rgba(255,255,255,0.82)",
   },
   starButtonAdded: {
     backgroundColor: "#F4C542",

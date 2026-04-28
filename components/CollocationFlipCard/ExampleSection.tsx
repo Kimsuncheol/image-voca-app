@@ -9,8 +9,8 @@ import {
   View,
 } from "react-native";
 import Collapsible from "react-native-collapsible";
-import { getFontColors } from "../../constants/fontColors";
 import { useSpeech } from "../../src/hooks/useSpeech";
+import { blackCardColors } from "../course/vocabulary/blackCardStyles";
 import {
   stripRoleLabels,
   toDialogueTurns,
@@ -47,7 +47,6 @@ export default React.memo(function ExampleSection({
   maxHeight,
 }: ExampleSectionProps) {
   const { speak } = useSpeech();
-  const fontColors = getFontColors(isDark);
   const spokenExampleText = useMemo(() => stripRoleLabels(example), [example]);
   const exampleTurns = useMemo(() => toDialogueTurns(example), [example]);
   const translationTurns = useMemo(
@@ -100,9 +99,9 @@ export default React.memo(function ExampleSection({
       >
         <Text style={styles.label}>EXAMPLE</Text>
         <Ionicons
-          name={isOpen ? "chevron-down" : "chevron-forward"}
-          size={16}
-          color="#999"
+          name={isOpen ? "chevron-up" : "chevron-forward"}
+          size={24}
+          color={blackCardColors.primary}
         />
       </TouchableOpacity>
 
@@ -175,7 +174,7 @@ export default React.memo(function ExampleSection({
                                 style={[
                                   styles.value,
                                   styles.translationValue,
-                                  { color: fontColors.translation },
+                                  { color: blackCardColors.muted },
                                 ]}
                                 onPress={handleSpeakExample}
                               >
@@ -203,19 +202,19 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-    marginBottom: 8,
+    borderBottomWidth: 1.5,
+    borderBottomColor: blackCardColors.divider,
+    marginBottom: 16,
   },
   label: {
-    fontSize: FontSizes.sm,
-    fontWeight: "700",
-    color: "#999",
+    fontSize: FontSizes.titleMd,
+    fontWeight: "800",
+    color: blackCardColors.muted,
     letterSpacing: 1.2,
   },
   sectionContent: {
-    paddingVertical: 8,
-    marginBottom: 16,
+    paddingVertical: 12,
+    marginBottom: 28,
     flexShrink: 1,
     minHeight: 0,
   },
@@ -243,14 +242,14 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   value: {
-    fontSize: FontSizes.bodyLg,
-    color: "#333",
-    lineHeight: 24,
-    fontWeight: "400",
+    fontSize: FontSizes.titleLg,
+    color: blackCardColors.primary,
+    lineHeight: 32,
+    fontWeight: "500",
     flexShrink: 1,
   },
   textDark: {
-    color: "#FFFFFF",
+    color: blackCardColors.primary,
   },
   exampleText: {
     fontStyle: "normal",
@@ -261,14 +260,14 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   characterText: {
-    fontSize: FontSizes.body,
+    fontSize: FontSizes.bodyLg,
     fontWeight: "600",
-    color: "#666",
-    lineHeight: 22,
+    color: blackCardColors.muted,
+    lineHeight: 26,
     flexShrink: 1,
   },
   characterTextDark: {
-    color: "#B3B3B8",
+    color: blackCardColors.muted,
   },
   interleavedContainer: {
     gap: 12,
@@ -286,10 +285,10 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   translationValue: {
-    fontSize: FontSizes.caption,
-    lineHeight: 16,
+    fontSize: FontSizes.bodyLg,
+    lineHeight: 24,
     fontStyle: "normal",
     flexShrink: 1,
-    opacity: 0.7,
+    opacity: 1,
   },
 });

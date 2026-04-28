@@ -11,12 +11,15 @@ const mockReplace = jest.fn();
 const mockPush = jest.fn();
 const mockNavigationDispatch = jest.fn();
 const mockNavigationAddListener = jest.fn();
+const mockStackScreen: jest.Mock = jest.fn(() => null);
 const mockGetResumeProgress: jest.Mock = jest.fn(async () => null);
 const mockSaveResumeProgress: jest.Mock = jest.fn(async () => null);
 const mockClearResumeProgress: jest.Mock = jest.fn(async () => undefined);
+const mockUpdateDoc: jest.Mock = jest.fn(async () => undefined);
 let mockUser: { uid: string } | null = null;
 let mockCourseProgress: Record<string, Record<number, { completed?: boolean }>> =
   {};
+let mockPreviewParam: string | undefined;
 
 const cards = [
   {
@@ -38,11 +41,12 @@ let mockCards = cards;
 
 jest.mock("expo-router", () => ({
   Stack: {
-    Screen: () => null,
+    Screen: (props: unknown) => mockStackScreen(props),
   },
   useLocalSearchParams: () => ({
     courseId: "TOEIC",
     day: "1",
+    preview: mockPreviewParam,
   }),
   useRouter: () => ({
     replace: mockReplace,
@@ -109,6 +113,15 @@ jest.mock("react-i18next", () => ({
       if (key === "course.resume.startOver") {
         return "Start Over";
       }
+      if (key === "course.previewComplete") {
+        return "Preview complete";
+      }
+      if (key === "course.previewReturn") {
+        return "Back to days";
+      }
+      if (key === "course.preview") {
+        return "Preview";
+      }
       return key;
     },
   }),
@@ -131,7 +144,7 @@ jest.mock("firebase/firestore", () => ({
   getDoc: jest.fn(async () => ({
     exists: () => false,
   })),
-  updateDoc: jest.fn(async () => undefined),
+  updateDoc: (docRef: unknown, data: unknown) => mockUpdateDoc(docRef, data),
 }));
 
 jest.mock("../src/services/firebase", () => ({
@@ -149,6 +162,10 @@ jest.mock("../src/services/vocabularyDayResume", () => ({
   getResumeProgress: (args: unknown) => mockGetResumeProgress(args),
   saveResumeProgress: (args: unknown) => mockSaveResumeProgress(args),
   clearResumeProgress: (args: unknown) => mockClearResumeProgress(args),
+}));
+
+jest.mock("../src/services/dailyStudyHistory", () => ({
+  upsertVocabularyDayStudyHistory: jest.fn(async () => undefined),
 }));
 
 jest.mock("../src/stores", () => ({
@@ -202,10 +219,12 @@ jest.mock("../components/course/vocabulary/VocabularySwipeDeck", () => ({
     onIndexChange,
     onFinish,
     initialIndex,
+    isPreviewMode,
   }: {
     onIndexChange: (index: number) => void;
     onFinish: () => void;
     initialIndex: number;
+    isPreviewMode?: boolean;
   }) => {
     const { Text, TouchableOpacity, View } = require("react-native");
 
@@ -213,6 +232,7 @@ jest.mock("../components/course/vocabulary/VocabularySwipeDeck", () => ({
       <View>
         <Text>Vocabulary Deck</Text>
         <Text>{`Initial Index ${initialIndex}`}</Text>
+        <Text>{`Preview Mode ${isPreviewMode ? "on" : "off"}`}</Text>
         <TouchableOpacity onPress={() => onIndexChange(1)}>
           <Text>Advance Deck</Text>
         </TouchableOpacity>
@@ -235,6 +255,7 @@ describe("VocabularyScreen deck state", () => {
     mockCards = cards;
     mockUser = null;
     mockCourseProgress = {};
+    mockPreviewParam = undefined;
     mockFetchCourseProgress.mockResolvedValue(undefined);
     mockGetResumeProgress.mockResolvedValue(null);
     mockSaveResumeProgress.mockResolvedValue(null);
@@ -260,6 +281,22 @@ describe("VocabularyScreen deck state", () => {
     await Promise.resolve();
 
     expect(screen.getByText("Vocabulary Deck")).toBeTruthy();
+  });
+
+  it("matches the native header background to the screen background", async () => {
+    render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(mockStackScreen).toHaveBeenCalledWith(
+        expect.objectContaining({
+          options: expect.objectContaining({
+            headerShadowVisible: false,
+            headerStyle: { backgroundColor: "#fff" },
+            headerTintColor: "#000",
+          }),
+        }),
+      );
+    });
   });
 
   it("keeps the deck active when the index changes in the same session", async () => {
@@ -537,6 +574,42 @@ describe("VocabularyScreen deck state", () => {
 
     expect(screen.getByText("No words found for this day.")).toBeTruthy();
     expect(screen.queryByText("Vocabulary Deck")).toBeNull();
+  });
+
+  it("renders preview mode without progress, resume, or completion side effects", async () => {
+    mockUser = { uid: "user-1" };
+    mockPreviewParam = "1";
+
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Preview Mode on")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("Advance Deck"));
+    fireEvent.press(screen.getByText("Finish Deck"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Preview complete")).toBeTruthy();
+    });
+
+    expect(mockGetResumeProgress).not.toHaveBeenCalled();
+    expect(mockSaveResumeProgress).not.toHaveBeenCalled();
+    expect(mockClearResumeProgress).not.toHaveBeenCalled();
+    expect(mockBufferWordLearned).not.toHaveBeenCalled();
+    expect(mockFlushWordStats).not.toHaveBeenCalled();
+    expect(mockUpdateDoc).not.toHaveBeenCalled();
+
+    const event = {
+      preventDefault: jest.fn(),
+      data: { action: { type: "GO_BACK" } },
+    };
+    act(() => {
+      beforeRemoveHandler?.(event);
+    });
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(Alert.alert).not.toHaveBeenCalled();
   });
 
 

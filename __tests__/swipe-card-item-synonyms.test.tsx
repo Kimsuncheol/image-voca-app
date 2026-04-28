@@ -70,8 +70,16 @@ describe("SwipeCardItem synonyms", () => {
     );
     expect(getByTestId("swipe-card-synonyms")).toHaveStyle({
       fontSize: 15,
-      color: "#2F2F2F",
+      color: "#D8D8D8",
     });
+  });
+
+  it("hides the save overlay in preview mode", () => {
+    const { queryByTestId } = render(
+      <SwipeCardItem item={buildCard()} isPreviewMode />,
+    );
+
+    expect(queryByTestId("mock-add-button")).toBeNull();
   });
 
   it("hides the synonyms section for non-TOEFL_IELTS cards", () => {

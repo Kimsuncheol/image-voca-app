@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import {
+  blackCardColors,
+} from "../course/vocabulary/blackCardStyles";
 import ExampleSection from "./ExampleSection";
 import ExplanationSection from "./ExplanationSection";
 import { CollocationData } from "./types";
@@ -73,9 +76,6 @@ export default React.memo(function BackSide({
     <View style={[styles.back, isDark && styles.backDark]}>
       {onFlip && <Pressable style={styles.flipOverlay} onPress={onFlip} />}
 
-      {/* Accent Brand Mark */}
-      <View style={styles.accentMark} />
-
       <View
         style={styles.backContentContainer}
         pointerEvents="box-none"
@@ -106,33 +106,23 @@ export default React.memo(function BackSide({
 const styles = StyleSheet.create({
   back: {
     flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 24,
+    backgroundColor: blackCardColors.surface,
+    borderRadius: 0,
     padding: 32,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
     justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.02)",
+    borderWidth: 0,
+    borderColor: blackCardColors.surface,
   },
   backDark: {
-    backgroundColor: "#1c1c1e",
-    borderColor: "#333",
+    backgroundColor: blackCardColors.surface,
+    borderColor: blackCardColors.surface,
     shadowColor: "#000",
-    shadowOpacity: 0.3,
-  },
-  accentMark: {
-    position: "absolute",
-    top: 32,
-    right: 32,
-    width: 6,
-    height: 24,
-    backgroundColor: "#4A90E2",
-    borderRadius: 3,
-    transform: [{ rotate: "15deg" }],
+    shadowOpacity: 0,
   },
   flipOverlay: {
     position: "absolute",
@@ -140,12 +130,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 24,
+    borderRadius: 0,
   },
   backContentContainer: {
     flex: 1,
     minHeight: 0,
-    paddingTop: 40,
+    paddingTop: 72,
     justifyContent: "flex-start",
   },
   footer: {

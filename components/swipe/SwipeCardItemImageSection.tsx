@@ -2,6 +2,10 @@ import { Image } from "expo-image";
 import React from "react";
 import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
+import {
+  blackCardColors,
+  blackCardSharedStyles,
+} from "../course/vocabulary/blackCardStyles";
 
 interface SwipeCardItemImageSectionProps {
   imageUrl?: string;
@@ -41,18 +45,21 @@ export function SwipeCardItemImageSection({
 
 const styles = StyleSheet.create({
   imageContainer: {
-    height: "35%",
+    height: "38%",
     width: "100%",
     position: "relative",
+    backgroundColor: blackCardColors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 48,
   },
   cardImage: {
-    height: "100%",
-    width: "100%",
+    height: "86%",
+    width: "88%",
     resizeMode: "cover",
+    borderRadius: 0,
   },
   topRightOverlay: {
-    position: "absolute",
-    top: 12,
-    right: 12,
+    ...blackCardSharedStyles.topRightControl,
   },
 });

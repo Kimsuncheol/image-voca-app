@@ -8,6 +8,7 @@ import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
 import { SwipeCardItemAddToWordBankButton } from "./SwipeCardItemAddToWordBankButton";
 import { SwipeCardItemCardInfoSection } from "./SwipeCardItemCardInfoSection";
 import { SwipeCardItemImageSection } from "./SwipeCardItemImageSection";
+import { blackCardColors } from "../course/vocabulary/blackCardStyles";
 
 const { width } = Dimensions.get("window");
 
@@ -17,6 +18,7 @@ interface SwipeCardItemProps {
   day?: number;
   isActive?: boolean;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
+  isPreviewMode?: boolean;
 }
 
 export function SwipeCardItem({
@@ -25,6 +27,7 @@ export function SwipeCardItem({
   day,
   isActive = true,
   onSavedWordChange,
+  isPreviewMode = false,
 }: SwipeCardItemProps) {
   const { isDark } = useTheme();
   const { i18n } = useTranslation();
@@ -38,8 +41,7 @@ export function SwipeCardItem({
     <View
       style={[
         styles.card,
-        { backgroundColor: isDark ? "#1a1a1a" : "#fff" },
-        { borderColor: isDark ? "#333" : "#E0E0E0" },
+        { backgroundColor: blackCardColors.surface },
       ]}
     >
       {/* Image Section */}
@@ -47,13 +49,15 @@ export function SwipeCardItem({
         imageUrl={item.imageUrl}
         isDark={isDark}
         topRightOverlay={
-          <SwipeCardItemAddToWordBankButton
-            item={item}
-            isDark={isDark}
-            initialIsSaved={initialIsSaved}
-            day={day}
-            onSavedWordChange={onSavedWordChange}
-          />
+          isPreviewMode ? null : (
+            <SwipeCardItemAddToWordBankButton
+              item={item}
+              isDark={isDark}
+              initialIsSaved={initialIsSaved}
+              day={day}
+              onSavedWordChange={onSavedWordChange}
+            />
+          )
         }
       />
 
@@ -86,15 +90,14 @@ const styles = StyleSheet.create({
   card: {
     height: "100%",
     width: width * 0.9,
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
+    backgroundColor: blackCardColors.surface,
+    borderRadius: 0,
+    borderWidth: 0,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.44,
-    shadowRadius: 10.32,
-    elevation: 16,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
     overflow: "hidden",
   },
 });
