@@ -139,7 +139,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
       const currentIndex = currentIndexRef.current;
       const isForwardDragAttempt = position === currentIndex && offset > 0;
 
-      if (!isForwardDragAttempt || isBlockingForwardDragRef.current) {
+      if (!isForwardDragAttempt || isBlockingForwardDragRef.current || currentIndex >= data.length) {
         return;
       }
 
@@ -147,7 +147,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
         isBlockingForwardDragRef.current = true;
       }
     },
-    [blockForwardFromIndex],
+    [blockForwardFromIndex, data.length],
   );
 
   const handlePageScrollStateChanged = React.useCallback((e: any) => {
@@ -215,6 +215,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
         onPageScrollStateChanged={handlePageScrollStateChanged}
         onPageSelected={handlePageSelected}
         orientation="horizontal"
+        scrollEnabled={activeIndex < data.length}
       >
         {data.map((item, index) => (
           <View key={item.id} style={styles.swipeablePage}>
