@@ -2,7 +2,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import type * as NotificationsType from "expo-notifications";
 import { Platform } from "react-native";
 import i18n, { getCurrentLanguage } from "../i18n";
-import { isAndroidExpoGoRuntime } from "./runtimeEnvironment";
 
 type NotificationsModule = typeof import("expo-notifications");
 type NotificationPermissions = NotificationsType.NotificationPermissionsStatus;
@@ -15,17 +14,12 @@ const STUDY_REMINDER_ENABLED_KEY = "voca_study_reminder_enabled";
 const DEFAULT_REMINDER_HOUR = 19;
 const DEFAULT_REMINDER_MINUTE = 0;
 const SCHEDULE_WINDOW_DAYS = 7;
-const ANDROID_CHANNEL_ID = "voca-daily";
+const ANDROID_CHANNEL_ID = "study-reminders";
 
 let cachedNotifications: NotificationsModule | null | undefined;
 let handlerConfigured = false;
 
 const getNotificationsModule = (): NotificationsModule | null => {
-  if (isAndroidExpoGoRuntime()) {
-    cachedNotifications = null;
-    return cachedNotifications;
-  }
-
   if (cachedNotifications !== undefined) return cachedNotifications;
 
   try {
@@ -152,7 +146,7 @@ export const configureNotifications =
 
     if (Platform.OS === "android") {
       await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
-        name: "Voca Daily",
+        name: "Study Reminders",
         importance: Notifications.AndroidImportance.DEFAULT,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: "#4A90E2",

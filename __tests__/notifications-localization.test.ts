@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
 jest.mock("expo-localization", () => ({
   findBestLanguageTag: jest.fn(() => ({ languageTag: "en" })),
@@ -23,6 +24,7 @@ jest.mock("expo-notifications", () => ({
 
 import { setLanguage } from "../src/i18n";
 import {
+  configureNotifications,
   getStudyReminderEnabledPreference,
   scheduleDailyNotifications,
   scheduleStudyReminderNotifications,
@@ -32,6 +34,7 @@ import {
 describe("notification localization", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
+    Platform.OS = "ios";
     await AsyncStorage.clear();
     await setLanguage("en");
   });
@@ -84,5 +87,29 @@ describe("notification localization", () => {
     await scheduleDailyNotifications();
 
     expect(scheduleNotificationAsync).not.toHaveBeenCalled();
+  });
+
+  it("configures Android local reminders in Expo Go when the notifications module is available", async () => {
+    Platform.OS = "android";
+    const {
+      getPermissionsAsync,
+      setNotificationChannelAsync,
+      setNotificationHandler,
+    } = jest.requireMock("expo-notifications");
+    (getPermissionsAsync as jest.Mock).mockResolvedValue({
+      granted: true,
+      canAskAgain: false,
+      ios: { status: 0 },
+    });
+
+    await configureNotifications();
+
+    expect(setNotificationHandler).toHaveBeenCalled();
+    expect(setNotificationChannelAsync).toHaveBeenCalledWith(
+      "study-reminders",
+      expect.objectContaining({
+        name: "Study Reminders",
+      }),
+    );
   });
 });

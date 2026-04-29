@@ -48,6 +48,14 @@
       "expo-web-browser",
       "@react-native-community/datetimepicker",
       [
+        "expo-notifications",
+        {
+          "color": "#4A90E2",
+          "defaultChannel": "study-reminders",
+          "enableBackgroundRemoteNotifications": false
+        }
+      ],
+      [
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-3940256099942544~3347511713",
