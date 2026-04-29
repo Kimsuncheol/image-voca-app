@@ -151,7 +151,7 @@ export const styles = StyleSheet.create({
     borderColor: "#636366",
   },
   faceTopRightOverlay: {
-    ...blackCardSharedStyles.topRightControl,
+    ...blackCardSharedStyles.FlipCardTopRightControl,
   },
   faceCardImage: {
     flex: 4,

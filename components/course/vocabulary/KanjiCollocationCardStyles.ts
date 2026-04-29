@@ -2,7 +2,7 @@ import { FontSizes } from "@/constants/fontSizes";
 import { StyleSheet } from "react-native";
 import { FontColors } from "../../../constants/fontColors";
 import { CARD_HEIGHT, CARD_WIDTH } from "../../../src/constants/layout";
-import { blackCardColors, blackCardSpacing } from "./blackCardStyles";
+import { blackCardColors, blackCardSpacing, blackCardSharedStyles } from "./blackCardStyles";
 import { LineHeights } from "@/constants/lineHeights";
 
 // const { width } = Dimensions.get("window");
@@ -48,10 +48,7 @@ export const styles = StyleSheet.create({
     overflow: "hidden",
   },
   imageTopRightOverlay: {
-    position: "absolute",
-    top: 12,
-    right: 8,
-    zIndex: 3,
+    ...blackCardSharedStyles.FlipCardTopRightControl,
   },
   faceTopRow: {
     flexDirection: "row",

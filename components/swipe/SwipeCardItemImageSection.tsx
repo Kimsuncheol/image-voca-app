@@ -62,6 +62,6 @@ const styles = StyleSheet.create({
     borderRadius: 0,
   },
   topRightOverlay: {
-    ...blackCardSharedStyles.topRightControl,
+    ...blackCardSharedStyles.VocaCardTopRightControl,
   },
 });

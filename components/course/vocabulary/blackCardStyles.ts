@@ -41,7 +41,13 @@ export const blackCardSharedStyles = StyleSheet.create({
     left: 24,
     zIndex: 5,
   },
-  topRightControl: {
+  FlipCardTopRightControl: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    zIndex: 5,
+  },
+  VocaCardTopRightControl: {
     position: "absolute",
     top: 28,
     right: 12,
