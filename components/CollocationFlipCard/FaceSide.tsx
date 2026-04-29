@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { getBackgroundColors } from "../../constants/backgroundColors";
+import { getFontColors } from "../../constants/fontColors";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { formatSynonyms } from "../../src/utils/synonyms";
 import {
@@ -87,6 +89,8 @@ export default React.memo(function FaceSide({
   // Contexts & State
   // ============================================================================
   const { speak: speakText } = useSpeech();
+  const bgColors = getBackgroundColors(isDark);
+  const fontColors = getFontColors(isDark);
 
   React.useEffect(() => {
     if (!data.imageUrl) onImageLoad?.();
@@ -170,8 +174,10 @@ export default React.memo(function FaceSide({
         <Text
           style={[
             styles.faceCollocationText,
-            isDark && styles.faceTextDark,
-            { fontSize: dynamicFontSize },
+            {
+              color: fontColors.learningCardPrimary,
+              fontSize: dynamicFontSize,
+            },
           ]}
           numberOfLines={1}
           adjustsFontSizeToFit
@@ -190,8 +196,10 @@ export default React.memo(function FaceSide({
             style={[
               styles.faceCollocationText,
               styles.faceCollocationTextVariant,
-              isDark && styles.faceTextDark,
-              { fontSize: dynamicFontSize },
+              {
+                color: fontColors.learningCardPrimary,
+                fontSize: dynamicFontSize,
+              },
             ]}
           >
             {variant} {CARD_HEIGHT}
@@ -208,10 +216,17 @@ export default React.memo(function FaceSide({
     <Pressable
       style={[
         styles.face,
+        {
+          backgroundColor: bgColors.learningCardSurface,
+          borderColor: bgColors.learningCardSurface,
+        },
         isDeleteMode &&
-          (isDark ? styles.faceDeleteModeDark : styles.faceDeleteModeLight),
+          { borderColor: bgColors.learningCardDelete },
         isSelected &&
-          (isDark ? styles.faceSelectedDark : styles.faceSelectedLight),
+          {
+            borderColor: fontColors.learningCardActionText,
+            backgroundColor: bgColors.learningCardSelected,
+          },
       ]}
       onPress={handleCardPress}
       onLongPress={handleStartDeleteMode}
@@ -235,7 +250,9 @@ export default React.memo(function FaceSide({
           <Ionicons
             name={isSelected ? "checkmark" : "ellipse-outline"}
             size={16}
-            color={isSelected ? "#fff" : isDark ? "#fff" : "#666"}
+            color={
+              isSelected ? fontColors.inverse : fontColors.learningCardMuted
+            }
           />
         </View>
       ) : null}
@@ -245,7 +262,10 @@ export default React.memo(function FaceSide({
         <CollocationCardImage
           imageUrl={data.imageUrl}
           isDark={isDark}
-          style={styles.faceCardImage}
+          style={[
+            styles.faceCardImage,
+            { backgroundColor: bgColors.learningCardImage },
+          ]}
           onImageLoad={onImageLoad}
         />
 
@@ -304,13 +324,21 @@ export default React.memo(function FaceSide({
                 data.meaning.split(",").map((part, index) => (
                   <Text
                     key={index}
-                    style={[styles.faceMeaningText, isDark && styles.faceTextDark]}
+                    style={[
+                      styles.faceMeaningText,
+                      { color: fontColors.learningCardSecondary },
+                    ]}
                   >
                     {part.trim()}
                   </Text>
                 ))
               ) : (
-                <Text style={[styles.faceMeaningText, isDark && styles.faceTextDark]}>
+                <Text
+                  style={[
+                    styles.faceMeaningText,
+                    { color: fontColors.learningCardSecondary },
+                  ]}
+                >
                   {data.meaning}
                 </Text>
               )}
@@ -319,12 +347,15 @@ export default React.memo(function FaceSide({
 
           {/* Section: Synonyms */}
           <View style={styles.faceSynonymsContainer}>
-            <SynonymChip />
+            <SynonymChip
+              backgroundColor={bgColors.learningCardChip}
+              borderColor={fontColors.learningCardDividerMuted}
+              color={fontColors.learningCardChipText}
+            />
             <Text
               style={[
                 styles.faceSynonymsText,
-                isDark && styles.faceTextDark,
-                { flex: 1 }
+                { color: fontColors.learningCardMuted, flex: 1 }
               ]}
               numberOfLines={2}
             >
@@ -339,10 +370,18 @@ export default React.memo(function FaceSide({
   );
 });
 
-function SynonymChip() {
+function SynonymChip({
+  backgroundColor,
+  borderColor,
+  color,
+}: {
+  backgroundColor: string;
+  borderColor: string;
+  color: string;
+}) {
   return (
-    <View style={styles.faceSynChip}>
-      <Text style={styles.faceSynChipText}>syn</Text>
+    <View style={[styles.faceSynChip, { backgroundColor, borderColor }]}>
+      <Text style={[styles.faceSynChipText, { color }]}>syn</Text>
     </View>
   );
 }

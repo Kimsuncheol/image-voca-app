@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
+import { getBackgroundColors } from "../../constants/backgroundColors";
 import { VocabularyCard } from "../../src/types/vocabulary";
-import { blackCardColors } from "../course/vocabulary/blackCardStyles";
 import { SwipeCardItemMeaningExampleSentenceSection } from "./SwipeCardItemMeaningExampleSentenceSection";
 
 interface CardInfoSectionProps {
@@ -39,11 +39,13 @@ export function SwipeCardItemCardInfoSection({
   onSavedWordChange,
   isPreviewMode = false,
 }: CardInfoSectionProps) {
+  const bgColors = getBackgroundColors(isDark);
+
   return (
     <View
       style={[
         styles.cardInfo,
-        { backgroundColor: blackCardColors.surface },
+        { backgroundColor: bgColors.learningCardSurface },
       ]}
     >
       {/* Merged Word, Meaning & Example Section */}
@@ -76,6 +78,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingTop: 12,
     paddingBottom: 24,
-    backgroundColor: blackCardColors.surface,
   },
 });

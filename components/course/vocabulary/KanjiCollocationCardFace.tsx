@@ -7,6 +7,8 @@ import {
   View,
   type GestureResponderEvent,
 } from "react-native";
+import { getBackgroundColors } from "../../../constants/backgroundColors";
+import { getFontColors } from "../../../constants/fontColors";
 import { useSpeech } from "../../../src/hooks/useSpeech";
 import type { KanjiWord } from "../../../src/types/vocabulary";
 import {
@@ -17,7 +19,6 @@ import { CollocationCardImage } from "../../common/CollocationCardImage";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
 import { DottedDivider } from "./KanjiCollocationCardDivider";
 import { styles } from "./KanjiCollocationCardStyles";
-import { blackCardColors } from "./blackCardStyles";
 
 /**
  * Props passed to the front face component of the Kanji Collocation Card.
@@ -78,6 +79,8 @@ export function FaceSide({
   language = "en",
 }: FaceSideProps) {
   const { speak } = useSpeech();
+  const bgColors = getBackgroundColors(isDark);
+  const fontColors = getFontColors(isDark);
 
   const handleSpeakItem = React.useCallback(
     (text: string) => {
@@ -108,8 +111,8 @@ export function FaceSide({
       style={[
         styles.face,
         {
-          backgroundColor: blackCardColors.surface,
-          borderColor: blackCardColors.surface,
+          backgroundColor: bgColors.learningCardSurface,
+          borderColor: bgColors.learningCardSurface,
         },
       ]}
       onPress={onFlip}
@@ -118,7 +121,10 @@ export function FaceSide({
         <CollocationCardImage
           imageUrl={item.imageUrl}
           isDark={isDark}
-          style={styles.cardImage}
+          style={[
+            styles.cardImage,
+            { backgroundColor: bgColors.learningCardImage },
+          ]}
         />
       </View>
 
@@ -128,7 +134,10 @@ export function FaceSide({
             <Text
               style={[
                 styles.kanjiText,
-                { color: blackCardColors.primary, fontSize: dynamicFontSize },
+                {
+                  color: fontColors.learningCardPrimary,
+                  fontSize: dynamicFontSize,
+                },
               ]}
               numberOfLines={1}
               adjustsFontSizeToFit
@@ -154,7 +163,7 @@ export function FaceSide({
               <Text
                 style={[
                   styles.faceSectionLabel,
-                  { color: blackCardColors.muted },
+                  { color: fontColors.learningCardMuted },
                 ]}
               >
                 MEANING
@@ -174,7 +183,10 @@ export function FaceSide({
                       <Text
                         style={[
                           styles.faceListItem,
-                          { color: blackCardColors.muted, fontSize: FontSizes.body },
+                          {
+                            color: fontColors.learningCardMuted,
+                            fontSize: FontSizes.body,
+                          },
                         ]}
                       >
                         {m.localizedText}
@@ -190,7 +202,7 @@ export function FaceSide({
                         <Text
                           style={[
                             styles.faceListItem,
-                            { color: blackCardColors.secondary },
+                            { color: fontColors.learningCardSecondary },
                           ]}
                         >
                           {m.baseText}
@@ -211,7 +223,7 @@ export function FaceSide({
               <Text
                 style={[
                   styles.faceSectionLabel,
-                  { color: blackCardColors.muted },
+                  { color: fontColors.learningCardMuted },
                 ]}
               >
                 READING
@@ -231,7 +243,10 @@ export function FaceSide({
                       <Text
                         style={[
                           styles.faceListItem,
-                          { color: blackCardColors.muted, fontSize: FontSizes.body },
+                          {
+                            color: fontColors.learningCardMuted,
+                            fontSize: FontSizes.body,
+                          },
                         ]}
                       >
                         {r.localizedText}
@@ -247,7 +262,7 @@ export function FaceSide({
                         <Text
                           style={[
                             styles.faceListItem,
-                            { color: blackCardColors.secondary },
+                            { color: fontColors.learningCardSecondary },
                           ]}
                         >
                           {r.baseText}

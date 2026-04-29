@@ -1,12 +1,15 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
 import { StyleSheet } from "react-native";
-import { blackCardColors } from "../components/course/vocabulary/blackCardStyles";
+import { getBackgroundColors } from "../constants/backgroundColors";
+import { getFontColors } from "../constants/fontColors";
 import { JlptVocabularyCard } from "../components/course/vocabulary/JlptVocabularyCard";
 import { VocabularyCard } from "../src/types/vocabulary";
 
 let mockLanguage = "en";
 const mockSpeak = jest.fn();
+const lightBackgroundColors = getBackgroundColors(false);
+const lightFontColors = getFontColors(false);
 
 jest.mock("../src/context/ThemeContext", () => ({
   useTheme: () => ({ isDark: false }),
@@ -126,7 +129,7 @@ describe("JlptVocabularyCard", () => {
     expect(queryByText("Example")).toBeNull();
   });
 
-  it("uses the improved black card surface while keeping save hidden in preview", () => {
+  it("uses the themed light card surface while keeping save hidden in preview", () => {
     const normal = render(
       <JlptVocabularyCard item={buildCard()} initialIsSaved={true} day={1} />,
     );
@@ -136,10 +139,12 @@ describe("JlptVocabularyCard", () => {
     const titleStyle = StyleSheet.flatten(normal.getByText("間").props.style);
 
     expect(infoStyle).toEqual(
-      expect.objectContaining({ backgroundColor: blackCardColors.surface }),
+      expect.objectContaining({
+        backgroundColor: lightBackgroundColors.learningCardSurface,
+      }),
     );
     expect(titleStyle).toEqual(
-      expect.objectContaining({ color: blackCardColors.primary }),
+      expect.objectContaining({ color: lightFontColors.learningCardPrimary }),
     );
     expect(normal.getByTestId("mock-save-control")).toBeTruthy();
 
@@ -194,7 +199,7 @@ describe("JlptVocabularyCard", () => {
     expect(getByText("between the station and the hotel")).toBeTruthy();
     expect(queryByText("eki to hoteru no aida")).toBeNull();
     expect(StyleSheet.flatten(getByTestId("jlpt-card-translation").props.style)).toEqual(
-      expect.objectContaining({ color: blackCardColors.muted }),
+      expect.objectContaining({ color: lightFontColors.learningCardMuted }),
     );
 
     const renderedTree = JSON.stringify(toJSON());
@@ -339,7 +344,7 @@ describe("JlptVocabularyCard", () => {
     );
 
     expect(getByTestId("jlpt-card-furigana-0-1")).toHaveStyle({
-      color: blackCardColors.muted,
+      color: lightFontColors.learningCardMuted,
       fontSize: 12,
     });
   });

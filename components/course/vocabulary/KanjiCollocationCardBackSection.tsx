@@ -6,10 +6,10 @@ import {
   View,
   type GestureResponderEvent,
 } from "react-native";
+import { getFontColors } from "../../../constants/fontColors";
 import { useSpeech } from "../../../src/hooks/useSpeech";
 import type { KanjiNestedListGroup } from "../../../src/types/vocabulary";
 import { styles } from "./KanjiCollocationCardStyles";
-import { blackCardColors } from "./blackCardStyles";
 import { itemsAt } from "./kanjiCollocationUtils";
 
 /**
@@ -55,6 +55,7 @@ export function BackSection({
   onFlip,
 }: BackSectionProps) {
   const { speak } = useSpeech();
+  const fontColors = getFontColors(isDark);
 
   const entries = values
     .map((value, index) => ({
@@ -87,7 +88,7 @@ export function BackSection({
           suppressHighlighting
           style={[
             styles.backSectionTitle,
-            { color: blackCardColors.muted },
+            { color: fontColors.learningCardMuted },
           ]}
         >
           {title}
@@ -104,7 +105,7 @@ export function BackSection({
               suppressHighlighting
               style={[
                 styles.backGroupLabel,
-                { color: blackCardColors.primary },
+                { color: fontColors.learningCardPrimary },
               ]}
             >
               {entry.value}
@@ -140,7 +141,7 @@ export function BackSection({
                       <Text
                         style={[
                           styles.backExample,
-                          { color: blackCardColors.primary },
+                          { color: fontColors.learningCardPrimary },
                         ]}
                       >
                         {example}
@@ -149,7 +150,7 @@ export function BackSection({
                         <Text
                           style={[
                             styles.backTranslation,
-                            { color: blackCardColors.muted },
+                            { color: fontColors.learningCardMuted },
                           ]}
                         >
                           {entry.translations[j]}
@@ -161,7 +162,7 @@ export function BackSection({
                       style={[
                         styles.backFurigana,
                         hasHurigana
-                          ? { color: blackCardColors.muted }
+                          ? { color: fontColors.learningCardMuted }
                           : styles.backFuriganaSpacer,
                       ]}
                     >

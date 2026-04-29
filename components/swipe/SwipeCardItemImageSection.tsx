@@ -1,9 +1,9 @@
 import { Image } from "expo-image";
 import React from "react";
 import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { getBackgroundColors } from "../../constants/backgroundColors";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import {
-  blackCardColors,
   blackCardSharedStyles,
   blackCardSpacing,
 } from "../course/vocabulary/blackCardStyles";
@@ -23,8 +23,17 @@ export function SwipeCardItemImageSection({
   containerStyle,
   topRightOverlay,
 }: SwipeCardItemImageSectionProps) {
+  const bgColors = getBackgroundColors(isDark);
+
   return (
-    <View testID={testID} style={[styles.imageContainer, containerStyle]}>
+    <View
+      testID={testID}
+      style={[
+        styles.imageContainer,
+        { backgroundColor: bgColors.learningCardSurface },
+        containerStyle,
+      ]}
+    >
       {imageUrl ? (
         <Image
           source={{ uri: imageUrl }}
@@ -49,7 +58,6 @@ const styles = StyleSheet.create({
     height: "38%",
     width: "100%",
     position: "relative",
-    backgroundColor: blackCardColors.surface,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 4,

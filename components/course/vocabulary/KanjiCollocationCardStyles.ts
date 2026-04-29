@@ -1,14 +1,10 @@
 import { FontWeights } from "@/constants/fontWeights";
-import { BackgroundColors } from "@/constants/backgroundColors";
 import { FontSizes } from "@/constants/fontSizes";
 import { LineHeights } from "@/constants/lineHeights";
 import { StyleSheet } from "react-native";
 import { FontColors } from "../../../constants/fontColors";
 import { CARD_HEIGHT, CARD_WIDTH } from "../../../src/constants/layout";
-import {
-  blackCardColors,
-  blackCardSpacing,
-} from "./blackCardStyles";
+import { blackCardSpacing } from "./blackCardStyles";
 
 // const { width } = Dimensions.get("window");
 
@@ -23,10 +19,10 @@ export const styles = StyleSheet.create({
   // Face
   face: {
     flex: 1,
-    backgroundColor: blackCardColors.surface,
+    backgroundColor: "#FFFFFF",
     borderRadius: 0,
     borderWidth: 0,
-    borderColor: blackCardColors.surface,
+    borderColor: "#FFFFFF",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
@@ -47,7 +43,7 @@ export const styles = StyleSheet.create({
   },
   cardImage: {
     flex: 1,
-    backgroundColor: BackgroundColors.dark.bgImageColor,
+    backgroundColor: "#FFFFFF",
     alignSelf: "stretch",
     marginHorizontal: 4,
     marginTop: blackCardSpacing.contentTop,
@@ -117,10 +113,10 @@ export const styles = StyleSheet.create({
   // Back
   back: {
     flex: 1,
-    backgroundColor: blackCardColors.surface,
+    backgroundColor: "#FFFFFF",
     borderRadius: 0,
     borderWidth: 0,
-    borderColor: blackCardColors.surface,
+    borderColor: "#FFFFFF",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
@@ -175,7 +171,7 @@ export const styles = StyleSheet.create({
     height: 2,
     borderWidth: 1,
     borderStyle: "dashed",
-    borderColor: blackCardColors.dividerMuted,
+    borderColor: "rgba(17,24,39,0.12)",
   },
   backGroup: {
     gap: 6,

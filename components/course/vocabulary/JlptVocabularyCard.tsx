@@ -11,6 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { getBackgroundColors } from "../../../constants/backgroundColors";
+import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useCardSpeechCleanup } from "../../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../../src/hooks/useSpeech";
@@ -23,7 +25,6 @@ import { resolveVocabularyContent } from "../../../src/utils/localizedVocabulary
 import { InlineMeaningWithChips } from "../../common/InlineMeaningWithChips";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
 import { SwipeCardItemImageSection } from "../../swipe/SwipeCardItemImageSection";
-import { blackCardColors } from "./blackCardStyles";
 import { LineHeights } from "@/constants/lineHeights";
 
 const { width } = Dimensions.get("window");
@@ -88,6 +89,7 @@ function LabeledMeaningRow({
   isDark,
 }: LabeledMeaningRowProps) {
   const displayMeaning = toDisplayValue(meaning);
+  const fontColors = getFontColors(isDark);
 
   if (!displayMeaning) {
     return null;
@@ -100,7 +102,7 @@ function LabeledMeaningRow({
         isDark={isDark}
         textStyle={[
           styles.cardDescription,
-          { color: blackCardColors.secondary },
+          { color: fontColors.learningCardSecondary },
         ]}
         containerStyle={styles.inlineMeaning}
         chipStyle={styles.inlineChip}
@@ -119,6 +121,7 @@ const ExampleBlock = React.memo(function ExampleBlock({
   isActive,
   showKana,
 }: ExampleBlockProps) {
+  const fontColors = getFontColors(isDark);
   useCardSpeechCleanup(isActive);
   const { speak } = useSpeech();
   const hiddenExample = React.useMemo(
@@ -179,7 +182,7 @@ const ExampleBlock = React.memo(function ExampleBlock({
                 <Text
                   style={[
                     styles.cardExample,
-                    { color: blackCardColors.primary },
+                    { color: fontColors.learningCardPrimary },
                   ]}
                   numberOfLines={2}
                 >
@@ -192,7 +195,12 @@ const ExampleBlock = React.memo(function ExampleBlock({
                           : undefined
                       }
                       style={
-                        segment.isKanaParen ? styles.cardFurigana : undefined
+                        segment.isKanaParen
+                          ? [
+                              styles.cardFurigana,
+                              { color: fontColors.learningCardMuted },
+                            ]
+                          : undefined
                       }
                     >
                       {segment.text}
@@ -205,10 +213,10 @@ const ExampleBlock = React.memo(function ExampleBlock({
             {translationText ? (
               <Text
                 testID={index === 0 ? "jlpt-card-translation" : undefined}
-                style={[
-                  styles.cardTranslation,
-                  { color: blackCardColors.muted },
-                ]}
+                  style={[
+                    styles.cardTranslation,
+                    { color: fontColors.learningCardMuted },
+                  ]}
                 numberOfLines={2}
               >
                 {translationText}
@@ -232,6 +240,8 @@ export function JlptVocabularyCard({
   isPreviewMode = false,
 }: JlptVocabularyCardProps) {
   const { isDark } = useTheme();
+  const bgColors = getBackgroundColors(isDark);
+  const fontColors = getFontColors(isDark);
   const { i18n } = useTranslation();
   const { speak } = useSpeech();
   useCardSpeechCleanup(isActive);
@@ -262,7 +272,15 @@ export function JlptVocabularyCard({
   }, [item.word]);
 
   return (
-    <View style={[styles.card, { backgroundColor: blackCardColors.surface }]}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: bgColors.learningCardSurface,
+          borderColor: bgColors.learningCardSurface,
+        },
+      ]}
+    >
       <SwipeCardItemImageSection
         testID="jlpt-card-image-shell"
         imageUrl={item.imageUrl}
@@ -271,7 +289,10 @@ export function JlptVocabularyCard({
 
       <View
         testID="jlpt-card-info"
-        style={[styles.cardInfo, { backgroundColor: blackCardColors.surface }]}
+        style={[
+          styles.cardInfo,
+          { backgroundColor: bgColors.learningCardSurface },
+        ]}
       >
         <ScrollView
           testID="jlpt-card-info-scroll"
@@ -286,7 +307,10 @@ export function JlptVocabularyCard({
                 <Text
                   style={[
                     styles.cardTitle,
-                    { color: blackCardColors.primary, fontSize: dynamicFontSize },
+                    {
+                      color: fontColors.learningCardPrimary,
+                      fontSize: dynamicFontSize,
+                    },
                   ]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
@@ -312,7 +336,10 @@ export function JlptVocabularyCard({
           {pronunciation ? (
             <Text
               testID="jlpt-card-pronunciation"
-              style={[styles.cardSubtitle, { color: blackCardColors.muted }]}
+              style={[
+                styles.cardSubtitle,
+                { color: fontColors.learningCardMuted },
+              ]}
             >
               {pronunciation}
             </Text>
@@ -346,17 +373,22 @@ export function JlptVocabularyCard({
                 showKana && styles.kanaTogglePillActive,
                 {
                   borderColor: showKana
-                    ? "rgba(46, 160, 67, 0.95)"
-                    : isDark
-                      ? "rgba(255,255,255,0.22)"
-                      : "rgba(17,24,28,0.16)",
+                    ? bgColors.learningCardKanaActive
+                    : fontColors.learningCardDividerMuted,
+                  backgroundColor: showKana
+                    ? bgColors.learningCardKanaActive
+                    : bgColors.transparent,
                 },
               ]}
             >
               <Text
                 style={[
                   styles.kanaToggleText,
-                  { color: showKana ? "#FFFFFF" : blackCardColors.muted },
+                  {
+                    color: showKana
+                      ? fontColors.inverse
+                      : fontColors.learningCardMuted,
+                  },
                 ]}
               >
                 がな
@@ -373,10 +405,8 @@ const styles = StyleSheet.create({
   card: {
     height: "100%",
     width: width * 0.9,
-    backgroundColor: blackCardColors.surface,
     borderRadius: 0,
     borderWidth: 0,
-    borderColor: blackCardColors.surface,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
@@ -386,7 +416,6 @@ const styles = StyleSheet.create({
   },
   cardInfo: {
     height: "65%",
-    backgroundColor: blackCardColors.surface,
     flexDirection: "column",
   },
   cardInfoScroll: {
@@ -415,7 +444,7 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   kanaTogglePillActive: {
-    backgroundColor: "#2EA043",
+    backgroundColor: "transparent",
   },
   kanaToggleText: {
     fontSize: FontSizes.body,
@@ -445,12 +474,10 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: FontSizes.headingXl,
     fontWeight: FontWeights.black,
-    color: blackCardColors.primary,
     flexShrink: 1,
   },
   cardSubtitle: {
     fontSize: FontSizes.bodyMd,
-    color: blackCardColors.muted,
     marginTop: 2,
     marginBottom: 6,
     letterSpacing: 0.2,
@@ -477,7 +504,6 @@ const styles = StyleSheet.create({
   },
   cardDescription: {
     fontSize: FontSizes.subhead,
-    color: blackCardColors.secondary,
     lineHeight: LineHeights.titleXl,
     fontWeight: FontWeights.medium,
   },
@@ -490,7 +516,6 @@ const styles = StyleSheet.create({
   cardExample: {
     fontSize: FontSizes.titleMd,
     fontWeight: FontWeights.semiBold,
-    color: blackCardColors.primary,
     lineHeight: LineHeights.headingMd,
   },
   cardTranslation: {
@@ -501,6 +526,5 @@ const styles = StyleSheet.create({
   },
   cardFurigana: {
     fontSize: FontSizes.caption,
-    color: blackCardColors.muted,
   },
 });

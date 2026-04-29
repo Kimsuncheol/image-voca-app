@@ -3,6 +3,8 @@ import { Image } from "expo-image";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { getBackgroundColors } from "../../constants/backgroundColors";
+import { getFontColors } from "../../constants/fontColors";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
@@ -95,6 +97,8 @@ function StandardWordCard({
   useCardSpeechCleanup();
   const { i18n } = useTranslation();
   const { learningLanguage } = useLearningLanguage();
+  const bgColors = getBackgroundColors(isDark);
+  const fontColors = getFontColors(isDark);
 
   const speakLanguage = learningLanguage === "ja" ? "ja-JP" : "en-US";
   const [showKana, setShowKana] = React.useState(false);
@@ -164,7 +168,7 @@ function StandardWordCard({
       testID={`word-card-${word.id}`}
       style={[
         styles.wordCard,
-        { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
+        { backgroundColor: bgColors.learningCardSurfaceAlt },
       ]}
     >
       <View style={styles.topSection}>
@@ -202,7 +206,7 @@ function StandardWordCard({
       <View
         style={[
           styles.divider,
-          { backgroundColor: isDark ? "#333" : "#e0e0e0" },
+          { backgroundColor: fontColors.learningCardDividerMuted },
         ]}
       />
 
@@ -232,17 +236,22 @@ function StandardWordCard({
               showKana && styles.kanaTogglePillActive,
               {
                 borderColor: showKana
-                  ? "rgba(46, 160, 67, 0.95)"
-                  : isDark
-                    ? "rgba(255,255,255,0.22)"
-                    : "rgba(17,24,28,0.16)",
+                  ? bgColors.learningCardKanaActive
+                  : fontColors.learningCardDividerMuted,
+                backgroundColor: showKana
+                  ? bgColors.learningCardKanaActive
+                  : bgColors.transparent,
               },
             ]}
           >
             <Text
               style={[
                 styles.kanaToggleText,
-                { color: showKana ? "#FFFFFF" : isDark ? "#8e8e93" : "#666" },
+                {
+                  color: showKana
+                    ? fontColors.inverse
+                    : fontColors.learningCardMuted,
+                },
               ]}
             >
               がな
@@ -295,7 +304,7 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   kanaTogglePillActive: {
-    backgroundColor: "#2EA043",
+    backgroundColor: "transparent",
   },
   kanaToggleText: {
     fontSize: FontSizes.sm,

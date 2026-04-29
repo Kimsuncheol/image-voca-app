@@ -7,8 +7,8 @@ import {
   View,
 } from "react-native";
 import Collapsible from "react-native-collapsible";
+import { getFontColors } from "../../constants/fontColors";
 import { useSpeech } from "../../src/hooks/useSpeech";
-import { blackCardColors } from "../course/vocabulary/blackCardStyles";
 import { styles } from "./EnglishCollocationCardStyle";
 import {
   stripRoleLabels,
@@ -46,6 +46,7 @@ export default React.memo(function ExampleSection({
   maxHeight,
 }: ExampleSectionProps) {
   const { speak } = useSpeech();
+  const fontColors = getFontColors(isDark);
   const spokenExampleText = useMemo(() => stripRoleLabels(example), [example]);
   const exampleTurns = useMemo(() => toDialogueTurns(example), [example]);
   const translationTurns = useMemo(
@@ -92,15 +93,25 @@ export default React.memo(function ExampleSection({
   return (
     <View>
       <TouchableOpacity
-        style={styles.backSectionHeader}
+        style={[
+          styles.backSectionHeader,
+          { borderBottomColor: fontColors.learningCardDivider },
+        ]}
         onPress={onToggle}
         activeOpacity={0.7}
       >
-        <Text style={styles.backSectionLabel}>EXAMPLE</Text>
+        <Text
+          style={[
+            styles.backSectionLabel,
+            { color: fontColors.learningCardMuted },
+          ]}
+        >
+          EXAMPLE
+        </Text>
         <Ionicons
           name={isOpen ? "chevron-up" : "chevron-forward"}
           size={24}
-          color={blackCardColors.primary}
+          color={fontColors.learningCardPrimary}
         />
       </TouchableOpacity>
 
@@ -135,7 +146,7 @@ export default React.memo(function ExampleSection({
                               <Text
                                 style={[
                                   styles.exampleCharacterText,
-                                  isDark && styles.exampleCharacterTextDark,
+                                  { color: fontColors.learningCardMuted },
                                 ]}
                                 onPress={handleSpeakExample}
                               >
@@ -147,7 +158,7 @@ export default React.memo(function ExampleSection({
                                 style={[
                                   styles.exampleValue,
                                   styles.exampleText,
-                                  isDark && styles.exampleTextDark,
+                                  { color: fontColors.learningCardPrimary },
                                 ]}
                                 onPress={handleSpeakExample}
                               >
@@ -172,7 +183,7 @@ export default React.memo(function ExampleSection({
                                 }
                                 style={[
                                   styles.exampleTranslationValue,
-                                  { color: blackCardColors.muted },
+                                  { color: fontColors.learningCardMuted },
                                 ]}
                                 onPress={handleSpeakExample}
                               >

@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import Collapsible from "react-native-collapsible";
+import { getFontColors } from "../../constants/fontColors";
 import { styles } from "./EnglishCollocationCardStyle";
 
 interface TranslationSectionProps {
@@ -30,18 +31,30 @@ export default React.memo(function TranslationSection({
   isDark,
   maxHeight,
 }: TranslationSectionProps) {
+  const fontColors = getFontColors(isDark);
+
   return (
     <View>
       <TouchableOpacity
-        style={styles.translationHeader}
+        style={[
+          styles.translationHeader,
+          { borderBottomColor: fontColors.learningCardDividerMuted },
+        ]}
         onPress={onToggle}
         activeOpacity={0.7}
       >
-        <Text style={styles.translationLabel}>TRANSLATION</Text>
+        <Text
+          style={[
+            styles.translationLabel,
+            { color: fontColors.learningCardMuted },
+          ]}
+        >
+          TRANSLATION
+        </Text>
         <Ionicons
           name={isOpen ? "chevron-down" : "chevron-forward"}
           size={16}
-          color="#999"
+          color={fontColors.learningCardMuted}
         />
       </TouchableOpacity>
 
@@ -53,7 +66,12 @@ export default React.memo(function TranslationSection({
             showsVerticalScrollIndicator
             nestedScrollEnabled
           >
-            <Text style={[styles.translationValue, isDark && styles.translationTextDark]}>
+            <Text
+              style={[
+                styles.translationValue,
+                { color: fontColors.learningCardSecondary },
+              ]}
+            >
               {translation}
             </Text>
           </ScrollView>

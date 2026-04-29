@@ -1,13 +1,13 @@
 import React from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { getBackgroundColors } from "../../constants/backgroundColors";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
 import { SwipeCardItemCardInfoSection } from "./SwipeCardItemCardInfoSection";
 import { SwipeCardItemImageSection } from "./SwipeCardItemImageSection";
-import { blackCardColors } from "../course/vocabulary/blackCardStyles";
 
 const { width } = Dimensions.get("window");
 
@@ -29,6 +29,7 @@ export function SwipeCardItem({
   isPreviewMode = false,
 }: SwipeCardItemProps) {
   const { isDark } = useTheme();
+  const bgColors = getBackgroundColors(isDark);
   const { i18n } = useTranslation();
   useCardSpeechCleanup(isActive);
   const resolved = React.useMemo(
@@ -40,7 +41,7 @@ export function SwipeCardItem({
     <View
       style={[
         styles.card,
-        { backgroundColor: blackCardColors.surface },
+        { backgroundColor: bgColors.learningCardSurface },
       ]}
     >
       {/* Image Section */}
@@ -79,7 +80,6 @@ const styles = StyleSheet.create({
   card: {
     height: "100%",
     width: width * 0.9,
-    backgroundColor: blackCardColors.surface,
     borderRadius: 0,
     borderWidth: 0,
     shadowColor: "#000",

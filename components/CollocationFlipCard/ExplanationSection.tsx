@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import Collapsible from "react-native-collapsible";
-import { blackCardColors } from "../course/vocabulary/blackCardStyles";
+import { getFontColors } from "../../constants/fontColors";
 import { styles } from "./EnglishCollocationCardStyle";
 
 interface ExplanationSectionProps {
@@ -16,26 +16,43 @@ export default React.memo(function ExplanationSection({
   explanation,
   isOpen,
   onToggle,
-  isDark: _isDark,
+  isDark,
 }: ExplanationSectionProps) {
+  const fontColors = getFontColors(isDark);
+
   return (
     <View>
       <TouchableOpacity
-        style={styles.backSectionHeader}
+        style={[
+          styles.backSectionHeader,
+          { borderBottomColor: fontColors.learningCardDivider },
+        ]}
         onPress={onToggle}
         activeOpacity={0.7}
       >
-        <Text style={styles.backSectionLabel}>EXPLANATION</Text>
+        <Text
+          style={[
+            styles.backSectionLabel,
+            { color: fontColors.learningCardMuted },
+          ]}
+        >
+          EXPLANATION
+        </Text>
         <Ionicons
           name={isOpen ? "chevron-up" : "chevron-forward"}
           size={24}
-          color={blackCardColors.primary}
+          color={fontColors.learningCardPrimary}
         />
       </TouchableOpacity>
 
       <Collapsible collapsed={!isOpen}>
         <View style={styles.backSectionContent}>
-          <Text style={styles.explanationValue}>
+          <Text
+            style={[
+              styles.explanationValue,
+              { color: fontColors.learningCardPrimary },
+            ]}
+          >
             {explanation}
           </Text>
         </View>

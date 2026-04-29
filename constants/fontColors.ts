@@ -68,7 +68,15 @@ export type FontColorRole =
   | "errorBannerBorder"
   | "avatarBorder"
   | "surfaceBorder"
-  | "dayBadge";
+  | "dayBadge"
+  | "learningCardPrimary"
+  | "learningCardSecondary"
+  | "learningCardMuted"
+  | "learningCardFaint"
+  | "learningCardDivider"
+  | "learningCardDividerMuted"
+  | "learningCardChipText"
+  | "learningCardActionText";
 
 export type FontColorTokens = Record<FontColorRole, string>;
 
@@ -142,6 +150,14 @@ export const FontColors: Record<FontColorScheme, FontColorTokens> = {
     avatarBorder: "#FFF",
     surfaceBorder: "#FFF",
     dayBadge: "#000",
+    learningCardPrimary: "#111827",
+    learningCardSecondary: "#374151",
+    learningCardMuted: "#6B7280",
+    learningCardFaint: "#9CA3AF",
+    learningCardDivider: "rgba(17,24,39,0.18)",
+    learningCardDividerMuted: "rgba(17,24,39,0.12)",
+    learningCardChipText: "#2563EB",
+    learningCardActionText: "#007AFF",
   },
   dark: {
     primary: "#fff",
@@ -211,7 +227,15 @@ export const FontColors: Record<FontColorScheme, FontColorTokens> = {
     errorBannerBorder: "#5C1F1F",
     avatarBorder: "#333",
     surfaceBorder: "#1C1C1E",
-    dayBadge: "#fff"
+    dayBadge: "#fff",
+    learningCardPrimary: "#F8F8F8",
+    learningCardSecondary: "#D8D8D8",
+    learningCardMuted: "#9B9BA1",
+    learningCardFaint: "#5C5C62",
+    learningCardDivider: "rgba(255,255,255,0.82)",
+    learningCardDividerMuted: "rgba(255,255,255,0.24)",
+    learningCardChipText: "#9B9BA1",
+    learningCardActionText: "#0A84FF",
   },
 };
 

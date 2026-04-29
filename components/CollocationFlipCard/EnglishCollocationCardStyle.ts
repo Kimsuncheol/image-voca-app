@@ -1,13 +1,9 @@
 import { FontWeights } from "@/constants/fontWeights";
-import { BackgroundColors } from "@/constants/backgroundColors";
 import { FontSizes } from "@/constants/fontSizes";
 import { LineHeights } from "@/constants/lineHeights";
 import { CARD_HEIGHT, CARD_WIDTH } from "@/src/constants/layout";
 import { Platform, StyleSheet } from "react-native";
-import {
-  blackCardColors,
-  blackCardSpacing,
-} from "../course/vocabulary/blackCardStyles";
+import { blackCardSpacing } from "../course/vocabulary/blackCardStyles";
 
 export const styles = StyleSheet.create({
   // ============================================================================
@@ -25,7 +21,7 @@ export const styles = StyleSheet.create({
   // ============================================================================
   face: {
     flex: 1,
-    backgroundColor: blackCardColors.surface,
+    backgroundColor: "#FFFFFF",
     borderRadius: 0,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 0 },
@@ -34,7 +30,7 @@ export const styles = StyleSheet.create({
     elevation: 0,
     justifyContent: "space-between",
     borderWidth: 0,
-    borderColor: blackCardColors.surface,
+    borderColor: "#FFFFFF",
   },
   faceDeleteModeLight: {
     borderColor: "#d0d0d0",
@@ -100,7 +96,7 @@ export const styles = StyleSheet.create({
     fontSize: FontSizes.displayXl,
     fontWeight: FontWeights.black,
     textAlign: "left",
-    color: blackCardColors.primary,
+    color: "#111827",
     lineHeight: LineHeights.displayXl,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     letterSpacing: 0,
@@ -115,7 +111,7 @@ export const styles = StyleSheet.create({
     fontSize: FontSizes.titleLg,
     fontWeight: FontWeights.medium,
     textAlign: "left",
-    color: blackCardColors.secondary,
+    color: "#374151",
     lineHeight: LineHeights.headingLg,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
@@ -137,7 +133,7 @@ export const styles = StyleSheet.create({
   },
   faceSynChipText: {
     fontSize: FontSizes.label,
-    color: blackCardColors.muted,
+    color: "#6B7280",
     fontWeight: FontWeights.bold,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -145,12 +141,12 @@ export const styles = StyleSheet.create({
   faceSynonymsText: {
     fontSize: FontSizes.bodyLg,
     fontWeight: FontWeights.medium,
-    color: blackCardColors.muted,
+    color: "#6B7280",
     lineHeight: LineHeights.titleLg,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
   faceTextDark: {
-    color: blackCardColors.primary,
+    color: "#F8F8F8",
   },
   faceFooter: {
     width: "100%",
@@ -187,7 +183,7 @@ export const styles = StyleSheet.create({
   },
   faceCardImage: {
     flex: 4,
-    backgroundColor: BackgroundColors.dark.bgImageColor,
+    backgroundColor: "#FFFFFF",
     alignSelf: "stretch",
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
@@ -201,7 +197,7 @@ export const styles = StyleSheet.create({
   // ============================================================================
   back: {
     flex: 1,
-    backgroundColor: blackCardColors.surface,
+    backgroundColor: "#FFFFFF",
     borderRadius: 0,
     paddingHorizontal: 4,
     shadowColor: "#000",
@@ -211,11 +207,11 @@ export const styles = StyleSheet.create({
     elevation: 0,
     justifyContent: "space-between",
     borderWidth: 0,
-    borderColor: blackCardColors.surface,
+    borderColor: "#FFFFFF",
   },
   backDark: {
-    backgroundColor: blackCardColors.surface,
-    borderColor: blackCardColors.surface,
+    backgroundColor: "#000000",
+    borderColor: "#000000",
     shadowColor: "#000",
     shadowOpacity: 0,
   },
@@ -248,13 +244,13 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1.5,
-    borderBottomColor: blackCardColors.divider,
+    borderBottomColor: "rgba(17,24,39,0.18)",
     marginBottom: 16,
   },
   backSectionLabel: {
     fontSize: FontSizes.titleMd,
     fontWeight: FontWeights.extraBold,
-    color: blackCardColors.muted,
+    color: "#6B7280",
     letterSpacing: 1.2,
   },
   backSectionContent: {
@@ -269,7 +265,7 @@ export const styles = StyleSheet.create({
   // ============================================================================
   explanationValue: {
     fontSize: FontSizes.bodyLg,
-    color: blackCardColors.primary,
+    color: "#111827",
     lineHeight: LineHeights.titleXl,
     fontWeight: FontWeights.medium,
   },
@@ -302,13 +298,13 @@ export const styles = StyleSheet.create({
   },
   exampleValue: {
     fontSize: FontSizes.bodyLg,
-    color: blackCardColors.primary,
+    color: "#111827",
     lineHeight: LineHeights.titleLg,
     fontWeight: FontWeights.medium,
     flexShrink: 1,
   },
   exampleTextDark: {
-    color: blackCardColors.primary,
+    color: "#111827",
   },
   exampleText: {
     fontStyle: "normal",
@@ -321,12 +317,12 @@ export const styles = StyleSheet.create({
   exampleCharacterText: {
     fontSize: FontSizes.bodyLg,
     fontWeight: FontWeights.semiBold,
-    color: blackCardColors.muted,
+    color: "#6B7280",
     lineHeight: LineHeights.heading,
     flexShrink: 1,
   },
   exampleCharacterTextDark: {
-    color: blackCardColors.muted,
+    color: "#6B7280",
   },
   exampleInterleavedContainer: {
     gap: 12,

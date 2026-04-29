@@ -6,13 +6,13 @@ import {
   View,
   type GestureResponderEvent,
 } from "react-native";
+import { getFontColors } from "../../../constants/fontColors";
 import { useSpeech } from "../../../src/hooks/useSpeech";
 import {
   splitJapaneseTextSegments,
   stripKanaParens,
 } from "../../../src/utils/japaneseText";
 import { styles } from "./KanjiCollocationCardStyles";
-import { blackCardColors } from "./blackCardStyles";
 import { trimmedStringAt } from "./kanjiCollocationUtils";
 
 /**
@@ -53,6 +53,7 @@ export function GeneralBackSection({
   onFlip,
 }: GeneralBackSectionProps) {
   const { speak } = useSpeech();
+  const fontColors = getFontColors(isDark);
   const items = examples
     .map((example, index) => ({
       example: example.trim(),
@@ -84,7 +85,7 @@ export function GeneralBackSection({
           suppressHighlighting
           style={[
             styles.backSectionTitle,
-            { color: blackCardColors.muted },
+            { color: fontColors.learningCardMuted },
           ]}
         >
           EXAMPLE
@@ -144,7 +145,7 @@ export function GeneralBackSection({
                     style={[
                       styles.backExample,
                       styles.backExampleOverlay,
-                      { color: blackCardColors.primary },
+                      { color: fontColors.learningCardPrimary },
                     ]}
                   >
                     {visibleSegments.map((segment, segmentIndex) => (
@@ -159,7 +160,7 @@ export function GeneralBackSection({
                           segment.isKanaParen
                             ? [
                                 styles.backInlineFurigana,
-                                { color: blackCardColors.muted },
+                                { color: fontColors.learningCardMuted },
                               ]
                             : undefined
                         }
@@ -173,7 +174,7 @@ export function GeneralBackSection({
                   <Text
                     style={[
                       styles.backTranslation,
-                      { color: blackCardColors.muted },
+                      { color: fontColors.learningCardMuted },
                     ]}
                   >
                     {item.translation}

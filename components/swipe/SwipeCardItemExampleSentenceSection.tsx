@@ -11,11 +11,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { getBackgroundColors } from "../../constants/backgroundColors";
+import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { stripKanaParens } from "../../src/utils/japaneseText";
 import { formatSynonyms } from "../../src/utils/synonyms";
-import { blackCardColors } from "../course/vocabulary/blackCardStyles";
 
 interface SwipeCardItemExampleSentenceSectionProps {
   example: string;
@@ -33,10 +34,12 @@ export function SwipeCardItemExampleSentenceSection({
   pronunciation,
   synonyms,
   courseId,
-  isDark: _isDark,
+  isDark,
   isActive = true,
 }: SwipeCardItemExampleSentenceSectionProps) {
   const { t } = useTranslation();
+  const bgColors = getBackgroundColors(isDark);
+  const fontColors = getFontColors(isDark);
   useCardSpeechCleanup(isActive);
   const { speak } = useSpeech();
 
@@ -96,7 +99,10 @@ export function SwipeCardItemExampleSentenceSection({
               activeOpacity={0.7}
             >
               <Text
-                style={[styles.cardExample, { color: blackCardColors.primary }]}
+                style={[
+                  styles.cardExample,
+                  { color: fontColors.learningCardPrimary },
+                ]}
                 numberOfLines={2}
               >
                 {exampleText.trim()}
@@ -107,7 +113,7 @@ export function SwipeCardItemExampleSentenceSection({
               <Text
                 style={[
                   styles.cardTranslation,
-                  { color: blackCardColors.muted },
+                  { color: fontColors.learningCardMuted },
                 ]}
                 numberOfLines={2}
               >
@@ -122,7 +128,10 @@ export function SwipeCardItemExampleSentenceSection({
             style={styles.exampleGroup}
           >
             <Text
-              style={[styles.sectionLabel, { color: blackCardColors.muted }]}
+              style={[
+                styles.sectionLabel,
+                { color: fontColors.learningCardMuted },
+              ]}
             >
               {t("notifications.labels.synonyms", {
                 defaultValue: "Synonyms",
@@ -132,7 +141,7 @@ export function SwipeCardItemExampleSentenceSection({
               testID="swipe-card-synonyms"
               style={[
                 styles.cardSynonyms,
-                { color: blackCardColors.secondary },
+                { color: fontColors.learningCardSecondary },
               ]}
               numberOfLines={2}
             >
@@ -146,14 +155,14 @@ export function SwipeCardItemExampleSentenceSection({
         <TouchableOpacity
           style={[
             styles.expandButton,
-            { backgroundColor: "rgba(255,255,255,0.08)" },
+            { backgroundColor: bgColors.learningCardExpandButton },
           ]}
           onPress={() => setIsExpanded(!isExpanded)}
         >
           <Text
             style={[
               styles.expandButtonText,
-              { color: blackCardColors.primary },
+              { color: fontColors.learningCardPrimary },
             ]}
           >
             {isExpanded ? "Show less" : `Show ${examples.length - 3} more`}
@@ -161,7 +170,7 @@ export function SwipeCardItemExampleSentenceSection({
           <Ionicons
             name={isExpanded ? "chevron-up" : "chevron-down"}
             size={FontSizes.bodyLg}
-            color={blackCardColors.primary}
+            color={fontColors.learningCardPrimary}
           />
         </TouchableOpacity>
       )}
@@ -181,7 +190,6 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.body,
     lineHeight: LineHeights.bodyLg,
     marginTop: 2,
-    color: blackCardColors.muted,
   },
   sectionLabel: {
     fontSize: FontSizes.caption,
@@ -193,12 +201,10 @@ const styles = StyleSheet.create({
   cardExample: {
     fontSize: FontSizes.titleMd,
     fontWeight: FontWeights.semiBold,
-    color: blackCardColors.primary,
     lineHeight: LineHeights.headingMd,
   },
   cardTranslation: {
     fontSize: FontSizes.bodyMd,
-    color: blackCardColors.muted,
     fontWeight: FontWeights.medium,
     marginTop: 2,
     lineHeight: LineHeights.titleLg,

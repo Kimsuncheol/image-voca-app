@@ -51,7 +51,15 @@ export type BgColorRole =
   | "prenominalAccentBg"
   | "passwordStrengthFair"
   | "deleteColor"
-  | "transparent";
+  | "transparent"
+  | "learningCardSurface"
+  | "learningCardSurfaceAlt"
+  | "learningCardImage"
+  | "learningCardChip"
+  | "learningCardSelected"
+  | "learningCardDelete"
+  | "learningCardExpandButton"
+  | "learningCardKanaActive";
 
 export type BgColorTokens = Record<BgColorRole, string>;
 
@@ -108,6 +116,14 @@ export const BackgroundColors: Record<BgColorScheme, BgColorTokens> = {
     passwordStrengthFair: "#FF9500",
     deleteColor: "#FF3B30",
     transparent: "transparent",
+    learningCardSurface: "#FFFFFF",
+    learningCardSurfaceAlt: "#F8FAFC",
+    learningCardImage: "#FFFFFF",
+    learningCardChip: "rgba(0,122,255,0.10)",
+    learningCardSelected: "#F1F7FF",
+    learningCardDelete: "#F8FAFC",
+    learningCardExpandButton: "#F5F7FA",
+    learningCardKanaActive: "#2EA043",
   },
   dark: {
     bgImageColor: "#ffffff",
@@ -161,6 +177,14 @@ export const BackgroundColors: Record<BgColorScheme, BgColorTokens> = {
     passwordStrengthFair: "#FF9500",
     deleteColor: "#FF453A",
     transparent: "transparent",
+    learningCardSurface: "#000000",
+    learningCardSurfaceAlt: "#050505",
+    learningCardImage: "#FFFFFF",
+    learningCardChip: "rgba(255,255,255,0.08)",
+    learningCardSelected: "#162331",
+    learningCardDelete: "#050505",
+    learningCardExpandButton: "rgba(255,255,255,0.08)",
+    learningCardKanaActive: "#2EA043",
   },
 };
 

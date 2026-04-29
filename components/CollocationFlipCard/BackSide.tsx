@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
+import { getBackgroundColors } from "../../constants/backgroundColors";
 import ExampleSection from "./ExampleSection";
 import ExplanationSection from "./ExplanationSection";
 import { CollocationData } from "./types";
@@ -22,6 +23,7 @@ export default React.memo(function BackSide({
   initialSection = "explanation",
   onFlip,
 }: BackSideProps) {
+  const bgColors = getBackgroundColors(isDark);
   const normalizedInitialSection: BackSideSection =
     initialSection === "translation" ? "example" : initialSection;
 
@@ -71,7 +73,15 @@ export default React.memo(function BackSide({
   const exampleMaxHeight = contentHeight ? contentHeight * 0.8 : undefined;
 
   return (
-    <View style={[styles.back, isDark && styles.backDark]}>
+    <View
+      style={[
+        styles.back,
+        {
+          backgroundColor: bgColors.learningCardSurface,
+          borderColor: bgColors.learningCardSurface,
+        },
+      ]}
+    >
       {onFlip && <Pressable style={styles.backFlipOverlay} onPress={onFlip} />}
 
       <View

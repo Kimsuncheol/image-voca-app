@@ -3,6 +3,8 @@ import { doc, runTransaction } from "firebase/firestore";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, StyleSheet, TouchableOpacity } from "react-native";
+import { getBackgroundColors } from "../../constants/backgroundColors";
+import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext";
 import { db } from "../../src/services/firebase";
 import { useUserStatsStore } from "../../src/stores";
@@ -39,6 +41,8 @@ export function AddToWordBankButton({
   const [isAdding, setIsAdding] = React.useState(false);
   const [isAdded, setIsAdded] = React.useState(initialIsSaved);
   const { t } = useTranslation();
+  const bgColors = getBackgroundColors(isDark);
+  const fontColors = getFontColors(isDark);
 
   React.useEffect(() => {
     setIsAdded(initialIsSaved);
@@ -117,12 +121,10 @@ export function AddToWordBankButton({
         : "star-outline";
   const iconColor =
     variant === "bookmark"
-      ? isDark
-        ? "#0a84ff"
-        : "#007AFF"
+      ? fontColors.learningCardActionText
       : isAdded
         ? "#4A3600"
-        : "#FFFFFF";
+        : fontColors.learningCardPrimary;
   const iconSize = variant === "bookmark" ? 28 : 18;
 
   if (variant === "bookmark") {
@@ -152,10 +154,15 @@ export function AddToWordBankButton({
     <TouchableOpacity
       testID={testIDPrefix ? `${testIDPrefix}-button` : undefined}
       style={[
-        styles.baseButton,
-        styles.starButton,
-        isAdded ? styles.starButtonAdded : styles.starButtonIdle,
-        isAdding && styles.buttonDisabled,
+          styles.baseButton,
+          styles.starButton,
+          isAdded
+            ? styles.starButtonAdded
+            : {
+                backgroundColor: bgColors.learningCardChip,
+                borderColor: fontColors.learningCardDivider,
+              },
+          isAdding && styles.buttonDisabled,
       ]}
       onPress={toggleWordBank}
       disabled={isAdding}
@@ -180,10 +187,6 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-  },
-  starButtonIdle: {
-    backgroundColor: "rgba(0,0,0,0.18)",
-    borderColor: "rgba(255,255,255,0.82)",
   },
   starButtonAdded: {
     backgroundColor: "#F4C542",

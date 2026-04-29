@@ -3,6 +3,7 @@ import { Image } from "expo-image";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
@@ -35,6 +36,7 @@ export function KanjiWordBankCard({
   const { i18n } = useTranslation();
   const useKorean = i18n.language === "ko";
   const language = i18n.language;
+  const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
 
   const [showFurigana, setShowFurigana] = React.useState(false);
@@ -63,7 +65,7 @@ export function KanjiWordBankCard({
     <View
       style={[
         styles.card,
-        { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
+        { backgroundColor: bgColors.learningCardSurfaceAlt },
       ]}
     >
       {/* Header: kanji + image + day badge */}
@@ -187,11 +189,9 @@ export function KanjiWordBankCard({
               style={[
                 styles.furiganaButton,
                 showFurigana
-                  ? { backgroundColor: "#2EA043" }
+                  ? { backgroundColor: bgColors.learningCardKanaActive }
                   : {
-                      borderColor: isDark
-                        ? "rgba(255,255,255,0.22)"
-                        : "rgba(17,24,28,0.16)",
+                      borderColor: fontColors.learningCardDividerMuted,
                       borderWidth: 1,
                     },
               ]}
@@ -202,7 +202,7 @@ export function KanjiWordBankCard({
                   {
                     color: showFurigana
                       ? fontColors.inverse
-                      : fontColors.subtle,
+                      : fontColors.learningCardMuted,
                   },
                 ]}
               >

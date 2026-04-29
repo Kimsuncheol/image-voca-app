@@ -1,11 +1,12 @@
 import React from "react";
 import { Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { getBackgroundColors } from "../../../constants/backgroundColors";
+import { getFontColors } from "../../../constants/fontColors";
 import type { KanjiWord } from "../../../src/types/vocabulary";
 import { BackSection } from "./KanjiCollocationCardBackSection";
 import { GeneralBackSection } from "./KanjiCollocationCardGeneralBackSection";
 import { DottedDivider } from "./KanjiCollocationCardDivider";
 import { styles } from "./KanjiCollocationCardStyles";
-import { blackCardColors } from "./blackCardStyles";
 
 /**
  * Props passed to the back face component of the Kanji Collocation Card.
@@ -33,6 +34,8 @@ export interface BackSideProps {
  * It also holds the "がな" (Furigana) toggle button to show or hide reading aids.
  */
 export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }: BackSideProps) {
+  const bgColors = getBackgroundColors(isDark);
+  const fontColors = getFontColors(isDark);
   const meanings = item.meaning;
   const readings = item.reading;
   const meaningTranslations = useKorean ? item.meaningKoreanTranslation : item.meaningEnglishTranslation;
@@ -51,7 +54,13 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
   return (
     <Pressable
       testID="kanji-collocation-back-side"
-      style={[styles.back, { backgroundColor: blackCardColors.surface, borderColor: blackCardColors.surface }]}
+      style={[
+        styles.back,
+        {
+          backgroundColor: bgColors.learningCardSurface,
+          borderColor: bgColors.learningCardSurface,
+        },
+      ]}
       onPress={onFlip}
     >
       <View style={styles.backHeader}>
@@ -61,11 +70,9 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
           style={[
             styles.furiganaButton,
             showFurigana
-              ? { backgroundColor: "#2EA043" }
+              ? { backgroundColor: bgColors.learningCardKanaActive }
               : {
-                  borderColor: isDark
-                    ? "rgba(255,255,255,0.22)"
-                    : "rgba(17,24,28,0.16)",
+                  borderColor: fontColors.learningCardDividerMuted,
                   borderWidth: 1,
                 },
           ]}
@@ -74,7 +81,9 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
             style={[
               styles.furiganaButtonText,
               {
-                color: showFurigana ? "#FFFFFF" : blackCardColors.muted,
+                color: showFurigana
+                  ? fontColors.inverse
+                  : fontColors.learningCardMuted,
               },
             ]}
           >

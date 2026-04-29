@@ -2,6 +2,7 @@ import { FontWeights } from "@/constants/fontWeights";
 import { LineHeights } from "@/constants/lineHeights";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { VocabularyCard } from "../../src/types/vocabulary";
@@ -9,9 +10,6 @@ import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { speakWordVariants } from "../../src/utils/wordVariants";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { FontSizes } from "@/constants/fontSizes";
-import {
-  blackCardColors,
-} from "../course/vocabulary/blackCardStyles";
 import { SwipeCardItemAddToWordBankButton } from "./SwipeCardItemAddToWordBankButton";
 
 interface SwipeCardItemWordMeaningSectionProps {
@@ -45,6 +43,7 @@ export function SwipeCardItemWordMeaningSection({
   onSavedWordChange,
   isPreviewMode = false,
 }: SwipeCardItemWordMeaningSectionProps) {
+  const fontColors = getFontColors(isDark);
   useCardSpeechCleanup(isActive);
   const { speak: speakText } = useSpeech();
   const normalizedPronunciation = pronunciation?.trim();
@@ -90,7 +89,7 @@ export function SwipeCardItemWordMeaningSection({
             testID={index === 0 ? "swipe-card-word-title" : undefined}
             style={[
               styles.cardTitle,
-              { color: blackCardColors.primary },
+              { color: fontColors.learningCardPrimary },
               index > 0 && styles.cardTitleVariant,
               { fontSize: titleFontSize, lineHeight: titleLineHeight },
             ]}
@@ -126,7 +125,12 @@ export function SwipeCardItemWordMeaningSection({
         </View>
       </View>
       {normalizedPronunciation ? (
-        <Text style={styles.cardSubtitle}>
+        <Text
+          style={[
+            styles.cardSubtitle,
+            { color: fontColors.learningCardMuted },
+          ]}
+        >
           {normalizedPronunciation}
         </Text>
       ) : null}
@@ -137,7 +141,7 @@ export function SwipeCardItemWordMeaningSection({
           isDark={isDark}
           textStyle={[
             styles.cardDescription,
-            { color: blackCardColors.secondary },
+            { color: fontColors.learningCardSecondary },
           ]}
           containerStyle={styles.inlineMeaning}
           chipStyle={styles.inlineChip}
@@ -173,7 +177,6 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: FontSizes.displayXl,
     fontWeight: FontWeights.black,
-    color: blackCardColors.primary,
     flexShrink: 1,
     letterSpacing: 0,
   },
@@ -185,7 +188,6 @@ const styles = StyleSheet.create({
   },
   cardSubtitle: {
     fontSize: FontSizes.bodyMd,
-    color: blackCardColors.muted,
     fontStyle: "italic",
     marginTop: -2,
     marginBottom: 12,
@@ -204,7 +206,6 @@ const styles = StyleSheet.create({
   },
   cardDescription: {
     fontSize: FontSizes.titleLg,
-    color: blackCardColors.secondary,
     lineHeight: LineHeights.headingLg,
     fontWeight: FontWeights.semiBold,
   },

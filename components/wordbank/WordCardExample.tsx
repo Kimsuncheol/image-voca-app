@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useSpeech } from "../../src/hooks/useSpeech";
@@ -75,6 +76,7 @@ export function WordCardExample({
   const { t } = useTranslation();
   const isCollocation = course === "COLLOCATION";
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
 
   const processedExample = React.useMemo(
@@ -170,7 +172,12 @@ export function WordCardExample({
   const renderMeta = () => (
     <>
       {pronunciation ? (
-        <ThemedText style={styles.metaText}>
+        <ThemedText
+          style={[
+            styles.metaText,
+            { color: fontColors.learningCardMuted },
+          ]}
+        >
           {`${t("notifications.labels.pronunciation", {
             defaultValue: "Pronunciation",
           })}: ${pronunciation}`}
@@ -185,7 +192,11 @@ export function WordCardExample({
         <ThemedText
           style={[
             styles.metaText,
-            { textTransform: "uppercase", fontWeight: FontWeights.bold },
+            {
+              color: fontColors.learningCardMuted,
+              textTransform: "uppercase",
+              fontWeight: FontWeights.bold,
+            },
           ]}
         >
           {`${t("notifications.labels.synonyms", {
@@ -194,7 +205,10 @@ export function WordCardExample({
         </ThemedText>
         <ThemedText
           testID="word-card-synonyms"
-          style={[styles.synonyms, { color: isDark ? "#BDBDBD" : "#2F2F2F" }]}
+          style={[
+            styles.synonyms,
+            { color: fontColors.learningCardSecondary },
+          ]}
         >
           {formattedSynonyms}
         </ThemedText>
@@ -212,14 +226,19 @@ export function WordCardExample({
             }
             activeOpacity={0.7}
           >
-            <ThemedText style={styles.example}>
+            <ThemedText
+              style={[
+                styles.example,
+                { color: fontColors.learningCardPrimary },
+              ]}
+            >
               {segments.map((segment, segIndex) =>
                 segment.isKanaParen ? (
                   <Text
                     key={segIndex}
                     style={[
                       styles.exampleFurigana,
-                      { color: isDark ? "#999" : "#606060" },
+                      { color: fontColors.learningCardMuted },
                     ]}
                   >
                     {segment.text}
@@ -254,12 +273,17 @@ export function WordCardExample({
                   { width: characterColumnWidth },
                 ]}
               >
-                <View style={styles.characterChip}>
+                <View
+                  style={[
+                    styles.characterChip,
+                    { backgroundColor: bgColors.learningCardChip },
+                  ]}
+                >
                   <ThemedText
-                    style={[
-                      styles.characterText,
-                      isDark && styles.characterTextDark,
-                    ]}
+                style={[
+                  styles.characterText,
+                  { color: fontColors.learningCardChipText },
+                ]}
                   >
                     {item.characterLabel}
                   </ThemedText>
@@ -282,7 +306,12 @@ export function WordCardExample({
                 onPress={() => handleSpeak(item.speakText.trim())}
                 activeOpacity={0.7}
               >
-                <ThemedText style={styles.example}>
+                <ThemedText
+                  style={[
+                    styles.example,
+                    { color: fontColors.learningCardPrimary },
+                  ]}
+                >
                   {item.exampleText.trim()}
                 </ThemedText>
               </TouchableOpacity>
@@ -320,20 +349,19 @@ export function WordCardExample({
             testID="word-card-example-toggle"
             style={[
               styles.collocationToggle,
-              isDark
-                ? styles.collocationToggleDark
-                : styles.collocationToggleLight,
+              {
+                backgroundColor: bgColors.learningCardExpandButton,
+                borderColor: fontColors.learningCardDividerMuted,
+              },
             ]}
             onPress={() => setIsExpanded((current) => !current)}
             activeOpacity={0.7}
           >
             <ThemedText
-              style={[
-                styles.collocationToggleText,
-                isDark
-                  ? styles.collocationToggleTextDark
-                  : styles.collocationToggleTextLight,
-              ]}
+            style={[
+              styles.collocationToggleText,
+              { color: fontColors.learningCardActionText },
+            ]}
             >
               {isExpanded
                 ? t("common.collapse", { defaultValue: "Collapse" })
@@ -375,7 +403,7 @@ export function WordCardExample({
         <TouchableOpacity
           style={[
             styles.expandButton,
-            { backgroundColor: isDark ? "#1a1a1a" : "#f5f5f5" },
+            { backgroundColor: bgColors.learningCardExpandButton },
           ]}
           onPress={() => setIsExpanded((current) => !current)}
           activeOpacity={0.7}
@@ -383,7 +411,7 @@ export function WordCardExample({
           <ThemedText
             style={[
               styles.expandButtonText,
-              { color: isDark ? "#0a84ff" : "#007AFF" },
+              { color: fontColors.learningCardActionText },
             ]}
           >
             {isExpanded
@@ -464,7 +492,6 @@ const styles = StyleSheet.create({
   },
   characterChip: {
     alignSelf: "flex-start",
-    backgroundColor: "rgba(0, 122, 255, 0.10)",
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -473,10 +500,6 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.label,
     lineHeight: LineHeights.bodyLg,
     fontWeight: FontWeights.semiBold,
-    color: "#007AFF",
-  },
-  characterTextDark: {
-    color: "#8FC2FF",
   },
   contentColumn: {
     flex: 1,
@@ -493,24 +516,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     justifyContent: "center",
   },
-  collocationToggleLight: {
-    backgroundColor: "#F6F8FB",
-    borderColor: "rgba(17, 24, 39, 0.06)",
-  },
-  collocationToggleDark: {
-    backgroundColor: "#15181C",
-    borderColor: "rgba(255, 255, 255, 0.08)",
-  },
   collocationToggleText: {
     fontSize: FontSizes.label,
     fontWeight: FontWeights.semiBold,
     letterSpacing: 0.1,
     textAlign: "center",
-  },
-  collocationToggleTextLight: {
-    color: "#2563EB",
-  },
-  collocationToggleTextDark: {
-    color: "#93C5FD",
   },
 });
