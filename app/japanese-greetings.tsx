@@ -17,6 +17,7 @@ import { useTheme } from "../src/context/ThemeContext";
 import { useSpeech } from "../src/hooks/useSpeech";
 import type { GreetingWord } from "../src/types/greetings";
 import { speakWordVariants } from "../src/utils/wordVariants";
+import { LineHeights } from "@/constants/lineHeights";
 
 type GreetingRowProps = {
   item: GreetingWord;
@@ -235,7 +236,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: FontSizes.bodyMd,
-    lineHeight: 22,
+    lineHeight: LineHeights.titleLg,
     maxWidth: "92%",
   },
   sectionHeader: {
@@ -272,6 +273,6 @@ const styles = StyleSheet.create({
   bodyText: {
     fontSize: FontSizes.sm,
     fontWeight: "500",
-    lineHeight: 16,
+    lineHeight: LineHeights.bodyMd,
   },
 });

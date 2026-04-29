@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../themed-text";
 import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 
 type ElementaryHeroCardProps = {
   title: string;
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: FontSizes.bodyMd,
-    lineHeight: 22,
+    lineHeight: LineHeights.titleLg,
     maxWidth: "92%",
   },
 });

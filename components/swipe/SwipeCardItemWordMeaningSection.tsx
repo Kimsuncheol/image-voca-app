@@ -1,3 +1,4 @@
+import { LineHeights } from "@/constants/lineHeights";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   cardTitleVariant: {
-    lineHeight: 52,
+    lineHeight: LineHeights.displayLg,
   },
   cardSubtitle: {
     fontSize: FontSizes.bodyMd,
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
   cardDescription: {
     fontSize: FontSizes.titleLg,
     color: blackCardColors.secondary,
-    lineHeight: 30,
+    lineHeight: LineHeights.headingLg,
     fontWeight: "600",
   },
 });

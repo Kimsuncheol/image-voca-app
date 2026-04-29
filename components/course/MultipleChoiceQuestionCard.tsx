@@ -6,6 +6,7 @@ import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { RoleplayRenderer } from "../CollocationFlipCard/RoleplayRenderer";
 import { ThemedText } from "../themed-text";
 import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 
 interface MultipleChoiceQuestionCardProps {
   word?: string;
@@ -174,6 +175,6 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.heading,
     fontWeight: "600",
     textAlign: "left",
-    lineHeight: 32,
+    lineHeight: LineHeights.headingXl,
   },
 });

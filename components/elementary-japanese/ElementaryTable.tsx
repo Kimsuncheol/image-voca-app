@@ -4,6 +4,7 @@ import { FontSizes } from "@/constants/fontSizes";
 
 import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
+import { LineHeights } from "@/constants/lineHeights";
 
 export type ElementaryTableColumn = {
   key: string;
@@ -140,6 +141,6 @@ const styles = StyleSheet.create({
   bodyText: {
     fontSize: FontSizes.sm,
     fontWeight: "500",
-    lineHeight: 16,
+    lineHeight: LineHeights.bodyMd,
   },
 });

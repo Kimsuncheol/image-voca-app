@@ -4,6 +4,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 
 interface VocabularyEmptyStateProps {
   isDark: boolean;
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: FontSizes.body,
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: LineHeights.title,
   },
   button: {
     flexDirection: "row",

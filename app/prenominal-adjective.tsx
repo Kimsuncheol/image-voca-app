@@ -27,6 +27,7 @@ import {
   stripKanaParens,
 } from "../src/utils/japaneseText";
 import { speakWordVariants } from "../src/utils/wordVariants";
+import { LineHeights } from "@/constants/lineHeights";
 
 type RowProps = {
   item: PrenominalAdjectiveWord;
@@ -319,7 +320,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: FontSizes.bodyMd,
-    lineHeight: 22,
+    lineHeight: LineHeights.titleLg,
     maxWidth: "92%",
   },
   sectionHeader: {
@@ -356,7 +357,7 @@ const styles = StyleSheet.create({
   bodyText: {
     fontSize: FontSizes.sm,
     fontWeight: "500",
-    lineHeight: 16,
+    lineHeight: LineHeights.bodyMd,
   },
   exampleText: {
     fontSize: FontSizes.sm,
@@ -369,7 +370,7 @@ const styles = StyleSheet.create({
   },
   subText: {
     fontSize: FontSizes.xs,
-    lineHeight: 15,
+    lineHeight: LineHeights.body,
     marginTop: 2,
   },
   leftAligned: {

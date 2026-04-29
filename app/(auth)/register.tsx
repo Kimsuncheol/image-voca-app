@@ -1,3 +1,4 @@
+import { LineHeights } from "@/constants/lineHeights";
 import { FontSizes } from "@/constants/fontSizes";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -832,7 +833,7 @@ const getStyles = (isDark: boolean) => {
       flex: 1,
       color: fontColors.error,
       fontSize: FontSizes.body,
-      lineHeight: 20,
+      lineHeight: LineHeights.title,
     },
 
     /** Error text - Small inline error text below inputs */

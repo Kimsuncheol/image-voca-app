@@ -3,6 +3,7 @@ import { StyleSheet, Text } from "react-native";
 import { parseRoleplaySegments } from "../../src/utils/roleplayUtils";
 import { RoleplayDialogueRow } from "../RoleplayDialogueRow";
 import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 
 interface RoleplayRendererProps {
   content: string;
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
   value: {
     fontSize: FontSizes.title,
     color: "#333",
-    lineHeight: 26,
+    lineHeight: LineHeights.heading,
     fontWeight: "400",
   },
   textDark: {

@@ -23,6 +23,7 @@ import { InlineMeaningWithChips } from "../../common/InlineMeaningWithChips";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
 import { SwipeCardItemImageSection } from "../../swipe/SwipeCardItemImageSection";
 import { blackCardColors, blackCardSharedStyles } from "./blackCardStyles";
+import { LineHeights } from "@/constants/lineHeights";
 
 const { width } = Dimensions.get("window");
 
@@ -473,7 +474,7 @@ const styles = StyleSheet.create({
   cardDescription: {
     fontSize: FontSizes.subhead,
     color: blackCardColors.secondary,
-    lineHeight: 24,
+    lineHeight: LineHeights.titleXl,
     fontWeight: "500",
   },
   exampleSection: {
@@ -486,13 +487,13 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.bodyLg,
     fontWeight: "500",
     color: blackCardColors.primary,
-    lineHeight: 20,
+    lineHeight: LineHeights.title,
   },
   cardTranslation: {
     fontSize: FontSizes.caption,
     fontWeight: "500",
     marginTop: 4,
-    lineHeight: 22,
+    lineHeight: LineHeights.titleLg,
   },
   cardFurigana: {
     fontSize: FontSizes.caption,

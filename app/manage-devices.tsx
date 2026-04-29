@@ -30,6 +30,7 @@ import {
   removeUserDeviceRegistration,
 } from "../src/services/deviceRegistrationService";
 import type { ManageableDeviceRecord } from "../src/types/deviceRegistration";
+import { LineHeights } from "@/constants/lineHeights";
 
 const REMOVE_EXIT_DURATION_MS = 200;
 const LIST_LAYOUT_DURATION_MS = 220;
@@ -358,7 +359,7 @@ const getStyles = (isDark: boolean) => {
     },
     helper: {
       fontSize: FontSizes.body,
-      lineHeight: 20,
+      lineHeight: LineHeights.title,
       color: fontColors.deviceHelper,
     },
     stateCard: {

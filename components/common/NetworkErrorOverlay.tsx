@@ -11,6 +11,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useNetworkStatus } from "../../src/hooks/useNetworkStatus";
 import { useNetworkStore } from "../../src/stores/networkStore";
+import { LineHeights } from "@/constants/lineHeights";
 
 type OverlayPhase = "hidden" | "error" | "recovered";
 
@@ -176,14 +177,14 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#FFFFFF",
     textAlign: "center",
-    lineHeight: 34,
+    lineHeight: LineHeights.headingXxl,
     marginBottom: 14,
   },
   subtitle: {
     fontSize: FontSizes.body,
     color: "#8A9BB0",
     textAlign: "center",
-    lineHeight: 21,
+    lineHeight: LineHeights.titleMd,
     marginBottom: 8,
   },
 });

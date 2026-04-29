@@ -6,6 +6,7 @@ import { stripKanaParens } from "../../src/utils/japaneseText";
 import { RoleplayRenderer } from "../CollocationFlipCard/RoleplayRenderer";
 import { ThemedText } from "../themed-text";
 import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 
 interface FillInTheBlankGameClozeSentenceCardProps {
   clozeSentence: string;
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
   },
   sentenceText: {
     fontSize: FontSizes.title,
-    lineHeight: 28,
+    lineHeight: LineHeights.headingMd,
     textAlign: "left",
   },
   blank: {

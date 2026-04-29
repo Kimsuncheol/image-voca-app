@@ -3,6 +3,7 @@ import { StyleSheet } from "react-native";
 import { FontColors } from "../../../constants/fontColors";
 import { CARD_HEIGHT, CARD_WIDTH } from "../../../src/constants/layout";
 import { blackCardColors, blackCardSpacing } from "./blackCardStyles";
+import { LineHeights } from "@/constants/lineHeights";
 
 // const { width } = Dimensions.get("window");
 
@@ -95,7 +96,7 @@ export const styles = StyleSheet.create({
   faceListItem: {
     fontSize: FontSizes.title,
     fontWeight: "600",
-    lineHeight: 26,
+    lineHeight: LineHeights.heading,
   },
   faceRomanizedTextDark: {
     color: "#b9b9b9",
@@ -173,7 +174,7 @@ export const styles = StyleSheet.create({
   backGroupLabel: {
     fontSize: FontSizes.title,
     fontWeight: "700",
-    lineHeight: 24,
+    lineHeight: LineHeights.titleXl,
   },
   backPairsContainer: {
     flexDirection: "row",
@@ -215,11 +216,11 @@ export const styles = StyleSheet.create({
   backExample: {
     fontSize: FontSizes.bodyLg,
     fontWeight: "500",
-    lineHeight: 22,
+    lineHeight: LineHeights.titleLg,
   },
   backFurigana: {
     fontSize: FontSizes.micro,
-    lineHeight: 12,
+    lineHeight: LineHeights.xs,
     alignSelf: "stretch",
     textAlign: "left",
   },
@@ -251,6 +252,6 @@ export const styles = StyleSheet.create({
   backTranslation: {
     fontSize: FontSizes.sm,
     fontWeight: "500",
-    lineHeight: 18,
+    lineHeight: LineHeights.bodyLg,
   },
 });

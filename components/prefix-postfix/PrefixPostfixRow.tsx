@@ -11,6 +11,7 @@ import { ElementaryTableRow } from "../elementary-japanese/ElementaryTable";
 import { ThemedText } from "../themed-text";
 import type { Tab } from "./PrefixPostfixTabs";
 import { buildGroupedLines } from "./utils";
+import { LineHeights } from "@/constants/lineHeights";
 
 interface Props {
   item: PrefixWord | PostfixWord;
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
   },
   indexText: {
     fontSize: FontSizes.xs,
-    lineHeight: 16,
+    lineHeight: LineHeights.bodyMd,
     marginRight: 3,
     minWidth: 13,
   },
@@ -193,21 +194,21 @@ const styles = StyleSheet.create({
   bodyText: {
     fontSize: FontSizes.sm,
     fontWeight: "500",
-    lineHeight: 16,
+    lineHeight: LineHeights.bodyMd,
   },
   exampleText: {
     fontSize: FontSizes.sm,
     fontWeight: "700",
-    lineHeight: 16,
+    lineHeight: LineHeights.bodyMd,
   },
   furiganaText: {
     fontSize: FontSizes.xs,
-    lineHeight: 15,
+    lineHeight: LineHeights.body,
     marginTop: 1,
   },
   subText: {
     fontSize: FontSizes.xs,
-    lineHeight: 15,
+    lineHeight: LineHeights.body,
     marginTop: 1,
   },
   leftAlignedText: {

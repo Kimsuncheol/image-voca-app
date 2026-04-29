@@ -1,3 +1,4 @@
+import { LineHeights } from "@/constants/lineHeights";
 import React from "react";
 import { FontSizes } from "@/constants/fontSizes";
 import {
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: FontSizes.xs,
     fontWeight: "700",
-    lineHeight: 12,
+    lineHeight: LineHeights.xs,
     textTransform: "lowercase",
   },
 });

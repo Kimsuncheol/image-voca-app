@@ -4,6 +4,7 @@ import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { ThemedText } from "../themed-text";
 import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 
 const MATCHING_POS_MARKER_REGEX = /\b(?:prep|ad|n|v|a)\.(?=\s|$)/gi;
 
@@ -202,7 +203,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: FontSizes.body,
     fontWeight: "600",
-    lineHeight: 20,
+    lineHeight: LineHeights.title,
   },
   matchingItemTextMatched: {
     color: "#28a745",
@@ -230,18 +231,18 @@ const styles = StyleSheet.create({
   },
   meaningText: {
     fontSize: FontSizes.body,
-    lineHeight: 20,
+    lineHeight: LineHeights.title,
     textAlign: "center",
   },
   pronunciationText: {
     fontSize: FontSizes.bodyLg,
-    lineHeight: 22,
+    lineHeight: LineHeights.titleLg,
     textAlign: "center",
     fontWeight: "600",
   },
   synonymText: {
     fontSize: FontSizes.caption,
-    lineHeight: 18,
+    lineHeight: LineHeights.bodyLg,
     textAlign: "center",
     fontWeight: "600",
   },
@@ -250,7 +251,7 @@ const styles = StyleSheet.create({
   },
   pronunciationCaption: {
     fontSize: FontSizes.caption,
-    lineHeight: 16,
+    lineHeight: LineHeights.bodyMd,
     textAlign: "center",
     opacity: 0.75,
   },

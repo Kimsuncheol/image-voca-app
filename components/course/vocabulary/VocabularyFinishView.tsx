@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 
 interface VocabularyFinishViewProps {
   isDark: boolean;
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
   checkedLabel: {
     fontSize: FontSizes.displayLg,
     fontWeight: "900",
-    lineHeight: 48,
+    lineHeight: LineHeights.display,
     textAlign: "center",
     textTransform: "uppercase",
     letterSpacing: 1,

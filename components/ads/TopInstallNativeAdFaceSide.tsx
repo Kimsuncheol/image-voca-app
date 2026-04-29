@@ -13,6 +13,7 @@ import {
 } from "../../src/services/mobileAds";
 import { NativeAdCtaButton } from "./NativeAdCtaButton";
 import { NativeAdDisclosureButton } from "./NativeAdDisclosureButton";
+import { LineHeights } from "@/constants/lineHeights";
 
 interface TopInstallNativeAdFaceSideProps {
   ctaLabel: string;
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     color: "#111827",
     fontSize: FontSizes.caption,
     fontWeight: "700",
-    lineHeight: 14,
+    lineHeight: LineHeights.sm,
   },
   metadataRow: {
     alignItems: "center",
@@ -177,6 +178,6 @@ const styles = StyleSheet.create({
   metadataText: {
     color: "#4b5563",
     fontSize: FontSizes.xs,
-    lineHeight: 12,
+    lineHeight: LineHeights.xs,
   },
 });

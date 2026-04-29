@@ -12,6 +12,7 @@ import {
   stripKanaParens,
 } from "../../src/utils/japaneseText";
 import { ThemedText } from "../themed-text";
+import { LineHeights } from "@/constants/lineHeights";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -317,11 +318,11 @@ const styles = StyleSheet.create({
   quoteText: {
     fontSize: FontSizes.titleLg,
     fontWeight: "bold",
-    lineHeight: 32,
+    lineHeight: LineHeights.headingXl,
   },
   translation: {
     fontSize: FontSizes.body,
-    lineHeight: 20,
+    lineHeight: LineHeights.title,
     marginTop: 10,
   },
   author: {

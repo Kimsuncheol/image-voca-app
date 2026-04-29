@@ -16,6 +16,7 @@ import { DottedDivider } from "../course/vocabulary/KanjiCollocationCardDivider"
 import { GeneralBackSection } from "../course/vocabulary/KanjiCollocationCardGeneralBackSection";
 import { AddToWordBankButton } from "./AddToWordBankButton";
 import type { SavedWord } from "./WordCard";
+import { LineHeights } from "@/constants/lineHeights";
 
 interface KanjiWordBankCardProps {
   word: SavedWord;
@@ -293,7 +294,7 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: FontSizes.bodyLg,
     fontWeight: "600",
-    lineHeight: 24,
+    lineHeight: LineHeights.titleXl,
   },
   exampleSection: {
     gap: 8,

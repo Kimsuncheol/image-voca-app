@@ -7,6 +7,7 @@ import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 
 export default function ComingSoonScreen() {
   const { isDark } = useTheme();
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
   description: {
     fontSize: FontSizes.bodyLg,
     textAlign: "center",
-    lineHeight: 24,
+    lineHeight: LineHeights.titleXl,
   },
   link: {
     flexDirection: "row",

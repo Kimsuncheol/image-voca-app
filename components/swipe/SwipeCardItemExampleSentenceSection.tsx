@@ -14,6 +14,7 @@ import { useSpeech } from "../../src/hooks/useSpeech";
 import { stripKanaParens } from "../../src/utils/japaneseText";
 import { formatSynonyms } from "../../src/utils/synonyms";
 import { blackCardColors } from "../course/vocabulary/blackCardStyles";
+import { LineHeights } from "@/constants/lineHeights";
 
 interface SwipeCardItemExampleSentenceSectionProps {
   example: string;
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: FontSizes.body,
-    lineHeight: 18,
+    lineHeight: LineHeights.bodyLg,
     marginTop: 2,
     color: blackCardColors.muted,
   },
@@ -192,19 +193,19 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.titleMd,
     fontWeight: "600",
     color: blackCardColors.primary,
-    lineHeight: 28,
+    lineHeight: LineHeights.headingMd,
   },
   cardTranslation: {
     fontSize: FontSizes.bodyMd,
     color: blackCardColors.muted,
     fontWeight: "500",
     marginTop: 2,
-    lineHeight: 22,
+    lineHeight: LineHeights.titleLg,
   },
   cardSynonyms: {
     fontSize: FontSizes.bodyMd,
     fontWeight: "500",
-    lineHeight: 22,
+    lineHeight: LineHeights.titleLg,
   },
   expandButton: {
     flexDirection: "row",

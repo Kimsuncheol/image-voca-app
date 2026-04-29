@@ -5,6 +5,7 @@ import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
 import { IconSymbol, IconSymbolName } from "../ui/icon-symbol";
 import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 
 interface DashboardCardProps {
   title: string;
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: FontSizes.headingLg,
-    lineHeight: 34,
+    lineHeight: LineHeights.headingXxl,
   },
   subtitle: {
     fontSize: FontSizes.caption,

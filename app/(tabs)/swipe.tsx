@@ -1,3 +1,4 @@
+import { LineHeights } from "@/constants/lineHeights";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useRef } from "react";
@@ -173,6 +174,6 @@ const styles = StyleSheet.create({
   kanaButtonSubtitle: {
     fontSize: FontSizes.caption,
     opacity: 0.65,
-    lineHeight: 16,
+    lineHeight: LineHeights.bodyMd,
   },
 });

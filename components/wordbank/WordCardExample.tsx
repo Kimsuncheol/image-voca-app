@@ -18,6 +18,7 @@ import {
 import { toDialogueTurns } from "../../src/utils/roleplayUtils";
 import { formatSynonyms } from "../../src/utils/synonyms";
 import { ThemedText } from "../themed-text";
+import { LineHeights } from "@/constants/lineHeights";
 
 const LEGACY_COLLAPSE_THRESHOLD = 4;
 const COLLAPSED_VISIBLE_COUNT = 3;
@@ -390,13 +391,13 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: FontSizes.body,
-    lineHeight: 18,
+    lineHeight: LineHeights.bodyLg,
     opacity: 0.72,
     marginTop: 6,
   },
   example: {
     fontSize: FontSizes.bodyLg,
-    lineHeight: 22,
+    lineHeight: LineHeights.titleLg,
     opacity: 0.8,
     flexShrink: 1,
   },
@@ -405,14 +406,14 @@ const styles = StyleSheet.create({
   },
   translation: {
     fontSize: FontSizes.caption,
-    lineHeight: 19,
+    lineHeight: LineHeights.bodyXl,
     marginTop: 4,
     opacity: 0.92,
     flexShrink: 1,
   },
   synonyms: {
     fontSize: FontSizes.bodyMd,
-    lineHeight: 19,
+    lineHeight: LineHeights.bodyXl,
     marginTop: 4,
   },
   expandButton: {
@@ -450,7 +451,7 @@ const styles = StyleSheet.create({
   },
   characterText: {
     fontSize: FontSizes.label,
-    lineHeight: 18,
+    lineHeight: LineHeights.bodyLg,
     fontWeight: "600",
     color: "#007AFF",
   },

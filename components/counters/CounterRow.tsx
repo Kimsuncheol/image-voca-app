@@ -11,6 +11,7 @@ import { speakWordVariants } from "../../src/utils/wordVariants";
 import { ElementaryTableRow } from "../elementary-japanese/ElementaryTable";
 import { buildGroupedLines } from "../prefix-postfix/utils";
 import { ThemedText } from "../themed-text";
+import { LineHeights } from "@/constants/lineHeights";
 
 interface Props {
   item: CounterWord;
@@ -214,12 +215,12 @@ const styles = StyleSheet.create({
   bodyText: {
     fontSize: FontSizes.sm,
     fontWeight: "500",
-    lineHeight: 16,
+    lineHeight: LineHeights.bodyMd,
   },
   exampleText: {
     fontSize: FontSizes.body,
     fontWeight: "700",
-    lineHeight: 20,
+    lineHeight: LineHeights.title,
   },
   furiganaText: {
     fontSize: FontSizes.xs,
@@ -228,7 +229,7 @@ const styles = StyleSheet.create({
   },
   subText: {
     fontSize: FontSizes.xs,
-    lineHeight: 15,
+    lineHeight: LineHeights.body,
     marginTop: 1,
   },
   leftAlignedText: {

@@ -17,6 +17,7 @@ import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { auth } from "../../src/services/firebase";
+import { LineHeights } from "@/constants/lineHeights";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -238,7 +239,7 @@ const getStyles = (isDark: boolean) => {
     },
     subtitle: {
       fontSize: FontSizes.bodyLg,
-      lineHeight: 24,
+      lineHeight: LineHeights.titleXl,
       color: fontColors.screenMutedCool,
       textAlign: "center",
       paddingHorizontal: 20,
@@ -289,7 +290,7 @@ const getStyles = (isDark: boolean) => {
       color: fontColors.successText,
       fontSize: FontSizes.body,
       fontWeight: "500",
-      lineHeight: 20,
+      lineHeight: LineHeights.title,
     },
     buttonGroup: {
       width: "100%",

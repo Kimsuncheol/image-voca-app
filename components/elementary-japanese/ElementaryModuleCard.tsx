@@ -3,6 +3,7 @@ import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "../themed-text";
 import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 
 export type ElementaryModuleCardProps = {
   title: string;
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
   },
   cardDescription: {
     fontSize: FontSizes.label,
-    lineHeight: 18,
+    lineHeight: LineHeights.bodyLg,
     opacity: 0.65,
   },
 });

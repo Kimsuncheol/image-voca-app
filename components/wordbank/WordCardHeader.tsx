@@ -5,6 +5,7 @@ import { parseWordVariants } from "../../src/utils/wordVariants";
 import { DayBadge } from "../common/DayBadge";
 import { ThemedText } from "../themed-text";
 import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 
 interface WordCardHeaderProps {
   word: string;
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   wordTitleMultiline: {
-    lineHeight: 28,
+    lineHeight: LineHeights.headingMd,
   },
   pronunciation: {
     fontSize: FontSizes.body,

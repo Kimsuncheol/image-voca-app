@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 
 const WHY_THIS_AD_URL = "https://adssettings.google.com/whythisad";
 
@@ -97,7 +98,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: FontSizes.xs,
     fontWeight: "600",
-    lineHeight: 12,
+    lineHeight: LineHeights.xs,
     textAlign: "center",
   },
   disclosureActionsRow: {
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
     color: "#1d4ed8",
     fontSize: FontSizes.xxs,
     fontWeight: "600",
-    lineHeight: 11,
+    lineHeight: LineHeights.micro,
   },
   disclosureWhyButton: {
     alignItems: "center",
@@ -139,6 +140,6 @@ const styles = StyleSheet.create({
     color: "#374151",
     fontSize: FontSizes.xxs,
     fontWeight: "600",
-    lineHeight: 11,
+    lineHeight: LineHeights.micro,
   },
 });

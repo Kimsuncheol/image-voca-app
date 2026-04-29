@@ -10,6 +10,7 @@ import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import type { CounterTabId } from "../src/types/counters";
 import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 
 export default function CountersScreen() {
   const { isDark } = useTheme();
@@ -152,7 +153,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: FontSizes.bodyMd,
-    lineHeight: 22,
+    lineHeight: LineHeights.titleLg,
     maxWidth: "92%",
   },
   sectionHeader: {

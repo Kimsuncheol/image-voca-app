@@ -1,6 +1,7 @@
-import { Platform, StyleSheet } from "react-native";
 import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 import { CARD_HEIGHT, CARD_WIDTH } from "@/src/constants/layout";
+import { Platform, StyleSheet } from "react-native";
 import {
   blackCardColors,
   blackCardSharedStyles,
@@ -55,7 +56,7 @@ export const styles = StyleSheet.create({
     width: "100%",
   },
   faceTextContainer: {
-    flex: 5.5,
+    flex: 6,
     flexDirection: "column",
     justifyContent: "flex-start",
     alignItems: "flex-start",
@@ -95,7 +96,7 @@ export const styles = StyleSheet.create({
     fontWeight: "900",
     textAlign: "left",
     color: blackCardColors.primary,
-    lineHeight: 56,
+    lineHeight: LineHeights.displayXl,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     letterSpacing: 0,
   },
@@ -103,14 +104,14 @@ export const styles = StyleSheet.create({
     gap: 6,
   },
   faceCollocationTextVariant: {
-    lineHeight: 50,
+    lineHeight: LineHeights.displayMd,
   },
   faceMeaningText: {
     fontSize: FontSizes.titleLg,
     fontWeight: "500",
     textAlign: "left",
     color: blackCardColors.secondary,
-    lineHeight: 30,
+    lineHeight: LineHeights.headingLg,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
   faceTextDark: {
@@ -153,7 +154,7 @@ export const styles = StyleSheet.create({
     ...blackCardSharedStyles.topRightControl,
   },
   faceCardImage: {
-    flex: 4.5,
+    flex: 4,
     alignSelf: "stretch",
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
@@ -235,9 +236,9 @@ export const styles = StyleSheet.create({
   // ExplanationSection.tsx
   // ============================================================================
   explanationValue: {
-    fontSize: FontSizes.heading,
+    fontSize: FontSizes.bodyLg,
     color: blackCardColors.primary,
-    lineHeight: 36,
+    lineHeight: LineHeights.titleXl,
     fontWeight: "500",
   },
 
@@ -268,9 +269,9 @@ export const styles = StyleSheet.create({
     flexShrink: 1,
   },
   exampleValue: {
-    fontSize: FontSizes.titleLg,
+    fontSize: FontSizes.bodyLg,
     color: blackCardColors.primary,
-    lineHeight: 32,
+    lineHeight: LineHeights.titleXl,
     fontWeight: "500",
     flexShrink: 1,
   },
@@ -289,7 +290,7 @@ export const styles = StyleSheet.create({
     fontSize: FontSizes.bodyLg,
     fontWeight: "600",
     color: blackCardColors.muted,
-    lineHeight: 26,
+    lineHeight: LineHeights.heading,
     flexShrink: 1,
   },
   exampleCharacterTextDark: {
@@ -311,8 +312,8 @@ export const styles = StyleSheet.create({
     flexShrink: 1,
   },
   exampleTranslationValue: {
-    fontSize: FontSizes.bodyLg,
-    lineHeight: 24,
+    fontSize: FontSizes.bodyMd,
+    lineHeight: LineHeights.titleXl,
     fontStyle: "normal",
     flexShrink: 1,
     opacity: 1,
@@ -341,9 +342,9 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
   },
   translationValue: {
-    fontSize: FontSizes.title,
+    fontSize: FontSizes.sm,
     color: "#333",
-    lineHeight: 26,
+    lineHeight: LineHeights.heading,
     fontWeight: "400",
   },
   translationScroll: {

@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
+import { LineHeights } from "@/constants/lineHeights";
 
 interface StreakMilestoneModalProps {
   visible: boolean;
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
   message: {
     fontSize: FontSizes.bodyMd,
     textAlign: "center",
-    lineHeight: 22,
+    lineHeight: LineHeights.titleLg,
   },
   button: {
     marginTop: 8,
