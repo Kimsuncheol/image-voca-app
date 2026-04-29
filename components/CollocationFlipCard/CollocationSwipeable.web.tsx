@@ -48,11 +48,13 @@ export const CollocationSwipeable: React.FC<Props> = ({
   const [activeIndex, setActiveIndex] = React.useState(normalizedInitialIndex);
   const [isHintVisible, setIsHintVisible] = React.useState(false);
   const unlockedIndicesRef = React.useRef<Set<number>>(new Set());
+  const hasFinishedRef = React.useRef(false);
   const hintTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   React.useEffect(() => {
     setActiveIndex(normalizedInitialIndex);
     unlockedIndicesRef.current = new Set();
+    hasFinishedRef.current = false;
     setIsHintVisible(false);
   }, [normalizedInitialIndex, data.length]);
 
@@ -66,6 +68,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
 
   const totalPages = renderFinalPage ? data.length + 1 : data.length;
   const currentItem = activeIndex < data.length ? data[activeIndex] : null;
+  const isFinalPageActive = Boolean(renderFinalPage && activeIndex === data.length);
 
   const showBlockedHint = React.useCallback(() => {
     setIsHintVisible(true);
@@ -79,7 +82,12 @@ export const CollocationSwipeable: React.FC<Props> = ({
 
   const goToIndex = React.useCallback(
     (nextIndex: number) => {
-      if (nextIndex < 0 || nextIndex >= totalPages || nextIndex === activeIndex) {
+      if (
+        isFinalPageActive ||
+        nextIndex < 0 ||
+        nextIndex >= totalPages ||
+        nextIndex === activeIndex
+      ) {
         return;
       }
 
@@ -87,11 +95,20 @@ export const CollocationSwipeable: React.FC<Props> = ({
       setIsHintVisible(false);
       onIndexChange?.(nextIndex);
 
-      if (renderFinalPage && nextIndex === data.length) {
+      if (renderFinalPage && nextIndex === data.length && !hasFinishedRef.current) {
+        hasFinishedRef.current = true;
         onFinish?.();
       }
     },
-    [activeIndex, data.length, onFinish, onIndexChange, renderFinalPage, totalPages],
+    [
+      activeIndex,
+      data.length,
+      isFinalPageActive,
+      onFinish,
+      onIndexChange,
+      renderFinalPage,
+      totalPages,
+    ],
   );
 
   const handleNext = React.useCallback(() => {
@@ -150,41 +167,43 @@ export const CollocationSwipeable: React.FC<Props> = ({
         )}
       </View>
 
-      <View style={styles.controls}>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Previous card"
-          disabled={activeIndex === 0}
-          onPress={handlePrevious}
-          style={[
-            styles.button,
-            isDark ? styles.buttonDark : styles.buttonLight,
-            activeIndex === 0 && styles.buttonDisabled,
-          ]}
-        >
-          <Text style={isDark ? styles.buttonTextDark : styles.buttonTextLight}>
-            Previous
-          </Text>
-        </TouchableOpacity>
-        {activeIndex < data.length && (
+      {!isFinalPageActive && (
+        <View style={styles.controls}>
           <TouchableOpacity
             accessibilityRole="button"
-            accessibilityLabel="Next card"
-            onPress={handleNext}
+            accessibilityLabel="Previous card"
+            disabled={activeIndex === 0}
+            onPress={handlePrevious}
             style={[
               styles.button,
-              styles.buttonPrimary,
-              activeIndex === data.length - 1 &&
-                renderFinalPage &&
-                styles.buttonFinish,
+              isDark ? styles.buttonDark : styles.buttonLight,
+              activeIndex === 0 && styles.buttonDisabled,
             ]}
           >
-            <Text style={styles.buttonTextPrimary}>
-              {activeIndex === data.length - 1 && renderFinalPage ? "Finish" : "Next"}
+            <Text style={isDark ? styles.buttonTextDark : styles.buttonTextLight}>
+              Previous
             </Text>
           </TouchableOpacity>
-        )}
-      </View>
+          {activeIndex < data.length && (
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Next card"
+              onPress={handleNext}
+              style={[
+                styles.button,
+                styles.buttonPrimary,
+                activeIndex === data.length - 1 &&
+                  renderFinalPage &&
+                  styles.buttonFinish,
+              ]}
+            >
+              <Text style={styles.buttonTextPrimary}>
+                {activeIndex === data.length - 1 && renderFinalPage ? "Finish" : "Next"}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
 
       {isHintVisible && (
         <View

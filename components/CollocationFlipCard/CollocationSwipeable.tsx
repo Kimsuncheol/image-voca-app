@@ -46,6 +46,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
   const unlockedIndicesRef = React.useRef<Set<number>>(new Set());
   const revertingTargetRef = React.useRef<number | null>(null);
   const isBlockingForwardDragRef = React.useRef(false);
+  const hasFinishedRef = React.useRef(false);
   const lastFeedbackAtRef = React.useRef(0);
   const hintOpacity = React.useRef(new Animated.Value(0)).current;
   const hintTranslateY = React.useRef(new Animated.Value(6)).current;
@@ -58,11 +59,14 @@ export const CollocationSwipeable: React.FC<Props> = ({
     unlockedIndicesRef.current = new Set();
     revertingTargetRef.current = null;
     isBlockingForwardDragRef.current = false;
+    hasFinishedRef.current = false;
     lastFeedbackAtRef.current = 0;
     setIsHintVisible(false);
     hintOpacity.setValue(0);
     hintTranslateY.setValue(6);
   }, [data.length, hintOpacity, hintTranslateY, normalizedInitialIndex]);
+
+  const isFinalPageActive = Boolean(renderFinalPage && activeIndex === data.length);
 
   const unlockIndex = React.useCallback((index: number) => {
     unlockedIndicesRef.current.add(index);
@@ -135,11 +139,15 @@ export const CollocationSwipeable: React.FC<Props> = ({
 
   const handlePageScroll = React.useCallback(
     (e: any) => {
+      if (renderFinalPage && currentIndexRef.current === data.length) {
+        return;
+      }
+
       const { position, offset } = e.nativeEvent;
       const currentIndex = currentIndexRef.current;
       const isForwardDragAttempt = position === currentIndex && offset > 0;
 
-      if (!isForwardDragAttempt || isBlockingForwardDragRef.current || currentIndex >= data.length) {
+      if (!isForwardDragAttempt || isBlockingForwardDragRef.current) {
         return;
       }
 
@@ -147,7 +155,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
         isBlockingForwardDragRef.current = true;
       }
     },
-    [blockForwardFromIndex, data.length],
+    [blockForwardFromIndex, data.length, renderFinalPage],
   );
 
   const handlePageScrollStateChanged = React.useCallback((e: any) => {
@@ -163,6 +171,11 @@ export const CollocationSwipeable: React.FC<Props> = ({
   const handlePageSelected = React.useCallback(
     (e: any) => {
       const nextIndex = e.nativeEvent.position;
+      const previousIndex = currentIndexRef.current;
+
+      if (renderFinalPage && previousIndex === data.length) {
+        return;
+      }
 
       // Ignore the synthetic selection event caused by snap-back.
       if (
@@ -173,7 +186,6 @@ export const CollocationSwipeable: React.FC<Props> = ({
         return;
       }
 
-      const previousIndex = currentIndexRef.current;
       if (nextIndex > previousIndex && blockForwardFromIndex(previousIndex)) {
         return;
       }
@@ -184,7 +196,8 @@ export const CollocationSwipeable: React.FC<Props> = ({
       onIndexChange?.(nextIndex);
 
       // If we have a final page and we reached it, trigger onFinish.
-      if (renderFinalPage && nextIndex === data.length) {
+      if (renderFinalPage && nextIndex === data.length && !hasFinishedRef.current) {
+        hasFinishedRef.current = true;
         onFinish?.();
       }
     },
@@ -215,7 +228,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
         onPageScrollStateChanged={handlePageScrollStateChanged}
         onPageSelected={handlePageSelected}
         orientation="horizontal"
-        scrollEnabled={activeIndex < data.length}
+        scrollEnabled={!isFinalPageActive}
       >
         {data.map((item, index) => (
           <View key={item.id} style={styles.swipeablePage}>

@@ -253,5 +253,12 @@ describe("CollocationSwipeable flip gating", () => {
 
     expect(onFinish).toHaveBeenCalledTimes(1);
     expect(onIndexChange).toHaveBeenCalledWith(2);
+    expect(mockPagerProps.scrollEnabled).toBe(false);
+
+    onIndexChange.mockClear();
+    selectPage(1);
+
+    expect(onFinish).toHaveBeenCalledTimes(1);
+    expect(onIndexChange).not.toHaveBeenCalled();
   });
 });

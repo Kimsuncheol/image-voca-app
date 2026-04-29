@@ -100,6 +100,8 @@ describe("CollocationSwipeable.web", () => {
     fireEvent.press(screen.getByLabelText("Next card"));
 
     expect(screen.getByText("Finish page")).toBeTruthy();
+    expect(screen.queryByLabelText("Previous card")).toBeNull();
+    expect(screen.queryByLabelText("Next card")).toBeNull();
     expect(onIndexChange).toHaveBeenCalledWith(2);
     expect(onFinish).toHaveBeenCalledTimes(1);
   });
