@@ -38,7 +38,6 @@ const styles = {
 
 const translations: Record<string, string> = {
   "settings.notifications.title": "Notifications",
-  "settings.notifications.push": "Push Notifications",
   "settings.notifications.studyReminder": "Study Reminder",
   "settings.notifications.permissionRequired":
     "Notifications are blocked. Tap to open Settings.",
@@ -47,23 +46,21 @@ const translations: Record<string, string> = {
 const t = (key: string) => translations[key] ?? key;
 
 describe("NotificationsSection", () => {
-  it("renders push and study reminder rows only", () => {
+  it("renders the study reminder row only", () => {
     const screen = render(
       <NotificationsSection
         styles={styles}
         isDark={false}
-        pushEnabled
         notificationPermissionDenied={false}
         studyReminderEnabled
-        onTogglePush={jest.fn()}
         onToggleStudyReminder={jest.fn()}
         onOpenPermissionSettings={jest.fn()}
         t={t}
       />,
     );
 
-    expect(screen.getByText("Push Notifications")).toBeTruthy();
     expect(screen.getByText("Study Reminder")).toBeTruthy();
+    expect(screen.queryByText("Push Notifications")).toBeNull();
     expect(screen.queryByText("Word of the Day")).toBeNull();
     expect(screen.queryByText("Mute at Night")).toBeNull();
   });
@@ -73,10 +70,8 @@ describe("NotificationsSection", () => {
       <NotificationsSection
         styles={styles}
         isDark={false}
-        pushEnabled={false}
         notificationPermissionDenied
         studyReminderEnabled={false}
-        onTogglePush={jest.fn()}
         onToggleStudyReminder={jest.fn()}
         onOpenPermissionSettings={jest.fn()}
         t={t}
@@ -95,17 +90,15 @@ describe("NotificationsSection", () => {
       <NotificationsSection
         styles={styles}
         isDark={false}
-        pushEnabled
         notificationPermissionDenied={false}
         studyReminderEnabled
-        onTogglePush={jest.fn()}
         onToggleStudyReminder={onToggleStudyReminder}
         onOpenPermissionSettings={jest.fn()}
         t={t}
       />,
     );
 
-    fireEvent.press(screen.getAllByTestId("toggle-on")[1]);
+    fireEvent.press(screen.getByTestId("toggle-on"));
 
     expect(onToggleStudyReminder).toHaveBeenCalledWith(false);
   });

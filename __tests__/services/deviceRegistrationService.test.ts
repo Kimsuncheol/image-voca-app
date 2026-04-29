@@ -17,7 +17,6 @@ import {
   setDoc,
 } from "firebase/firestore";
 import Constants, { ExecutionEnvironment } from "expo-constants";
-import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
 jest.mock("@react-native-async-storage/async-storage", () => ({
@@ -83,14 +82,6 @@ jest.mock("expo-device", () => ({
   osVersion: "18.1",
 }));
 
-jest.mock("expo-notifications", () => ({
-  IosAuthorizationStatus: {
-    PROVISIONAL: 3,
-  },
-  getPermissionsAsync: jest.fn(),
-  getExpoPushTokenAsync: jest.fn(),
-}));
-
 jest.mock("react-native", () => ({
   Platform: {
     OS: "ios",
@@ -143,16 +134,7 @@ describe("deviceRegistrationService", () => {
     consoleWarnSpy.mockRestore();
   });
 
-  it("stores the full operational payload when permissions are granted", async () => {
-    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
-      granted: true,
-      canAskAgain: true,
-      ios: { status: 0 },
-    });
-    (Notifications.getExpoPushTokenAsync as jest.Mock).mockResolvedValue({
-      data: "ExponentPushToken[token-123]",
-    });
-
+  it("stores the full operational payload", async () => {
     const record = await upsertCurrentDeviceRegistration({
       uid: "user-1",
       email: "test@example.com",
@@ -165,8 +147,6 @@ describe("deviceRegistrationService", () => {
         platform: "ios",
         modelName: "iPhone 15",
         authProvider: "password",
-        notificationPermissionStatus: "granted",
-        expoPushToken: "ExponentPushToken[token-123]",
       }),
     );
     expect(setDoc).toHaveBeenCalledWith(
@@ -181,13 +161,7 @@ describe("deviceRegistrationService", () => {
     expect(getDocs).toHaveBeenCalledWith("users/user-1/devices");
   });
 
-  it("stores a null Expo push token when notification permission is not granted", async () => {
-    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
-      granted: false,
-      canAskAgain: true,
-      ios: { status: 0 },
-    });
-
+  it("builds a native device payload without remote push fields", async () => {
     const payload = await buildNativeDevicePayload({
       email: "test@example.com",
       providerData: [{ providerId: "password" }] as any,
@@ -195,34 +169,15 @@ describe("deviceRegistrationService", () => {
 
     expect(payload).toEqual(
       expect.objectContaining({
-        notificationPermissionStatus: "undetermined",
-        expoPushToken: null,
+        platform: "ios",
+        authProvider: "password",
       }),
     );
-    expect(Notifications.getExpoPushTokenAsync).not.toHaveBeenCalled();
+    expect(payload).not.toHaveProperty("notificationPermissionStatus");
+    expect(payload).not.toHaveProperty("expoPushToken");
   });
 
-  it("does not throw when Expo push token fetching fails", async () => {
-    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
-      granted: true,
-      canAskAgain: false,
-      ios: { status: 0 },
-    });
-    (Notifications.getExpoPushTokenAsync as jest.Mock).mockRejectedValue(
-      new Error("token failed"),
-    );
-
-    const record = await upsertCurrentDeviceRegistration({
-      uid: "user-1",
-      email: "test@example.com",
-      providerData: [{ providerId: "password" }] as any,
-    });
-
-    expect(record?.expoPushToken).toBeNull();
-    expect(setDoc).toHaveBeenCalled();
-  });
-
-  it("stores unsupported notification state on Android Expo Go without calling notifications", async () => {
+  it("stores device registration on Android Expo Go without remote push fields", async () => {
     Platform.OS = "android";
     (Constants as any).appOwnership = "expo";
     (Constants as any).executionEnvironment = ExecutionEnvironment.StoreClient;
@@ -236,17 +191,12 @@ describe("deviceRegistrationService", () => {
     expect(record).toEqual(
       expect.objectContaining({
         platform: "android",
-        notificationPermissionStatus: "unsupported",
-        expoPushToken: null,
       }),
     );
-    expect(Notifications.getPermissionsAsync).not.toHaveBeenCalled();
-    expect(Notifications.getExpoPushTokenAsync).not.toHaveBeenCalled();
     expect(setDoc).toHaveBeenCalledWith(
       "users/user-1/devices/device_0123456789abcdef01234567",
       expect.objectContaining({
-        notificationPermissionStatus: "unsupported",
-        expoPushToken: null,
+        platform: "android",
       }),
       { merge: true },
     );
@@ -270,14 +220,6 @@ describe("deviceRegistrationService", () => {
     (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
       "device_existingdeviceid123456",
     );
-    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
-      granted: true,
-      canAskAgain: false,
-      ios: { status: 0 },
-    });
-    (Notifications.getExpoPushTokenAsync as jest.Mock).mockResolvedValue({
-      data: "ExponentPushToken[token-123]",
-    });
     (getDoc as jest.Mock).mockResolvedValue(
       mockSnapshot({
         createdAt: "2026-03-01T00:00:00.000Z",
@@ -308,14 +250,6 @@ describe("deviceRegistrationService", () => {
   });
 
   it("allows a new device registration while the user is below the cap", async () => {
-    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
-      granted: true,
-      canAskAgain: false,
-      ios: { status: 0 },
-    });
-    (Notifications.getExpoPushTokenAsync as jest.Mock).mockResolvedValue({
-      data: "ExponentPushToken[token-123]",
-    });
     (getDocs as jest.Mock).mockResolvedValue({
       docs: [{ id: "device-a" }, { id: "device-b" }],
     });
@@ -364,8 +298,6 @@ describe("deviceRegistrationService", () => {
           appVersion: "1.0.0",
           appBuild: "100",
           authProvider: "password",
-          notificationPermissionStatus: "granted",
-          expoPushToken: null,
           createdAt: "2026-03-01T00:00:00.000Z",
           updatedAt: "2026-03-01T00:00:00.000Z",
           lastSeenAt: "2026-03-03T00:00:00.000Z",
@@ -382,8 +314,6 @@ describe("deviceRegistrationService", () => {
           appVersion: "1.0.0",
           appBuild: "100",
           authProvider: "google.com",
-          notificationPermissionStatus: "granted",
-          expoPushToken: null,
           createdAt: "2026-03-02T00:00:00.000Z",
           updatedAt: "2026-03-02T00:00:00.000Z",
           lastSeenAt: "2026-03-02T00:00:00.000Z",
@@ -400,8 +330,6 @@ describe("deviceRegistrationService", () => {
           appVersion: "1.0.0",
           appBuild: "100",
           authProvider: "password",
-          notificationPermissionStatus: "granted",
-          expoPushToken: null,
           createdAt: "2026-03-04T00:00:00.000Z",
           updatedAt: "2026-03-04T00:00:00.000Z",
           lastSeenAt: "2026-03-04T00:00:00.000Z",

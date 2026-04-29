@@ -30,7 +30,7 @@ import {
 } from "../src/context/ThemeContext";
 import { useAuthenticatedDeviceRegistration } from "../src/hooks/useAuthenticatedDeviceRegistration";
 import { useDeviceDeletionEnforcement } from "../src/hooks/useDeviceDeletionEnforcement";
-import { usePushNotifications } from "../src/hooks/usePushNotifications";
+import { useStudyReminderNotifications } from "../src/hooks/useStudyReminderNotifications";
 import { hydrateLanguage } from "../src/i18n";
 import { initializeMobileAds } from "../src/services/mobileAds";
 import {
@@ -64,7 +64,7 @@ export function RootLayoutNav() {
 
   useAuthenticatedDeviceRegistration();
   useDeviceDeletionEnforcement();
-  usePushNotifications();
+  useStudyReminderNotifications();
 
   const paperTheme = isDark
     ? {

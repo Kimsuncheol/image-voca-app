@@ -64,11 +64,7 @@ const ja = {
     },
     notifications: {
       title: "通知",
-      push: "プッシュ通知",
       studyReminder: "学習リマインダー",
-      notSupportedTitle: "非対応",
-      notSupportedMessage:
-        "Android Expo GoではPush通知はサポートされていません。",
       moduleMissing: "通知モジュールを読み込めませんでした。",
       permissionTitle: "許可が必要",
       permissionMessage: "システム設定で通知を有効にしてください。",

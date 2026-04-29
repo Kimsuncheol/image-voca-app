@@ -16,16 +16,11 @@ import type {
   DeviceRegistrationRecord,
   ManageableDeviceRecord,
 } from "../types/deviceRegistration";
-import { isAndroidExpoGoRuntime } from "../utils/runtimeEnvironment";
 import { db } from "./firebase";
 import { getPrimaryAuthProvider } from "./userProfileService";
 
-type NotificationsModule = typeof import("expo-notifications");
-
 const DEVICE_ID_STORAGE_KEY = "@device_registration_id";
 export const MAX_REGISTERED_DEVICES = 3;
-
-let cachedNotificationsModule: NotificationsModule | null | undefined;
 
 export class DeviceRegistrationLimitError extends Error {
   code = "device/limit-exceeded" as const;
@@ -58,62 +53,6 @@ const getDeviceTypeLabel = (): string | null => {
   }
 };
 
-const getNotificationsModule = (): NotificationsModule | null => {
-  if (isAndroidExpoGoRuntime()) {
-    cachedNotificationsModule = null;
-    return cachedNotificationsModule;
-  }
-
-  if (cachedNotificationsModule !== undefined) {
-    return cachedNotificationsModule;
-  }
-
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    cachedNotificationsModule = require("expo-notifications") as NotificationsModule;
-  } catch {
-    cachedNotificationsModule = null;
-  }
-
-  return cachedNotificationsModule;
-};
-
-const getNotificationPermissionState = async () => {
-  const Notifications = getNotificationsModule();
-  if (!Notifications) {
-    return {
-      notificationPermissionStatus: "unsupported",
-      isGranted: false,
-    };
-  }
-
-  const permissions = await Notifications.getPermissionsAsync();
-  const notificationPermissionStatus =
-    permissions.granted ? "granted" : permissions.canAskAgain ? "undetermined" : "denied";
-  const isGranted =
-    permissions.granted ||
-    permissions.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL;
-
-  return {
-    notificationPermissionStatus,
-    isGranted,
-    Notifications,
-  };
-};
-
-const getExpoProjectId = () => {
-  const constantsWithExtras = Constants as typeof Constants & {
-    easConfig?: { projectId?: string };
-    expoConfig?: { extra?: { eas?: { projectId?: string } } };
-  };
-
-  return (
-    constantsWithExtras.easConfig?.projectId ||
-    constantsWithExtras.expoConfig?.extra?.eas?.projectId ||
-    undefined
-  );
-};
-
 const createDeviceId = async () => {
   const seed = `${Platform.OS}:${Date.now()}:${Math.random()}`;
   const hash = await Crypto.digestStringAsync(
@@ -142,20 +81,6 @@ export const buildNativeDevicePayload = async (
   const platform = getPlatform();
   if (!platform) return null;
 
-  const { notificationPermissionStatus, isGranted, Notifications } =
-    await getNotificationPermissionState();
-  const projectId = getExpoProjectId();
-
-  let expoPushToken: string | null = null;
-  if (isGranted && projectId && Notifications) {
-    try {
-      const response = await Notifications.getExpoPushTokenAsync({ projectId });
-      expoPushToken = response.data;
-    } catch (error) {
-      console.warn("Failed to fetch Expo push token", error);
-    }
-  }
-
   return {
     platform,
     brand: Device.brand ?? null,
@@ -167,8 +92,6 @@ export const buildNativeDevicePayload = async (
     appVersion: Constants.nativeAppVersion ?? Constants.expoConfig?.version ?? null,
     appBuild: Constants.nativeBuildVersion ?? null,
     authProvider: getPrimaryAuthProvider(user),
-    notificationPermissionStatus,
-    expoPushToken,
   };
 };
 

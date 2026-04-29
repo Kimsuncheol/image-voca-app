@@ -7,10 +7,8 @@ import { FontSizes } from "@/constants/fontSizes";
 interface NotificationsSectionProps {
   styles: Record<string, any>;
   isDark: boolean;
-  pushEnabled: boolean;
   notificationPermissionDenied: boolean;
   studyReminderEnabled: boolean;
-  onTogglePush: (value: boolean) => void;
   onToggleStudyReminder: (value: boolean) => void;
   onOpenPermissionSettings: () => void;
   t: (key: string) => string;
@@ -19,10 +17,8 @@ interface NotificationsSectionProps {
 export function NotificationsSection({
   styles,
   isDark,
-  pushEnabled,
   notificationPermissionDenied,
   studyReminderEnabled,
-  onTogglePush,
   onToggleStudyReminder,
   onOpenPermissionSettings,
   t,
@@ -33,23 +29,6 @@ export function NotificationsSection({
         {t("settings.notifications.title")}
       </Text>
       <View style={styles.card}>
-        <View style={styles.option}>
-          <View style={styles.optionLeft}>
-            <Ionicons
-              name="notifications-outline"
-              size={24}
-              color={isDark ? "#fff" : "#333"}
-            />
-            <Text style={styles.optionText}>
-              {t("settings.notifications.push")}
-            </Text>
-          </View>
-          <ToggleSwitch
-            value={pushEnabled}
-            onValueChange={onTogglePush}
-            trackColor={{ false: "#767577", true: "#007AFF" }}
-          />
-        </View>
         {notificationPermissionDenied && (
           <TouchableOpacity onPress={onOpenPermissionSettings}>
             <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 8, gap: 6 }}>
@@ -60,8 +39,7 @@ export function NotificationsSection({
             </View>
           </TouchableOpacity>
         )}
-        <View style={styles.separator} />
-        <View style={[styles.option, styles.subOption]}>
+        <View style={styles.option}>
           <View style={styles.optionLeft}>
             <Ionicons
               name="alarm-outline"

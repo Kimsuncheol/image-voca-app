@@ -4,8 +4,6 @@ import React from "react";
 import { RootLayoutNav } from "../../app/_layout";
 
 const mockReplace = jest.fn();
-const mockFetchSubscription = jest.fn();
-const mockResetSubscription = jest.fn();
 const mockUseAuth = jest.fn();
 
 jest.mock("expo-router", () => {
@@ -73,8 +71,8 @@ jest.mock("../../src/hooks/useAuthenticatedDeviceRegistration", () => ({
   useAuthenticatedDeviceRegistration: jest.fn(),
 }));
 
-jest.mock("../../src/hooks/usePushNotifications", () => ({
-  usePushNotifications: jest.fn(),
+jest.mock("../../src/hooks/useStudyReminderNotifications", () => ({
+  useStudyReminderNotifications: jest.fn(),
 }));
 
 jest.mock("../../src/hooks/useDeviceDeletionEnforcement", () => ({
@@ -101,15 +99,6 @@ jest.mock("../../components/common/NetworkStatusBanner", () => ({
 
 jest.mock("../../components/common/NetworkErrorOverlay", () => ({
   NetworkErrorOverlay: () => null,
-}));
-
-jest.mock("../../src/stores", () => ({
-  useSubscriptionStore: {
-    getState: () => ({
-      fetchSubscription: mockFetchSubscription,
-      resetSubscription: mockResetSubscription,
-    }),
-  },
 }));
 
 jest.mock("react-i18next", () => ({
@@ -139,7 +128,6 @@ describe("RootLayoutNav auth gating", () => {
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith("/(auth)/login");
     });
-    expect(mockResetSubscription).toHaveBeenCalled();
   });
 
   it("redirects pending-verification users to the verify-email screen", async () => {
@@ -155,11 +143,9 @@ describe("RootLayoutNav auth gating", () => {
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith("/(auth)/verify-email");
     });
-    expect(mockFetchSubscription).not.toHaveBeenCalled();
-    expect(mockResetSubscription).toHaveBeenCalled();
   });
 
-  it("redirects fully signed-in users out of auth routes and fetches subscription", async () => {
+  it("redirects fully signed-in users out of auth routes", async () => {
     mockUseAuth.mockReturnValue({
       user: { uid: "user-2" },
       loading: false,
@@ -171,7 +157,6 @@ describe("RootLayoutNav auth gating", () => {
 
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith("/(tabs)");
-      expect(mockFetchSubscription).toHaveBeenCalledWith("user-2");
     });
   });
 });

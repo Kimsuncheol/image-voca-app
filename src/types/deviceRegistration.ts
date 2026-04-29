@@ -12,8 +12,6 @@ export interface DeviceRegistrationRecord {
   appVersion: string | null;
   appBuild: string | null;
   authProvider: string;
-  notificationPermissionStatus: string;
-  expoPushToken: string | null;
   createdAt: string;
   updatedAt: string;
   lastSeenAt: string;

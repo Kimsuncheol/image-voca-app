@@ -34,7 +34,7 @@ import { AccountSection } from "../../components/settings/AccountSection"; // Ac
 import { AppearanceSection } from "../../components/settings/AppearanceSection"; // Theme and visual preferences
 import { LanguageSection } from "../../components/settings/LanguageSection"; // Language selection
 import { LearningLanguageSection } from "../../components/settings/LearningLanguageSection"; // Language to learn
-import { NotificationsSection } from "../../components/settings/NotificationsSection"; // Push notification settings
+import { NotificationsSection } from "../../components/settings/NotificationsSection"; // Study reminder settings
 import { SettingsHeader } from "../../components/settings/SettingsHeader"; // Header component
 import { SignOutSection } from "../../components/settings/SignOutSection"; // Sign out button
 import { SpeechSection } from "../../components/settings/SpeechSection"; // Pronunciation speed settings
@@ -44,7 +44,6 @@ import { SpeechSection } from "../../components/settings/SpeechSection"; // Pron
 // ============================================================================
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
-import { useAuth } from "../../src/context/AuthContext"; // User authentication context
 import { useTheme } from "../../src/context/ThemeContext"; // Theme preferences context
 import { setLanguage, SupportedLanguage } from "../../src/i18n"; // Language configuration
 import { auth } from "../../src/services/firebase"; // Firebase auth instance
@@ -53,17 +52,15 @@ import { useDashboardSettingsStore } from "../../src/stores/dashboardSettingsSto
 // ============================================================================
 // NOTIFICATION UTILITIES
 // ============================================================================
-// Functions for managing push notifications and user preferences
+// Functions for managing study reminder notifications and user preferences
 import {
   cancelAllScheduledNotifications, // Cancel all pending notifications
   configureNotifications, // Request notification permissions
   getNotificationPermissions, // Check current permissions status
-  getNotificationsEnabledPreference, // Get master notification toggle state
   getStudyReminderEnabledPreference, // Get study reminder preference
   isPermissionGranted, // Check if permission is granted
   markStudyDate, // Mark today as a study date
   scheduleDailyNotifications, // Schedule daily notifications
-  setNotificationsEnabledPreference, // Save master notification toggle
   setStudyReminderEnabledPreference, // Save study reminder preference
 } from "../../src/utils/notifications";
 
@@ -87,7 +84,6 @@ export default function SettingsScreen() {
   // ============================================================================
   // Manages the state of various notification preferences
   // These are local state variables that sync with AsyncStorage preferences
-  const [pushEnabled, setPushEnabled] = useState(false); // Master notification toggle
   const [notificationPermissionDenied, setNotificationPermissionDenied] = useState(false); // True when user wants notifications but system permission is denied
   const [studyReminderEnabled, setStudyReminderEnabled] = useState(true); // Daily study reminder notifications
 
@@ -100,7 +96,6 @@ export default function SettingsScreen() {
   // ============================================================================
   // USER DATA & STORES
   // ============================================================================
-  const { user } = useAuth(); // Current authenticated user
   const { loadSettings: loadDashboardSettings } = useDashboardSettingsStore();
 
   // ============================================================================
@@ -125,13 +120,9 @@ export default function SettingsScreen() {
    * Checks and syncs all notification-related preferences and permissions
    *
    * This function:
-   * 1. Loads saved preferences from AsyncStorage (master toggle, study reminder)
+   * 1. Loads saved study reminder preference from AsyncStorage
    * 2. Checks actual system-level notification permissions
    * 3. Updates local state to reflect the combined status
-   *
-   * The master push toggle is only enabled if BOTH conditions are met:
-   * - User has previously enabled notifications in preferences
-   * - System permissions are granted
    *
    * @async
    * @returns {Promise<void>}
@@ -139,27 +130,17 @@ export default function SettingsScreen() {
   const checkNotificationStatus = async () => {
     try {
       // Load all preferences and permissions in parallel for efficiency
-      const [
-        preferencesEnabled,
-        studyEnabled,
-        permissions,
-      ] =
-        await Promise.all([
-          getNotificationsEnabledPreference(), // Master notification toggle
-          getStudyReminderEnabledPreference(), // Study reminder preference
-          getNotificationPermissions(), // System-level permissions
-        ]);
+      const [studyEnabled, permissions] = await Promise.all([
+        getStudyReminderEnabledPreference(), // Study reminder preference
+        getNotificationPermissions(), // System-level permissions
+      ]);
 
       // Check if system permissions are granted
       const hasPermission = isPermissionGranted(permissions);
 
-      // Show warning when user wants notifications but system permission is denied
-      setNotificationPermissionDenied(preferencesEnabled && !hasPermission);
+      // Show warning when the study reminder is enabled but system permission is denied
+      setNotificationPermissionDenied(studyEnabled && !hasPermission);
 
-      // Master toggle is only enabled if both preference AND permission are true
-      setPushEnabled(preferencesEnabled && hasPermission);
-
-      // Individual notification types reflect saved preferences
       setStudyReminderEnabled(studyEnabled);
     } catch (e) {
       console.warn("Error checking notification status", e);
@@ -167,18 +148,16 @@ export default function SettingsScreen() {
   };
 
   // ============================================================================
-  // ENABLE PUSH NOTIFICATIONS
+  // ENABLE STUDY REMINDER NOTIFICATIONS
   // ============================================================================
   /**
-   * Attempts to enable push notifications by requesting system permissions
+   * Attempts to enable study reminder notifications by requesting system permissions
    *
    * Flow:
    * 1. Request notification permissions from the system
    * 2. If permissions module is missing, show error and abort
    * 3. If permissions are granted:
    *    - Mark today as a study date (for streak tracking)
-   *    - Save enabled preference to AsyncStorage
-   *    - Schedule daily notifications
    *    - Return true (success)
    * 4. If permissions are denied:
    *    - Show alert prompting user to open Settings
@@ -188,22 +167,21 @@ export default function SettingsScreen() {
    * @async
    * @returns {Promise<boolean>} True if successfully enabled, false otherwise
    */
-  const enablePushNotifications = async () => {
+  const enableStudyReminderNotifications = async () => {
     // Request system-level notification permissions
     const permissions = await configureNotifications();
 
     // Check if notification module is available (could be missing on some platforms)
     if (!permissions) {
       Alert.alert(t("common.error"), t("settings.notifications.moduleMissing"));
-      setPushEnabled(false);
+      setStudyReminderEnabled(false);
       return false;
     }
 
     // If permissions are granted, enable notifications
     if (isPermissionGranted(permissions)) {
       await markStudyDate(); // Track that user studied today (for streak calculation)
-      await setNotificationsEnabledPreference(true); // Save preference to AsyncStorage
-      setPushEnabled(true); // Update local state
+      setNotificationPermissionDenied(false);
       return true;
     }
 
@@ -220,17 +198,15 @@ export default function SettingsScreen() {
       ],
     );
 
-    // Save disabled state since permissions were denied
-    await setNotificationsEnabledPreference(false);
-    setPushEnabled(false);
+    setNotificationPermissionDenied(true);
     return false;
   };
 
   // ============================================================================
-  // DISABLE PUSH NOTIFICATIONS
+  // DISABLE STUDY REMINDER NOTIFICATIONS
   // ============================================================================
   /**
-   * Disables push notifications and cancels all scheduled notifications
+   * Disables study reminder notifications and cancels all scheduled notifications
    *
    * This function:
    * 1. Saves disabled preference to AsyncStorage
@@ -240,51 +216,11 @@ export default function SettingsScreen() {
    * @async
    * @returns {Promise<void>}
    */
-  const disablePushNotifications = async () => {
-    await Promise.all([
-      setNotificationsEnabledPreference(false),
-      setStudyReminderEnabledPreference(false),
-    ]);
+  const disableStudyReminderNotifications = async () => {
+    await setStudyReminderEnabledPreference(false);
     await cancelAllScheduledNotifications(); // Clear notification queue
-    setPushEnabled(false);
     setStudyReminderEnabled(false);
-  };
-
-  // ============================================================================
-  // MASTER NOTIFICATION TOGGLE
-  // ============================================================================
-  /**
-   * Toggles master push notification setting
-   *
-   * When enabling:
-   * - Requests permissions and enables notifications
-   * - Auto-enables study reminder notifications
-   * - Schedules daily notifications
-   *
-   * When disabling:
-   * - Disables all notifications and clears scheduled notifications
-   *
-   * @async
-   * @param {boolean} value - True to enable, false to disable
-   * @returns {Promise<void>}
-   */
-  const togglePushNotifications = async (value: boolean) => {
-    if (value) {
-      // Attempt to enable notifications (requests permissions)
-      const enabled = await enablePushNotifications();
-      if (!enabled) return; // Abort if permissions denied
-
-      // Enable all notification-related settings by default
-      await setStudyReminderEnabledPreference(true);
-      setStudyReminderEnabled(true);
-
-      // Schedule notifications
-      await scheduleDailyNotifications();
-      return;
-    }
-
-    // Disable all notifications
-    await disablePushNotifications();
+    setNotificationPermissionDenied(false);
   };
 
   // ============================================================================
@@ -293,38 +229,25 @@ export default function SettingsScreen() {
   /**
    * Toggles study reminder notifications
    *
-   * Dependencies:
-   * - If enabling and push is disabled, will first request push permissions
-   * - If disabling and no settings-exposed notifications remain enabled, will disable push entirely
-   *
-   * This ensures the master push toggle reflects whether ANY notification type is enabled
-   *
    * @async
    * @param {boolean} value - True to enable, false to disable
    * @returns {Promise<void>}
    */
   const toggleStudyReminder = async (value: boolean) => {
-    // If enabling and push not enabled, request permissions first
-    if (value && !pushEnabled) {
-      const enabled = await enablePushNotifications();
+    if (value) {
+      const enabled = await enableStudyReminderNotifications();
       if (!enabled) {
         setStudyReminderEnabled(false); // Reset if permissions denied
         return;
       }
-    }
 
-    // Save preference and update state
-    await setStudyReminderEnabledPreference(value);
-    setStudyReminderEnabled(value);
-
-    // If disabling and no settings-exposed notifications remain enabled, disable push entirely
-    if (!value) {
-      await disablePushNotifications();
+      await setStudyReminderEnabledPreference(true);
+      setStudyReminderEnabled(true);
+      await scheduleDailyNotifications();
       return;
     }
 
-    // Reschedule notifications with new preferences
-    await scheduleDailyNotifications();
+    await disableStudyReminderNotifications();
   };
 
   // ============================================================================
@@ -367,7 +290,7 @@ export default function SettingsScreen() {
   const handleLanguageChange = async (language: SupportedLanguage) => {
     try {
       await setLanguage(language); // Updates i18n and saves to AsyncStorage
-      if (user?.uid && pushEnabled && studyReminderEnabled) {
+      if (studyReminderEnabled) {
         await scheduleDailyNotifications();
       }
     } catch (error) {
@@ -431,17 +354,13 @@ export default function SettingsScreen() {
 {/* ================================================================
             NOTIFICATIONS SECTION
             ================================================================
-            Push notification preferences:
-            - Master notification toggle
-            - Study reminder notifications
+            Study reminder notification preference
         */}
         <NotificationsSection
           styles={styles}
           isDark={isDark}
-          pushEnabled={pushEnabled}
           notificationPermissionDenied={notificationPermissionDenied}
           studyReminderEnabled={studyReminderEnabled}
-          onTogglePush={togglePushNotifications}
           onToggleStudyReminder={toggleStudyReminder}
           onOpenPermissionSettings={() => Linking.openSettings()}
           t={t}

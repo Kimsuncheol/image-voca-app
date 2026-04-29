@@ -5,7 +5,6 @@ import SettingsScreen from "../app/(tabs)/settings";
 const mockFetchSubscription = jest.fn();
 const mockLoadDashboardSettings = jest.fn();
 const mockConfigureNotifications = jest.fn();
-const mockSetNotificationsEnabledPreference = jest.fn();
 const mockSetStudyReminderEnabledPreference = jest.fn();
 const mockCancelAllScheduledNotifications = jest.fn();
 const mockScheduleDailyNotifications = jest.fn();
@@ -76,14 +75,11 @@ jest.mock("../src/utils/notifications", () => ({
     mockCancelAllScheduledNotifications(...args),
   configureNotifications: (...args: any[]) => mockConfigureNotifications(...args),
   getNotificationPermissions: jest.fn().mockResolvedValue({ granted: false }),
-  getNotificationsEnabledPreference: jest.fn().mockResolvedValue(false),
   getStudyReminderEnabledPreference: jest.fn().mockResolvedValue(false),
   isPermissionGranted: (...args: any[]) => mockIsPermissionGranted(...args),
   markStudyDate: (...args: any[]) => mockMarkStudyDate(...args),
   scheduleDailyNotifications: (...args: any[]) =>
     mockScheduleDailyNotifications(...args),
-  setNotificationsEnabledPreference: (...args: any[]) =>
-    mockSetNotificationsEnabledPreference(...args),
   setStudyReminderEnabledPreference: (...args: any[]) =>
     mockSetStudyReminderEnabledPreference(...args),
 }));
@@ -110,19 +106,16 @@ jest.mock("../components/settings/NotificationsSection", () => ({
 
     return (
       <ReactNative.View>
-        <ReactNative.Text testID="push-enabled">
-          {String(props.pushEnabled)}
-        </ReactNative.Text>
         <ReactNative.Text testID="study-enabled">
           {String(props.studyReminderEnabled)}
         </ReactNative.Text>
         <ReactNative.Pressable
-          testID="toggle-push-off"
-          onPress={() => props.onTogglePush(false)}
+          testID="toggle-study-off"
+          onPress={() => props.onToggleStudyReminder(false)}
         />
         <ReactNative.Pressable
-          testID="toggle-push-on"
-          onPress={() => props.onTogglePush(true)}
+          testID="toggle-study-on"
+          onPress={() => props.onToggleStudyReminder(true)}
         />
       </ReactNative.View>
     );
@@ -166,34 +159,30 @@ describe("SettingsScreen", () => {
     expect(queryByText("Card Display")).toBeNull();
   });
 
-  it("turning push notifications off disables all child notification toggles", async () => {
+  it("turning study reminders off disables reminders and cancels scheduled notifications", async () => {
     const screen = render(<SettingsScreen />);
 
-    fireEvent.press(screen.getByTestId("toggle-push-off"));
+    fireEvent.press(screen.getByTestId("toggle-study-off"));
 
     await waitFor(() => {
-      expect(screen.getByTestId("push-enabled").props.children).toBe("false");
       expect(screen.getByTestId("study-enabled").props.children).toBe("false");
     });
 
-    expect(mockSetNotificationsEnabledPreference).toHaveBeenCalledWith(false);
     expect(mockSetStudyReminderEnabledPreference).toHaveBeenCalledWith(false);
     expect(mockCancelAllScheduledNotifications).toHaveBeenCalled();
   });
 
-  it("turning push notifications on enables all child notification toggles", async () => {
+  it("turning study reminders on requests permission and schedules reminders", async () => {
     const screen = render(<SettingsScreen />);
 
-    fireEvent.press(screen.getByTestId("toggle-push-on"));
+    fireEvent.press(screen.getByTestId("toggle-study-on"));
 
     await waitFor(() => {
-      expect(screen.getByTestId("push-enabled").props.children).toBe("true");
       expect(screen.getByTestId("study-enabled").props.children).toBe("true");
     });
 
     expect(mockConfigureNotifications).toHaveBeenCalled();
     expect(mockMarkStudyDate).toHaveBeenCalled();
-    expect(mockSetNotificationsEnabledPreference).toHaveBeenCalledWith(true);
     expect(mockSetStudyReminderEnabledPreference).toHaveBeenCalledWith(true);
     expect(mockScheduleDailyNotifications).toHaveBeenCalledWith();
   });

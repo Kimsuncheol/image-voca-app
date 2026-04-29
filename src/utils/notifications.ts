@@ -10,7 +10,6 @@ type NotificationPermissions = NotificationsType.NotificationPermissionsStatus;
 const STUDY_REMINDER_NOTIFICATION_IDS_KEY =
   "voca_study_reminder_notification_ids";
 const LAST_STUDY_DATE_KEY = "voca_last_study_date";
-const NOTIFICATIONS_ENABLED_KEY = "voca_notifications_enabled";
 const STUDY_REMINDER_ENABLED_KEY = "voca_study_reminder_enabled";
 
 const DEFAULT_REMINDER_HOUR = 19;
@@ -164,19 +163,6 @@ export const configureNotifications =
     if (isPermissionGranted(current)) return current;
     return Notifications.requestPermissionsAsync();
   };
-
-export const getNotificationsEnabledPreference = async () => {
-  const value = await AsyncStorage.getItem(NOTIFICATIONS_ENABLED_KEY);
-  if (value === null) return true;
-  return value === "true";
-};
-
-export const setNotificationsEnabledPreference = async (enabled: boolean) => {
-  await AsyncStorage.setItem(
-    NOTIFICATIONS_ENABLED_KEY,
-    enabled ? "true" : "false",
-  );
-};
 
 export const getStudyReminderEnabledPreference = async () => {
   const value = await AsyncStorage.getItem(STUDY_REMINDER_ENABLED_KEY);

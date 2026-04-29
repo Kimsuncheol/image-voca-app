@@ -65,11 +65,7 @@ const en = {
     },
     notifications: {
       title: "Notifications",
-      push: "Push Notifications",
       studyReminder: "Study Reminder",
-      notSupportedTitle: "Not Supported",
-      notSupportedMessage:
-        "Push notifications are not supported in Expo Go on Android.",
       moduleMissing: "Notifications module not loaded.",
       permissionTitle: "Permission Required",
       permissionMessage: "Please enable notifications in your system settings.",

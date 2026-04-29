@@ -127,8 +127,6 @@ const buildDevice = (
   manufacturer: "Apple",
   deviceType: "phone",
   osName: "iOS",
-  notificationPermissionStatus: "granted",
-  expoPushToken: null,
   isCurrentDevice: false,
   ...overrides,
 });
