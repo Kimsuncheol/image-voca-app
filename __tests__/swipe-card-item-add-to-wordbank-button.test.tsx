@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { doc, runTransaction } from "firebase/firestore";
 import React from "react";
-import { Alert, TouchableOpacity } from "react-native";
+import { Alert } from "react-native";
 import { SwipeCardItemAddToWordBankButton } from "../components/swipe/SwipeCardItemAddToWordBankButton";
 import { VocabularyCard } from "../src/types/vocabulary";
 
@@ -35,6 +35,20 @@ jest.mock("react-i18next", () => ({
     t: (key: string) => key,
   }),
 }));
+
+jest.mock("@expo/vector-icons", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+  const Icon = ({ name, testID, color }: { name: string; testID?: string; color?: string }) => (
+    <Text testID={testID} color={color}>
+      {name}
+    </Text>
+  );
+  return {
+    FontAwesome: Icon,
+    Ionicons: Icon,
+  };
+});
 
 function buildItem(overrides: Partial<VocabularyCard> = {}): VocabularyCard {
   return {
@@ -102,7 +116,7 @@ describe("SwipeCardItemAddToWordBankButton", () => {
       />,
     );
 
-    fireEvent.press(screen.UNSAFE_getByType(TouchableOpacity));
+    fireEvent.press(screen.getByTestId("swipe-card-add-to-wordbank-button"));
 
     await waitFor(() => {
       expect(mockRunTransaction).toHaveBeenCalled();
@@ -111,7 +125,7 @@ describe("SwipeCardItemAddToWordBankButton", () => {
     await waitFor(() => {
       expect(mockRecordWordLearned).toHaveBeenCalledWith("user-1");
       expect(mockOnSavedWordChange).toHaveBeenCalledWith("1", true);
-      expect(screen.getByText("star")).toBeTruthy();
+      expect(screen.getByText("sticky-note")).toBeTruthy();
     });
 
     expect(transaction.set).toHaveBeenCalledWith(
@@ -156,7 +170,7 @@ describe("SwipeCardItemAddToWordBankButton", () => {
       />,
     );
 
-    fireEvent.press(screen.UNSAFE_getByType(TouchableOpacity));
+    fireEvent.press(screen.getByTestId("swipe-card-add-to-wordbank-button"));
 
     await waitFor(() => {
       expect(mockRunTransaction).toHaveBeenCalled();
@@ -188,7 +202,7 @@ describe("SwipeCardItemAddToWordBankButton", () => {
       />,
     );
 
-    fireEvent.press(screen.UNSAFE_getByType(TouchableOpacity));
+    fireEvent.press(screen.getByTestId("swipe-card-add-to-wordbank-button"));
 
     await waitFor(() => {
       expect(mockRunTransaction).toHaveBeenCalled();
@@ -217,7 +231,7 @@ describe("SwipeCardItemAddToWordBankButton", () => {
       />,
     );
 
-    fireEvent.press(screen.UNSAFE_getByType(TouchableOpacity));
+    fireEvent.press(screen.getByTestId("swipe-card-add-to-wordbank-button"));
 
     await waitFor(() => {
       expect(mockRunTransaction).toHaveBeenCalled();
@@ -253,7 +267,7 @@ describe("SwipeCardItemAddToWordBankButton", () => {
       />,
     );
 
-    fireEvent.press(screen.UNSAFE_getByType(TouchableOpacity));
+    fireEvent.press(screen.getByTestId("swipe-card-add-to-wordbank-button"));
 
     await waitFor(() => {
       expect(mockDoc).toHaveBeenCalledWith(
@@ -290,7 +304,7 @@ describe("SwipeCardItemAddToWordBankButton", () => {
       />,
     );
 
-    fireEvent.press(screen.UNSAFE_getByType(TouchableOpacity));
+    fireEvent.press(screen.getByTestId("swipe-card-add-to-wordbank-button"));
 
     await waitFor(() => {
       expect(mockRunTransaction).toHaveBeenCalled();
@@ -318,11 +332,11 @@ describe("SwipeCardItemAddToWordBankButton", () => {
       />,
     );
 
-    fireEvent.press(screen.UNSAFE_getByType(TouchableOpacity));
+    fireEvent.press(screen.getByTestId("swipe-card-add-to-wordbank-button"));
 
     await waitFor(() => {
       expect(mockOnSavedWordChange).toHaveBeenCalledWith("1", false);
-      expect(screen.getByText("star-outline")).toBeTruthy();
+      expect(screen.getByText("sticky-note-o")).toBeTruthy();
     });
 
     expect(mockRecordWordLearned).not.toHaveBeenCalled();
@@ -339,7 +353,7 @@ describe("SwipeCardItemAddToWordBankButton", () => {
       <SwipeCardItemAddToWordBankButton item={buildItem()} isDark={false} />,
     );
 
-    fireEvent.press(screen.UNSAFE_getByType(TouchableOpacity));
+    fireEvent.press(screen.getByTestId("swipe-card-add-to-wordbank-button"));
 
     expect(Alert.alert).toHaveBeenCalledWith(
       "common.error",
@@ -356,7 +370,7 @@ describe("SwipeCardItemAddToWordBankButton", () => {
       <SwipeCardItemAddToWordBankButton item={buildItem()} isDark={false} />,
     );
 
-    fireEvent.press(screen.UNSAFE_getByType(TouchableOpacity));
+    fireEvent.press(screen.getByTestId("swipe-card-add-to-wordbank-button"));
 
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
@@ -369,23 +383,22 @@ describe("SwipeCardItemAddToWordBankButton", () => {
     expect(mockOnSavedWordChange).not.toHaveBeenCalled();
   });
 
-  it("renders a white circular outlined star when inactive", () => {
+  it("renders an outlined bookmark when inactive", () => {
     const { getByTestId, getByText } = render(
       <SwipeCardItemAddToWordBankButton item={buildItem()} isDark={false} />,
     );
 
     expect(getByTestId("swipe-card-add-to-wordbank-button")).toHaveStyle({
-      backgroundColor: "#FFFFFF",
-      borderColor: "#000000",
-      borderRadius: 8,
+      backgroundColor: "transparent",
+      borderRadius: 10,
     });
-    expect(getByText("star-outline")).toBeTruthy();
+    expect(getByText("sticky-note-o")).toBeTruthy();
     expect(getByTestId("swipe-card-add-to-wordbank-icon").props.color).toBe(
-      "#000000",
+      "#007AFF",
     );
   });
 
-  it("renders a yellow filled star state when added", () => {
+  it("renders a filled bookmark state when added", () => {
     const { getByTestId, getByText } = render(
       <SwipeCardItemAddToWordBankButton
         item={buildItem()}
@@ -395,10 +408,9 @@ describe("SwipeCardItemAddToWordBankButton", () => {
     );
 
     expect(getByTestId("swipe-card-add-to-wordbank-button")).toHaveStyle({
-      backgroundColor: "#F4C542",
-      borderColor: "#F4C542",
-      borderRadius: 8,
+      backgroundColor: "transparent",
+      borderRadius: 10,
     });
-    expect(getByText("star")).toBeTruthy();
+    expect(getByText("sticky-note")).toBeTruthy();
   });
 });

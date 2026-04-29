@@ -6,7 +6,6 @@ import { CARD_HEIGHT, CARD_WIDTH } from "@/src/constants/layout";
 import { Platform, StyleSheet } from "react-native";
 import {
   blackCardColors,
-  blackCardSharedStyles,
   blackCardSpacing,
 } from "../course/vocabulary/blackCardStyles";
 
@@ -77,9 +76,13 @@ export const styles = StyleSheet.create({
   faceCollocationWrapper: {
     flex: 1,
     alignItems: "flex-start",
+    minWidth: 0,
   },
-  faceDayBadgeContainerRow: {
+  faceHeaderActions: {
+    flexDirection: "row",
+    alignItems: "center",
     flexShrink: 0,
+    gap: 8,
   },
   faceMeaningContainer: {
     flexDirection: "row",
@@ -181,9 +184,6 @@ export const styles = StyleSheet.create({
   faceSelectionBadgeIdleDark: {
     backgroundColor: "#2c2c2e",
     borderColor: "#636366",
-  },
-  faceTopRightOverlay: {
-    ...blackCardSharedStyles.FlipCardTopRightControl,
   },
   faceCardImage: {
     flex: 4,

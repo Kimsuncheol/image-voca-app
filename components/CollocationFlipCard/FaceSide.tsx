@@ -1,4 +1,3 @@
-import { FontWeights } from "@/constants/fontWeights";
 import { CARD_HEIGHT } from "@/src/constants/layout";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
@@ -241,34 +240,6 @@ export default React.memo(function FaceSide({
         </View>
       ) : null}
 
-      {/* Bookmark button (top-right corner) */}
-      {canAddToWordBank && !isDeleteMode && (
-        <View style={styles.faceTopRightOverlay}>
-          <AddToWordBankButton
-            itemId={wordBankConfig!.id}
-            course={wordBankConfig!.course}
-            isDark={isDark}
-            initialIsSaved={wordBankConfig?.initialIsSaved ?? false}
-            onSavedStateChange={wordBankConfig?.onSavedStateChange}
-            onRemoved={wordBankConfig?.onDelete}
-            variant="bookmark"
-            buildSavedWord={() =>
-              ({
-                id: wordBankConfig!.id,
-                word: data.collocation,
-                meaning: data.meaning,
-                translation: data.translation || "",
-                pronunciation: data.explanation || "",
-                example: data.example,
-                course: wordBankConfig!.course,
-                day: wordBankConfig?.day,
-                addedAt: new Date().toISOString(),
-              }) as SavedWord
-            }
-          />
-        </View>
-      )}
-
       <View style={styles.faceContentContainer}>
         {/* Section: Image */}
         <CollocationCardImage
@@ -298,30 +269,32 @@ export default React.memo(function FaceSide({
               )}
             </View>
 
-            {/* Section: Day chip */}
-            {wordBankConfig?.day !== undefined && (
-              <View style={styles.faceDayBadgeContainerRow}>
-                <View style={{
-                  minHeight: 32,
-                  paddingHorizontal: 12,
-                  borderRadius: 8,
-                  backgroundColor: "rgba(22,34,49,0.88)",
-                  borderWidth: 0.5,
-                  borderColor: "rgba(255,255,255,0.08)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
-                }}>
-                  <Text style={{
-                    color: "#F8F8F8",
-                    fontSize: 16,
-                    fontWeight: FontWeights.bold,
-                  }}>
-                    Day {wordBankConfig.day}
-                  </Text>
-                </View>
-              </View>
-            )}
+            <View style={styles.faceHeaderActions}>
+              {canAddToWordBank && !isDeleteMode && (
+                <AddToWordBankButton
+                  itemId={wordBankConfig!.id}
+                  course={wordBankConfig!.course}
+                  isDark={isDark}
+                  initialIsSaved={wordBankConfig?.initialIsSaved ?? false}
+                  onSavedStateChange={wordBankConfig?.onSavedStateChange}
+                  onRemoved={wordBankConfig?.onDelete}
+                  variant="bookmark"
+                  buildSavedWord={() =>
+                    ({
+                      id: wordBankConfig!.id,
+                      word: data.collocation,
+                      meaning: data.meaning,
+                      translation: data.translation || "",
+                      pronunciation: data.explanation || "",
+                      example: data.example,
+                      course: wordBankConfig!.course,
+                      day: wordBankConfig?.day,
+                      addedAt: new Date().toISOString(),
+                    }) as SavedWord
+                  }
+                />
+              )}
+            </View>
           </View>
 
           {/* Section: Meaning */}

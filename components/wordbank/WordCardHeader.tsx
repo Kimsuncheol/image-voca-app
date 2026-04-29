@@ -70,20 +70,26 @@ export function WordCardHeader({
   return (
     <View style={styles.wordHeader}>
       <View style={styles.wordTitleContainer}>
-        {canInteract ? (
-          <TouchableOpacity
-            onPress={onSpeak}
-            onLongPress={onLongPress}
-            activeOpacity={0.7}
-            style={styles.wordTitleButton}
-            accessibilityRole={onSpeak ? "button" : undefined}
-          >
-            {titleContent}
-          </TouchableOpacity>
-        ) : (
-          titleContent
+        <View style={styles.wordTitleContent}>
+          {canInteract ? (
+            <TouchableOpacity
+              onPress={onSpeak}
+              onLongPress={onLongPress}
+              activeOpacity={0.7}
+              style={styles.wordTitleButton}
+              accessibilityRole={onSpeak ? "button" : undefined}
+            >
+              {titleContent}
+            </TouchableOpacity>
+          ) : (
+            titleContent
+          )}
+        </View>
+        {day && (
+          <View style={styles.wordHeaderRight}>
+            <DayBadge day={day} />
+          </View>
         )}
-        {day && <DayBadge day={day} />}
       </View>
       {pronunciation && (
         <ThemedText style={styles.pronunciation}>{pronunciation}</ThemedText>
@@ -102,6 +108,14 @@ const styles = StyleSheet.create({
     gap: 8,
     flex: 1,
     minWidth: 0,
+  },
+  wordTitleContent: {
+    flex: 1,
+    minWidth: 0,
+  },
+  wordHeaderRight: {
+    flexShrink: 0,
+    marginLeft: "auto",
   },
   wordTitleButton: {
     flex: 1,

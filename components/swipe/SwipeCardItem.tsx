@@ -5,7 +5,6 @@ import { useTheme } from "../../src/context/ThemeContext";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { resolveVocabularyContent } from "../../src/utils/localizedVocabulary";
-import { SwipeCardItemAddToWordBankButton } from "./SwipeCardItemAddToWordBankButton";
 import { SwipeCardItemCardInfoSection } from "./SwipeCardItemCardInfoSection";
 import { SwipeCardItemImageSection } from "./SwipeCardItemImageSection";
 import { blackCardColors } from "../course/vocabulary/blackCardStyles";
@@ -48,17 +47,6 @@ export function SwipeCardItem({
       <SwipeCardItemImageSection
         imageUrl={item.imageUrl}
         isDark={isDark}
-        topRightOverlay={
-          isPreviewMode ? null : (
-            <SwipeCardItemAddToWordBankButton
-              item={item}
-              isDark={isDark}
-              initialIsSaved={initialIsSaved}
-              day={day}
-              onSavedWordChange={onSavedWordChange}
-            />
-          )
-        }
       />
 
       {/* Card Info Section */}
@@ -81,6 +69,7 @@ export function SwipeCardItem({
         initialIsSaved={initialIsSaved}
         day={day}
         onSavedWordChange={onSavedWordChange}
+        isPreviewMode={isPreviewMode}
       />
     </View>
   );

@@ -67,7 +67,8 @@ export type FontColorRole =
   | "successBorderAlt"
   | "errorBannerBorder"
   | "avatarBorder"
-  | "surfaceBorder";
+  | "surfaceBorder"
+  | "dayBadge";
 
 export type FontColorTokens = Record<FontColorRole, string>;
 
@@ -140,6 +141,7 @@ export const FontColors: Record<FontColorScheme, FontColorTokens> = {
     errorBannerBorder: "#F5B5B5",
     avatarBorder: "#FFF",
     surfaceBorder: "#FFF",
+    dayBadge: "#000",
   },
   dark: {
     primary: "#fff",
@@ -209,6 +211,7 @@ export const FontColors: Record<FontColorScheme, FontColorTokens> = {
     errorBannerBorder: "#5C1F1F",
     avatarBorder: "#333",
     surfaceBorder: "#1C1C1E",
+    dayBadge: "#fff"
   },
 };
 

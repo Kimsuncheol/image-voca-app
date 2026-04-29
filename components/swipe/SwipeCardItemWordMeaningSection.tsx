@@ -11,8 +11,8 @@ import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { FontSizes } from "@/constants/fontSizes";
 import {
   blackCardColors,
-  blackCardSharedStyles,
 } from "../course/vocabulary/blackCardStyles";
+import { SwipeCardItemAddToWordBankButton } from "./SwipeCardItemAddToWordBankButton";
 
 interface SwipeCardItemWordMeaningSectionProps {
   item: VocabularyCard;
@@ -24,6 +24,7 @@ interface SwipeCardItemWordMeaningSectionProps {
   initialIsSaved?: boolean;
   day?: number;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
+  isPreviewMode?: boolean;
 }
 
 const parseWordVariants = (value: string): string[] =>
@@ -42,6 +43,7 @@ export function SwipeCardItemWordMeaningSection({
   initialIsSaved = false,
   day,
   onSavedWordChange,
+  isPreviewMode = false,
 }: SwipeCardItemWordMeaningSectionProps) {
   useCardSpeechCleanup(isActive);
   const { speak: speakText } = useSpeech();
@@ -111,11 +113,17 @@ export function SwipeCardItemWordMeaningSection({
             {renderWord()}
           </TouchableOpacity>
         </View>
-        {day !== undefined && (
-          <View style={blackCardSharedStyles.dayPill}>
-            <Text style={blackCardSharedStyles.dayPillText}>Day {day}</Text>
-          </View>
-        )}
+        <View style={styles.titleActions}>
+          {!isPreviewMode && (
+            <SwipeCardItemAddToWordBankButton
+              item={item}
+              isDark={isDark}
+              initialIsSaved={initialIsSaved}
+              day={day}
+              onSavedWordChange={onSavedWordChange}
+            />
+          )}
+        </View>
       </View>
       {normalizedPronunciation ? (
         <Text style={styles.cardSubtitle}>
@@ -152,8 +160,15 @@ const styles = StyleSheet.create({
   leftRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+    flex: 1,
     flexShrink: 1,
     minWidth: 0,
+  },
+  titleActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexShrink: 0,
+    gap: 8,
   },
   cardTitle: {
     fontSize: FontSizes.displayXl,

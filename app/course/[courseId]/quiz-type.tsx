@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { QuizTypeGrid, QuizTypeHeader } from "../../../components/course";
+import { DayBadge } from "../../../components/common/DayBadge";
 import { getQuizTypesForCourse } from "../../../src/course/quizModes";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { useTheme } from "../../../src/context/ThemeContext";
@@ -26,6 +27,7 @@ export default function QuizTypeSelectionScreen() {
     courseId: CourseType;
     day: string;
   }>();
+  const dayNumber = parseInt(day || "1", 10);
 
   const course = findRuntimeCourse(courseId);
   const [quizTypes, setQuizTypes] = useState(() => getQuizTypesForCourse(courseId));
@@ -45,7 +47,7 @@ export default function QuizTypeSelectionScreen() {
       try {
         const cards = await prefetchVocabularyCards(
           courseId as CourseType,
-          parseInt(day || "1", 10),
+          dayNumber,
         );
 
         if (!isMounted) {
@@ -94,7 +96,7 @@ export default function QuizTypeSelectionScreen() {
     return () => {
       isMounted = false;
     };
-  }, [courseId, day]);
+  }, [courseId, dayNumber]);
 
   const handleQuizTypeSelect = (quizType: { id: string }) => {
     router.push({
@@ -113,6 +115,7 @@ export default function QuizTypeSelectionScreen() {
           headerStyle: { backgroundColor: bgColors.screen },
           headerShadowVisible: false,
           title: t("quiz.typeTitle"),
+          headerRight: () => <DayBadge day={dayNumber} />,
           headerBackTitle: t("common.back"),
         }}
       />

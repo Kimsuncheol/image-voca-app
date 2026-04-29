@@ -66,7 +66,7 @@ export function KanjiWordBankCard({
         { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
       ]}
     >
-      {/* Header: kanji + image + day badge + save button */}
+      {/* Header: kanji + image + day badge */}
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={handleSpeakKanji} activeOpacity={0.7}>
@@ -77,8 +77,7 @@ export function KanjiWordBankCard({
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.imageWrapper}>
-          {word.day !== undefined && <DayBadge day={word.day} />}
+        <View style={styles.headerRight}>
           <View style={styles.imageContainer}>
             {word.imageUrl ? (
               <Image
@@ -92,6 +91,7 @@ export function KanjiWordBankCard({
             )}
 
           </View>
+          {word.day !== undefined && <DayBadge day={word.day} />}
         </View>
       </View>
 
@@ -238,26 +238,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "space-between",
+    gap: 12,
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
     flex: 1,
+    minWidth: 0,
   },
   imageContainer: {
     position: "relative",
   },
-  imageWrapper: {
+  headerRight: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 6,
-  },
-  imageOverlay: {
-    position: "absolute",
-    top: 4,
-    right: 4,
-    zIndex: 3,
+    flexShrink: 0,
   },
   kanjiText: {
     fontSize: FontSizes.displayXxl,

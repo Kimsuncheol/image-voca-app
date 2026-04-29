@@ -17,10 +17,7 @@ import { CollocationCardImage } from "../../common/CollocationCardImage";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
 import { DottedDivider } from "./KanjiCollocationCardDivider";
 import { styles } from "./KanjiCollocationCardStyles";
-import {
-  blackCardColors,
-  blackCardSharedStyles,
-} from "./blackCardStyles";
+import { blackCardColors } from "./blackCardStyles";
 
 /**
  * Props passed to the front face component of the Kanji Collocation Card.
@@ -123,17 +120,6 @@ export function FaceSide({
           isDark={isDark}
           style={styles.cardImage}
         />
-        {!isPreviewMode && (
-          <View style={styles.imageTopRightOverlay}>
-            <SwipeCardItemAddToWordBankButton
-              item={item}
-              isDark={isDark}
-              initialIsSaved={initialIsSaved ?? false}
-              day={day}
-              onSavedWordChange={onSavedWordChange}
-            />
-          </View>
-        )}
       </View>
 
       <View style={styles.faceInnerContainer}>
@@ -150,11 +136,17 @@ export function FaceSide({
             >
               {item.kanji}
             </Text>
-            {day !== undefined && (
-              <View style={blackCardSharedStyles.dayPill}>
-                <Text style={blackCardSharedStyles.dayPillText}>Day {day}</Text>
-              </View>
-            )}
+            <View style={styles.kanjiHeaderActions}>
+              {!isPreviewMode && (
+                <SwipeCardItemAddToWordBankButton
+                  item={item}
+                  isDark={isDark}
+                  initialIsSaved={initialIsSaved ?? false}
+                  day={day}
+                  onSavedWordChange={onSavedWordChange}
+                />
+              )}
+            </View>
           </View>
 
           {meanings.length > 0 && (

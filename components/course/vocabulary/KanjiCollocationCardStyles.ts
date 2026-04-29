@@ -7,7 +7,6 @@ import { FontColors } from "../../../constants/fontColors";
 import { CARD_HEIGHT, CARD_WIDTH } from "../../../src/constants/layout";
 import {
   blackCardColors,
-  blackCardSharedStyles,
   blackCardSpacing,
 } from "./blackCardStyles";
 
@@ -54,9 +53,6 @@ export const styles = StyleSheet.create({
     marginTop: blackCardSpacing.contentTop,
     overflow: "hidden",
   },
-  imageTopRightOverlay: {
-    ...blackCardSharedStyles.FlipCardTopRightControl,
-  },
   faceTopRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -76,11 +72,21 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     width: "100%",
+    gap: 16,
   },
   kanjiText: {
     fontSize: FontSizes.displayMega,
     fontWeight: FontWeights.bold,
     textAlign: "left",
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  kanjiHeaderActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexShrink: 0,
+    gap: 8,
   },
   faceSection: {
     gap: 4,

@@ -23,7 +23,7 @@ import { resolveVocabularyContent } from "../../../src/utils/localizedVocabulary
 import { InlineMeaningWithChips } from "../../common/InlineMeaningWithChips";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
 import { SwipeCardItemImageSection } from "../../swipe/SwipeCardItemImageSection";
-import { blackCardColors, blackCardSharedStyles } from "./blackCardStyles";
+import { blackCardColors } from "./blackCardStyles";
 import { LineHeights } from "@/constants/lineHeights";
 
 const { width } = Dimensions.get("window");
@@ -267,17 +267,6 @@ export function JlptVocabularyCard({
         testID="jlpt-card-image-shell"
         imageUrl={item.imageUrl}
         isDark={isDark}
-        topRightOverlay={
-          isPreviewMode ? null : (
-            <SwipeCardItemAddToWordBankButton
-              item={item}
-              isDark={isDark}
-              initialIsSaved={initialIsSaved}
-              day={day}
-              onSavedWordChange={onSavedWordChange}
-            />
-          )
-        }
       />
 
       <View
@@ -307,11 +296,17 @@ export function JlptVocabularyCard({
                 </Text>
               </TouchableOpacity>
             </View>
-            {day !== undefined && (
-              <View style={blackCardSharedStyles.dayPill}>
-                <Text style={blackCardSharedStyles.dayPillText}>Day {day}</Text>
-              </View>
-            )}
+            <View style={styles.titleActions}>
+              {!isPreviewMode && (
+                <SwipeCardItemAddToWordBankButton
+                  item={item}
+                  isDark={isDark}
+                  initialIsSaved={initialIsSaved}
+                  day={day}
+                  onSavedWordChange={onSavedWordChange}
+                />
+              )}
+            </View>
           </View>
 
           {pronunciation ? (
@@ -432,12 +427,20 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     justifyContent: "space-between",
     marginBottom: 8,
+    gap: 16,
   },
   leftRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+    flex: 1,
     flexShrink: 1,
     minWidth: 0,
+  },
+  titleActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexShrink: 0,
+    gap: 8,
   },
   cardTitle: {
     fontSize: FontSizes.headingXl,

@@ -19,6 +19,7 @@ interface CardInfoSectionProps {
   initialIsSaved?: boolean;
   day?: number;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
+  isPreviewMode?: boolean;
 }
 
 export function SwipeCardItemCardInfoSection({
@@ -36,6 +37,7 @@ export function SwipeCardItemCardInfoSection({
   initialIsSaved = false,
   day,
   onSavedWordChange,
+  isPreviewMode = false,
 }: CardInfoSectionProps) {
   return (
     <View
@@ -61,6 +63,7 @@ export function SwipeCardItemCardInfoSection({
         initialIsSaved={initialIsSaved}
         day={day}
         onSavedWordChange={onSavedWordChange}
+        isPreviewMode={isPreviewMode}
       />
     </View>
   );

@@ -42,6 +42,7 @@ import { formatDateKey } from "../../../src/utils/calendarStats";
 
 // Components
 import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
+import { DayBadge } from "../../../components/common/DayBadge";
 import { StreakMilestoneModal } from "../../../components/common/StreakMilestoneModal";
 import { VocabularyEmptyState } from "../../../components/course/vocabulary/VocabularyEmptyState";
 import { VocabularyFinishView } from "../../../components/course/vocabulary/VocabularyFinishView";
@@ -710,7 +711,9 @@ export default function VocabularyScreen() {
           title: isPreviewMode
             ? t("course.preview", { defaultValue: "Preview" })
             : "",
-          // headerTitle: `Day ${dayNumber}`,
+          headerRight: hasCards() && !isFinished
+            ? () => <DayBadge day={dayNumber} />
+            : undefined,
           headerBackVisible: !splashVisible && hasCards() ? true : false,
           gestureEnabled: !loading,
           headerLeft: loading ? () => null : undefined,

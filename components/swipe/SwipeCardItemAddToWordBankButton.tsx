@@ -53,7 +53,9 @@ export function SwipeCardItemAddToWordBankButton({
           pronunciation: vocabularyItem.pronunciation || "",
           pronunciationRoman: vocabularyItem.pronunciationRoman,
           example: vocabularyItem.example,
-          exampleFurigana: vocabularyItem.exampleFurigana,
+          exampleFurigana:
+            vocabularyItem.exampleFurigana ?? vocabularyItem.exampleHurigana,
+          exampleHurigana: vocabularyItem.exampleHurigana,
           course: vocabularyItem.course,
           day,
           addedAt: new Date().toISOString(),
