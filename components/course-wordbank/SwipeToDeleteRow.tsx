@@ -1,4 +1,5 @@
 import { FontWeights } from "@/constants/fontWeights";
+import { BackgroundColors } from "@/constants/backgroundColors";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
@@ -104,7 +105,7 @@ export function SwipeToDeleteRow({
     opacity: Math.min(1, -translateX.value / BUTTON_WIDTH),
   }));
 
-  const deleteColor = isDark ? "#FF453A" : "#FF3B30";
+  const deleteColor = isDark ? BackgroundColors.dark.deleteColor : BackgroundColors.light.deleteColor;
 
   return (
     <View testID={`swipe-row-${itemId}`} style={styles.container}>
@@ -140,10 +141,11 @@ const styles = StyleSheet.create({
   },
   deleteBackground: {
     position: "absolute",
-    right: 0,
+    right: 12,
     top: 0,
     bottom: 12, // match WordCard's marginBottom so button aligns with card
-    borderRadius: 16,
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",

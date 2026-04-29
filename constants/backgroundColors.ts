@@ -50,6 +50,7 @@ export type BgColorRole =
   | "greetingsStatCard2"
   | "prenominalAccentBg"
   | "passwordStrengthFair"
+  | "deleteColor"
   | "transparent";
 
 export type BgColorTokens = Record<BgColorRole, string>;
@@ -105,6 +106,7 @@ export const BackgroundColors: Record<BgColorScheme, BgColorTokens> = {
     greetingsStatCard2: "#fdba74",
     prenominalAccentBg: "#ede9fe",
     passwordStrengthFair: "#FF9500",
+    deleteColor: "#FF3B30",
     transparent: "transparent",
   },
   dark: {
@@ -157,6 +159,7 @@ export const BackgroundColors: Record<BgColorScheme, BgColorTokens> = {
     greetingsStatCard2: "#ea580c",
     prenominalAccentBg: "#2d1f5e",
     passwordStrengthFair: "#FF9500",
+    deleteColor: "#FF453A",
     transparent: "transparent",
   },
 };

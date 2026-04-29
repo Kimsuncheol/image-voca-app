@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   },
   courseCard: {
     width: "47%",
-    padding: 16,
+    padding: 12,
     borderRadius: 16,
     alignItems: "center",
   },

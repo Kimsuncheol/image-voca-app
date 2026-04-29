@@ -15,7 +15,7 @@ import { DayBadge } from "../common/DayBadge";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { DottedDivider } from "../course/vocabulary/KanjiCollocationCardDivider";
 import { GeneralBackSection } from "../course/vocabulary/KanjiCollocationCardGeneralBackSection";
-import { AddToWordBankButton } from "./AddToWordBankButton";
+
 import type { SavedWord } from "./WordCard";
 import { LineHeights } from "@/constants/lineHeights";
 
@@ -90,17 +90,7 @@ export function KanjiWordBankCard({
             ) : (
               <ImagePlaceholder isDark={isDark} style={styles.thumbnail} />
             )}
-            <View style={styles.imageOverlay}>
-              <AddToWordBankButton
-                itemId={word.id}
-                course={word.course}
-                isDark={isDark}
-                initialIsSaved={true}
-                buildSavedWord={() => word}
-                onSavedStateChange={onSavedWordChange}
-                variant="star"
-              />
-            </View>
+
           </View>
         </View>
       </View>

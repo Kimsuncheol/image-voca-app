@@ -401,6 +401,7 @@ const styles = StyleSheet.create({
     lineHeight: LineHeights.titleLg,
     opacity: 0.8,
     flexShrink: 1,
+    fontWeight: FontWeights.medium,
   },
   exampleFurigana: {
     fontSize: FontSizes.caption,
@@ -411,6 +412,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     opacity: 0.92,
     flexShrink: 1,
+    fontWeight: FontWeights.medium,
   },
   synonyms: {
     fontSize: FontSizes.bodyMd,

@@ -49,7 +49,9 @@ const styles = StyleSheet.create({
   deleteAction: {
     width: 96,
     marginBottom: 12,
-    borderRadius: 16,
+    marginRight: 12,
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 12,

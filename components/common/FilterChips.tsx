@@ -1,5 +1,5 @@
-import React from "react";
 import { FontSizes } from "@/constants/fontSizes";
+import React from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -99,8 +99,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
