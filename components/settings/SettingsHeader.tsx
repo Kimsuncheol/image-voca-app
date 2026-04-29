@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { FontSizes } from "@/constants/fontSizes";
@@ -28,7 +29,7 @@ const getStyles = (isDark: boolean) =>
     },
     title: {
       fontSize: FontSizes.display,
-      fontWeight: "bold",
+      fontWeight: FontWeights.bold,
       color: isDark ? "#fff" : "#000",
       marginBottom: 4,
     },

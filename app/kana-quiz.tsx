@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -503,7 +504,7 @@ const styles = StyleSheet.create({
   },
   kanaChar: {
     fontSize: FontSizes.hero,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
     lineHeight: 96,
   },
   prompt: {
@@ -520,7 +521,7 @@ const styles = StyleSheet.create({
   },
   feedback: {
     fontSize: FontSizes.bodyMd,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     textAlign: "center",
   },
   optionsGrid: {
@@ -536,7 +537,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: FontSizes.title,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
   },
   // Results
   resultsContainer: {
@@ -547,12 +548,12 @@ const styles = StyleSheet.create({
   },
   resultsTitle: {
     fontSize: FontSizes.titleLg,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     marginBottom: 12,
   },
   resultsScore: {
     fontSize: FontSizes.displayLg,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     marginBottom: 12,
   },
   resultsHeadline: {
@@ -566,7 +567,7 @@ const styles = StyleSheet.create({
   },
   wrongSectionTitle: {
     fontSize: FontSizes.body,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     opacity: 0.5,
     textTransform: "uppercase",
     marginBottom: 12,
@@ -588,12 +589,12 @@ const styles = StyleSheet.create({
   },
   wrongKana: {
     fontSize: FontSizes.headingMd,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
   },
   wrongRomaji: {
     fontSize: FontSizes.sm,
     opacity: 0.5,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
   },
   resultsButtons: {
     flexDirection: "row",
@@ -608,6 +609,6 @@ const styles = StyleSheet.create({
   },
   resultBtnText: {
     fontSize: FontSizes.bodyLg,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
 });

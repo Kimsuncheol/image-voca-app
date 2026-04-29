@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Stack } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -298,7 +299,7 @@ const styles = StyleSheet.create({
   },
   accentPillText: {
     fontSize: FontSizes.caption,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
   heroDots: {
     alignItems: "flex-end",
@@ -329,7 +330,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: FontSizes.caption,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },
@@ -352,21 +353,21 @@ const styles = StyleSheet.create({
   },
   wordText: {
     fontSize: FontSizes.body,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
   bodyText: {
     fontSize: FontSizes.sm,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
     lineHeight: LineHeights.bodyMd,
   },
   exampleText: {
     fontSize: FontSizes.sm,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     lineHeight: 17,
   },
   furiganaText: {
     fontSize: FontSizes.xxs,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
   },
   subText: {
     fontSize: FontSizes.xs,
@@ -379,6 +380,6 @@ const styles = StyleSheet.create({
   },
   furiganaToggle: {
     fontSize: FontSizes.bodyMd,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
 });

@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FontSizes } from "@/constants/fontSizes";
 import {
@@ -368,7 +369,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: FontSizes.titleMd,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     textAlign: "center",
   },
   step: {

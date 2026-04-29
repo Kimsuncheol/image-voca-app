@@ -21,7 +21,7 @@ export function CollocationCardImage({
       <Image
         source={{ uri: imageUrl }}
         style={style as StyleProp<ImageStyle>}
-        contentFit="cover"
+        contentFit="contain"
         cachePolicy="memory-disk"
         onLoad={onImageLoad}
         onError={onImageLoad}

@@ -1,3 +1,4 @@
+import { BackgroundColors } from "@/constants/backgroundColors";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
@@ -21,7 +22,7 @@ export function ImagePlaceholder({ isDark, style }: ImagePlaceholderProps) {
 
 const styles = StyleSheet.create({
   imagePlaceholder: {
-    backgroundColor: "#9f9f9f",
+    backgroundColor: BackgroundColors.light.bgImageColor,
     justifyContent: "center",
     alignItems: "center",
   },

@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { FontSizes } from "@/constants/fontSizes";
@@ -247,17 +248,17 @@ const styles = StyleSheet.create({
   buttonTextLight: {
     color: "#111",
     fontSize: FontSizes.bodyMd,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
   buttonTextDark: {
     color: "#fff",
     fontSize: FontSizes.bodyMd,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
   buttonTextPrimary: {
     color: "#fff",
     fontSize: FontSizes.bodyMd,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
   hintContainer: {
     position: "absolute",
@@ -275,12 +276,12 @@ const styles = StyleSheet.create({
   hintTextLight: {
     color: "#FFFFFF",
     fontSize: FontSizes.caption,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
   hintTextDark: {
     color: "#FFFFFF",
     fontSize: FontSizes.caption,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
 });
 

@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
   },
   wordCountBadge: {
     fontSize: FontSizes.caption,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     marginTop: 6,
   },
 });

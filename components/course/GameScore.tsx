@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../themed-text";
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
   },
   currentScoreHighlight: {
     fontSize: FontSizes.titleMd,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     opacity: 1,
   },
 });

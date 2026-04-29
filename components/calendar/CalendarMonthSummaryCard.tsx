@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
   },
   metricValue: {
     fontSize: FontSizes.titleLg,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     textAlign: "center",
   },
 });

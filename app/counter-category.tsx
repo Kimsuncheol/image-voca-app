@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { ThemedText } from "@/components/themed-text";
 import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
@@ -98,7 +99,7 @@ export default function CounterCategoryScreen() {
                 style={{
                   fontSize: FontSizes.bodyMd,
                   color: fontColors.actionAccent,
-                  fontWeight: "600",
+                  fontWeight: FontWeights.semiBold,
                 }}
               >
                 {showFurigana

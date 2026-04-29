@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Image } from "expo-image";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -298,7 +299,7 @@ const styles = StyleSheet.create({
   },
   kanaToggleText: {
     fontSize: FontSizes.sm,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     letterSpacing: 0.5,
   },
 });

@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -95,6 +96,6 @@ const localStyles = StyleSheet.create({
   presetText: {
     color: "#fff",
     fontSize: FontSizes.label,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
 });

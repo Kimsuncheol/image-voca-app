@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { FontSizes } from "@/constants/fontSizes";
@@ -426,7 +427,7 @@ const styles = StyleSheet.create({
   },
   expandButtonText: {
     fontSize: FontSizes.label,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
   collocationList: {
     gap: 10,
@@ -452,7 +453,7 @@ const styles = StyleSheet.create({
   characterText: {
     fontSize: FontSizes.label,
     lineHeight: LineHeights.bodyLg,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     color: "#007AFF",
   },
   characterTextDark: {
@@ -483,7 +484,7 @@ const styles = StyleSheet.create({
   },
   collocationToggleText: {
     fontSize: FontSizes.label,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     letterSpacing: 0.1,
     textAlign: "center",
   },

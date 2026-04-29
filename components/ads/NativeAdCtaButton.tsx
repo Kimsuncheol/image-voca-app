@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { StyleSheet, Text } from "react-native";
 import { FontSizes } from "@/constants/fontSizes";
 
@@ -38,7 +39,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     color: "#ffffff",
     fontSize: FontSizes.xs,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },

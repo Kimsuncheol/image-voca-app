@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { CARD_HEIGHT } from "@/src/constants/layout";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
@@ -314,7 +315,7 @@ export default React.memo(function FaceSide({
                   <Text style={{
                     color: "#F8F8F8",
                     fontSize: 16,
-                    fontWeight: "700",
+                    fontWeight: FontWeights.bold,
                   }}>
                     Day {wordBankConfig.day}
                   </Text>

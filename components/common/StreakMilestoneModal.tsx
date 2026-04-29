@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { FontSizes } from "@/constants/fontSizes";
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: FontSizes.heading,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     textAlign: "center",
   },
   message: {
@@ -108,6 +109,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: FontSizes.bodyLg,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
 });

@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
@@ -79,7 +80,7 @@ export function MultipleChoiceQuestionCard({
                             key={index}
                             style={{
                               color: "#34c759", // Green for correct
-                              fontWeight: "700",
+                              fontWeight: FontWeights.bold,
                             }}
                           >
                             {correctAnswer}
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
   wordText: {
     fontSize: FontSizes.headingXl,
     textAlign: "center",
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
   roleplayContainer: {
     width: "100%",
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
   },
   roleplayText: {
     fontSize: FontSizes.heading,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     textAlign: "left",
     lineHeight: LineHeights.headingXl,
   },

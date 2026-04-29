@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { FontSizes } from "@/constants/fontSizes";
 import {
   Stack,
@@ -862,6 +863,6 @@ const styles = StyleSheet.create({
   nextButtonText: {
     color: "#fff",
     fontSize: FontSizes.bodyLg,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
 });

@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Image } from "expo-image";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -270,7 +271,7 @@ const styles = StyleSheet.create({
   },
   kanjiText: {
     fontSize: FontSizes.displayXxl,
-    fontWeight: "bold",
+    fontWeight: FontWeights.bold,
   },
   thumbnail: {
     width: 110,
@@ -282,7 +283,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: FontSizes.sm,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
@@ -293,7 +294,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: FontSizes.bodyLg,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     lineHeight: LineHeights.titleXl,
   },
   exampleSection: {
@@ -310,6 +311,6 @@ const styles = StyleSheet.create({
   },
   furiganaButtonText: {
     fontSize: FontSizes.label,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
 });

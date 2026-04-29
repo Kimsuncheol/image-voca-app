@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -186,7 +187,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: FontSizes.caption,
     opacity: 0.56,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
   grid: {
     flexDirection: "row",
@@ -203,7 +204,7 @@ const styles = StyleSheet.create({
   },
   dayNumber: {
     fontSize: FontSizes.body,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
   streakDot: {
     width: 6,

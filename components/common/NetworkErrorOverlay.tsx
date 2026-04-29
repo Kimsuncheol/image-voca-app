@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: FontSizes.sm,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     color: "#8A9BB0",
     letterSpacing: 1,
   },
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: FontSizes.headingMd,
-    fontWeight: "800",
+    fontWeight: FontWeights.extraBold,
     color: "#FFFFFF",
     textAlign: "center",
     lineHeight: LineHeights.headingXxl,

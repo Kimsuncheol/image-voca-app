@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { FontSizes } from "@/constants/fontSizes";
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
   },
   headerCell: {
     fontSize: FontSizes.xs,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },
@@ -140,7 +141,7 @@ const styles = StyleSheet.create({
   },
   bodyText: {
     fontSize: FontSizes.sm,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
     lineHeight: LineHeights.bodyMd,
   },
 });

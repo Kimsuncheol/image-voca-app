@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: FontSizes.titleLg,
-    fontWeight: "800",
+    fontWeight: FontWeights.extraBold,
   },
   content: {
     flex: 1,

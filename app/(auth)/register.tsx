@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { LineHeights } from "@/constants/lineHeights";
 import { FontSizes } from "@/constants/fontSizes";
 import { Ionicons } from "@expo/vector-icons";
@@ -569,7 +570,7 @@ const getStyles = (isDark: boolean) => {
     /** Main title text - Large, bold, theme-aware */
     title: {
       fontSize: FontSizes.headingXl,
-      fontWeight: "bold",
+      fontWeight: FontWeights.bold,
       color: fontColors.body,
       marginBottom: 8,
     },
@@ -684,7 +685,7 @@ const getStyles = (isDark: boolean) => {
     buttonText: {
       color: fontColors.inverse,
       fontSize: FontSizes.bodyLg,
-      fontWeight: "bold",
+      fontWeight: FontWeights.bold,
     },
 
     // -------------------------------------------------------------------------
@@ -709,7 +710,7 @@ const getStyles = (isDark: boolean) => {
     dividerText: {
       marginHorizontal: 16,
       color: fontColors.tertiary,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
     },
 
     // -------------------------------------------------------------------------
@@ -737,7 +738,7 @@ const getStyles = (isDark: boolean) => {
     googleButtonText: {
       color: fontColors.body,
       fontSize: FontSizes.bodyLg,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
     },
 
     // -------------------------------------------------------------------------
@@ -761,7 +762,7 @@ const getStyles = (isDark: boolean) => {
     link: {
       color: fontColors.link,
       fontSize: FontSizes.body,
-      fontWeight: "bold",
+      fontWeight: FontWeights.bold,
     },
 
     // -------------------------------------------------------------------------
@@ -869,7 +870,7 @@ const getStyles = (isDark: boolean) => {
     /** Admin toggle text - Default text color */
     adminToggleText: {
       fontSize: FontSizes.body,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
       color: fontColors.mutedLabel,
     },
 
@@ -886,7 +887,7 @@ const getStyles = (isDark: boolean) => {
     },
     learningSectionLabel: {
       fontSize: FontSizes.label,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
       color: fontColors.sectionMeta,
       marginBottom: 8,
       marginLeft: 4,

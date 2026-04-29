@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 /**
  * ====================================
  * SETTINGS SCREEN - Main Entry Point
@@ -519,7 +520,7 @@ const getStyles = (isDark: boolean) => {
     // Section title - Uppercase label above each card
     sectionTitle: {
       fontSize: FontSizes.body,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
       color: fontColors.screenMuted, // System gray
       marginBottom: 8,
       marginLeft: 12, // Align with card content
@@ -575,7 +576,7 @@ const getStyles = (isDark: boolean) => {
     signOutText: {
       color: fontColors.dangerAction, // iOS destructive red
       fontSize: FontSizes.subhead,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
     },
   });
 };

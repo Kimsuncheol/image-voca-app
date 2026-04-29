@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -193,7 +194,7 @@ const styles = StyleSheet.create({
   },
   metricBoxValue: {
     fontSize: FontSizes.titleLg,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     textAlign: "center",
   },
   historySection: {
@@ -224,7 +225,7 @@ const styles = StyleSheet.create({
   },
   historyCourseTitle: {
     fontSize: FontSizes.bodyMd,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     marginBottom: 4,
   },
   historyMeta: {

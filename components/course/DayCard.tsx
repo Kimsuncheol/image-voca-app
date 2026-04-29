@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -92,7 +93,7 @@ export function DayCard({
               style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
             >
               <ThemedText
-                style={{ color: "#fff", fontSize: FontSizes.caption, fontWeight: "800" }}
+                style={{ color: "#fff", fontSize: FontSizes.caption, fontWeight: FontWeights.extraBold }}
               >
                 {progress.quizScore}%
               </ThemedText>
@@ -156,7 +157,7 @@ const styles = StyleSheet.create({
   quizButtonText: {
     fontSize: FontSizes.caption,
     color: "#fff",
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
 
   lockedCard: {

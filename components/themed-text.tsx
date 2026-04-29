@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { StyleSheet, Text, type TextProps } from "react-native";
 import { FontSizes } from "@/constants/fontSizes";
 
@@ -43,16 +44,16 @@ const styles = StyleSheet.create({
   defaultSemiBold: {
     fontSize: FontSizes.bodyLg,
     lineHeight: LineHeights.titleXl,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
   title: {
     fontSize: FontSizes.headingXl,
-    fontWeight: "bold",
+    fontWeight: FontWeights.bold,
     lineHeight: LineHeights.headingXl,
   },
   subtitle: {
     fontSize: FontSizes.titleMd,
-    fontWeight: "bold",
+    fontWeight: FontWeights.bold,
   },
   link: {
     lineHeight: LineHeights.headingLg,

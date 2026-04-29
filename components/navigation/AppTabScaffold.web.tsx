@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FontSizes } from "@/constants/fontSizes";
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontSize: FontSizes.xs,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     marginTop: 2,
   },
   indicator: {

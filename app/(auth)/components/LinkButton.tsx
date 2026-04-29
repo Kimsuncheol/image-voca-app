@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 /**
  * =============================================================================
  * LINK BUTTON COMPONENT
@@ -40,6 +41,6 @@ const styles = StyleSheet.create({
   text: {
     color: FontColors.light.actionAccent,
     fontSize: FontSizes.body,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
 });

@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { FontSizes } from "@/constants/fontSizes";
@@ -457,7 +458,7 @@ const styles = StyleSheet.create({
   },
   previewBannerTitle: {
     fontSize: FontSizes.bodyLg,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
   previewBannerSubtitle: {
     fontSize: FontSizes.caption,
@@ -484,7 +485,7 @@ const styles = StyleSheet.create({
   },
   previewSheetTitle: {
     fontSize: FontSizes.title,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
   previewCloseButton: {
     width: 36,
@@ -510,18 +511,18 @@ const styles = StyleSheet.create({
   },
   previewDayText: {
     fontSize: FontSizes.bodyMd,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
   continueBannerLeft: {
     gap: 2,
   },
   continueBannerLabel: {
     fontSize: FontSizes.caption,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     opacity: 0.8,
   },
   continueBannerDay: {
     fontSize: FontSizes.title,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
 });

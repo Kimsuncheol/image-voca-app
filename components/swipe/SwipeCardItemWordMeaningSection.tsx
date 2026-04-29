@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { LineHeights } from "@/constants/lineHeights";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -56,7 +57,7 @@ export function SwipeCardItemWordMeaningSection({
     [word, wordVariants],
   );
   const titleFontSize = React.useMemo(
-    () => getIdiomTitleFontSize(longestWordVariant, item.course, 50),
+    () => getIdiomTitleFontSize(longestWordVariant, item.course, FontSizes.displayXl),
     [item.course, longestWordVariant],
   );
   const titleLineHeight = React.useMemo(
@@ -156,7 +157,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: FontSizes.displayXl,
-    fontWeight: "900",
+    fontWeight: FontWeights.black,
     color: blackCardColors.primary,
     flexShrink: 1,
     letterSpacing: 0,
@@ -190,6 +191,6 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.titleLg,
     color: blackCardColors.secondary,
     lineHeight: LineHeights.headingLg,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
 });

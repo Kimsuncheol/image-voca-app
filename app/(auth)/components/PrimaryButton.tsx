@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 /**
  * =============================================================================
  * PRIMARY BUTTON COMPONENT
@@ -74,6 +75,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: FontColors.light.buttonOnAccent,
     fontSize: FontSizes.bodyLg,
-    fontWeight: "bold",
+    fontWeight: FontWeights.bold,
   },
 });

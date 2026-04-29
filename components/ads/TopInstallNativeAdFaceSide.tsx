@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Image as NativeImage, StyleSheet, Text, View } from "react-native";
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
   headline: {
     color: "#111827",
     fontSize: FontSizes.caption,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     lineHeight: LineHeights.sm,
   },
   metadataRow: {

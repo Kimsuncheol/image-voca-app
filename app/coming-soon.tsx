@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: FontSizes.headingLg,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     textAlign: "center",
   },
   description: {
@@ -110,6 +111,6 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: FontSizes.bodyMd,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
   },
 });

@@ -1,3 +1,6 @@
+import { FontWeights } from "@/constants/fontWeights";
+import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -9,8 +12,6 @@ import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import type { CounterTabId } from "../src/types/counters";
-import { FontSizes } from "@/constants/fontSizes";
-import { LineHeights } from "@/constants/lineHeights";
 
 export default function CountersScreen() {
   const { isDark } = useTheme();
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
   },
   accentPillText: {
     fontSize: FontSizes.caption,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
   heroDots: {
     alignItems: "flex-end",
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: FontSizes.caption,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },

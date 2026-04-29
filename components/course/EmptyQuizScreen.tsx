@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: FontSizes.title,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     textAlign: "center",
   },
   emptyStateDescription: {
@@ -97,6 +98,6 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: FontSizes.bodyLg,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
 });

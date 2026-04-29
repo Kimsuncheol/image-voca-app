@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
@@ -310,14 +311,14 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: FontSizes.caption,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     letterSpacing: 0.8,
     textTransform: "uppercase",
     marginBottom: 10,
   },
   quoteText: {
     fontSize: FontSizes.titleLg,
-    fontWeight: "bold",
+    fontWeight: FontWeights.bold,
     lineHeight: LineHeights.headingXl,
   },
   translation: {
@@ -327,7 +328,7 @@ const styles = StyleSheet.create({
   },
   author: {
     fontSize: FontSizes.label,
-    fontWeight: "bold",
+    fontWeight: FontWeights.bold,
     marginTop: 12,
     textAlign: "right",
   },
@@ -355,7 +356,7 @@ const styles = StyleSheet.create({
   },
   kanaToggleText: {
     fontSize: FontSizes.caption,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     letterSpacing: 0.5,
   },
 });

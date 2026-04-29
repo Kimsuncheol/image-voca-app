@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { useRouter } from "expo-router";
 import React, { useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -97,7 +98,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: FontSizes.caption,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },

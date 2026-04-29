@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 /**
  * =============================================================================
  * GOOGLE BUTTON COMPONENT
@@ -89,7 +90,7 @@ const getStyles = (isDark: boolean) => {
     googleButtonText: {
       color: fontColors.body,
       fontSize: FontSizes.bodyLg,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
     },
   });
 };

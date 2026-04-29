@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
   feedbackText: {
     color: "#fff",
     fontSize: FontSizes.title,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
   correctAnswerText: {
     fontSize: FontSizes.body,

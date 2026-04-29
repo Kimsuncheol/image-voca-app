@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { sendEmailVerification, signOut } from "firebase/auth";
@@ -231,7 +232,7 @@ const getStyles = (isDark: boolean) => {
     },
     title: {
       fontSize: FontSizes.headingLg,
-      fontWeight: "800",
+      fontWeight: FontWeights.extraBold,
       color: fontColors.screenTitleStrong,
       textAlign: "center",
       marginBottom: 12,
@@ -256,7 +257,7 @@ const getStyles = (isDark: boolean) => {
     },
     emailLabel: {
       fontSize: FontSizes.caption,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
       textTransform: "uppercase",
       color: fontColors.screenMetaCool,
       marginBottom: 6,
@@ -264,7 +265,7 @@ const getStyles = (isDark: boolean) => {
     },
     emailValue: {
       fontSize: FontSizes.title,
-      fontWeight: "700",
+      fontWeight: FontWeights.bold,
       color: fontColors.verifyEmailValue,
     },
     alertContainer: {
@@ -289,7 +290,7 @@ const getStyles = (isDark: boolean) => {
       flex: 1,
       color: fontColors.successText,
       fontSize: FontSizes.body,
-      fontWeight: "500",
+      fontWeight: FontWeights.medium,
       lineHeight: LineHeights.title,
     },
     buttonGroup: {

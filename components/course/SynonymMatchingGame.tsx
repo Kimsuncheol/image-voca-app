@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     fontSize: FontSizes.bodyMd,
     marginBottom: 8,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
   },
   matchingRows: {
     gap: 12,

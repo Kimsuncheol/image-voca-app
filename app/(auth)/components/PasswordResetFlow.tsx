@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -423,7 +424,7 @@ const getStyles = (isDark: boolean) => {
     },
     title: {
       fontSize: FontSizes.headingXl,
-      fontWeight: "bold",
+      fontWeight: FontWeights.bold,
       color: fontColors.body,
       marginBottom: 8,
       textAlign: "center",
@@ -448,7 +449,7 @@ const getStyles = (isDark: boolean) => {
     successText: {
       color: fontColors.passwordResetSuccessText,
       fontSize: FontSizes.label,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
     },
     infoText: {
       color: fontColors.supporting,

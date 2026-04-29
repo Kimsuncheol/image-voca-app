@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect } from "react";
 import { StyleSheet, Text } from "react-native";
@@ -84,6 +85,6 @@ const styles = StyleSheet.create({
   text: {
     color: "#fff",
     fontSize: FontSizes.label,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
 });

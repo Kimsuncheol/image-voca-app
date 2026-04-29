@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
   deleteText: {
     color: "#fff",
     fontSize: FontSizes.label,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
   card: {},
 });

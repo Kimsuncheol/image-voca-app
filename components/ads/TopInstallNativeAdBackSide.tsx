@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
@@ -97,7 +98,7 @@ const styles = StyleSheet.create({
     color: "#1f2937",
     flex: 1,
     fontSize: FontSizes.xs,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     lineHeight: LineHeights.xs,
     textAlign: "center",
   },
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
   disclosureGoogleBadgeText: {
     color: "#1d4ed8",
     fontSize: FontSizes.xxs,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     lineHeight: LineHeights.micro,
   },
   disclosureWhyButton: {
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
   disclosureWhyButtonText: {
     color: "#374151",
     fontSize: FontSizes.xxs,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     lineHeight: LineHeights.micro,
   },
 });

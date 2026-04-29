@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import React, { useCallback } from "react";
@@ -118,6 +119,6 @@ const styles = StyleSheet.create({
   streakBrokenText: {
     flex: 1,
     fontSize: FontSizes.body,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
 });

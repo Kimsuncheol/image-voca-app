@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 /**
  * =============================================================================
  * ERROR BANNER COMPONENT
@@ -97,7 +98,7 @@ const getStyles = (isDark: boolean) => {
     },
     errorTitle: {
       fontSize: FontSizes.body,
-      fontWeight: "700",
+      fontWeight: FontWeights.bold,
       color: fontColors.authErrorTitle,
       marginBottom: 2,
     },

@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "./themed-text";
@@ -36,7 +37,7 @@ const styles = StyleSheet.create({
   },
   roleText: {
     fontSize: FontSizes.body,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     opacity: 0.8,
   },
 });

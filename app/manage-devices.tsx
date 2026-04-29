@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Stack } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -349,12 +350,12 @@ const getStyles = (isDark: boolean) => {
     },
     title: {
       fontSize: FontSizes.heading,
-      fontWeight: "700",
+      fontWeight: FontWeights.bold,
       color: fontColors.screenTitleCompact,
     },
     subtitle: {
       fontSize: FontSizes.bodyLg,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
       color: fontColors.actionAccentStrong,
     },
     helper: {
@@ -400,7 +401,7 @@ const getStyles = (isDark: boolean) => {
     },
     deviceTitle: {
       fontSize: FontSizes.title,
-      fontWeight: "700",
+      fontWeight: FontWeights.bold,
       color: fontColors.screenTitleCompact,
     },
     badge: {
@@ -411,7 +412,7 @@ const getStyles = (isDark: boolean) => {
     },
     badgeText: {
       fontSize: FontSizes.caption,
-      fontWeight: "700",
+      fontWeight: FontWeights.bold,
       color: fontColors.actionAccentStrong,
     },
     deviceMeta: {
@@ -430,7 +431,7 @@ const getStyles = (isDark: boolean) => {
     },
     removeButtonText: {
       fontSize: FontSizes.body,
-      fontWeight: "700",
+      fontWeight: FontWeights.bold,
       color: fontColors.buttonOnAccent,
     },
   });

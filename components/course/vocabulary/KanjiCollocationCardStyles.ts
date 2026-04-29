@@ -1,9 +1,15 @@
+import { FontWeights } from "@/constants/fontWeights";
+import { BackgroundColors } from "@/constants/backgroundColors";
 import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 import { StyleSheet } from "react-native";
 import { FontColors } from "../../../constants/fontColors";
 import { CARD_HEIGHT, CARD_WIDTH } from "../../../src/constants/layout";
-import { blackCardColors, blackCardSpacing, blackCardSharedStyles } from "./blackCardStyles";
-import { LineHeights } from "@/constants/lineHeights";
+import {
+  blackCardColors,
+  blackCardSharedStyles,
+  blackCardSpacing,
+} from "./blackCardStyles";
 
 // const { width } = Dimensions.get("window");
 
@@ -42,6 +48,7 @@ export const styles = StyleSheet.create({
   },
   cardImage: {
     flex: 1,
+    backgroundColor: BackgroundColors.dark.bgImageColor,
     alignSelf: "stretch",
     marginHorizontal: 4,
     marginTop: blackCardSpacing.contentTop,
@@ -72,7 +79,7 @@ export const styles = StyleSheet.create({
   },
   kanjiText: {
     fontSize: FontSizes.displayMega,
-    fontWeight: "bold",
+    fontWeight: FontWeights.bold,
     textAlign: "left",
   },
   faceSection: {
@@ -80,7 +87,7 @@ export const styles = StyleSheet.create({
   },
   faceSectionLabel: {
     fontSize: FontSizes.bodyLg,
-    fontWeight: "800",
+    fontWeight: FontWeights.extraBold,
     letterSpacing: 0.8,
     textTransform: "uppercase",
     marginBottom: 2,
@@ -92,7 +99,7 @@ export const styles = StyleSheet.create({
   },
   faceListItem: {
     fontSize: FontSizes.title,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     lineHeight: LineHeights.heading,
   },
   faceRomanizedTextDark: {
@@ -129,7 +136,7 @@ export const styles = StyleSheet.create({
   },
   furiganaButtonText: {
     fontSize: FontSizes.label,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
   backScroll: {
     flex: 1,
@@ -149,7 +156,7 @@ export const styles = StyleSheet.create({
   },
   backSectionTitle: {
     fontSize: FontSizes.sm,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
@@ -170,7 +177,7 @@ export const styles = StyleSheet.create({
   },
   backGroupLabel: {
     fontSize: FontSizes.title,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     lineHeight: LineHeights.titleXl,
   },
   backPairsContainer: {
@@ -212,7 +219,7 @@ export const styles = StyleSheet.create({
   },
   backExample: {
     fontSize: FontSizes.bodyLg,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
     lineHeight: LineHeights.titleLg,
   },
   backFurigana: {
@@ -248,7 +255,7 @@ export const styles = StyleSheet.create({
   },
   backTranslation: {
     fontSize: FontSizes.sm,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
     lineHeight: LineHeights.bodyLg,
   },
 });

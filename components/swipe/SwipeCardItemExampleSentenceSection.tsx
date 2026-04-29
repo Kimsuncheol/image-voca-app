@@ -1,7 +1,9 @@
+import { FontWeights } from "@/constants/fontWeights";
+import { FontSizes } from "@/constants/fontSizes";
+import { LineHeights } from "@/constants/lineHeights";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FontSizes } from "@/constants/fontSizes";
 import {
   ScrollView,
   StyleSheet,
@@ -14,7 +16,6 @@ import { useSpeech } from "../../src/hooks/useSpeech";
 import { stripKanaParens } from "../../src/utils/japaneseText";
 import { formatSynonyms } from "../../src/utils/synonyms";
 import { blackCardColors } from "../course/vocabulary/blackCardStyles";
-import { LineHeights } from "@/constants/lineHeights";
 
 interface SwipeCardItemExampleSentenceSectionProps {
   example: string;
@@ -61,12 +62,15 @@ export function SwipeCardItemExampleSentenceSection({
   const displayedExamples =
     shouldCollapse && !isExpanded ? examples.slice(0, 3) : examples;
 
-  const handleSpeak = React.useCallback(async (text: string) => {
-    if (!isActive) {
-      return;
-    }
-    await speak(text, { language: "en-US" });
-  }, [isActive, speak]);
+  const handleSpeak = React.useCallback(
+    async (text: string) => {
+      if (!isActive) {
+        return;
+      }
+      await speak(text, { language: "en-US" });
+    },
+    [isActive, speak],
+  );
 
   return (
     <>
@@ -92,10 +96,7 @@ export function SwipeCardItemExampleSentenceSection({
               activeOpacity={0.7}
             >
               <Text
-                style={[
-                  styles.cardExample,
-                  { color: blackCardColors.primary },
-                ]}
+                style={[styles.cardExample, { color: blackCardColors.primary }]}
                 numberOfLines={2}
               >
                 {exampleText.trim()}
@@ -116,12 +117,12 @@ export function SwipeCardItemExampleSentenceSection({
           </View>
         ))}
         {formattedSynonyms ? (
-          <View testID="swipe-card-synonyms-section" style={styles.exampleGroup}>
+          <View
+            testID="swipe-card-synonyms-section"
+            style={styles.exampleGroup}
+          >
             <Text
-              style={[
-                styles.sectionLabel,
-                { color: blackCardColors.muted },
-              ]}
+              style={[styles.sectionLabel, { color: blackCardColors.muted }]}
             >
               {t("notifications.labels.synonyms", {
                 defaultValue: "Synonyms",
@@ -159,7 +160,7 @@ export function SwipeCardItemExampleSentenceSection({
           </Text>
           <Ionicons
             name={isExpanded ? "chevron-up" : "chevron-down"}
-            size={16}
+            size={FontSizes.bodyLg}
             color={blackCardColors.primary}
           />
         </TouchableOpacity>
@@ -184,27 +185,27 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: FontSizes.caption,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     letterSpacing: 0.3,
     marginBottom: 4,
     textTransform: "uppercase",
   },
   cardExample: {
     fontSize: FontSizes.titleMd,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     color: blackCardColors.primary,
     lineHeight: LineHeights.headingMd,
   },
   cardTranslation: {
     fontSize: FontSizes.bodyMd,
     color: blackCardColors.muted,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
     marginTop: 2,
     lineHeight: LineHeights.titleLg,
   },
   cardSynonyms: {
     fontSize: FontSizes.bodyMd,
-    fontWeight: "500",
+    fontWeight: FontWeights.regular,
     lineHeight: LineHeights.titleLg,
   },
   expandButton: {
@@ -219,6 +220,6 @@ const styles = StyleSheet.create({
   },
   expandButtonText: {
     fontSize: FontSizes.label,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
 });

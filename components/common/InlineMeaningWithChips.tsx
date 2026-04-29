@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { LineHeights } from "@/constants/lineHeights";
 import React from "react";
 import { StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from "react-native";
@@ -383,7 +384,7 @@ const styles = StyleSheet.create({
     lineHeight: LineHeights.titleXl,
   },
   prefix: {
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
   chip: {
     minHeight: 18,
@@ -397,7 +398,7 @@ const styles = StyleSheet.create({
   chipLabel: {
     fontSize: FontSizes.xs,
     lineHeight: LineHeights.xs,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     textTransform: "lowercase",
   },
 });

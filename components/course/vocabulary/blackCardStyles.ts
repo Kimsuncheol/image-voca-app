@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { FontSizes } from "@/constants/fontSizes";
 import { StyleSheet } from "react-native";
 
@@ -33,7 +34,7 @@ export const blackCardSharedStyles = StyleSheet.create({
   dayPillText: {
     color: blackCardColors.primary,
     fontSize: FontSizes.body,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
   topLeftControl: {
     position: "absolute",
@@ -56,7 +57,7 @@ export const blackCardSharedStyles = StyleSheet.create({
   sectionLabel: {
     color: blackCardColors.muted,
     fontSize: FontSizes.bodyLg,
-    fontWeight: "800",
+    fontWeight: FontWeights.extraBold,
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },

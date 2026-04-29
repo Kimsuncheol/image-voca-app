@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
   },
   checkedLabel: {
     fontSize: FontSizes.displayLg,
-    fontWeight: "900",
+    fontWeight: FontWeights.black,
     lineHeight: LineHeights.display,
     textAlign: "center",
     textTransform: "uppercase",
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
 
   buttonText: {
     fontSize: FontSizes.bodyMd,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     color: "#1a1a1a",
   },
 });

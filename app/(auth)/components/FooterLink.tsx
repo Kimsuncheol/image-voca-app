@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 /**
  * =============================================================================
  * FOOTER LINK COMPONENT
@@ -67,7 +68,7 @@ const getStyles = (isDark: boolean) => {
     link: {
       color: fontColors.actionAccent,
       fontSize: FontSizes.body,
-      fontWeight: "bold",
+      fontWeight: FontWeights.bold,
       marginLeft: 4,
     },
   });

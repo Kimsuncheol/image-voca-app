@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Stack, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -196,7 +197,7 @@ export default function JapaneseCharactersScreen() {
                 style={{
                   fontSize: FontSizes.bodyMd,
                   color: fontColors.actionAccent,
-                  fontWeight: "600",
+                  fontWeight: FontWeights.semiBold,
                 }}
               >
                 {t("kana.quiz.title", { defaultValue: "Quiz" })}
@@ -296,7 +297,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: FontSizes.subhead,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
   sectionSubtitle: {
     fontSize: FontSizes.label,
@@ -327,10 +328,10 @@ const styles = StyleSheet.create({
   },
   kana: {
     fontSize: FontSizes.headingMd,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
   },
   romaji: {
     fontSize: FontSizes.sm,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
   },
 });

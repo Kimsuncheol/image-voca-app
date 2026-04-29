@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { FontSizes } from "@/constants/fontSizes";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -423,7 +424,7 @@ const styles = StyleSheet.create({
   },
   kanaToggleText: {
     fontSize: FontSizes.body,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     letterSpacing: 0.5,
   },
   titleContainer: {
@@ -440,7 +441,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: FontSizes.headingXl,
-    fontWeight: "900",
+    fontWeight: FontWeights.black,
     color: blackCardColors.primary,
     flexShrink: 1,
   },
@@ -461,7 +462,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: FontSizes.caption,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     letterSpacing: 0.3,
     textTransform: "uppercase",
   },
@@ -475,7 +476,7 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.subhead,
     color: blackCardColors.secondary,
     lineHeight: LineHeights.titleXl,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
   },
   exampleSection: {
     marginTop: 4,
@@ -484,15 +485,15 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   cardExample: {
-    fontSize: FontSizes.bodyLg,
-    fontWeight: "500",
+    fontSize: FontSizes.titleMd,
+    fontWeight: FontWeights.semiBold,
     color: blackCardColors.primary,
-    lineHeight: LineHeights.title,
+    lineHeight: LineHeights.headingMd,
   },
   cardTranslation: {
-    fontSize: FontSizes.caption,
-    fontWeight: "500",
-    marginTop: 4,
+    fontSize: FontSizes.bodyMd,
+    fontWeight: FontWeights.medium,
+    marginTop: 2,
     lineHeight: LineHeights.titleLg,
   },
   cardFurigana: {

@@ -1,3 +1,5 @@
+import { FontWeights } from "@/constants/fontWeights";
+import { BackgroundColors } from "@/constants/backgroundColors";
 import { FontSizes } from "@/constants/fontSizes";
 import { LineHeights } from "@/constants/lineHeights";
 import { CARD_HEIGHT, CARD_WIDTH } from "@/src/constants/layout";
@@ -93,7 +95,7 @@ export const styles = StyleSheet.create({
   },
   faceCollocationText: {
     fontSize: FontSizes.displayXl,
-    fontWeight: "900",
+    fontWeight: FontWeights.black,
     textAlign: "left",
     color: blackCardColors.primary,
     lineHeight: LineHeights.displayXl,
@@ -108,7 +110,7 @@ export const styles = StyleSheet.create({
   },
   faceMeaningText: {
     fontSize: FontSizes.titleLg,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
     textAlign: "left",
     color: blackCardColors.secondary,
     lineHeight: LineHeights.headingLg,
@@ -133,13 +135,13 @@ export const styles = StyleSheet.create({
   faceSynChipText: {
     fontSize: FontSizes.label,
     color: blackCardColors.muted,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   faceSynonymsText: {
     fontSize: FontSizes.bodyLg,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
     color: blackCardColors.muted,
     lineHeight: LineHeights.titleLg,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
@@ -185,6 +187,7 @@ export const styles = StyleSheet.create({
   },
   faceCardImage: {
     flex: 4,
+    backgroundColor: BackgroundColors.dark.bgImageColor,
     alignSelf: "stretch",
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
@@ -201,7 +204,6 @@ export const styles = StyleSheet.create({
     backgroundColor: blackCardColors.surface,
     borderRadius: 0,
     paddingHorizontal: 4,
-    paddingVertical: 32,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
@@ -251,7 +253,7 @@ export const styles = StyleSheet.create({
   },
   backSectionLabel: {
     fontSize: FontSizes.titleMd,
-    fontWeight: "800",
+    fontWeight: FontWeights.extraBold,
     color: blackCardColors.muted,
     letterSpacing: 1.2,
   },
@@ -269,7 +271,7 @@ export const styles = StyleSheet.create({
     fontSize: FontSizes.bodyLg,
     color: blackCardColors.primary,
     lineHeight: LineHeights.titleXl,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
   },
 
   // ============================================================================
@@ -301,8 +303,8 @@ export const styles = StyleSheet.create({
   exampleValue: {
     fontSize: FontSizes.bodyLg,
     color: blackCardColors.primary,
-    lineHeight: LineHeights.titleXl,
-    fontWeight: "500",
+    lineHeight: LineHeights.titleLg,
+    fontWeight: FontWeights.medium,
     flexShrink: 1,
   },
   exampleTextDark: {
@@ -318,7 +320,7 @@ export const styles = StyleSheet.create({
   },
   exampleCharacterText: {
     fontSize: FontSizes.bodyLg,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     color: blackCardColors.muted,
     lineHeight: LineHeights.heading,
     flexShrink: 1,
@@ -363,7 +365,7 @@ export const styles = StyleSheet.create({
   },
   translationLabel: {
     fontSize: FontSizes.sm,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     color: "#999",
     letterSpacing: 1.2,
   },
@@ -374,8 +376,8 @@ export const styles = StyleSheet.create({
   translationValue: {
     fontSize: FontSizes.sm,
     color: "#333",
-    lineHeight: LineHeights.heading,
-    fontWeight: "400",
+    lineHeight: LineHeights.bodyLg,
+    fontWeight: FontWeights.medium,
   },
   translationScroll: {
     maxHeight: 140,
@@ -493,11 +495,11 @@ export const styles = StyleSheet.create({
   swipeableHintTextLight: {
     color: "#FFFFFF",
     fontSize: FontSizes.caption,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
   swipeableHintTextDark: {
     color: "#FFFFFF",
     fontSize: FontSizes.caption,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
 });

@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -101,6 +102,6 @@ const styles = StyleSheet.create({
   recentText: {
     fontSize: FontSizes.xs,
     color: "#fff",
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
 });

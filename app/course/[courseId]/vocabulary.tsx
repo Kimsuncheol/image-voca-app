@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Stack,
@@ -796,7 +797,7 @@ const styles = StyleSheet.create({
   },
   previewFinishTitle: {
     fontSize: 28,
-    fontWeight: "800",
+    fontWeight: FontWeights.extraBold,
     textAlign: "center",
   },
   previewReturnButton: {
@@ -810,6 +811,6 @@ const styles = StyleSheet.create({
   previewReturnButtonText: {
     color: "#1a1a1a",
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
 });

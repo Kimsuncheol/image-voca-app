@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { LineHeights } from "@/constants/lineHeights";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
   },
   kanaButtonText: {
     fontSize: FontSizes.bodyMd,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
   },
   kanaButtonTextGroup: {
     flex: 1,

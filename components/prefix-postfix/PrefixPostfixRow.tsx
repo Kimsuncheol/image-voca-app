@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React, { useCallback } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -189,16 +190,16 @@ const styles = StyleSheet.create({
   },
   wordText: {
     fontSize: FontSizes.body,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
   bodyText: {
     fontSize: FontSizes.sm,
-    fontWeight: "500",
+    fontWeight: FontWeights.medium,
     lineHeight: LineHeights.bodyMd,
   },
   exampleText: {
     fontSize: FontSizes.sm,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     lineHeight: LineHeights.bodyMd,
   },
   furiganaText: {

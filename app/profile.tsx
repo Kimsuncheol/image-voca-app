@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import { FontSizes } from "@/constants/fontSizes";
 import {
@@ -416,7 +417,7 @@ const getStyles = (isDark: boolean) => {
     },
     displayNameText: {
       fontSize: FontSizes.heading,
-      fontWeight: "bold",
+      fontWeight: FontWeights.bold,
       color: fontColors.screenTitle,
       marginBottom: 4,
     },
@@ -433,7 +434,7 @@ const getStyles = (isDark: boolean) => {
     },
     saveButtonText: {
       color: fontColors.buttonOnAccent,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
     },
     section: {
       paddingHorizontal: 20,
@@ -441,7 +442,7 @@ const getStyles = (isDark: boolean) => {
     },
     sectionTitle: {
       fontSize: FontSizes.body,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
       color: fontColors.screenMutedStrong,
       marginBottom: 8,
       textTransform: "uppercase",
@@ -466,7 +467,7 @@ const getStyles = (isDark: boolean) => {
     infoLabel: {
       fontSize: FontSizes.bodyLg,
       color: fontColors.screenTitle,
-      fontWeight: "500",
+      fontWeight: FontWeights.medium,
     },
     infoValue: {
       fontSize: FontSizes.bodyLg,
@@ -498,12 +499,12 @@ const getStyles = (isDark: boolean) => {
     actionText: {
       fontSize: FontSizes.bodyLg,
       color: fontColors.screenTitle,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
     },
     dangerText: {
       fontSize: FontSizes.bodyLg,
       color: fontColors.dangerAction,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
     },
     reauthContainer: {
       position: "absolute",
@@ -521,7 +522,7 @@ const getStyles = (isDark: boolean) => {
     },
     reauthTitle: {
       fontSize: FontSizes.titleMd,
-      fontWeight: "bold",
+      fontWeight: FontWeights.bold,
       color: fontColors.screenTitle,
       marginBottom: 16,
       textAlign: "center",
@@ -545,7 +546,7 @@ const getStyles = (isDark: boolean) => {
     },
     cancelButtonText: {
       fontSize: FontSizes.bodyLg,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
       color: fontColors.screenTitle,
     },
     confirmButton: {
@@ -556,7 +557,7 @@ const getStyles = (isDark: boolean) => {
     },
     confirmButtonText: {
       fontSize: FontSizes.bodyLg,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
       color: fontColors.buttonOnAccent,
     },
     goalInputContainer: {
@@ -588,7 +589,7 @@ const getStyles = (isDark: boolean) => {
     updateGoalButtonText: {
       color: fontColors.buttonOnAccent,
       fontSize: FontSizes.bodyLg,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
     },
   });
 };

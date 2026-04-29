@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1.5,
     borderStyle: "dashed",
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     fontSize: FontSizes.title,
     minWidth: 80,
     textAlign: "center",

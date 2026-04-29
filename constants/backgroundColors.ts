@@ -1,6 +1,7 @@
 export type BgColorScheme = "light" | "dark";
 
 export type BgColorRole =
+  | "bgImageColor"
   | "screen"
   | "screenAlt"
   | "screenSubtle"
@@ -55,6 +56,7 @@ export type BgColorTokens = Record<BgColorRole, string>;
 
 export const BackgroundColors: Record<BgColorScheme, BgColorTokens> = {
   light: {
+    bgImageColor: "#ffffff",
     screen: "#fff",
     screenAlt: "#F2F2F7",
     screenSubtle: "#f5f5f5",
@@ -106,6 +108,7 @@ export const BackgroundColors: Record<BgColorScheme, BgColorTokens> = {
     transparent: "transparent",
   },
   dark: {
+    bgImageColor: "#ffffff",
     screen: "#000",
     screenAlt: "#000",
     screenSubtle: "#1c1c1e",

@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 /**
  * =============================================================================
  * IPA INPUT FIELD COMPONENT
@@ -223,7 +224,7 @@ const getStyles = (isDark: boolean) =>
     },
     label: {
       fontSize: FontSizes.bodyLg,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
       color: isDark ? "#fff" : "#000",
     },
     refreshButton: {
@@ -240,7 +241,7 @@ const getStyles = (isDark: boolean) =>
     },
     sublabel: {
       fontSize: FontSizes.body,
-      fontWeight: "500",
+      fontWeight: FontWeights.medium,
       color: isDark ? "#aaa" : "#666",
     },
     notFoundText: {

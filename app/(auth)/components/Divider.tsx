@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 /**
  * =============================================================================
  * DIVIDER COMPONENT
@@ -59,7 +60,7 @@ const getStyles = (isDark: boolean) => {
     dividerText: {
       marginHorizontal: 16,
       color: fontColors.tertiary,
-      fontWeight: "600",
+      fontWeight: FontWeights.semiBold,
     },
   });
 };

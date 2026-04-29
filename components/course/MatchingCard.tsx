@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
@@ -202,17 +203,17 @@ const styles = StyleSheet.create({
   matchingItemText: {
     textAlign: "center",
     fontSize: FontSizes.body,
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
     lineHeight: LineHeights.title,
   },
   matchingItemTextMatched: {
     color: "#28a745",
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     opacity: 0.8,
   },
   matchingItemTextIncorrect: {
     color: "#dc3545",
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
     opacity: 0.9,
   },
   wordStack: {
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
   },
   wordText: {
     fontSize: FontSizes.bodyLg,
-    fontWeight: "700",
+    fontWeight: FontWeights.bold,
   },
   meaningContainer: {
     gap: 2,
@@ -238,13 +239,13 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.bodyLg,
     lineHeight: LineHeights.titleLg,
     textAlign: "center",
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
   synonymText: {
     fontSize: FontSizes.caption,
     lineHeight: LineHeights.bodyLg,
     textAlign: "center",
-    fontWeight: "600",
+    fontWeight: FontWeights.semiBold,
   },
   synonymTextDefault: {
     color: "#9CA3AF",

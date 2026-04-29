@@ -1,3 +1,4 @@
+import { FontWeights } from "@/constants/fontWeights";
 import React, { useMemo } from "react";
 import { StyleSheet, Text } from "react-native";
 import { parseRoleplaySegments } from "../../src/utils/roleplayUtils";
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.title,
     color: "#333",
     lineHeight: LineHeights.heading,
-    fontWeight: "400",
+    fontWeight: FontWeights.regular,
   },
   textDark: {
     color: "#FFFFFF",
