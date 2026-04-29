@@ -93,7 +93,7 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
       </View>
       <ScrollView
         style={styles.backScroll}
-        showsVerticalScrollIndicator={true}
+        showsVerticalScrollIndicator={false}
         nestedScrollEnabled={true}
       >
         <Pressable

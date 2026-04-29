@@ -126,7 +126,7 @@ export default React.memo(function ExampleSection({
                     maxHeight ? { maxHeight } : null,
                   ]}
                   contentContainerStyle={styles.exampleScrollContent}
-                  showsVerticalScrollIndicator
+                  showsVerticalScrollIndicator={false}
                   nestedScrollEnabled={true}
                 >
                   <View style={styles.exampleScrollText}>
