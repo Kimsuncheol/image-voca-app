@@ -1,7 +1,8 @@
+import { FontSizes } from "@/constants/fontSizes";
 import { FontWeights } from "@/constants/fontWeights";
+import { LineHeights } from "@/constants/lineHeights";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { FontSizes } from "@/constants/fontSizes";
 import {
   ScrollView,
   StyleSheet,
@@ -19,7 +20,6 @@ import {
 import { toDialogueTurns } from "../../src/utils/roleplayUtils";
 import { formatSynonyms } from "../../src/utils/synonyms";
 import { ThemedText } from "../themed-text";
-import { LineHeights } from "@/constants/lineHeights";
 
 const LEGACY_COLLAPSE_THRESHOLD = 4;
 const COLLAPSED_VISIBLE_COUNT = 3;
@@ -81,7 +81,10 @@ export function WordCardExample({
     () => (showKana ? example : stripKanaParens(example)),
     [example, showKana],
   );
-  const examples = React.useMemo(() => splitExampleLines(processedExample), [processedExample]);
+  const examples = React.useMemo(
+    () => splitExampleLines(processedExample),
+    [processedExample],
+  );
   const furiganaLines = React.useMemo(
     () => splitExampleLines(exampleFurigana),
     [exampleFurigana],
@@ -139,7 +142,9 @@ export function WordCardExample({
   }, [collocationItems]);
 
   const shouldCollapseStandard =
-    !isCollocation && !expandToContent && examples.length >= LEGACY_COLLAPSE_THRESHOLD;
+    !isCollocation &&
+    !expandToContent &&
+    examples.length >= LEGACY_COLLAPSE_THRESHOLD;
   const displayedExamples =
     shouldCollapseStandard && !isExpanded
       ? examples.slice(0, COLLAPSED_VISIBLE_COUNT)
@@ -177,17 +182,19 @@ export function WordCardExample({
   const renderSynonyms = () =>
     formattedSynonyms ? (
       <View testID="word-card-synonyms-section" style={styles.exampleGroup}>
-        <ThemedText style={styles.metaText}>
+        <ThemedText
+          style={[
+            styles.metaText,
+            { textTransform: "uppercase", fontWeight: FontWeights.bold },
+          ]}
+        >
           {`${t("notifications.labels.synonyms", {
             defaultValue: "Synonyms",
-          })}:`}
+          })}`}
         </ThemedText>
         <ThemedText
           testID="word-card-synonyms"
-          style={[
-            styles.synonyms,
-            { color: isDark ? "#BDBDBD" : "#2F2F2F" },
-          ]}
+          style={[styles.synonyms, { color: isDark ? "#BDBDBD" : "#2F2F2F" }]}
         >
           {formattedSynonyms}
         </ThemedText>
@@ -198,38 +205,40 @@ export function WordCardExample({
     displayedExamples.map((exampleText, index) => {
       const segments = splitJapaneseTextSegments(exampleText.trim());
       return (
-      <View key={index} style={styles.exampleGroup}>
-        <TouchableOpacity
-          onPress={() => handleSpeak((furiganaLines[index] ?? exampleText).trim())}
-          activeOpacity={0.7}
-        >
-          <ThemedText style={styles.example}>
-            {segments.map((segment, segIndex) =>
-              segment.isKanaParen ? (
-                <Text
-                  key={segIndex}
-                  style={[
-                    styles.exampleFurigana,
-                    { color: isDark ? "#999" : "#606060" },
-                  ]}
-                >
-                  {segment.text}
-                </Text>
-              ) : (
-                <Text key={segIndex}>{segment.text}</Text>
-              )
-            )}
-          </ThemedText>
-        </TouchableOpacity>
-        {translations[index] ? (
-          <ThemedText
-            testID={index === 0 ? "word-card-translation" : undefined}
-            style={[styles.translation, { color: fontColors.translation }]}
+        <View key={index} style={styles.exampleGroup}>
+          <TouchableOpacity
+            onPress={() =>
+              handleSpeak((furiganaLines[index] ?? exampleText).trim())
+            }
+            activeOpacity={0.7}
           >
-            {translations[index].trim()}
-          </ThemedText>
-        ) : null}
-      </View>
+            <ThemedText style={styles.example}>
+              {segments.map((segment, segIndex) =>
+                segment.isKanaParen ? (
+                  <Text
+                    key={segIndex}
+                    style={[
+                      styles.exampleFurigana,
+                      { color: isDark ? "#999" : "#606060" },
+                    ]}
+                  >
+                    {segment.text}
+                  </Text>
+                ) : (
+                  <Text key={segIndex}>{segment.text}</Text>
+                ),
+              )}
+            </ThemedText>
+          </TouchableOpacity>
+          {translations[index] ? (
+            <ThemedText
+              testID={index === 0 ? "word-card-translation" : undefined}
+              style={[styles.translation, { color: fontColors.translation }]}
+            >
+              {translations[index].trim()}
+            </ThemedText>
+          ) : null}
+        </View>
       );
     });
 
@@ -273,14 +282,21 @@ export function WordCardExample({
                 onPress={() => handleSpeak(item.speakText.trim())}
                 activeOpacity={0.7}
               >
-                <ThemedText style={styles.example}>{item.exampleText.trim()}</ThemedText>
+                <ThemedText style={styles.example}>
+                  {item.exampleText.trim()}
+                </ThemedText>
               </TouchableOpacity>
               {item.translationText ? (
                 <ThemedText
                   testID={
-                    index === 0 ? "word-card-collocation-translation" : undefined
+                    index === 0
+                      ? "word-card-collocation-translation"
+                      : undefined
                   }
-                  style={[styles.translation, { color: fontColors.translation }]}
+                  style={[
+                    styles.translation,
+                    { color: fontColors.translation },
+                  ]}
                 >
                   {item.translationText.trim()}
                 </ThemedText>
@@ -418,6 +434,7 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.bodyMd,
     lineHeight: LineHeights.bodyXl,
     marginTop: 4,
+    fontWeight: FontWeights.regular,
   },
   expandButton: {
     alignItems: "center",

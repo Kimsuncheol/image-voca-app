@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   },
   cardSynonyms: {
     fontSize: FontSizes.bodyMd,
-    fontWeight: FontWeights.regular,
+    fontWeight: FontWeights.semiBold,
     lineHeight: LineHeights.titleLg,
   },
   expandButton: {

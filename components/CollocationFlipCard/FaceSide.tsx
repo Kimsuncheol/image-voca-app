@@ -10,16 +10,16 @@ import {
   View,
 } from "react-native";
 import { useSpeech } from "../../src/hooks/useSpeech";
+import { formatSynonyms } from "../../src/utils/synonyms";
 import {
   parseWordVariants,
   speakWordVariants,
 } from "../../src/utils/wordVariants";
 import { CollocationCardImage } from "../common/CollocationCardImage";
-import { formatSynonyms } from "../../src/utils/synonyms";
 import { AddToWordBankButton } from "../wordbank/AddToWordBankButton";
 import { SavedWord } from "../wordbank/WordCard";
-import { CollocationData, CollocationWordBankConfig } from "./types";
 import { styles } from "./EnglishCollocationCardStyle";
+import { CollocationData, CollocationWordBankConfig } from "./types";
 
 interface FaceSideProps {
   data: CollocationData;
