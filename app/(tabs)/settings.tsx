@@ -279,7 +279,7 @@ export default function SettingsScreen() {
       setStudyReminderEnabled(true);
 
       // Schedule notifications
-      await scheduleDailyNotifications(user?.uid);
+      await scheduleDailyNotifications();
       return;
     }
 
@@ -324,7 +324,7 @@ export default function SettingsScreen() {
     }
 
     // Reschedule notifications with new preferences
-    await scheduleDailyNotifications(user?.uid);
+    await scheduleDailyNotifications();
   };
 
   // ============================================================================
@@ -368,7 +368,7 @@ export default function SettingsScreen() {
     try {
       await setLanguage(language); // Updates i18n and saves to AsyncStorage
       if (user?.uid && pushEnabled && studyReminderEnabled) {
-        await scheduleDailyNotifications(user.uid);
+        await scheduleDailyNotifications();
       }
     } catch (error) {
       console.warn("Failed to change language", error);

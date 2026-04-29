@@ -195,6 +195,6 @@ describe("SettingsScreen", () => {
     expect(mockMarkStudyDate).toHaveBeenCalled();
     expect(mockSetNotificationsEnabledPreference).toHaveBeenCalledWith(true);
     expect(mockSetStudyReminderEnabledPreference).toHaveBeenCalledWith(true);
-    expect(mockScheduleDailyNotifications).toHaveBeenCalledWith("user-1");
+    expect(mockScheduleDailyNotifications).toHaveBeenCalledWith();
   });
 });

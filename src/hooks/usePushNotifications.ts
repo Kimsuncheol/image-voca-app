@@ -47,7 +47,7 @@ export const usePushNotifications = () => {
       if (!isPermissionGranted(permissions)) return;
 
       await markStudyDate();
-      await scheduleDailyNotifications(user?.uid);
+      await scheduleDailyNotifications();
     } catch (error) {
       console.warn("Failed to configure notifications", error);
     }
