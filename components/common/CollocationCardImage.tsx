@@ -29,5 +29,7 @@ export function CollocationCardImage({
     );
   }
 
-  return <ImagePlaceholder isDark={isDark} style={style as StyleProp<ViewStyle>} />;
+  return (
+    <ImagePlaceholder isDark={isDark} style={style as StyleProp<ViewStyle>} />
+  );
 }

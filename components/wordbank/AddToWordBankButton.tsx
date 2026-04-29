@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { doc, runTransaction } from "firebase/firestore";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -110,8 +110,8 @@ export function AddToWordBankButton({
   const iconName =
     variant === "bookmark"
       ? isAdded
-        ? "bookmark"
-        : "bookmark-outline"
+        ? "sticky-note"
+        : "sticky-note-o"
       : isAdded
         ? "star"
         : "star-outline";
@@ -138,9 +138,9 @@ export function AddToWordBankButton({
         onPress={toggleWordBank}
         disabled={isAdding}
       >
-        <Ionicons
+        <FontAwesome
           testID={testIDPrefix ? `${testIDPrefix}-icon` : undefined}
-          name={iconName}
+          name={iconName as any}
           size={iconSize}
           color={iconColor}
         />
@@ -162,7 +162,7 @@ export function AddToWordBankButton({
     >
       <Ionicons
         testID={testIDPrefix ? `${testIDPrefix}-icon` : undefined}
-        name={iconName}
+        name={iconName as any}
         size={iconSize}
         color={iconColor}
       />

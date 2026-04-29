@@ -14,6 +14,7 @@ import {
   speakWordVariants,
 } from "../../src/utils/wordVariants";
 import { CollocationCardImage } from "../common/CollocationCardImage";
+import { formatSynonyms } from "../../src/utils/synonyms";
 import { AddToWordBankButton } from "../wordbank/AddToWordBankButton";
 import { SavedWord } from "../wordbank/WordCard";
 import { CollocationData, CollocationWordBankConfig } from "./types";
@@ -341,6 +342,21 @@ export default React.memo(function FaceSide({
               )}
             </View>
           </View>
+
+          {/* Section: Synonyms */}
+          <View style={styles.faceSynonymsContainer}>
+            <SynonymChip />
+            <Text
+              style={[
+                styles.faceSynonymsText,
+                isDark && styles.faceTextDark,
+                { flex: 1 }
+              ]}
+              numberOfLines={2}
+            >
+              {formatSynonyms(data.synonyms?.length ? data.synonyms : ["mock_synonym_1", "mock_synonym_2"])}
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -348,3 +364,11 @@ export default React.memo(function FaceSide({
     </Pressable>
   );
 });
+
+function SynonymChip() {
+  return (
+    <View style={styles.faceSynChip}>
+      <Text style={styles.faceSynChipText}>syn</Text>
+    </View>
+  );
+}

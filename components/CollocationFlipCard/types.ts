@@ -7,6 +7,7 @@ export interface CollocationData {
   example: string;
   translation: string;
   imageUrl?: string;
+  synonyms?: string[];
 }
 
 export interface CollocationWordBankConfig {
