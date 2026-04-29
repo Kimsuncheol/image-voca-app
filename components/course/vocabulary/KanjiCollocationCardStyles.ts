@@ -30,8 +30,8 @@ export const styles = StyleSheet.create({
   },
   faceInnerContainer: {
     flex: 6,
-    paddingTop: 22,
-    paddingBottom: 24,
+    paddingTop: 20,
+    paddingBottom: 20,
     paddingHorizontal: 4,
   },
   imageContainer: {
@@ -48,7 +48,7 @@ export const styles = StyleSheet.create({
   },
   imageTopRightOverlay: {
     position: "absolute",
-    top: 20,
+    top: 12,
     right: 8,
     zIndex: 3,
   },

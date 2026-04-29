@@ -1,9 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
-import { FontSizes } from "@/constants/fontSizes";
 import {
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -11,6 +9,7 @@ import {
 import Collapsible from "react-native-collapsible";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { blackCardColors } from "../course/vocabulary/blackCardStyles";
+import { styles } from "./EnglishCollocationCardStyle";
 import {
   stripRoleLabels,
   toDialogueTurns,
@@ -93,11 +92,11 @@ export default React.memo(function ExampleSection({
   return (
     <View>
       <TouchableOpacity
-        style={styles.header}
+        style={styles.backSectionHeader}
         onPress={onToggle}
         activeOpacity={0.7}
       >
-        <Text style={styles.label}>EXAMPLE</Text>
+        <Text style={styles.backSectionLabel}>EXAMPLE</Text>
         <Ionicons
           name={isOpen ? "chevron-up" : "chevron-forward"}
           size={24}
@@ -106,7 +105,7 @@ export default React.memo(function ExampleSection({
       </TouchableOpacity>
 
       <Collapsible collapsed={!isOpen}>
-        <View style={styles.sectionContent}>
+        <View style={styles.backSectionContent}>
           {example ? (
             <View style={styles.exampleRow}>
               <View style={styles.exampleContent}>
@@ -119,36 +118,36 @@ export default React.memo(function ExampleSection({
                   showsVerticalScrollIndicator
                   nestedScrollEnabled={true}
                 >
-                  <View style={styles.scrollText}>
-                    <View style={styles.interleavedContainer}>
+                  <View style={styles.exampleScrollText}>
+                    <View style={styles.exampleInterleavedContainer}>
                       {items.map((item, index) => (
                         <View
                           key={`dialogue-item-${index}`}
-                          style={styles.itemContainer}
+                          style={styles.exampleItemContainer}
                         >
-                          <View style={styles.itemRow}>
+                          <View style={styles.exampleItemRow}>
                             <View
                               style={[
-                                styles.characterCell,
+                                styles.exampleCharacterCell,
                                 { width: characterColumnWidth },
                               ]}
                             >
                               <Text
                                 style={[
-                                  styles.characterText,
-                                  isDark && styles.characterTextDark,
+                                  styles.exampleCharacterText,
+                                  isDark && styles.exampleCharacterTextDark,
                                 ]}
                                 onPress={handleSpeakExample}
                               >
                                 {item.characterLabel}
                               </Text>
                             </View>
-                            <View style={styles.contentCell}>
+                            <View style={styles.exampleContentCell}>
                               <Text
                                 style={[
-                                  styles.value,
+                                  styles.exampleValue,
                                   styles.exampleText,
-                                  isDark && styles.textDark,
+                                  isDark && styles.exampleTextDark,
                                 ]}
                                 onPress={handleSpeakExample}
                               >
@@ -157,14 +156,14 @@ export default React.memo(function ExampleSection({
                             </View>
                           </View>
 
-                          <View style={styles.itemRow}>
+                          <View style={styles.exampleItemRow}>
                             <View
                               style={[
-                                styles.characterCell,
+                                styles.exampleCharacterCell,
                                 { width: characterColumnWidth },
                               ]}
                             />
-                            <View style={styles.contentCell}>
+                            <View style={styles.exampleContentCell}>
                               <Text
                                 testID={
                                   index === 0
@@ -172,8 +171,7 @@ export default React.memo(function ExampleSection({
                                     : undefined
                                 }
                                 style={[
-                                  styles.value,
-                                  styles.translationValue,
+                                  styles.exampleTranslationValue,
                                   { color: blackCardColors.muted },
                                 ]}
                                 onPress={handleSpeakExample}
@@ -194,101 +192,4 @@ export default React.memo(function ExampleSection({
       </Collapsible>
     </View>
   );
-});
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1.5,
-    borderBottomColor: blackCardColors.divider,
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: FontSizes.titleMd,
-    fontWeight: "800",
-    color: blackCardColors.muted,
-    letterSpacing: 1.2,
-  },
-  sectionContent: {
-    paddingVertical: 12,
-    marginBottom: 28,
-    flexShrink: 1,
-    minHeight: 0,
-  },
-  exampleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    minHeight: 0,
-  },
-  exampleContent: {
-    flex: 1,
-    minHeight: 0,
-  },
-  exampleScroll: {
-    flexGrow: 0,
-  },
-  exampleScrollContent: {
-    paddingBottom: 4,
-    gap: 8,
-  },
-  scrollText: {
-    flex: 1,
-    minWidth: 0,
-    minHeight: 0,
-    flexShrink: 1,
-  },
-  value: {
-    fontSize: FontSizes.titleLg,
-    color: blackCardColors.primary,
-    lineHeight: 32,
-    fontWeight: "500",
-    flexShrink: 1,
-  },
-  textDark: {
-    color: blackCardColors.primary,
-  },
-  exampleText: {
-    fontStyle: "normal",
-    flexShrink: 1,
-  },
-  characterCell: {
-    paddingRight: 10,
-    justifyContent: "flex-start",
-  },
-  characterText: {
-    fontSize: FontSizes.bodyLg,
-    fontWeight: "600",
-    color: blackCardColors.muted,
-    lineHeight: 26,
-    flexShrink: 1,
-  },
-  characterTextDark: {
-    color: blackCardColors.muted,
-  },
-  interleavedContainer: {
-    gap: 12,
-  },
-  itemContainer: {
-    gap: 2,
-  },
-  itemRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  contentCell: {
-    flex: 1,
-    minWidth: 0,
-    flexShrink: 1,
-  },
-  translationValue: {
-    fontSize: FontSizes.bodyLg,
-    lineHeight: 24,
-    fontStyle: "normal",
-    flexShrink: 1,
-    opacity: 1,
-  },
 });

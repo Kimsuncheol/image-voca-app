@@ -1,13 +1,12 @@
-import { CARD_HEIGHT } from "@/src/constants/layout";
 import * as Haptics from "expo-haptics";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Animated, Platform, StyleSheet, Text, View } from "react-native";
+import { Animated, Platform, Text, View } from "react-native";
 import PagerView from "react-native-pager-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { CollocationFlipCard } from "./index";
-import { FontSizes } from "@/constants/fontSizes";
+import { styles } from "./EnglishCollocationCardStyle";
 
 interface Props {
   data: VocabularyCard[];
@@ -207,10 +206,10 @@ export const CollocationSwipeable: React.FC<Props> = ({
   );
 
   return (
-    <View style={styles.container}>
+    <View style={styles.swipeableContainer}>
       <PagerView
         ref={pagerRef}
-        style={styles.pagerView}
+        style={styles.swipeablePagerView}
         initialPage={normalizedInitialIndex}
         onPageScroll={handlePageScroll}
         onPageScrollStateChanged={handlePageScrollStateChanged}
@@ -218,8 +217,8 @@ export const CollocationSwipeable: React.FC<Props> = ({
         orientation="horizontal"
       >
         {data.map((item, index) => (
-          <View key={item.id} style={styles.page}>
-            <View style={styles.cardCenteringWrapper}>
+          <View key={item.id} style={styles.swipeablePage}>
+            <View style={styles.swipeableCardCenteringWrapper}>
               {Math.abs(index - activeIndex) <= 1 ? (
                 <CollocationFlipCard
                   data={{
@@ -248,13 +247,13 @@ export const CollocationSwipeable: React.FC<Props> = ({
                   isActive={activeIndex === index}
                 />
               ) : (
-                <View style={styles.cardPlaceholder} />
+                <View style={styles.swipeableCardPlaceholder} />
               )}
             </View>
           </View>
         ))}
         {renderFinalPage && (
-          <View key="final-page" style={styles.page}>
+          <View key="final-page" style={styles.swipeablePage}>
             {renderFinalPage()}
           </View>
         )}
@@ -263,8 +262,8 @@ export const CollocationSwipeable: React.FC<Props> = ({
         <Animated.View
           pointerEvents="none"
           style={[
-            styles.hintContainer,
-            isDark ? styles.hintContainerDark : styles.hintContainerLight,
+            styles.swipeableHintContainer,
+            isDark ? styles.swipeableHintContainerDark : styles.swipeableHintContainerLight,
             { top: insets.top + 12 },
             {
               opacity: hintOpacity,
@@ -272,7 +271,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
             },
           ]}
         >
-          <Text style={isDark ? styles.hintTextDark : styles.hintTextLight}>
+          <Text style={isDark ? styles.swipeableHintTextDark : styles.swipeableHintTextLight}>
             {t("swipe.hints.flipFirst")}
           </Text>
         </Animated.View>
@@ -281,54 +280,6 @@ export const CollocationSwipeable: React.FC<Props> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: "100%",
-    position: "relative",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  pagerView: {
-    height: CARD_HEIGHT,
-    width: "100%",
-  },
-  page: {
-    height: CARD_HEIGHT,
-  },
-  cardCenteringWrapper: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  cardPlaceholder: {
-    width: "90%",
-    height: CARD_HEIGHT,
-    alignSelf: "center",
-  },
-  hintContainer: {
-    position: "absolute",
-    alignSelf: "center",
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  hintContainerLight: {
-    backgroundColor: "rgba(0, 0, 0, 0.78)",
-  },
-  hintContainerDark: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-  },
-  hintTextLight: {
-    color: "#FFFFFF",
-    fontSize: FontSizes.caption,
-    fontWeight: "600",
-  },
-  hintTextDark: {
-    color: "#FFFFFF",
-    fontSize: FontSizes.caption,
-    fontWeight: "600",
-  },
-});
+
 
 export default CollocationSwipeable;

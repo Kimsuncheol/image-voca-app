@@ -1,14 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { FontSizes } from "@/constants/fontSizes";
 import {
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import Collapsible from "react-native-collapsible";
+import { styles } from "./EnglishCollocationCardStyle";
 
 interface TranslationSectionProps {
   translation: string;
@@ -34,11 +33,11 @@ export default React.memo(function TranslationSection({
   return (
     <View>
       <TouchableOpacity
-        style={styles.header}
+        style={styles.translationHeader}
         onPress={onToggle}
         activeOpacity={0.7}
       >
-        <Text style={styles.label}>TRANSLATION</Text>
+        <Text style={styles.translationLabel}>TRANSLATION</Text>
         <Ionicons
           name={isOpen ? "chevron-down" : "chevron-forward"}
           size={16}
@@ -47,14 +46,14 @@ export default React.memo(function TranslationSection({
       </TouchableOpacity>
 
       <Collapsible collapsed={!isOpen}>
-        <View style={styles.sectionContent}>
+        <View style={styles.translationSectionContent}>
           <ScrollView
             style={[styles.translationScroll, maxHeight ? { maxHeight } : null]}
             contentContainerStyle={styles.translationScrollContent}
             showsVerticalScrollIndicator
             nestedScrollEnabled
           >
-            <Text style={[styles.value, isDark && styles.textDark]}>
+            <Text style={[styles.translationValue, isDark && styles.translationTextDark]}>
               {translation}
             </Text>
           </ScrollView>
@@ -62,41 +61,4 @@ export default React.memo(function TranslationSection({
       </Collapsible>
     </View>
   );
-});
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: FontSizes.sm,
-    fontWeight: "700",
-    color: "#999",
-    letterSpacing: 1.2,
-  },
-  sectionContent: {
-    paddingVertical: 8,
-    marginBottom: 16,
-  },
-  value: {
-    fontSize: FontSizes.title,
-    color: "#333",
-    lineHeight: 26,
-    fontWeight: "400",
-  },
-  translationScroll: {
-    maxHeight: 140,
-  },
-  translationScrollContent: {
-    paddingBottom: 4,
-  },
-  textDark: {
-    color: "#FFFFFF",
-  },
 });

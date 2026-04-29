@@ -1,12 +1,9 @@
 import { CARD_HEIGHT } from "@/src/constants/layout";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { FontSizes } from "@/constants/fontSizes";
 import {
   Dimensions,
-  Platform,
   Pressable,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -19,12 +16,8 @@ import {
 import { CollocationCardImage } from "../common/CollocationCardImage";
 import { AddToWordBankButton } from "../wordbank/AddToWordBankButton";
 import { SavedWord } from "../wordbank/WordCard";
-import {
-  blackCardColors,
-  blackCardSharedStyles,
-  blackCardSpacing,
-} from "../course/vocabulary/blackCardStyles";
 import { CollocationData, CollocationWordBankConfig } from "./types";
+import { styles } from "./EnglishCollocationCardStyle";
 
 interface FaceSideProps {
   data: CollocationData;
@@ -175,8 +168,8 @@ export default React.memo(function FaceSide({
       return (
         <Text
           style={[
-            styles.collocationText,
-            isDark && styles.textDark,
+            styles.faceCollocationText,
+            isDark && styles.faceTextDark,
             { fontSize: dynamicFontSize },
           ]}
           numberOfLines={1}
@@ -189,14 +182,14 @@ export default React.memo(function FaceSide({
     }
 
     return (
-      <View style={styles.collocationVariantsContainer}>
+      <View style={styles.faceCollocationVariantsContainer}>
         {collocationVariants.map((variant, index) => (
           <Text
             key={`${variant}-${index}`}
             style={[
-              styles.collocationText,
-              styles.collocationTextVariant,
-              isDark && styles.textDark,
+              styles.faceCollocationText,
+              styles.faceCollocationTextVariant,
+              isDark && styles.faceTextDark,
               { fontSize: dynamicFontSize },
             ]}
           >
@@ -230,12 +223,12 @@ export default React.memo(function FaceSide({
       {isDeleteMode ? (
         <View
           style={[
-            styles.selectionBadge,
+            styles.faceSelectionBadge,
             isSelected
-              ? styles.selectionBadgeSelected
+              ? styles.faceSelectionBadgeSelected
               : isDark
-                ? styles.selectionBadgeIdleDark
-                : styles.selectionBadgeIdleLight,
+                ? styles.faceSelectionBadgeIdleDark
+                : styles.faceSelectionBadgeIdleLight,
           ]}
         >
           <Ionicons
@@ -248,7 +241,7 @@ export default React.memo(function FaceSide({
 
       {/* Bookmark button (top-right corner) */}
       {canAddToWordBank && !isDeleteMode && (
-        <View style={styles.topRightOverlay}>
+        <View style={styles.faceTopRightOverlay}>
           <AddToWordBankButton
             itemId={wordBankConfig!.id}
             course={wordBankConfig!.course}
@@ -274,19 +267,19 @@ export default React.memo(function FaceSide({
         </View>
       )}
 
-      <View style={styles.contentContainer}>
+      <View style={styles.faceContentContainer}>
         {/* Section: Image */}
         <CollocationCardImage
           imageUrl={data.imageUrl}
           isDark={isDark}
-          style={styles.cardImage}
+          style={styles.faceCardImage}
           onImageLoad={onImageLoad}
         />
 
-        <View style={styles.textContainer}>
+        <View style={styles.faceTextContainer}>
           {/* Top Row: Collocation + Day Badge */}
-          <View style={styles.collocationRow}>
-            <View style={styles.collocationWrapper}>
+          <View style={styles.faceCollocationRow}>
+            <View style={styles.faceCollocationWrapper}>
               {/* Section: Collocation Text */}
               {isDeleteMode ? (
                 <View>{renderCollocationText()}</View>
@@ -305,9 +298,23 @@ export default React.memo(function FaceSide({
 
             {/* Section: Day chip */}
             {wordBankConfig?.day !== undefined && (
-              <View style={styles.dayBadgeContainerRow}>
-                <View style={blackCardSharedStyles.dayPill}>
-                  <Text style={blackCardSharedStyles.dayPillText}>
+              <View style={styles.faceDayBadgeContainerRow}>
+                <View style={{
+                  minHeight: 32,
+                  paddingHorizontal: 12,
+                  borderRadius: 8,
+                  backgroundColor: "rgba(22,34,49,0.88)",
+                  borderWidth: 0.5,
+                  borderColor: "rgba(255,255,255,0.08)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                }}>
+                  <Text style={{
+                    color: "#F8F8F8",
+                    fontSize: 16,
+                    fontWeight: "700",
+                  }}>
                     Day {wordBankConfig.day}
                   </Text>
                 </View>
@@ -316,19 +323,19 @@ export default React.memo(function FaceSide({
           </View>
 
           {/* Section: Meaning */}
-          <View style={styles.meaningContainer}>
-            <View style={styles.meaningTextContainer}>
+          <View style={styles.faceMeaningContainer}>
+            <View style={styles.faceMeaningTextContainer}>
               {data.meaning.length >= 10 ? (
                 data.meaning.split(",").map((part, index) => (
                   <Text
                     key={index}
-                    style={[styles.meaningText, isDark && styles.textDark]}
+                    style={[styles.faceMeaningText, isDark && styles.faceTextDark]}
                   >
                     {part.trim()}
                   </Text>
                 ))
               ) : (
-                <Text style={[styles.meaningText, isDark && styles.textDark]}>
+                <Text style={[styles.faceMeaningText, isDark && styles.faceTextDark]}>
                   {data.meaning}
                 </Text>
               )}
@@ -337,150 +344,7 @@ export default React.memo(function FaceSide({
         </View>
       </View>
 
-      <View style={styles.footer} />
+      <View style={styles.faceFooter} />
     </Pressable>
   );
-});
-
-const styles = StyleSheet.create({
-  face: {
-    flex: 1,
-    backgroundColor: blackCardColors.surface,
-    borderRadius: 0,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-    justifyContent: "space-between",
-    borderWidth: 0,
-    borderColor: blackCardColors.surface,
-  },
-  faceDeleteModeLight: {
-    borderColor: "#d0d0d0",
-  },
-  faceDeleteModeDark: {
-    borderColor: "#3a3a3c",
-  },
-  faceSelectedLight: {
-    borderColor: "#007AFF",
-    backgroundColor: "#F1F7FF",
-  },
-  faceSelectedDark: {
-    borderColor: "#0A84FF",
-    backgroundColor: "#162331",
-  },
-  contentContainer: {
-    flex: 1,
-    flexDirection: "column",
-    alignItems: "center",
-    width: "100%",
-  },
-  textContainer: {
-    flex: 5.5,
-    flexDirection: "column",
-    justifyContent: "flex-start",
-    alignItems: "flex-start",
-    paddingTop: 22,
-    paddingHorizontal: 4,
-    gap: 12,
-    width: "100%",
-  },
-  collocationRow: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 16,
-  },
-  collocationWrapper: {
-    flex: 1,
-    alignItems: "flex-start",
-  },
-  dayBadgeContainerRow: {
-    flexShrink: 0,
-  },
-  meaningContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    width: "100%",
-  },
-  meaningTextContainer: {
-    flexDirection: "column",
-    alignItems: "flex-start",
-    justifyContent: "center",
-    gap: 4,
-  },
-  collocationText: {
-    fontSize: FontSizes.displayXl,
-    fontWeight: "900",
-    textAlign: "left",
-    color: blackCardColors.primary,
-    lineHeight: 56,
-    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-    letterSpacing: 0,
-  },
-  collocationVariantsContainer: {
-    gap: 6,
-  },
-  collocationTextVariant: {
-    lineHeight: 50,
-  },
-  meaningText: {
-    fontSize: FontSizes.titleLg,
-    fontWeight: "500",
-    textAlign: "left",
-    color: blackCardColors.secondary,
-    lineHeight: 30,
-    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-  },
-  textDark: {
-    color: blackCardColors.primary,
-  },
-  footer: {
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-    gap: 12,
-    paddingTop: 12,
-    minHeight: 52,
-  },
-  selectionBadge: {
-    position: "absolute",
-    top: 28,
-    left: 28,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1.5,
-    zIndex: 2,
-  },
-  selectionBadgeSelected: {
-    backgroundColor: "#007AFF",
-    borderColor: "#007AFF",
-  },
-  selectionBadgeIdleLight: {
-    backgroundColor: "#fff",
-    borderColor: "#c7c7cc",
-  },
-  selectionBadgeIdleDark: {
-    backgroundColor: "#2c2c2e",
-    borderColor: "#636366",
-  },
-  topRightOverlay: {
-    ...blackCardSharedStyles.topRightControl,
-  },
-  cardImage: {
-    flex: 4.5,
-    alignSelf: "stretch",
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-    overflow: "hidden",
-    marginHorizontal: 4,
-    marginTop: blackCardSpacing.contentTop,
-  },
 });

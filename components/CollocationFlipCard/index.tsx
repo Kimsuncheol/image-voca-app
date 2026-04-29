@@ -1,11 +1,10 @@
-import { CARD_HEIGHT, CARD_WIDTH } from "@/src/constants/layout";
 import React, { useCallback, useState } from "react";
-import { StyleSheet } from "react-native";
 import FlipCard from "react-native-flip-card";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import BackSide from "./BackSide";
 import FaceSide from "./FaceSide";
 import { CollocationData, CollocationWordBankConfig } from "./types";
+import { styles } from "./EnglishCollocationCardStyle";
 
 export { default as CollocationSkeleton } from "./CollocationSkeleton";
 
@@ -143,14 +142,5 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
 );
 
 CollocationFlipCard.displayName = "CollocationFlipCard";
-
-const styles = StyleSheet.create({
-  card: {
-    height: CARD_HEIGHT,
-    width: CARD_WIDTH,
-    alignSelf: "center",
-    backgroundColor: "transparent",
-  },
-});
 
 export default CollocationFlipCard;

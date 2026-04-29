@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
-import { blackCardColors } from "../course/vocabulary/blackCardStyles";
+import { Pressable, View } from "react-native";
 import ExampleSection from "./ExampleSection";
 import ExplanationSection from "./ExplanationSection";
 import { CollocationData } from "./types";
+import { styles } from "./EnglishCollocationCardStyle";
 
 type BackSideSection = "explanation" | "example";
 
@@ -72,7 +72,7 @@ export default React.memo(function BackSide({
 
   return (
     <View style={[styles.back, isDark && styles.backDark]}>
-      {onFlip && <Pressable style={styles.flipOverlay} onPress={onFlip} />}
+      {onFlip && <Pressable style={styles.backFlipOverlay} onPress={onFlip} />}
 
       <View
         style={styles.backContentContainer}
@@ -96,50 +96,7 @@ export default React.memo(function BackSide({
         />
       </View>
 
-      <View style={styles.footer} />
+      <View style={styles.backFooter} />
     </View>
   );
-});
-
-const styles = StyleSheet.create({
-  back: {
-    flex: 1,
-    backgroundColor: blackCardColors.surface,
-    borderRadius: 0,
-    paddingHorizontal: 4,
-    paddingVertical: 32,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-    justifyContent: "space-between",
-    borderWidth: 0,
-    borderColor: blackCardColors.surface,
-  },
-  backDark: {
-    backgroundColor: blackCardColors.surface,
-    borderColor: blackCardColors.surface,
-    shadowColor: "#000",
-    shadowOpacity: 0,
-  },
-  flipOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: 0,
-  },
-  backContentContainer: {
-    flex: 1,
-    minHeight: 0,
-    justifyContent: "flex-start",
-  },
-  footer: {
-    alignItems: "center",
-    paddingBottom: 0,
-    height: 52,
-    justifyContent: "center",
-  },
 });
