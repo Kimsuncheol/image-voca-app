@@ -142,6 +142,14 @@ describe("CollocationSwipeable flip gating", () => {
     });
   };
 
+  const changeScrollState = (pageScrollState: string) => {
+    act(() => {
+      mockPagerProps.onPageScrollStateChanged({
+        nativeEvent: { pageScrollState },
+      });
+    });
+  };
+
   const unlockCard = (word: string) => {
     act(() => {
       const handler = mockFlipHandlers.get(word);
@@ -226,34 +234,48 @@ describe("CollocationSwipeable flip gating", () => {
     const cards = buildCards().slice(0, 2);
     const onIndexChange = jest.fn();
     const onFinish = jest.fn();
+    const renderFinalPage = jest.fn(() => <View testID="final-page" />);
 
     render(
       <CollocationSwipeable
         data={cards}
         onIndexChange={onIndexChange}
         onFinish={onFinish}
-        renderFinalPage={() => <View testID="final-page" />}
+        renderFinalPage={renderFinalPage}
       />,
     );
+
+    expect(renderFinalPage).not.toHaveBeenCalled();
 
     unlockCard("dramatic drop");
     selectPage(1);
     onIndexChange.mockClear();
     mockPagerApi.setPageWithoutAnimation.mockClear();
 
+    expect(renderFinalPage).not.toHaveBeenCalled();
+
     // Attempt to move from card #2 to final page without flipping card #2
     selectPage(2);
     expect(mockPagerApi.setPageWithoutAnimation).toHaveBeenCalledWith(1);
     expect(onFinish).not.toHaveBeenCalled();
+    expect(renderFinalPage).not.toHaveBeenCalled();
 
     // Ignore synthetic snap-back event and then unlock second card
     selectPage(1);
     unlockCard("unseasonably cold");
     selectPage(2);
 
+    expect(onFinish).not.toHaveBeenCalled();
+    expect(onIndexChange).not.toHaveBeenCalled();
+    expect(mockPagerProps.scrollEnabled).toBe(true);
+    expect(renderFinalPage).not.toHaveBeenCalled();
+
+    changeScrollState("idle");
+
     expect(onFinish).toHaveBeenCalledTimes(1);
     expect(onIndexChange).toHaveBeenCalledWith(2);
     expect(mockPagerProps.scrollEnabled).toBe(false);
+    expect(renderFinalPage).toHaveBeenCalledTimes(1);
 
     onIndexChange.mockClear();
     selectPage(1);

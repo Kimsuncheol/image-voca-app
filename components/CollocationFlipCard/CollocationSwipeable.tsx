@@ -46,12 +46,14 @@ export const CollocationSwipeable: React.FC<Props> = ({
   const unlockedIndicesRef = React.useRef<Set<number>>(new Set());
   const revertingTargetRef = React.useRef<number | null>(null);
   const isBlockingForwardDragRef = React.useRef(false);
+  const isFinalPagePendingRef = React.useRef(false);
   const hasFinishedRef = React.useRef(false);
   const lastFeedbackAtRef = React.useRef(0);
   const hintOpacity = React.useRef(new Animated.Value(0)).current;
   const hintTranslateY = React.useRef(new Animated.Value(6)).current;
   const [isHintVisible, setIsHintVisible] = React.useState(false);
   const [activeIndex, setActiveIndex] = React.useState(normalizedInitialIndex);
+  const [isFinalPageCommitted, setIsFinalPageCommitted] = React.useState(false);
 
   React.useEffect(() => {
     currentIndexRef.current = normalizedInitialIndex;
@@ -59,14 +61,18 @@ export const CollocationSwipeable: React.FC<Props> = ({
     unlockedIndicesRef.current = new Set();
     revertingTargetRef.current = null;
     isBlockingForwardDragRef.current = false;
+    isFinalPagePendingRef.current = false;
     hasFinishedRef.current = false;
     lastFeedbackAtRef.current = 0;
     setIsHintVisible(false);
+    setIsFinalPageCommitted(false);
     hintOpacity.setValue(0);
     hintTranslateY.setValue(6);
   }, [data.length, hintOpacity, hintTranslateY, normalizedInitialIndex]);
 
-  const isFinalPageActive = Boolean(renderFinalPage && activeIndex === data.length);
+  const isFinalPageActive = Boolean(
+    renderFinalPage && activeIndex === data.length && isFinalPageCommitted,
+  );
 
   const unlockIndex = React.useCallback((index: number) => {
     unlockedIndicesRef.current.add(index);
@@ -158,15 +164,36 @@ export const CollocationSwipeable: React.FC<Props> = ({
     [blockForwardFromIndex, data.length, renderFinalPage],
   );
 
-  const handlePageScrollStateChanged = React.useCallback((e: any) => {
-    const state = e.nativeEvent.pageScrollState;
-    if (state === "idle") {
-      isBlockingForwardDragRef.current = false;
-      if (revertingTargetRef.current === currentIndexRef.current) {
-        revertingTargetRef.current = null;
-      }
+  const commitFinalPage = React.useCallback(() => {
+    if (!renderFinalPage || !isFinalPagePendingRef.current) {
+      return;
     }
-  }, []);
+
+    isFinalPagePendingRef.current = false;
+    currentIndexRef.current = data.length;
+    setActiveIndex(data.length);
+    setIsFinalPageCommitted(true);
+    onIndexChange?.(data.length);
+
+    if (!hasFinishedRef.current) {
+      hasFinishedRef.current = true;
+      onFinish?.();
+    }
+  }, [data.length, onFinish, onIndexChange, renderFinalPage]);
+
+  const handlePageScrollStateChanged = React.useCallback(
+    (e: any) => {
+      const state = e.nativeEvent.pageScrollState;
+      if (state === "idle") {
+        isBlockingForwardDragRef.current = false;
+        if (revertingTargetRef.current === currentIndexRef.current) {
+          revertingTargetRef.current = null;
+        }
+        commitFinalPage();
+      }
+    },
+    [commitFinalPage],
+  );
 
   const handlePageSelected = React.useCallback(
     (e: any) => {
@@ -190,24 +217,19 @@ export const CollocationSwipeable: React.FC<Props> = ({
         return;
       }
 
+      if (renderFinalPage && nextIndex === data.length) {
+        isFinalPagePendingRef.current = true;
+        isBlockingForwardDragRef.current = false;
+        return;
+      }
+
       currentIndexRef.current = nextIndex;
       setActiveIndex(nextIndex);
+      setIsFinalPageCommitted(false);
       isBlockingForwardDragRef.current = false;
       onIndexChange?.(nextIndex);
-
-      // If we have a final page and we reached it, trigger onFinish.
-      if (renderFinalPage && nextIndex === data.length && !hasFinishedRef.current) {
-        hasFinishedRef.current = true;
-        onFinish?.();
-      }
     },
-    [
-      blockForwardFromIndex,
-      data.length,
-      onFinish,
-      onIndexChange,
-      renderFinalPage,
-    ],
+    [blockForwardFromIndex, data.length, onIndexChange, renderFinalPage],
   );
 
   const handleCardFirstFlip = React.useCallback(
@@ -268,7 +290,11 @@ export const CollocationSwipeable: React.FC<Props> = ({
         ))}
         {renderFinalPage && (
           <View key="final-page" style={styles.swipeablePage}>
-            {renderFinalPage()}
+            {isFinalPageActive ? (
+              renderFinalPage()
+            ) : (
+              <View style={styles.swipeableCardPlaceholder} />
+            )}
           </View>
         )}
       </PagerView>
