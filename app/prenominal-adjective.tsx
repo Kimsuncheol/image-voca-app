@@ -158,9 +158,7 @@ export default function PrenominalAdjectiveScreen() {
     >
       <Stack.Screen
         options={{
-          title: t("prenominalAdjective.title", {
-            defaultValue: "Prenominal Adjectives",
-          }),
+          title: t("prenominalAdjective.title"),
           headerStyle: {backgroundColor: bgColors.screen},
           headerBackTitle: t("common.back"),
           headerRight: () => (
@@ -201,9 +199,7 @@ export default function PrenominalAdjectiveScreen() {
           <View style={styles.heroTopRow}>
             <View style={[styles.accentPill, { backgroundColor: accentBg }]}>
               <ThemedText style={[styles.accentPillText, { color: accentText }]}>
-                {t("elementaryJapanese.title", {
-                  defaultValue: "Elementary Japanese",
-                })}
+                {t("elementaryJapanese.title")}
               </ThemedText>
             </View>
             <View style={styles.heroDots}>
@@ -224,24 +220,17 @@ export default function PrenominalAdjectiveScreen() {
 
           <View style={styles.heroTextGroup}>
             <ThemedText type="title">
-              {t("prenominalAdjective.title", {
-                defaultValue: "Prenominal Adjectives",
-              })}
+              {t("prenominalAdjective.title")}
             </ThemedText>
             <ThemedText style={[styles.subtitle, { color: subtitleColor }]}>
-              {t("prenominalAdjective.subtitle", {
-                defaultValue:
-                  "Words that appear before nouns — demonstratives, particles, and connectors. Tap any word or example to hear it spoken.",
-              })}
+              {t("prenominalAdjective.subtitle")}
             </ThemedText>
           </View>
         </View>
 
         <View style={styles.sectionHeader}>
           <ThemedText style={[styles.sectionLabel, { color: sectionLabelColor }]}>
-            {t("prenominalAdjective.title", {
-              defaultValue: "Prenominal Adjectives",
-            })}
+            {t("prenominalAdjective.title")}
           </ThemedText>
         </View>
 
@@ -249,17 +238,17 @@ export default function PrenominalAdjectiveScreen() {
           columns={[
             {
               key: "word",
-              label: t("greetings.colWord", { defaultValue: "WORD" }),
+              label: t("greetings.colWord"),
               style: styles.wordColumn,
             },
             {
               key: "meaning",
-              label: t("greetings.colMeaning", { defaultValue: "MEANING" }),
+              label: t("greetings.colMeaning"),
               style: styles.meaningColumn,
             },
             {
               key: "example",
-              label: t("counters.colExample", { defaultValue: "EXAMPLE" }),
+              label: t("counters.colExample"),
               style: styles.exampleColumn,
             },
           ]}

@@ -44,6 +44,9 @@ const ko = {
       greeting: {
         description: "일상 대화에서 자주 쓰는 일본어 인사를 학습하세요.",
       },
+      prenominalAdjective: {
+        description: "명사 앞에 오는 지시어, 조사, 접속어를 학습하세요.",
+      },
     },
   },
   greetings: {
@@ -847,6 +850,14 @@ const ko = {
     loading: "로딩중...",
     empty: "표시할 조수사가 없습니다.",
     loadError: "조수사 데이터를 불러올 수 없습니다.",
+    detailNotFound: "조수사 정보를 불러올 수 없습니다.",
+    showFurigana: "후리가나 표시",
+    hideFurigana: "후리가나 숨기기",
+  },
+  prenominalAdjective: {
+    title: "연체사",
+    subtitle:
+      "명사 앞에 오는 단어들 — 지시어, 조사, 접속어 등. 단어나 예문을 눌러 발음을 들어보세요.",
   },
 };
 

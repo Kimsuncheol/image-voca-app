@@ -45,6 +45,9 @@ const en = {
       greeting: {
         description: "Study essential Japanese greetings used in daily conversation.",
       },
+      prenominalAdjective: {
+        description: "Learn demonstratives, particles, and connectors that precede nouns.",
+      },
     },
   },
   greetings: {
@@ -859,6 +862,14 @@ const en = {
     loading: "Loading...",
     empty: "No counters found.",
     loadError: "Unable to load counters data.",
+    detailNotFound: "Counter details are unavailable.",
+    showFurigana: "Show Furigana",
+    hideFurigana: "Hide Furigana",
+  },
+  prenominalAdjective: {
+    title: "Prenominal Adjectives",
+    subtitle:
+      "Words that appear before nouns — demonstratives, particles, and connectors. Tap any word or example to hear it spoken.",
   },
 };
 

@@ -75,10 +75,8 @@ export function ElementaryModuleList({ isDark }: ElementaryModuleListProps) {
           isDark={isDark}
         />
         <ElementaryModuleCard
-          title={t("prenominalAdjective.title", { defaultValue: "Prenominal Adjectives" })}
-          description={t("elementaryJapanese.modules.prenominalAdjective.description", {
-            defaultValue: "Learn demonstratives, particles, and connectors that precede nouns.",
-          })}
+          title={t("prenominalAdjective.title")}
+          description={t("elementaryJapanese.modules.prenominalAdjective.description")}
           icon="git-branch-outline"
           onPress={() => navigate("/prenominal-adjective")}
           isDark={isDark}
