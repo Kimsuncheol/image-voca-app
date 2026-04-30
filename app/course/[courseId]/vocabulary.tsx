@@ -1,4 +1,5 @@
 import { FontWeights } from "@/constants/fontWeights";
+import { useAndroidImmersiveStudyMode } from "@/src/hooks/useAndroidImmersiveStudyMode";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Stack,
@@ -66,6 +67,8 @@ export default function VocabularyScreen() {
   // ============================================================================
   // Section 1: Hooks & Contexts
   // ============================================================================
+  useAndroidImmersiveStudyMode("VocabularyStudyScreen");
+
   const { isDark } = useTheme();
   const bgColors = getBackgroundColors(isDark);
   const { user } = useAuth();

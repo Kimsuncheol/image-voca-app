@@ -22,7 +22,7 @@
         "backgroundColor": "#ffffff",
         "foregroundImage": "./assets/images/icon.png"
       },
-      "edgeToEdgeEnabled": true,
+      "edgeToEdgeEnabled": false,
       "predictiveBackGestureEnabled": false,
       "package": "com.benjaminkim96.imagevocaapp"
     },

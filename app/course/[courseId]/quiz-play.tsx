@@ -30,6 +30,7 @@ import {
 import { useAuth } from "../../../src/context/AuthContext";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { useAndroidImmersiveStudyMode } from "../../../src/hooks/useAndroidImmersiveStudyMode";
 import {
   type QuizTypeId,
   resolveRuntimeQuizType,
@@ -78,6 +79,8 @@ const sleep = (ms: number) =>
   });
 
 export default function QuizPlayScreen() {
+  useAndroidImmersiveStudyMode("QuizPlayScreen");
+
   const { isDark } = useTheme();
   const bgColors = getBackgroundColors(isDark);
   const { user } = useAuth();

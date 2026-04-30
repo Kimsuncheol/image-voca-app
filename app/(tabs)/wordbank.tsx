@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 
 import { TopInstallNativeAd } from "../../components/ads/TopInstallNativeAd";
 import { WordBankCourseGrid, WordBankHeader } from "../../components/wordbank";
+import { useAndroidImmersiveStudyMode } from "../../src/hooks/useAndroidImmersiveStudyMode";
 import { useAuth } from "../../src/context/AuthContext";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { getBackgroundColors } from "../../constants/backgroundColors";
@@ -13,6 +14,8 @@ import { db } from "../../src/services/firebase";
 import { CourseType, getTopLevelCoursesForLanguage } from "../../src/types/vocabulary";
 
 export default function WordBankScreen() {
+  useAndroidImmersiveStudyMode("WordBankScreen");
+
   const { isDark } = useTheme();
   const bgColors = getBackgroundColors(isDark);
   const { user } = useAuth();

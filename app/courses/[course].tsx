@@ -23,6 +23,7 @@ import { useAuth } from "../../src/context/AuthContext";
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useTheme } from "../../src/context/ThemeContext";
+import { useAndroidImmersiveStudyMode } from "../../src/hooks/useAndroidImmersiveStudyMode";
 import { db } from "../../src/services/firebase";
 import { CourseType, findRuntimeCourse } from "../../src/types/vocabulary";
 
@@ -46,6 +47,8 @@ import { CourseType, findRuntimeCourse } from "../../src/types/vocabulary";
  */
 export default function CourseWordBankScreen() {
   // === Hooks and Context ===
+
+  useAndroidImmersiveStudyMode("CourseWordBankScreen");
 
   const { isDark } = useTheme(); // Dark mode state
   const bgColors = getBackgroundColors(isDark);
