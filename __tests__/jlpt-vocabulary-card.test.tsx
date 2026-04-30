@@ -126,7 +126,8 @@ describe("JlptVocabularyCard", () => {
     expect(getByText("あいだ")).toBeTruthy();
     expect(getByText("interval; space; between")).toBeTruthy();
     expect(getByText("between the station and the hotel")).toBeTruthy();
-    expect(getByText("駅とホテルの間")).toBeTruthy();
+    expect(getByText("駅とホテルの間").props.numberOfLines).toBeUndefined();
+    expect(getByText("between the station and the hotel").props.numberOfLines).toBeUndefined();
     expect(queryByText("eki to hoteru no aida")).toBeNull();
     expect(queryByText("Meaning")).toBeNull();
     expect(queryByText("Example")).toBeNull();

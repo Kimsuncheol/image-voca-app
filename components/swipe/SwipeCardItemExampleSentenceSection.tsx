@@ -1,8 +1,7 @@
-import { FontWeights } from "@/constants/fontWeights";
 import { FontSizes } from "@/constants/fontSizes";
+import { FontWeights } from "@/constants/fontWeights";
 import { LineHeights } from "@/constants/lineHeights";
-import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import {
   ScrollView,
@@ -11,7 +10,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useStudySpeech } from "../../src/hooks/useStudyMode";
@@ -38,7 +36,6 @@ export function SwipeCardItemExampleSentenceSection({
   isActive = true,
 }: SwipeCardItemExampleSentenceSectionProps) {
   const { t } = useTranslation();
-  const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
   useCardSpeechCleanup(isActive);
   const { handleSpeech } = useStudySpeech();
@@ -59,11 +56,6 @@ export function SwipeCardItemExampleSentenceSection({
     : [];
   const formattedSynonyms =
     courseId === "TOEFL_IELTS" ? formatSynonyms(synonyms) : undefined;
-
-  const [isExpanded, setIsExpanded] = useState(false);
-  const shouldCollapse = examples.length >= 4;
-  const displayedExamples =
-    shouldCollapse && !isExpanded ? examples.slice(0, 3) : examples;
 
   const handleSpeak = React.useCallback(
     async (text: string) => {
@@ -89,7 +81,7 @@ export function SwipeCardItemExampleSentenceSection({
         showsVerticalScrollIndicator={true}
         nestedScrollEnabled={true}
       >
-        {displayedExamples.map((exampleText, index) => (
+        {examples.map((exampleText, index) => (
           <View key={index} style={styles.exampleGroup}>
             {/* Example sentence */}
             <TouchableOpacity
@@ -103,7 +95,6 @@ export function SwipeCardItemExampleSentenceSection({
                   styles.cardExample,
                   { color: fontColors.learningCardPrimary },
                 ]}
-                numberOfLines={2}
               >
                 {exampleText.trim()}
               </Text>
@@ -115,7 +106,6 @@ export function SwipeCardItemExampleSentenceSection({
                   styles.cardTranslation,
                   { color: fontColors.learningCardMuted },
                 ]}
-                numberOfLines={2}
               >
                 {translations[index].trim()}
               </Text>
@@ -150,30 +140,6 @@ export function SwipeCardItemExampleSentenceSection({
           </View>
         ) : null}
       </ScrollView>
-
-      {shouldCollapse && (
-        <TouchableOpacity
-          style={[
-            styles.expandButton,
-            { backgroundColor: bgColors.learningCardExpandButton },
-          ]}
-          onPress={() => setIsExpanded(!isExpanded)}
-        >
-          <Text
-            style={[
-              styles.expandButtonText,
-              { color: fontColors.learningCardPrimary },
-            ]}
-          >
-            {isExpanded ? "Show less" : `Show ${examples.length - 3} more`}
-          </Text>
-          <Ionicons
-            name={isExpanded ? "chevron-up" : "chevron-down"}
-            size={FontSizes.bodyLg}
-            color={fontColors.learningCardPrimary}
-          />
-        </TouchableOpacity>
-      )}
     </>
   );
 }
@@ -213,19 +179,5 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.bodyMd,
     fontWeight: FontWeights.semiBold,
     lineHeight: LineHeights.titleLg,
-  },
-  expandButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginTop: 8,
-    borderRadius: 8,
-    gap: 4,
-  },
-  expandButtonText: {
-    fontSize: FontSizes.label,
-    fontWeight: FontWeights.semiBold,
   },
 });

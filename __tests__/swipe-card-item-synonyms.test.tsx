@@ -70,7 +70,7 @@ describe("SwipeCardItem synonyms", () => {
     );
     expect(getByTestId("swipe-card-synonyms")).toHaveStyle({
       fontSize: 15,
-      color: "#D8D8D8",
+      color: "#374151",
     });
   });
 
@@ -89,5 +89,28 @@ describe("SwipeCardItem synonyms", () => {
 
     expect(queryByText("Synonyms")).toBeNull();
     expect(queryByTestId("swipe-card-synonyms-section")).toBeNull();
+  });
+
+  it("renders all example rows without a show-more control or line caps", () => {
+    const { getByText, queryByText } = render(
+      <SwipeCardItem
+        item={buildCard({
+          course: "TOEIC",
+          example:
+            "1. First complete example sentence.\n2. Second complete example sentence.\n3. Third complete example sentence.\n4. Fourth complete example sentence.",
+          translation:
+            "1. First complete translation.\n2. Second complete translation.\n3. Third complete translation.\n4. Fourth complete translation.",
+        })}
+      />,
+    );
+
+    const firstExample = getByText("First complete example sentence.");
+    const firstTranslation = getByText("First complete translation.");
+
+    expect(getByText("Fourth complete example sentence.")).toBeTruthy();
+    expect(getByText("Fourth complete translation.")).toBeTruthy();
+    expect(queryByText("Show 1 more")).toBeNull();
+    expect(firstExample.props.numberOfLines).toBeUndefined();
+    expect(firstTranslation.props.numberOfLines).toBeUndefined();
   });
 });

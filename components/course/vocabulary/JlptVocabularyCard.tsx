@@ -184,7 +184,6 @@ const ExampleBlock = React.memo(function ExampleBlock({
                     styles.cardExample,
                     { color: fontColors.learningCardPrimary },
                   ]}
-                  numberOfLines={2}
                 >
                   {exampleSegments.map((segment, segmentIndex) => (
                     <Text
@@ -213,11 +212,10 @@ const ExampleBlock = React.memo(function ExampleBlock({
             {translationText ? (
               <Text
                 testID={index === 0 ? "jlpt-card-translation" : undefined}
-                  style={[
-                    styles.cardTranslation,
-                    { color: fontColors.learningCardMuted },
-                  ]}
-                numberOfLines={2}
+                style={[
+                  styles.cardTranslation,
+                  { color: fontColors.learningCardMuted },
+                ]}
               >
                 {translationText}
               </Text>
