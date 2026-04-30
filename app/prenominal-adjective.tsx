@@ -4,6 +4,7 @@ import { Stack } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -163,22 +164,31 @@ export default function PrenominalAdjectiveScreen() {
           headerStyle: {backgroundColor: bgColors.screen},
           headerBackTitle: t("common.back"),
           headerRight: () => (
-            <TouchableOpacity
+            <Pressable
               onPress={() => setShowFurigana((prev) => !prev)}
-              style={{ marginRight: 4 }}
-              activeOpacity={0.7}
+              style={[
+                styles.furiganaTogglePill,
+                showFurigana
+                  ? { backgroundColor: bgColors.learningCardKanaActive }
+                  : {
+                      borderColor: fontColors.learningCardDividerMuted,
+                      borderWidth: 1,
+                    },
+              ]}
             >
-              <ThemedText
+              <Text
                 style={[
-                  styles.furiganaToggle,
-                  { color: fontColors.actionAccent },
+                  styles.furiganaToggleText,
+                  {
+                    color: showFurigana
+                      ? fontColors.inverse
+                      : fontColors.learningCardMuted,
+                  },
                 ]}
               >
-                {showFurigana
-                  ? t("counters.hideFurigana", { defaultValue: "Hide Furigana" })
-                  : t("counters.showFurigana", { defaultValue: "Show Furigana" })}
-              </ThemedText>
-            </TouchableOpacity>
+                がな
+              </Text>
+            </Pressable>
           ),
         }}
       />
@@ -379,8 +389,14 @@ const styles = StyleSheet.create({
     textAlign: "left",
     width: "100%",
   },
-  furiganaToggle: {
-    fontSize: FontSizes.bodyMd,
+  furiganaTogglePill: {
+    marginRight: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  furiganaToggleText: {
+    fontSize: FontSizes.label,
     fontWeight: FontWeights.semiBold,
   },
 });

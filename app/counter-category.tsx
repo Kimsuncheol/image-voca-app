@@ -1,9 +1,9 @@
 import { FontWeights } from "@/constants/fontWeights";
-import { ThemedText } from "@/components/themed-text";
+
 import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CountersList } from "../components/counters/CountersList";
 import { getBackgroundColors } from "../constants/backgroundColors";
@@ -12,7 +12,7 @@ import { useTheme } from "../src/context/ThemeContext";
 import { getCountersData } from "../src/services/countersService";
 import type { CounterTabId, CounterWord } from "../src/types/counters";
 import { COUNTER_TAB_IDS } from "../src/types/counters";
-import { FontSizes } from "@/constants/fontSizes";
+
 
 const isCounterTabId = (value: string): value is CounterTabId =>
   COUNTER_TAB_IDS.includes(value as CounterTabId);
@@ -90,23 +90,31 @@ export default function CounterCategoryScreen() {
               : t("counters.title"),
           headerBackTitle: t("common.back"),
           headerRight: () => (
-            <TouchableOpacity
+            <Pressable
               onPress={() => setShowFurigana((prev) => !prev)}
-              style={{ marginRight: 4 }}
-              activeOpacity={0.7}
+              style={[
+                styles.furiganaTogglePill,
+                showFurigana
+                  ? { backgroundColor: bgColors.learningCardKanaActive }
+                  : {
+                      borderColor: fontColors.learningCardDividerMuted,
+                      borderWidth: 1,
+                    },
+              ]}
             >
-              <ThemedText
-                style={{
-                  fontSize: FontSizes.bodyMd,
-                  color: fontColors.actionAccent,
-                  fontWeight: FontWeights.semiBold,
-                }}
+              <Text
+                style={[
+                  styles.furiganaToggleText,
+                  {
+                    color: showFurigana
+                      ? fontColors.inverse
+                      : fontColors.learningCardMuted,
+                  },
+                ]}
               >
-                {showFurigana
-                  ? t("counters.hideFurigana", { defaultValue: "Hide Furigana" })
-                  : t("counters.showFurigana", { defaultValue: "Show Furigana" })}
-              </ThemedText>
-            </TouchableOpacity>
+                がな
+              </Text>
+            </Pressable>
           ),
         }}
       />
@@ -124,5 +132,15 @@ export default function CounterCategoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  furiganaTogglePill: {
+    marginRight: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  furiganaToggleText: {
+    fontSize: 12,
+    fontWeight: FontWeights.semiBold,
   },
 });
