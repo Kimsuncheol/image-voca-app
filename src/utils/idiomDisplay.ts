@@ -13,6 +13,7 @@ const STUDY_CARD_MINIMUM_TITLE_FONT_SIZE = 32;
 const WORD_BANK_TITLE_FONT_SIZE = 22;
 const WORD_BANK_MINIMUM_TITLE_FONT_SIZE = 16;
 const DEFAULT_MINIMUM_TITLE_FONT_SIZE = 12;
+const MAX_IDIOM_TITLE_LINE_LENGTH = 24;
 
 export function isCsatIdiomsCourseId(courseId?: string): boolean {
   return courseId === CSAT_IDIOMS_COURSE_ID;
@@ -46,7 +47,42 @@ export function formatIdiomTitleForDisplay(
     return title;
   }
 
-  return title.replace(/(\S)[ \t]+(?=\[)/g, "$1\n");
+  const titleWithExplicitBreaks = title.replace(/(\S)[ \t]+(?=[[/])/g, "$1\n");
+  return titleWithExplicitBreaks
+    .split("\n")
+    .flatMap((line) => wrapIdiomTitleLine(line))
+    .join("\n");
+}
+
+function wrapIdiomTitleLine(line: string): string[] {
+  if (line.length <= MAX_IDIOM_TITLE_LINE_LENGTH) {
+    return [line];
+  }
+
+  const words = line.split(/[ \t]+/).filter(Boolean);
+  if (words.length <= 1) {
+    return [line];
+  }
+
+  const lines: string[] = [];
+  let currentLine = "";
+
+  words.forEach((word) => {
+    const candidate = currentLine ? `${currentLine} ${word}` : word;
+    if (candidate.length <= MAX_IDIOM_TITLE_LINE_LENGTH || !currentLine) {
+      currentLine = candidate;
+      return;
+    }
+
+    lines.push(currentLine);
+    currentLine = word;
+  });
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines;
 }
 
 export function getIdiomTitleFontSize(

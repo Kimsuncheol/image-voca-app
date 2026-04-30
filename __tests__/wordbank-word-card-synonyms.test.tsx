@@ -109,9 +109,12 @@ describe("Word bank WordCard synonyms", () => {
 
     const title = getByTestId("word-card-title");
     const titleStyle = StyleSheet.flatten(title.props.style);
+    expect(title.props.children).toBe(
+      "once in a blue moon\nafter every unlikely\ncircumstance",
+    );
     expect(titleStyle.fontSize).toBeGreaterThanOrEqual(16);
-    expect(titleStyle.fontSize).toBeLessThan(22);
-    expect(title.props.numberOfLines).toBe(1);
+    expect(titleStyle.fontSize).toBeLessThanOrEqual(22);
+    expect(title.props.numberOfLines).toBeUndefined();
     expect(title.props.adjustsFontSizeToFit).toBeUndefined();
     expect(title.props.minimumFontScale).toBeUndefined();
   });
@@ -134,6 +137,58 @@ describe("Word bank WordCard synonyms", () => {
     const titleStyle = StyleSheet.flatten(title.props.style);
     expect(title.props.children).toBe("take A\n[for granted]\n[as given]");
     expect(titleStyle.fontSize).toBe(22);
+    expect(title.props.numberOfLines).toBeUndefined();
+    expect(title.props.adjustsFontSizeToFit).toBeUndefined();
+    expect(title.props.minimumFontScale).toBeUndefined();
+  });
+
+  it("breaks slash CSAT idiom alternatives onto a new word-card title line", () => {
+    const { getByTestId } = render(
+      <WordCard
+        word={{
+          ...baseWord,
+          course: "CSAT_IDIOMS",
+          word: "be angry with[at] + 사람 / about[at] + 사물",
+          meaning: "1. ~에 화나다",
+          synonyms: undefined,
+        }}
+        isDark={false}
+      />,
+    );
+
+    const title = getByTestId("word-card-title");
+    const titleStyle = StyleSheet.flatten(title.props.style);
+    expect(title.props.children).toBe(
+      "be angry with[at] + 사람\n/ about[at] + 사물",
+    );
+    expect(titleStyle.fontSize).toBeGreaterThanOrEqual(16);
+    expect(titleStyle.fontSize).toBeLessThanOrEqual(22);
+    expect(title.props.numberOfLines).toBeUndefined();
+    expect(title.props.adjustsFontSizeToFit).toBeUndefined();
+    expect(title.props.minimumFontScale).toBeUndefined();
+  });
+
+  it("wraps long CSAT idiom word-card titles onto readable lines", () => {
+    const { getByTestId } = render(
+      <WordCard
+        word={{
+          ...baseWord,
+          course: "CSAT_IDIOMS",
+          word: "make a long story short after all is said and done",
+          meaning: "1. 간단히 말해서",
+          synonyms: undefined,
+        }}
+        isDark={false}
+      />,
+    );
+
+    const title = getByTestId("word-card-title");
+    const titleStyle = StyleSheet.flatten(title.props.style);
+    expect(title.props.children).toBe(
+      "make a long story short\nafter all is said and\ndone",
+    );
+    expect(titleStyle.fontSize).toBeGreaterThanOrEqual(16);
+    expect(titleStyle.fontSize).toBeLessThanOrEqual(22);
     expect(title.props.numberOfLines).toBeUndefined();
     expect(title.props.adjustsFontSizeToFit).toBeUndefined();
     expect(title.props.minimumFontScale).toBeUndefined();

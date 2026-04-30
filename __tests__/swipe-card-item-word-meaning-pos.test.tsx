@@ -166,9 +166,12 @@ describe("SwipeCardItemWordMeaningSection", () => {
 
     const title = getByTestId("swipe-card-word-title");
     const titleStyle = StyleSheet.flatten(title.props.style);
+    expect(title.props.children).toBe(
+      "once in a blue moon\nafter every unlikely\ncircumstance",
+    );
     expect(titleStyle.fontSize).toBeGreaterThanOrEqual(32);
-    expect(titleStyle.fontSize).toBeLessThan(48);
-    expect(title.props.numberOfLines).toBe(1);
+    expect(titleStyle.fontSize).toBeLessThanOrEqual(48);
+    expect(title.props.numberOfLines).toBeUndefined();
     expect(title.props.adjustsFontSizeToFit).toBeUndefined();
     expect(title.props.minimumFontScale).toBeUndefined();
   });
@@ -190,6 +193,56 @@ describe("SwipeCardItemWordMeaningSection", () => {
     const titleStyle = StyleSheet.flatten(title.props.style);
     expect(title.props.children).toBe("take A\n[for granted]\n[as given]");
     expect(titleStyle.fontSize).toBeGreaterThan(32);
+    expect(titleStyle.fontSize).toBeLessThanOrEqual(48);
+    expect(title.props.numberOfLines).toBeUndefined();
+    expect(title.props.adjustsFontSizeToFit).toBeUndefined();
+    expect(title.props.minimumFontScale).toBeUndefined();
+  });
+
+  it("breaks slash CSAT idiom alternatives onto a new title line", () => {
+    const { getByTestId } = render(
+      <SwipeCardItemWordMeaningSection
+        item={{
+          ...buildItem(),
+          course: "CSAT_IDIOMS",
+        }}
+        word="be angry with[at] + 사람 / about[at] + 사물"
+        meaning="1. ~에 화나다"
+        isDark={false}
+      />,
+    );
+
+    const title = getByTestId("swipe-card-word-title");
+    const titleStyle = StyleSheet.flatten(title.props.style);
+    expect(title.props.children).toBe(
+      "be angry with[at] + 사람\n/ about[at] + 사물",
+    );
+    expect(titleStyle.fontSize).toBeGreaterThanOrEqual(32);
+    expect(titleStyle.fontSize).toBeLessThanOrEqual(48);
+    expect(title.props.numberOfLines).toBeUndefined();
+    expect(title.props.adjustsFontSizeToFit).toBeUndefined();
+    expect(title.props.minimumFontScale).toBeUndefined();
+  });
+
+  it("wraps long CSAT idiom titles onto readable lines", () => {
+    const { getByTestId } = render(
+      <SwipeCardItemWordMeaningSection
+        item={{
+          ...buildItem(),
+          course: "CSAT_IDIOMS",
+        }}
+        word="make a long story short after all is said and done"
+        meaning="1. 간단히 말해서"
+        isDark={false}
+      />,
+    );
+
+    const title = getByTestId("swipe-card-word-title");
+    const titleStyle = StyleSheet.flatten(title.props.style);
+    expect(title.props.children).toBe(
+      "make a long story short\nafter all is said and\ndone",
+    );
+    expect(titleStyle.fontSize).toBeGreaterThanOrEqual(32);
     expect(titleStyle.fontSize).toBeLessThanOrEqual(48);
     expect(title.props.numberOfLines).toBeUndefined();
     expect(title.props.adjustsFontSizeToFit).toBeUndefined();
