@@ -1,6 +1,9 @@
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
+import {
+  formatIdiomTitleForDisplay,
+  getIdiomTitleFontSize,
+} from "../../src/utils/idiomDisplay";
 import { parseWordVariants } from "../../src/utils/wordVariants";
 import { DayBadge } from "../common/DayBadge";
 import { ThemedText } from "../themed-text";
@@ -28,14 +31,22 @@ export function WordCardHeader({
   onSpeak,
   onLongPress,
 }: WordCardHeaderProps) {
-  const wordVariants = React.useMemo(() => parseWordVariants(word), [word]);
+  const wordVariants = React.useMemo(
+    () =>
+      parseWordVariants(word).map((variant) =>
+        formatIdiomTitleForDisplay(variant, courseId),
+      ),
+    [courseId, word],
+  );
   const isMultilineWord = wordVariants.length > 1;
   const longestVariant = React.useMemo(
     () =>
-      wordVariants.reduce(
-        (longest, variant) => (variant.length > longest.length ? variant : longest),
-        wordVariants[0] ?? word,
-      ),
+      wordVariants
+        .flatMap((variant) => variant.split("\n"))
+        .reduce(
+          (longest, line) => (line.length > longest.length ? line : longest),
+          wordVariants[0] ?? word,
+        ),
     [word, wordVariants],
   );
   const titleFontSize = React.useMemo(
@@ -48,21 +59,27 @@ export function WordCardHeader({
   );
   const titleContent = (
     <View style={styles.wordTitleTextContainer}>
-      {wordVariants.map((variant, index) => (
-        <ThemedText
-          key={`${variant}-${index}`}
-          type="subtitle"
-          testID={index === 0 ? "word-card-title" : undefined}
-          style={[
-            styles.wordTitle,
-            isMultilineWord && styles.wordTitleMultiline,
-            { fontSize: titleFontSize, lineHeight: titleLineHeight },
-          ]}
-          numberOfLines={undefined}
-        >
-          {variant}
-        </ThemedText>
-      ))}
+      {wordVariants.map((variant, index) => {
+        const hasDisplayLineBreak = variant.includes("\n");
+
+        return (
+          <ThemedText
+            key={`${variant}-${index}`}
+            type="subtitle"
+            testID={index === 0 ? "word-card-title" : undefined}
+            style={[
+              styles.wordTitle,
+              isMultilineWord && styles.wordTitleMultiline,
+              { fontSize: titleFontSize, lineHeight: titleLineHeight },
+            ]}
+            numberOfLines={
+              isMultilineWord || hasDisplayLineBreak ? undefined : 1
+            }
+          >
+            {variant}
+          </ThemedText>
+        );
+      })}
     </View>
   );
   const canInteract = Boolean(onSpeak || onLongPress);

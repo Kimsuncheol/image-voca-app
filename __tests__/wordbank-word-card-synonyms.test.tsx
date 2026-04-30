@@ -94,7 +94,7 @@ describe("Word bank WordCard synonyms", () => {
         word={{
           ...baseWord,
           course: "CSAT_IDIOMS",
-          word: "once in a blue moon",
+          word: "once in a blue moon after every unlikely circumstance",
           meaning: "1. 아주 드물게 2. 거의 하지 않게",
           synonyms: undefined,
         }}
@@ -107,10 +107,36 @@ describe("Word bank WordCard synonyms", () => {
     expect(queryByTestId("inline-meaning-pos-column-0")).toBeNull();
     expect(queryByTestId("inline-meaning-pos-column-1")).toBeNull();
 
-    const titleStyle = StyleSheet.flatten(
-      getByTestId("word-card-title").props.style,
-    );
+    const title = getByTestId("word-card-title");
+    const titleStyle = StyleSheet.flatten(title.props.style);
+    expect(titleStyle.fontSize).toBeGreaterThanOrEqual(16);
     expect(titleStyle.fontSize).toBeLessThan(22);
+    expect(title.props.numberOfLines).toBe(1);
+    expect(title.props.adjustsFontSizeToFit).toBeUndefined();
+    expect(title.props.minimumFontScale).toBeUndefined();
+  });
+
+  it("breaks bracketed CSAT idiom alternatives onto a new word-card title line", () => {
+    const { getByTestId } = render(
+      <WordCard
+        word={{
+          ...baseWord,
+          course: "CSAT_IDIOMS",
+          word: "take A [for granted] [as given]",
+          meaning: "1. ~하기 위하여",
+          synonyms: undefined,
+        }}
+        isDark={false}
+      />,
+    );
+
+    const title = getByTestId("word-card-title");
+    const titleStyle = StyleSheet.flatten(title.props.style);
+    expect(title.props.children).toBe("take A\n[for granted]\n[as given]");
+    expect(titleStyle.fontSize).toBe(22);
+    expect(title.props.numberOfLines).toBeUndefined();
+    expect(title.props.adjustsFontSizeToFit).toBeUndefined();
+    expect(title.props.minimumFontScale).toBeUndefined();
   });
 
   it("formats extremely advanced meanings onto separate lines and scales long titles", () => {
@@ -119,7 +145,7 @@ describe("Word bank WordCard synonyms", () => {
         word={{
           ...baseWord,
           course: "EXTREMELY_ADVANCED",
-          word: "antidisestablishmentarianism",
+          word: "antidisestablishmentarianism in a deliberately oversized title",
           meaning: "1. 정교분리 반대론 2. 긴 단어",
           synonyms: undefined,
         }}
@@ -131,9 +157,12 @@ describe("Word bank WordCard synonyms", () => {
     expect(getByText("2. ")).toBeTruthy();
     expect(queryByTestId("inline-meaning-pos-column-0")).toBeNull();
 
-    const titleStyle = StyleSheet.flatten(
-      getByTestId("word-card-title").props.style,
-    );
+    const title = getByTestId("word-card-title");
+    const titleStyle = StyleSheet.flatten(title.props.style);
+    expect(titleStyle.fontSize).toBeGreaterThanOrEqual(16);
     expect(titleStyle.fontSize).toBeLessThan(22);
+    expect(title.props.numberOfLines).toBe(1);
+    expect(title.props.adjustsFontSizeToFit).toBeUndefined();
+    expect(title.props.minimumFontScale).toBeUndefined();
   });
 });

@@ -151,7 +151,7 @@ describe("SwipeCardItemWordMeaningSection", () => {
           ...buildItem(),
           course: "CSAT_IDIOMS",
         }}
-        word="once in a blue moon"
+        word="once in a blue moon after every unlikely circumstance"
         meaning="1. 아주 드물게 2. 거의 하지 않게"
         isDark={false}
       />,
@@ -164,10 +164,36 @@ describe("SwipeCardItemWordMeaningSection", () => {
     expect(queryByTestId("inline-meaning-pos-column-0")).toBeNull();
     expect(queryByTestId("inline-meaning-pos-column-1")).toBeNull();
 
-    const titleStyle = StyleSheet.flatten(
-      getByTestId("swipe-card-word-title").props.style,
+    const title = getByTestId("swipe-card-word-title");
+    const titleStyle = StyleSheet.flatten(title.props.style);
+    expect(titleStyle.fontSize).toBeGreaterThanOrEqual(32);
+    expect(titleStyle.fontSize).toBeLessThan(48);
+    expect(title.props.numberOfLines).toBe(1);
+    expect(title.props.adjustsFontSizeToFit).toBeUndefined();
+    expect(title.props.minimumFontScale).toBeUndefined();
+  });
+
+  it("breaks bracketed CSAT idiom alternatives onto a new title line", () => {
+    const { getByTestId } = render(
+      <SwipeCardItemWordMeaningSection
+        item={{
+          ...buildItem(),
+          course: "CSAT_IDIOMS",
+        }}
+        word="take A [for granted] [as given]"
+        meaning="1. ~하기 위하여"
+        isDark={false}
+      />,
     );
-    expect(titleStyle.fontSize).toBeLessThan(32);
+
+    const title = getByTestId("swipe-card-word-title");
+    const titleStyle = StyleSheet.flatten(title.props.style);
+    expect(title.props.children).toBe("take A\n[for granted]\n[as given]");
+    expect(titleStyle.fontSize).toBeGreaterThan(32);
+    expect(titleStyle.fontSize).toBeLessThanOrEqual(48);
+    expect(title.props.numberOfLines).toBeUndefined();
+    expect(title.props.adjustsFontSizeToFit).toBeUndefined();
+    expect(title.props.minimumFontScale).toBeUndefined();
   });
 
   it("formats numbered extremely advanced meanings and scales long titles", () => {
@@ -177,7 +203,7 @@ describe("SwipeCardItemWordMeaningSection", () => {
           ...buildItem(),
           course: "EXTREMELY_ADVANCED",
         }}
-        word="antidisestablishmentarianism"
+        word="antidisestablishmentarianism in a deliberately oversized title"
         meaning="1. 정교분리 반대론 2. 긴 단어"
         isDark={false}
       />,
@@ -189,9 +215,12 @@ describe("SwipeCardItemWordMeaningSection", () => {
     expect(getByText("긴 단어")).toBeTruthy();
     expect(queryByTestId("inline-meaning-pos-column-0")).toBeNull();
 
-    const titleStyle = StyleSheet.flatten(
-      getByTestId("swipe-card-word-title").props.style,
-    );
-    expect(titleStyle.fontSize).toBeLessThan(32);
+    const title = getByTestId("swipe-card-word-title");
+    const titleStyle = StyleSheet.flatten(title.props.style);
+    expect(titleStyle.fontSize).toBeGreaterThanOrEqual(32);
+    expect(titleStyle.fontSize).toBeLessThan(48);
+    expect(title.props.numberOfLines).toBe(1);
+    expect(title.props.adjustsFontSizeToFit).toBeUndefined();
+    expect(title.props.minimumFontScale).toBeUndefined();
   });
 });

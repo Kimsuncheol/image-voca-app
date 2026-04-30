@@ -6,8 +6,14 @@ import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useStudySpeech } from "../../src/hooks/useStudyMode";
 import { VocabularyCard } from "../../src/types/vocabulary";
-import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
-import { speakWordVariants } from "../../src/utils/wordVariants";
+import {
+  formatIdiomTitleForDisplay,
+  getIdiomTitleFontSize,
+} from "../../src/utils/idiomDisplay";
+import {
+  parseWordVariants,
+  speakWordVariants,
+} from "../../src/utils/wordVariants";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { FontSizes } from "@/constants/fontSizes";
 import { SwipeCardItemAddToWordBankButton } from "./SwipeCardItemAddToWordBankButton";
@@ -24,12 +30,6 @@ interface SwipeCardItemWordMeaningSectionProps {
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isPreviewMode?: boolean;
 }
-
-const parseWordVariants = (value: string): string[] =>
-  value
-    .split("=")
-    .map((segment) => segment.trim())
-    .filter(Boolean);
 
 export function SwipeCardItemWordMeaningSection({
   item,
@@ -52,14 +52,22 @@ export function SwipeCardItemWordMeaningSection({
     [handleSpeech],
   );
   const normalizedPronunciation = pronunciation?.trim();
-  const wordVariants = React.useMemo(() => parseWordVariants(word), [word]);
+  const wordVariants = React.useMemo(
+    () =>
+      parseWordVariants(word).map((variant) =>
+        formatIdiomTitleForDisplay(variant, item.course),
+      ),
+    [item.course, word],
+  );
   const isMultiVariantWord = wordVariants.length > 1;
   const longestWordVariant = React.useMemo(
     () =>
-      wordVariants.reduce(
-        (longest, variant) => (variant.length > longest.length ? variant : longest),
-        wordVariants[0] ?? word,
-      ),
+      wordVariants
+        .flatMap((variant) => variant.split("\n"))
+        .reduce(
+          (longest, line) => (line.length > longest.length ? line : longest),
+          wordVariants[0] ?? word,
+        ),
     [word, wordVariants],
   );
   const titleFontSize = React.useMemo(
@@ -70,7 +78,6 @@ export function SwipeCardItemWordMeaningSection({
     () => Math.round(titleFontSize * 1.18),
     [titleFontSize],
   );
-
   const speak = React.useCallback(async () => {
     if (!isActive) {
       return;
@@ -88,21 +95,27 @@ export function SwipeCardItemWordMeaningSection({
   const renderWord = () => {
     return (
       <View style={styles.wordVariantsContainer}>
-        {wordVariants.map((variant, index) => (
-          <Text
-            key={`${variant}-${index}`}
-            testID={index === 0 ? "swipe-card-word-title" : undefined}
-            style={[
-              styles.cardTitle,
-              { color: fontColors.learningCardPrimary },
-              index > 0 && styles.cardTitleVariant,
-              { fontSize: titleFontSize, lineHeight: titleLineHeight },
-            ]}
-            numberOfLines={isMultiVariantWord ? undefined : 1}
-          >
-            {variant}
-          </Text>
-        ))}
+        {wordVariants.map((variant, index) => {
+          const hasDisplayLineBreak = variant.includes("\n");
+
+          return (
+            <Text
+              key={`${variant}-${index}`}
+              testID={index === 0 ? "swipe-card-word-title" : undefined}
+              style={[
+                styles.cardTitle,
+                { color: fontColors.learningCardPrimary },
+                index > 0 && styles.cardTitleVariant,
+                { fontSize: titleFontSize, lineHeight: titleLineHeight },
+              ]}
+              numberOfLines={
+                isMultiVariantWord || hasDisplayLineBreak ? undefined : 1
+              }
+            >
+              {variant}
+            </Text>
+          );
+        })}
       </View>
     );
   };
