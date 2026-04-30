@@ -1,8 +1,8 @@
+import { FontSizes } from "@/constants/fontSizes";
 import { FontWeights } from "@/constants/fontWeights";
 import { Stack, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FontSizes } from "@/constants/fontSizes";
 import {
   Dimensions,
   ScrollView,
@@ -16,11 +16,11 @@ import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import {
+  CharCell,
+  HIRAGANA_SECTIONS,
   KanaSection,
   KanaSectionId,
-  HIRAGANA_SECTIONS,
   KATAKANA_SECTIONS,
-  CharCell,
 } from "../src/data/kana";
 import { useSpeech } from "../src/hooks/useSpeech";
 
@@ -182,6 +182,7 @@ export default function JapaneseCharactersScreen() {
         options={{
           title: t("kana.title"),
           headerBackTitle: t("common.back"),
+          headerStyle: {backgroundColor: bgColors.screen},
           headerRight: () => (
             <TouchableOpacity
               onPress={() =>

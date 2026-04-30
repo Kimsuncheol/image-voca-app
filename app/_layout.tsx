@@ -1,3 +1,4 @@
+import { getBackgroundColors } from "@/constants/backgroundColors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   DarkTheme,
@@ -61,6 +62,7 @@ export function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
   const { t } = useTranslation();
+  const bgColors = getBackgroundColors(isDark);
 
   useAuthenticatedDeviceRegistration();
   useDeviceDeletionEnforcement();
@@ -124,19 +126,29 @@ export function RootLayoutNav() {
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="wordbank" options={{ headerShown: false }} />
+            <Stack.Screen name="courses" options={{ headerStyle: {backgroundColor: bgColors.screen}}} />
             <Stack.Screen name="course" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: "modal" }} />
             <Stack.Screen
               name="profile"
-              options={{ title: t("profile.title") }}
+              options={{ 
+                title: t("profile.title"),
+                headerStyle: {backgroundColor: bgColors.screen}
+               }}
             />
             <Stack.Screen
               name="manage-devices"
-              options={{ title: t("manageDevices.title") }}
+              options={{ 
+                title: t("manageDevices.title"),
+                headerStyle: {backgroundColor: bgColors.screen}
+               }}
             />
             <Stack.Screen
               name="calendar"
-              options={{ title: t("calendar.title") }}
+              options={{ 
+                title: t("calendar.title"),
+                headerStyle: {backgroundColor: bgColors.screen}
+               }}
             />
             <Stack.Screen
               name="elementary-japanese"
@@ -144,6 +156,7 @@ export function RootLayoutNav() {
                 title: t("elementaryJapanese.title", {
                   defaultValue: "Elementary Japanese",
                 }),
+                headerStyle: {backgroundColor: bgColors.screen}
               }}
             />
             <Stack.Screen
@@ -152,6 +165,7 @@ export function RootLayoutNav() {
                 title: t("counters.title", {
                   defaultValue: "Counters",
                 }),
+                headerStyle: {backgroundColor: bgColors.screen}
               }}
             />
             <Stack.Screen
@@ -160,6 +174,7 @@ export function RootLayoutNav() {
                 title: t("greetings.title", {
                   defaultValue: "Greetings",
                 }),
+                headerStyle: {backgroundColor: bgColors.screen}
               }}
             />
             <Stack.Screen
@@ -168,6 +183,7 @@ export function RootLayoutNav() {
                 title: t("counters.title", {
                   defaultValue: "Counters",
                 }),
+                headerStyle: {backgroundColor: bgColors.screen}
               }}
             />
             <Stack.Screen

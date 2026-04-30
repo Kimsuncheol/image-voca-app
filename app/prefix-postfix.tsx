@@ -8,9 +8,9 @@ import { useTheme } from "../src/context/ThemeContext";
 import { getPrefixPostfixData } from "../src/services/prefixPostfixService";
 import type { PostfixWord, PrefixWord } from "../src/types/prefixPostfix";
 
-import { PrefixPostfixTabs } from "../components/prefix-postfix/PrefixPostfixTabs";
 import { PrefixPostfixList } from "../components/prefix-postfix/PrefixPostfixList";
 import type { Tab } from "../components/prefix-postfix/PrefixPostfixTabs";
+import { PrefixPostfixTabs } from "../components/prefix-postfix/PrefixPostfixTabs";
 
 export default function PrefixPostfixScreen() {
   const [tab, setTab] = useState<Tab>("prefix");
@@ -70,6 +70,7 @@ export default function PrefixPostfixScreen() {
         options={{
           title: t("prefixPostfix.title"),
           headerBackTitle: t("common.back"),
+          headerStyle: {backgroundColor: bgColors.screen}
         }}
       />
 

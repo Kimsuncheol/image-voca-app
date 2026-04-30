@@ -25,6 +25,9 @@ export default function ElementaryJapaneseScreen() {
           title: t("elementaryJapanese.title", {
             defaultValue: "Elementary Japanese",
           }),
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: bgColors.screenAlt },
+          headerTintColor: isDark ? "#fff" : "#000",
           headerBackTitle: t("common.back"),
         }}
       />

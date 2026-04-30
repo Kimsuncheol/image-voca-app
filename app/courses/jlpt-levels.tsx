@@ -1,3 +1,4 @@
+import { FontSizes } from "@/constants/fontSizes";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -10,7 +11,6 @@ import { getBackgroundColors } from "../../constants/backgroundColors";
 import { useTheme } from "../../src/context/ThemeContext";
 import { StudyModeProvider } from "../../src/hooks/useStudyMode";
 import { JLPT_LEVELS, JLPTLevelCourse } from "../../src/types/vocabulary";
-import { FontSizes } from "@/constants/fontSizes";
 
 export default function WordBankJlptLevelsScreen() {
   return (
@@ -38,7 +38,16 @@ function WordBankJlptLevelsScreenContent() {
       style={[styles.container, { backgroundColor: bgColors.screen }]}
       edges={["left", "right", "bottom"]}
     >
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen
+        options={{
+          title: t("courses.jlpt.levels.title"),
+          headerBackTitle: t("common.back"),
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: bgColors.screen },
+          headerTintColor: isDark ? "#fff" : "#000",
+          headerShown: false
+        }}
+      />
       <TopInstallNativeAd containerStyle={styles.topInstallAd} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}

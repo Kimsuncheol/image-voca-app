@@ -1,8 +1,8 @@
+import { FontSizes } from "@/constants/fontSizes";
 import { FontWeights } from "@/constants/fontWeights";
 import { Stack } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FontSizes } from "@/constants/fontSizes";
 import {
   ScrollView,
   StyleSheet,
@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { LineHeights } from "@/constants/lineHeights";
 import {
   ElementaryTable,
   ElementaryTableRow,
@@ -20,15 +21,14 @@ import { ThemedText } from "../components/themed-text";
 import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
-import { useSpeech } from "../src/hooks/useSpeech";
 import { PRENOMINAL_ADJECTIVE_DATA } from "../src/data/prenominalAdjective";
+import { useSpeech } from "../src/hooks/useSpeech";
 import type { PrenominalAdjectiveWord } from "../src/types/prenominalAdjective";
 import {
   splitJapaneseTextSegments,
   stripKanaParens,
 } from "../src/utils/japaneseText";
 import { speakWordVariants } from "../src/utils/wordVariants";
-import { LineHeights } from "@/constants/lineHeights";
 
 type RowProps = {
   item: PrenominalAdjectiveWord;
@@ -160,6 +160,7 @@ export default function PrenominalAdjectiveScreen() {
           title: t("prenominalAdjective.title", {
             defaultValue: "Prenominal Adjectives",
           }),
+          headerStyle: {backgroundColor: bgColors.screen},
           headerBackTitle: t("common.back"),
           headerRight: () => (
             <TouchableOpacity

@@ -74,6 +74,9 @@ export default function JlptLevelsScreen() {
       <Stack.Screen
         options={{
           title: t("courses.jlpt.levels.title"),
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: bgColors.screen },
+          headerTintColor: isDark ? "#fff" : "#000",
           headerBackTitle: t("common.back"),
         }}
       />
