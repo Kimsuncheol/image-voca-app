@@ -24,6 +24,9 @@
       },
       "edgeToEdgeEnabled": false,
       "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "WRITE_SETTINGS"
+      ],
       "package": "com.benjaminkim96.imagevocaapp"
     },
     "web": {

@@ -112,6 +112,54 @@ jest.mock("expo-av", () => ({
   },
 }));
 
+jest.mock("expo-brightness", () => ({
+  PermissionStatus: {
+    DENIED: "denied",
+    GRANTED: "granted",
+    UNDETERMINED: "undetermined",
+  },
+  isAvailableAsync: jest.fn(async () => true),
+  requestPermissionsAsync: jest.fn(async () => ({
+    status: "granted",
+    granted: true,
+    canAskAgain: true,
+    expires: "never",
+  })),
+  getBrightnessAsync: jest.fn(async () => 0.5),
+  setBrightnessAsync: jest.fn(async () => undefined),
+  restoreSystemBrightnessAsync: jest.fn(async () => undefined),
+}));
+
+jest.mock("expo-sensors", () => {
+  const lightSensorState = {
+    listeners: [],
+    emit(illuminance) {
+      this.listeners.forEach((listener) => listener({ illuminance, timestamp: Date.now() / 1000 }));
+    },
+    reset() {
+      this.listeners = [];
+    },
+  };
+
+  return {
+    LightSensor: {
+      isAvailableAsync: jest.fn(async () => true),
+      setUpdateInterval: jest.fn(),
+      addListener: jest.fn((listener) => {
+        lightSensorState.listeners.push(listener);
+        return {
+          remove: jest.fn(() => {
+            lightSensorState.listeners = lightSensorState.listeners.filter(
+              (candidate) => candidate !== listener,
+            );
+          }),
+        };
+      }),
+      __mockState: lightSensorState,
+    },
+  };
+});
+
 jest.mock("expo-keep-awake", () => ({
   activateKeepAwakeAsync: jest.fn(async () => undefined),
   deactivateKeepAwake: jest.fn(async () => undefined),

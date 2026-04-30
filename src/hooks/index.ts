@@ -20,3 +20,8 @@ export {
   type StudyLanguageType,
   type StudyModeReturn,
 } from "./useStudyMode";
+export {
+  useSmartAutoBrightness,
+  type SmartAutoBrightnessState,
+  type SmartBrightnessBand,
+} from "./useSmartAutoBrightness";
