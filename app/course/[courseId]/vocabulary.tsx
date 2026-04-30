@@ -12,6 +12,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
+  AppState,
   Dimensions,
   StyleSheet,
   Text,
@@ -112,6 +113,7 @@ function VocabularyScreenContent() {
   // cannot lag behind the last learn action.
   const sessionLearnedWordIdsRef = useRef<Set<string>>(new Set());
   const currentIndexRef = useRef(0);
+  const lastAppStateRef = useRef(AppState.currentState);
   const leaveConfirmedRef = useRef(false);
   const resumePromptShownRef = useRef<string | null>(null);
 
@@ -338,6 +340,26 @@ function VocabularyScreenContent() {
     typedCourseId,
     user,
   ]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      const previousState = lastAppStateRef.current;
+      lastAppStateRef.current = nextState;
+
+      if (
+        previousState === "active" &&
+        (nextState === "inactive" || nextState === "background")
+      ) {
+        void persistCurrentResumeProgress().catch((error) => {
+          console.warn("Failed to save vocabulary resume progress:", error);
+        });
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [persistCurrentResumeProgress]);
 
   useEffect(() => {
     if (
