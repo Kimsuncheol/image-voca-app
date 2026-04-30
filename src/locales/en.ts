@@ -656,6 +656,7 @@ const en = {
     previewReturn: "Back to days",
 
     progress: "{{learned}}/{{total}} words",
+    wordCount: "{{count}} words",
     retake: "Retake",
     quiz: "Quiz",
     checked: "Checked",

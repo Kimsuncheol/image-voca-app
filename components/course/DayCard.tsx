@@ -68,9 +68,8 @@ export function DayCard({
         </View>
         {progress && !isLocked && (
           <ThemedText style={styles.progressText}>
-            {t("course.progress", {
-              learned: progress.wordsLearned || 0,
-              total: progress.totalWords || 0,
+            {t("course.wordCount", {
+              count: progress.totalWords ?? 0,
             })}
           </ThemedText>
         )}

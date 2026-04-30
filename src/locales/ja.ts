@@ -639,6 +639,7 @@ const ja = {
     previewComplete: "プレビュー完了",
     previewReturn: "日一覧に戻る",
     progress: "{{learned}}/{{total}} 単語",
+    wordCount: "{{count}} 単語",
     retake: "完了",
     quiz: "クイズ",
     checked: "確認済み",

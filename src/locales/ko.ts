@@ -645,6 +645,7 @@ const ko = {
     previewReturn: "일차 목록으로 돌아가기",
 
     progress: "{{learned}}/{{total}} 단어",
+    wordCount: "{{count}} 단어",
     retake: "정복 완료",
     quiz: "퀴즈",
     checked: "확인됨",
