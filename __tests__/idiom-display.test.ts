@@ -67,12 +67,113 @@ describe("idiomDisplay", () => {
   });
 
   it("wraps long idiom titles at word boundaries", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 390,
+      height: 844,
+      scale: 3,
+      fontScale: 1,
+    });
+
     expect(
       formatIdiomTitleForDisplay(
         "make a long story short after all is said and done",
         "CSAT_IDIOMS",
+        48,
       ),
-    ).toBe("make a long story short\nafter all is said and\ndone");
+    ).toBe("make a long\nstory short\nafter all is\nsaid and done");
+
+    jest.restoreAllMocks();
+  });
+
+  it("wraps long idiom titles into fewer lines on wide devices", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 900,
+      height: 1024,
+      scale: 2,
+      fontScale: 1,
+    });
+
+    expect(
+      formatIdiomTitleForDisplay(
+        "make a long story short after all is said and done",
+        "CSAT_IDIOMS",
+        48,
+      ),
+    ).toBe("make a long story short after all is\nsaid and done");
+
+    jest.restoreAllMocks();
+  });
+
+  it("ignores bracket and parenthesis delimiters when wrapping titles", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 390,
+      height: 844,
+      scale: 3,
+      fontScale: 1,
+    });
+
+    expect(
+      formatIdiomTitleForDisplay(
+        "abcde [fghij] (klmn) opqr",
+        "CSAT_IDIOMS",
+        48,
+      ),
+    ).toBe("abcde\n[fghij] (klmn) opqr");
+
+    jest.restoreAllMocks();
+  });
+
+  it("still counts text inside brackets and parentheses when wrapping titles", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 390,
+      height: 844,
+      scale: 3,
+      fontScale: 1,
+    });
+
+    expect(
+      formatIdiomTitleForDisplay(
+        "abcde [fghij] (klmnop) opqr",
+        "CSAT_IDIOMS",
+        48,
+      ),
+    ).toBe("abcde\n[fghij] (klmnop)\nopqr");
+
+    jest.restoreAllMocks();
+  });
+
+  it("keeps short attached bracket alternatives on one title line", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 390,
+      height: 844,
+      scale: 3,
+      fontScale: 1,
+    });
+
+    expect(
+      formatIdiomTitleForDisplay("for example[instance]", "CSAT_IDIOMS", 48),
+    ).toBe("for example[instance]");
+
+    jest.restoreAllMocks();
+  });
+
+  it("does not insert breaks inside attached bracket tokens", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 390,
+      height: 844,
+      scale: 3,
+      fontScale: 1,
+    });
+
+    expect(
+      formatIdiomTitleForDisplay(
+        "for example[extraordinaryinstance]",
+        "CSAT_IDIOMS",
+        48,
+      ),
+    ).toBe("for example[extraordinaryinstance]");
+
+    jest.restoreAllMocks();
   });
 
   it("does not change non-idiom or adjacent-bracket titles", () => {

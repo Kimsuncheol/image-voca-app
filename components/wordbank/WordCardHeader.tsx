@@ -2,7 +2,9 @@ import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import {
   formatIdiomTitleForDisplay,
+  getIdiomTitleMinimumFontScale,
   getIdiomTitleFontSize,
+  isNumberedMeaningDisplayCourseId,
 } from "../../src/utils/idiomDisplay";
 import { parseWordVariants } from "../../src/utils/wordVariants";
 import { DayBadge } from "../common/DayBadge";
@@ -34,7 +36,7 @@ export function WordCardHeader({
   const wordVariants = React.useMemo(
     () =>
       parseWordVariants(word).map((variant) =>
-        formatIdiomTitleForDisplay(variant, courseId),
+        formatIdiomTitleForDisplay(variant, courseId, FontSizes.titleLg),
       ),
     [courseId, word],
   );
@@ -57,6 +59,12 @@ export function WordCardHeader({
     () => Math.round(titleFontSize * 1.25),
     [titleFontSize],
   );
+  const titleMinimumFontScale = React.useMemo(
+    () => getIdiomTitleMinimumFontScale(courseId, FontSizes.titleLg, titleFontSize),
+    [courseId, titleFontSize],
+  );
+  const shouldFitSingleLineTitle =
+    !isMultilineWord && isNumberedMeaningDisplayCourseId(courseId);
   const titleContent = (
     <View style={styles.wordTitleTextContainer}>
       {wordVariants.map((variant, index) => {
@@ -74,6 +82,16 @@ export function WordCardHeader({
             ]}
             numberOfLines={
               isMultilineWord || hasDisplayLineBreak ? undefined : 1
+            }
+            adjustsFontSizeToFit={
+              shouldFitSingleLineTitle && !hasDisplayLineBreak
+                ? true
+                : undefined
+            }
+            minimumFontScale={
+              shouldFitSingleLineTitle && !hasDisplayLineBreak
+                ? titleMinimumFontScale
+                : undefined
             }
           >
             {variant}

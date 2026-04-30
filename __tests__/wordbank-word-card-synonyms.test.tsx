@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react-native";
 import React from "react";
-import { StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
 import { WordCard } from "../components/wordbank/WordCard";
 
 jest.mock("../src/context/AuthContext", () => ({
@@ -89,6 +89,13 @@ describe("Word bank WordCard synonyms", () => {
   });
 
   it("formats idiom meanings onto separate lines and scales long idiom titles", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 390,
+      height: 844,
+      scale: 3,
+      fontScale: 1,
+    });
+
     const { getByTestId, getByText, queryByTestId } = render(
       <WordCard
         word={{
@@ -110,13 +117,15 @@ describe("Word bank WordCard synonyms", () => {
     const title = getByTestId("word-card-title");
     const titleStyle = StyleSheet.flatten(title.props.style);
     expect(title.props.children).toBe(
-      "once in a blue moon\nafter every unlikely\ncircumstance",
+      "once in a blue moon after every\nunlikely circumstance",
     );
     expect(titleStyle.fontSize).toBeGreaterThanOrEqual(16);
     expect(titleStyle.fontSize).toBeLessThanOrEqual(22);
     expect(title.props.numberOfLines).toBeUndefined();
     expect(title.props.adjustsFontSizeToFit).toBeUndefined();
     expect(title.props.minimumFontScale).toBeUndefined();
+
+    jest.restoreAllMocks();
   });
 
   it("breaks bracketed CSAT idiom alternatives onto a new word-card title line", () => {
@@ -143,6 +152,13 @@ describe("Word bank WordCard synonyms", () => {
   });
 
   it("breaks slash CSAT idiom alternatives onto a new word-card title line", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 900,
+      height: 1024,
+      scale: 2,
+      fontScale: 1,
+    });
+
     const { getByTestId } = render(
       <WordCard
         word={{
@@ -166,9 +182,18 @@ describe("Word bank WordCard synonyms", () => {
     expect(title.props.numberOfLines).toBeUndefined();
     expect(title.props.adjustsFontSizeToFit).toBeUndefined();
     expect(title.props.minimumFontScale).toBeUndefined();
+
+    jest.restoreAllMocks();
   });
 
   it("wraps long CSAT idiom word-card titles onto readable lines", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 390,
+      height: 844,
+      scale: 3,
+      fontScale: 1,
+    });
+
     const { getByTestId } = render(
       <WordCard
         word={{
@@ -185,13 +210,47 @@ describe("Word bank WordCard synonyms", () => {
     const title = getByTestId("word-card-title");
     const titleStyle = StyleSheet.flatten(title.props.style);
     expect(title.props.children).toBe(
-      "make a long story short\nafter all is said and\ndone",
+      "make a long story short after\nall is said and done",
     );
     expect(titleStyle.fontSize).toBeGreaterThanOrEqual(16);
     expect(titleStyle.fontSize).toBeLessThanOrEqual(22);
     expect(title.props.numberOfLines).toBeUndefined();
     expect(title.props.adjustsFontSizeToFit).toBeUndefined();
     expect(title.props.minimumFontScale).toBeUndefined();
+
+    jest.restoreAllMocks();
+  });
+
+  it("keeps attached bracket CSAT idiom word-card titles on one fitted line", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 390,
+      height: 844,
+      scale: 3,
+      fontScale: 1,
+    });
+
+    const { getByTestId } = render(
+      <WordCard
+        word={{
+          ...baseWord,
+          course: "CSAT_IDIOMS",
+          word: "for example[instance]",
+          meaning: "1. 예를 들면",
+          synonyms: undefined,
+        }}
+        isDark={false}
+      />,
+    );
+
+    const title = getByTestId("word-card-title");
+    const titleStyle = StyleSheet.flatten(title.props.style);
+    expect(title.props.children).toBe("for example[instance]");
+    expect(titleStyle.fontSize).toBe(22);
+    expect(title.props.numberOfLines).toBe(1);
+    expect(title.props.adjustsFontSizeToFit).toBe(true);
+    expect(title.props.minimumFontScale).toBeCloseTo(16 / 22);
+
+    jest.restoreAllMocks();
   });
 
   it("formats extremely advanced meanings onto separate lines and scales long titles", () => {

@@ -8,7 +8,9 @@ import { useStudySpeech } from "../../src/hooks/useStudyMode";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import {
   formatIdiomTitleForDisplay,
+  getIdiomTitleMinimumFontScale,
   getIdiomTitleFontSize,
+  isNumberedMeaningDisplayCourseId,
 } from "../../src/utils/idiomDisplay";
 import {
   parseWordVariants,
@@ -55,7 +57,11 @@ export function SwipeCardItemWordMeaningSection({
   const wordVariants = React.useMemo(
     () =>
       parseWordVariants(word).map((variant) =>
-        formatIdiomTitleForDisplay(variant, item.course),
+        formatIdiomTitleForDisplay(
+          variant,
+          item.course,
+          FontSizes.displayXl,
+        ),
       ),
     [item.course, word],
   );
@@ -78,6 +84,17 @@ export function SwipeCardItemWordMeaningSection({
     () => Math.round(titleFontSize * 1.18),
     [titleFontSize],
   );
+  const titleMinimumFontScale = React.useMemo(
+    () =>
+      getIdiomTitleMinimumFontScale(
+        item.course,
+        FontSizes.displayXl,
+        titleFontSize,
+      ),
+    [item.course, titleFontSize],
+  );
+  const shouldFitSingleLineTitle =
+    !isMultiVariantWord && isNumberedMeaningDisplayCourseId(item.course);
   const speak = React.useCallback(async () => {
     if (!isActive) {
       return;
@@ -110,6 +127,16 @@ export function SwipeCardItemWordMeaningSection({
               ]}
               numberOfLines={
                 isMultiVariantWord || hasDisplayLineBreak ? undefined : 1
+              }
+              adjustsFontSizeToFit={
+                shouldFitSingleLineTitle && !hasDisplayLineBreak
+                  ? true
+                  : undefined
+              }
+              minimumFontScale={
+                shouldFitSingleLineTitle && !hasDisplayLineBreak
+                  ? titleMinimumFontScale
+                  : undefined
               }
             >
               {variant}

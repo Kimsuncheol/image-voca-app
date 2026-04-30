@@ -13,7 +13,7 @@ const STUDY_CARD_MINIMUM_TITLE_FONT_SIZE = 32;
 const WORD_BANK_TITLE_FONT_SIZE = 22;
 const WORD_BANK_MINIMUM_TITLE_FONT_SIZE = 16;
 const DEFAULT_MINIMUM_TITLE_FONT_SIZE = 12;
-const MAX_IDIOM_TITLE_LINE_LENGTH = 24;
+const MINIMUM_IDIOM_TITLE_LINE_LENGTH = 12;
 
 export function isCsatIdiomsCourseId(courseId?: string): boolean {
   return courseId === CSAT_IDIOMS_COURSE_ID;
@@ -42,20 +42,22 @@ export function formatIdiomMeaningForDisplay(
 export function formatIdiomTitleForDisplay(
   title: string,
   courseId?: string,
+  fallbackFontSize = 32,
 ): string {
   if (!isNumberedMeaningDisplayCourseId(courseId)) {
     return title;
   }
 
   const titleWithExplicitBreaks = title.replace(/(\S)[ \t]+(?=[[/])/g, "$1\n");
+  const maxLineLength = getMaxIdiomTitleLineLength(fallbackFontSize);
   return titleWithExplicitBreaks
     .split("\n")
-    .flatMap((line) => wrapIdiomTitleLine(line))
+    .flatMap((line) => wrapIdiomTitleLine(line, maxLineLength))
     .join("\n");
 }
 
-function wrapIdiomTitleLine(line: string): string[] {
-  if (line.length <= MAX_IDIOM_TITLE_LINE_LENGTH) {
+function wrapIdiomTitleLine(line: string, maxLineLength: number): string[] {
+  if (getIdiomTitleMeasurementLength(line) <= maxLineLength) {
     return [line];
   }
 
@@ -64,12 +66,19 @@ function wrapIdiomTitleLine(line: string): string[] {
     return [line];
   }
 
+  if (
+    words.length <= 2 &&
+    words.some((word) => /[^\s()[\]]+[[\(][^\s()[\]]+[\])]/.test(word))
+  ) {
+    return [line];
+  }
+
   const lines: string[] = [];
   let currentLine = "";
 
   words.forEach((word) => {
     const candidate = currentLine ? `${currentLine} ${word}` : word;
-    if (candidate.length <= MAX_IDIOM_TITLE_LINE_LENGTH || !currentLine) {
+    if (getIdiomTitleMeasurementLength(candidate) <= maxLineLength || !currentLine) {
       currentLine = candidate;
       return;
     }
@@ -83,6 +92,45 @@ function wrapIdiomTitleLine(line: string): string[] {
   }
 
   return lines;
+}
+
+function getIdiomTitleMeasurementLength(value: string): number {
+  return value.replace(/[[\]()]/g, "").length;
+}
+
+function getMaxIdiomTitleLineLength(fallbackFontSize: number): number {
+  const { width } = Dimensions.get("window");
+  const availableWidth = width * TITLE_AVAILABLE_WIDTH_RATIO;
+  const minimumFontSize = getMinimumIdiomTitleFontSize(fallbackFontSize);
+  return Math.max(
+    MINIMUM_IDIOM_TITLE_LINE_LENGTH,
+    Math.floor(
+      availableWidth / (minimumFontSize * BOLD_CHARACTER_WIDTH_RATIO),
+    ),
+  );
+}
+
+function getMinimumIdiomTitleFontSize(fallbackFontSize: number): number {
+  if (fallbackFontSize >= STUDY_CARD_TITLE_FONT_SIZE) {
+    return STUDY_CARD_MINIMUM_TITLE_FONT_SIZE;
+  }
+  if (fallbackFontSize >= WORD_BANK_TITLE_FONT_SIZE) {
+    return WORD_BANK_MINIMUM_TITLE_FONT_SIZE;
+  }
+  return DEFAULT_MINIMUM_TITLE_FONT_SIZE;
+}
+
+export function getIdiomTitleMinimumFontScale(
+  courseId: string | undefined,
+  fallbackFontSize: number,
+  currentFontSize = fallbackFontSize,
+): number | undefined {
+  if (!isNumberedMeaningDisplayCourseId(courseId)) {
+    return undefined;
+  }
+
+  const minimumFontSize = getMinimumIdiomTitleFontSize(fallbackFontSize);
+  return Math.min(1, minimumFontSize / currentFontSize);
 }
 
 export function getIdiomTitleFontSize(
@@ -110,12 +158,7 @@ export function getIdiomTitleFontSize(
 
   const scaledFontSize =
     availableWidth / (normalizedText.length * BOLD_CHARACTER_WIDTH_RATIO);
-  const minimumFontSize =
-    fallbackFontSize >= STUDY_CARD_TITLE_FONT_SIZE
-      ? STUDY_CARD_MINIMUM_TITLE_FONT_SIZE
-      : fallbackFontSize >= WORD_BANK_TITLE_FONT_SIZE
-        ? WORD_BANK_MINIMUM_TITLE_FONT_SIZE
-        : DEFAULT_MINIMUM_TITLE_FONT_SIZE;
+  const minimumFontSize = getMinimumIdiomTitleFontSize(fallbackFontSize);
 
   return Math.max(
     minimumFontSize,

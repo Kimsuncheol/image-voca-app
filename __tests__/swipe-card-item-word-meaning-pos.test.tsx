@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react-native";
 import React from "react";
-import { StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
 import { SwipeCardItemWordMeaningSection } from "../components/swipe/SwipeCardItemWordMeaningSection";
 import { VocabularyCard } from "../src/types/vocabulary";
 
@@ -145,6 +145,13 @@ describe("SwipeCardItemWordMeaningSection", () => {
   });
 
   it("formats numbered idiom meanings onto separate lines and scales long titles", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 390,
+      height: 844,
+      scale: 3,
+      fontScale: 1,
+    });
+
     const { getByTestId, getByText, queryByTestId } = render(
       <SwipeCardItemWordMeaningSection
         item={{
@@ -167,13 +174,15 @@ describe("SwipeCardItemWordMeaningSection", () => {
     const title = getByTestId("swipe-card-word-title");
     const titleStyle = StyleSheet.flatten(title.props.style);
     expect(title.props.children).toBe(
-      "once in a blue moon\nafter every unlikely\ncircumstance",
+      "once in a blue\nmoon after every\nunlikely\ncircumstance",
     );
     expect(titleStyle.fontSize).toBeGreaterThanOrEqual(32);
     expect(titleStyle.fontSize).toBeLessThanOrEqual(48);
     expect(title.props.numberOfLines).toBeUndefined();
     expect(title.props.adjustsFontSizeToFit).toBeUndefined();
     expect(title.props.minimumFontScale).toBeUndefined();
+
+    jest.restoreAllMocks();
   });
 
   it("breaks bracketed CSAT idiom alternatives onto a new title line", () => {
@@ -200,6 +209,13 @@ describe("SwipeCardItemWordMeaningSection", () => {
   });
 
   it("breaks slash CSAT idiom alternatives onto a new title line", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 900,
+      height: 1024,
+      scale: 2,
+      fontScale: 1,
+    });
+
     const { getByTestId } = render(
       <SwipeCardItemWordMeaningSection
         item={{
@@ -222,9 +238,18 @@ describe("SwipeCardItemWordMeaningSection", () => {
     expect(title.props.numberOfLines).toBeUndefined();
     expect(title.props.adjustsFontSizeToFit).toBeUndefined();
     expect(title.props.minimumFontScale).toBeUndefined();
+
+    jest.restoreAllMocks();
   });
 
   it("wraps long CSAT idiom titles onto readable lines", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 390,
+      height: 844,
+      scale: 3,
+      fontScale: 1,
+    });
+
     const { getByTestId } = render(
       <SwipeCardItemWordMeaningSection
         item={{
@@ -240,13 +265,47 @@ describe("SwipeCardItemWordMeaningSection", () => {
     const title = getByTestId("swipe-card-word-title");
     const titleStyle = StyleSheet.flatten(title.props.style);
     expect(title.props.children).toBe(
-      "make a long story short\nafter all is said and\ndone",
+      "make a long\nstory short\nafter all is\nsaid and done",
     );
     expect(titleStyle.fontSize).toBeGreaterThanOrEqual(32);
     expect(titleStyle.fontSize).toBeLessThanOrEqual(48);
     expect(title.props.numberOfLines).toBeUndefined();
     expect(title.props.adjustsFontSizeToFit).toBeUndefined();
     expect(title.props.minimumFontScale).toBeUndefined();
+
+    jest.restoreAllMocks();
+  });
+
+  it("keeps attached bracket CSAT idiom titles on one fitted line", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 390,
+      height: 844,
+      scale: 3,
+      fontScale: 1,
+    });
+
+    const { getByTestId } = render(
+      <SwipeCardItemWordMeaningSection
+        item={{
+          ...buildItem(),
+          course: "CSAT_IDIOMS",
+        }}
+        word="for example[instance]"
+        meaning="1. 예를 들면"
+        isDark={false}
+      />,
+    );
+
+    const title = getByTestId("swipe-card-word-title");
+    const titleStyle = StyleSheet.flatten(title.props.style);
+    expect(title.props.children).toBe("for example[instance]");
+    expect(titleStyle.fontSize).toBeGreaterThanOrEqual(32);
+    expect(titleStyle.fontSize).toBeLessThanOrEqual(48);
+    expect(title.props.numberOfLines).toBe(1);
+    expect(title.props.adjustsFontSizeToFit).toBe(true);
+    expect(title.props.minimumFontScale).toBe(1);
+
+    jest.restoreAllMocks();
   });
 
   it("formats numbered extremely advanced meanings and scales long titles", () => {
