@@ -23,7 +23,7 @@ import { useAuth } from "../../src/context/AuthContext";
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useTheme } from "../../src/context/ThemeContext";
-import { useAndroidImmersiveStudyMode } from "../../src/hooks/useAndroidImmersiveStudyMode";
+import { StudyModeProvider } from "../../src/hooks/useStudyMode";
 import { db } from "../../src/services/firebase";
 import { CourseType, findRuntimeCourse } from "../../src/types/vocabulary";
 
@@ -47,9 +47,6 @@ import { CourseType, findRuntimeCourse } from "../../src/types/vocabulary";
  */
 export default function CourseWordBankScreen() {
   // === Hooks and Context ===
-
-  useAndroidImmersiveStudyMode("CourseWordBankScreen");
-
   const { isDark } = useTheme(); // Dark mode state
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
@@ -243,67 +240,69 @@ export default function CourseWordBankScreen() {
     ) : null;
 
   return (
-    <SafeAreaView
-      // header
+    <StudyModeProvider keepAwakeTag="CourseWordBankScreen">
+      <SafeAreaView
+        // header
 
-      style={[styles.container, { backgroundColor: bgColors.screen }]}
-      edges={["left", "right", "bottom"]}
-    >
-      {/* Configure navigation header */}
-      <Stack.Screen
-        options={{
-          title: courseData
-            ? t(courseData.titleKey, { defaultValue: courseData.title })
-            : t("wordBank.title"),
-          headerBackTitle: t("common.back"),
-          headerShown: false,
-        }}
-      />
+        style={[styles.container, { backgroundColor: bgColors.screen }]}
+        edges={["left", "right", "bottom"]}
+      >
+        {/* Configure navigation header */}
+        <Stack.Screen
+          options={{
+            title: courseData
+              ? t(courseData.titleKey, { defaultValue: courseData.title })
+              : t("wordBank.title"),
+            headerBackTitle: t("common.back"),
+            headerShown: false,
+          }}
+        />
 
-      {!loading && (
-        <>
-          {words.length > 0 ? (
-            <TopInstallNativeAd containerStyle={styles.topInstallAd} />
-          ) : null}
-          <FlatList
-            data={filteredWords}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <SwipeToDeleteRow
-                itemId={item.id}
-                isDark={isDark}
-                onDelete={handleDeleteWord}
-              >
-                <WordCard
-                  word={item}
+        {!loading && (
+          <>
+            {words.length > 0 ? (
+              <TopInstallNativeAd containerStyle={styles.topInstallAd} />
+            ) : null}
+            <FlatList
+              data={filteredWords}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <SwipeToDeleteRow
+                  itemId={item.id}
+                  isDark={isDark}
+                  onDelete={handleDeleteWord}
+                >
+                  <WordCard
+                    word={item}
+                    courseColor={courseData?.color}
+                    isDark={isDark}
+                    showPronunciation={showPronunciation}
+                    expandExampleToContent={expandExampleToContent}
+                  />
+                </SwipeToDeleteRow>
+              )}
+              ListHeaderComponent={listHeader}
+              ListEmptyComponent={
+                <EmptyWordBankView
+                  courseId={course}
                   courseColor={courseData?.color}
                   isDark={isDark}
-                  showPronunciation={showPronunciation}
-                  expandExampleToContent={expandExampleToContent}
                 />
-              </SwipeToDeleteRow>
-            )}
-            ListHeaderComponent={listHeader}
-            ListEmptyComponent={
-              <EmptyWordBankView
-                courseId={course}
-                courseColor={courseData?.color}
-                isDark={isDark}
-              />
-            }
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-          />
-        </>
-      )}
+              }
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+            />
+          </>
+        )}
 
-      {splashMounted && (
-        <AppSplashScreen
-          visible={loading}
-          onHidden={() => setSplashMounted(false)}
-        />
-      )}
-    </SafeAreaView>
+        {splashMounted && (
+          <AppSplashScreen
+            visible={loading}
+            onHidden={() => setSplashMounted(false)}
+          />
+        )}
+      </SafeAreaView>
+    </StudyModeProvider>
   );
 }
 

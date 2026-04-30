@@ -1,5 +1,5 @@
 import { useStudyMode } from "./useStudyMode";
 
 export function useAndroidImmersiveStudyMode(keepAwakeTag: string): void {
-  useStudyMode(keepAwakeTag);
+  useStudyMode(keepAwakeTag, { hideNavigationBar: true });
 }

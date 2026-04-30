@@ -8,13 +8,19 @@ import { JlptLevelList } from "../../components/course/JlptLevelList";
 import { ThemedText } from "../../components/themed-text";
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { useTheme } from "../../src/context/ThemeContext";
-import { useAndroidImmersiveStudyMode } from "../../src/hooks/useAndroidImmersiveStudyMode";
+import { StudyModeProvider } from "../../src/hooks/useStudyMode";
 import { JLPT_LEVELS, JLPTLevelCourse } from "../../src/types/vocabulary";
 import { FontSizes } from "@/constants/fontSizes";
 
 export default function WordBankJlptLevelsScreen() {
-  useAndroidImmersiveStudyMode("WordBankJlptLevelsScreen");
+  return (
+    <StudyModeProvider keepAwakeTag="WordBankJlptLevelsScreen">
+      <WordBankJlptLevelsScreenContent />
+    </StudyModeProvider>
+  );
+}
 
+function WordBankJlptLevelsScreenContent() {
   const { isDark } = useTheme();
   const bgColors = getBackgroundColors(isDark);
   const router = useRouter();

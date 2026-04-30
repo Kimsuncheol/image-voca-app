@@ -9,9 +9,9 @@ import {
 } from "react-native";
 import * as KeepAwake from "expo-keep-awake";
 import * as NavigationBar from "expo-navigation-bar";
-import { VolumeManager } from "react-native-volume-manager";
 import React from "react";
 import {
+  __setStudyModeGetVolumeForTests,
   type StudyLanguageType,
   useStudyMode,
 } from "../../src/hooks/useStudyMode";
@@ -33,12 +33,16 @@ function setPlatform(os: "android" | "ios") {
 
 function StudyModeHarness({
   languageType = "EN",
+  hideNavigationBar = false,
   text = "sample",
 }: {
   languageType?: StudyLanguageType;
+  hideNavigationBar?: boolean;
   text?: string;
 }) {
-  const { handleSpeech, lowVolumeHint } = useStudyMode("TestStudyScreen");
+  const { handleSpeech, lowVolumeHint } = useStudyMode("TestStudyScreen", {
+    hideNavigationBar,
+  });
 
   return (
     <View>
@@ -56,7 +60,7 @@ function StudyModeHarness({
 }
 
 describe("useStudyMode", () => {
-  const getVolumeMock = VolumeManager.getVolume as jest.Mock;
+  const getVolumeMock = jest.fn(async () => ({ volume: 1 }));
   const activateKeepAwakeMock =
     KeepAwake.activateKeepAwakeAsync as jest.Mock;
   const deactivateKeepAwakeMock = KeepAwake.deactivateKeepAwake as jest.Mock;
@@ -68,10 +72,32 @@ describe("useStudyMode", () => {
     jest.useRealTimers();
     setPlatform("android");
     getVolumeMock.mockResolvedValue({ volume: 1 });
+    __setStudyModeGetVolumeForTests(getVolumeMock);
   });
 
-  it("keeps the screen awake and restores Android immersive state on cleanup", async () => {
+  it("keeps the screen awake without hiding the Android navigation bar by default", async () => {
     const screen = render(<StudyModeHarness />);
+
+    await waitFor(() => {
+      expect(activateKeepAwakeMock).toHaveBeenCalledWith("TestStudyScreen");
+    });
+    expect(setBehaviorMock).not.toHaveBeenCalled();
+    expect(setVisibilityMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      screen.unmount();
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(deactivateKeepAwakeMock).toHaveBeenCalledWith("TestStudyScreen");
+    });
+    expect(setBehaviorMock).not.toHaveBeenCalled();
+    expect(setVisibilityMock).not.toHaveBeenCalled();
+  });
+
+  it("hides and restores the Android navigation bar when explicitly requested", async () => {
+    const screen = render(<StudyModeHarness hideNavigationBar />);
 
     await waitFor(() => {
       expect(activateKeepAwakeMock).toHaveBeenCalledWith("TestStudyScreen");
@@ -147,5 +173,25 @@ describe("useStudyMode", () => {
         expect.objectContaining({ language: "ja-JP" }),
       );
     });
+  });
+
+  it("continues speaking when the native volume module is unavailable", async () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    __setStudyModeGetVolumeForTests(null);
+    const screen = render(<StudyModeHarness languageType="EN" text="fallback" />);
+
+    fireEvent.press(screen.getByTestId("speak"));
+
+    await waitFor(() => {
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("react-native-volume-manager not available"),
+      );
+      expect(mockSpeak).toHaveBeenCalledWith(
+        "fallback",
+        expect.objectContaining({ language: "en-US" }),
+      );
+    });
+
+    warnSpy.mockRestore();
   });
 });

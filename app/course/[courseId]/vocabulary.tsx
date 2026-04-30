@@ -65,7 +65,7 @@ const { width } = Dimensions.get("window");
  */
 export default function VocabularyScreen() {
   return (
-    <StudyModeProvider keepAwakeTag="VocabularyStudyScreen">
+    <StudyModeProvider keepAwakeTag="VocabularyStudyScreen" hideNavigationBar>
       <VocabularyScreenContent />
     </StudyModeProvider>
   );

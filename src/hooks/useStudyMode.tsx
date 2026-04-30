@@ -17,7 +17,6 @@ import {
   ToastAndroid,
   View,
 } from "react-native";
-import { VolumeManager } from "react-native-volume-manager";
 import type { SpeechOptions } from "../services/speechService";
 import { useSpeech } from "./useSpeech";
 
@@ -33,8 +32,13 @@ export interface StudyModeReturn {
   clearLowVolumeHint: () => void;
 }
 
+interface UseStudyModeOptions {
+  hideNavigationBar?: boolean;
+}
+
 interface StudyModeProviderProps {
   keepAwakeTag: string;
+  hideNavigationBar?: boolean;
   children: React.ReactNode;
 }
 
@@ -48,6 +52,11 @@ const LOW_VOLUME_HINT_DURATION_MS = 2500;
 
 const StudySpeechContext = React.createContext<StudyModeReturn | null>(null);
 
+type GetVolume = () => Promise<{ volume?: number }>;
+
+let cachedGetVolume: GetVolume | null | undefined;
+let hasLoggedVolumeManagerUnavailable = false;
+
 const getSpeechLanguageCode = (languageType: StudyLanguageType) =>
   languageType === "JP" ? "ja-JP" : "en-US";
 
@@ -56,9 +65,52 @@ export const getStudyLanguageTypeFromSpeechLanguage = (
 ): StudyLanguageType =>
   language?.trim().toLowerCase().startsWith("ja") ? "JP" : "EN";
 
-const getCurrentVolume = async () => {
+const resolveGetVolume = (): GetVolume | null => {
+  if (cachedGetVolume !== undefined) {
+    return cachedGetVolume;
+  }
+
   try {
-    const result = await VolumeManager.getVolume();
+    // The native module is not available in Expo Go or unrebuilt dev clients.
+    // Keep this require lazy so missing native linkage cannot crash app startup.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const volumeModule = require("react-native-volume-manager");
+    const candidate =
+      volumeModule?.VolumeManager?.getVolume ?? volumeModule?.getVolume;
+
+    cachedGetVolume =
+      typeof candidate === "function"
+        ? candidate.bind(volumeModule.VolumeManager)
+        : null;
+  } catch {
+    cachedGetVolume = null;
+  }
+
+  return cachedGetVolume ?? null;
+};
+
+export const __setStudyModeGetVolumeForTests = (
+  getVolume: GetVolume | null | undefined,
+) => {
+  cachedGetVolume = getVolume;
+  hasLoggedVolumeManagerUnavailable = false;
+};
+
+const getCurrentVolume = async () => {
+  const getVolume = resolveGetVolume();
+
+  if (!getVolume) {
+    if (!hasLoggedVolumeManagerUnavailable) {
+      hasLoggedVolumeManagerUnavailable = true;
+      console.warn(
+        "[useStudyMode] react-native-volume-manager not available. Skipping volume pre-check.",
+      );
+    }
+    return 1;
+  }
+
+  try {
+    const result = await getVolume();
     return typeof result.volume === "number" ? result.volume : 1;
   } catch (error) {
     console.warn("Failed to read device volume:", error);
@@ -145,8 +197,12 @@ function useSmartStudySpeech(): StudyModeReturn {
   );
 }
 
-export function useStudyMode(keepAwakeTag: string): StudyModeReturn {
+export function useStudyMode(
+  keepAwakeTag: string,
+  options: UseStudyModeOptions = {},
+): StudyModeReturn {
   const speech = useSmartStudySpeech();
+  const hideNavigationBar = options.hideNavigationBar === true;
 
   useFocusEffect(
     React.useCallback(() => {
@@ -154,7 +210,7 @@ export function useStudyMode(keepAwakeTag: string): StudyModeReturn {
         console.warn("Failed to activate keep awake mode:", error);
       });
 
-      if (Platform.OS === "android") {
+      if (hideNavigationBar && Platform.OS === "android") {
         void NavigationBar.setBehaviorAsync(IMMERSIVE_NAVIGATION_BAR_BEHAVIOR)
           .then(() =>
             NavigationBar.setVisibilityAsync(HIDDEN_NAVIGATION_BAR_VISIBILITY),
@@ -169,7 +225,7 @@ export function useStudyMode(keepAwakeTag: string): StudyModeReturn {
           console.warn("Failed to deactivate keep awake mode:", error);
         });
 
-        if (Platform.OS === "android") {
+        if (hideNavigationBar && Platform.OS === "android") {
           void NavigationBar.setVisibilityAsync(
             VISIBLE_NAVIGATION_BAR_VISIBILITY,
           )
@@ -181,7 +237,7 @@ export function useStudyMode(keepAwakeTag: string): StudyModeReturn {
             });
         }
       };
-    }, [keepAwakeTag]),
+    }, [hideNavigationBar, keepAwakeTag]),
   );
 
   return speech;
@@ -189,9 +245,10 @@ export function useStudyMode(keepAwakeTag: string): StudyModeReturn {
 
 export function StudyModeProvider({
   keepAwakeTag,
+  hideNavigationBar = false,
   children,
 }: StudyModeProviderProps) {
-  const studyMode = useStudyMode(keepAwakeTag);
+  const studyMode = useStudyMode(keepAwakeTag, { hideNavigationBar });
 
   return (
     <StudySpeechContext.Provider value={studyMode}>
