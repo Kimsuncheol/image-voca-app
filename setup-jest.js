@@ -97,6 +97,21 @@ jest.mock("expo-speech", () => ({
   getAvailableVoicesAsync: jest.fn(async () => []),
 }));
 
+jest.mock("expo-av", () => ({
+  Audio: {
+    setAudioModeAsync: jest.fn(async () => undefined),
+  },
+  InterruptionModeAndroid: {
+    DoNotMix: 1,
+    DuckOthers: 2,
+  },
+  InterruptionModeIOS: {
+    MixWithOthers: 0,
+    DoNotMix: 1,
+    DuckOthers: 2,
+  },
+}));
+
 jest.mock("expo-keep-awake", () => ({
   activateKeepAwakeAsync: jest.fn(async () => undefined),
   deactivateKeepAwake: jest.fn(async () => undefined),

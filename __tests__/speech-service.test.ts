@@ -1,3 +1,4 @@
+import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from "expo-av";
 import * as Speech from "expo-speech";
 import { Platform } from "react-native";
 import {
@@ -8,11 +9,13 @@ import {
   pauseSpeech,
   resumeSpeech,
   speak,
+  speakWord,
   splitSpeechPassage,
   stopSpeech,
 } from "../src/services/speechService";
 
 describe("speechService", () => {
+  const setAudioModeAsyncMock = Audio.setAudioModeAsync as jest.Mock;
   const speakMock = Speech.speak as jest.Mock;
   const stopMock = Speech.stop as jest.Mock;
   const pauseMock = Speech.pause as jest.Mock;
@@ -65,6 +68,64 @@ describe("speechService", () => {
   it("rejects empty speech text", async () => {
     await expect(speak(`  "   "  `)).rejects.toThrow("Speech text cannot be empty.");
     expect(speakMock).not.toHaveBeenCalled();
+    expect(setAudioModeAsyncMock).not.toHaveBeenCalled();
+  });
+
+  it("configures DoNotMix audio focus before speaking and resets after completion", async () => {
+    const speakPromise = speak("Vocabulary", {
+      language: "en-US",
+      rate: 0.9,
+    });
+
+    await waitForSpeakCalls(1);
+
+    expect(setAudioModeAsyncMock).toHaveBeenCalledWith({
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: true,
+      interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+      interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+      shouldDuckAndroid: false,
+      staysActiveInBackground: false,
+      playThroughEarpieceAndroid: false,
+    });
+    expect(setAudioModeAsyncMock.mock.invocationCallOrder[0]).toBeLessThan(
+      speakMock.mock.invocationCallOrder[0],
+    );
+
+    speakMock.mock.calls[0][1].onDone?.();
+    await speakPromise;
+
+    expect(setAudioModeAsyncMock).toHaveBeenLastCalledWith({
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: false,
+      interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
+      interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
+      shouldDuckAndroid: true,
+      staysActiveInBackground: false,
+      playThroughEarpieceAndroid: false,
+    });
+  });
+
+  it("resets audio mode after speech errors", async () => {
+    const speakPromise = speak("Broken speech", {
+      language: "en-US",
+      rate: 0.9,
+    });
+
+    await waitForSpeakCalls(1);
+    speakMock.mock.calls[0][1].onError?.(new Error("native speech failed"));
+
+    await expect(speakPromise).rejects.toThrow("native speech failed");
+
+    expect(setAudioModeAsyncMock).toHaveBeenLastCalledWith({
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: false,
+      interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
+      interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
+      shouldDuckAndroid: true,
+      staysActiveInBackground: false,
+      playThroughEarpieceAndroid: false,
+    });
   });
 
   it("tracks single-utterance playback, pause, resume, and finish state", async () => {
@@ -118,8 +179,30 @@ describe("speechService", () => {
     await speakPromise;
 
     expect(stopMock).toHaveBeenCalledTimes(1);
+    expect(setAudioModeAsyncMock).toHaveBeenLastCalledWith({
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: false,
+      interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
+      interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
+      shouldDuckAndroid: true,
+      staysActiveInBackground: false,
+      playThroughEarpieceAndroid: false,
+    });
     expect(await isSpeaking()).toBe(false);
     expect(await isPaused()).toBe(false);
+  });
+
+  it("exports speakWord as a semantic wrapper around speak", async () => {
+    const speakPromise = speakWord("Wrapper", {
+      language: "en-US",
+      rate: 0.9,
+    });
+
+    await waitForSpeakCalls(1);
+    expect(speakMock.mock.calls[0][0]).toBe("Wrapper");
+
+    speakMock.mock.calls[0][1].onDone?.();
+    await speakPromise;
   });
 
   it("queues chunked passages sequentially and fires session callbacks once", async () => {

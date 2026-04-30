@@ -6,6 +6,7 @@
 
 import * as Speech from "expo-speech";
 import type { Voice } from "expo-speech";
+import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from "expo-av";
 import { Platform } from "react-native";
 
 export interface SpeechOptions {
@@ -76,6 +77,32 @@ let speechState: SpeechState = { isSpeaking: false, isPaused: false };
 const speechListeners = new Set<(state: SpeechState) => void>();
 let availableVoicesCache: SpeechVoice[] | null = null;
 let availableVoicesPromise: Promise<SpeechVoice[]> | null = null;
+
+const SPEECH_AUDIO_MODE = {
+  allowsRecordingIOS: false,
+  playsInSilentModeIOS: true,
+  interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+  interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+  shouldDuckAndroid: false,
+  staysActiveInBackground: false,
+  playThroughEarpieceAndroid: false,
+} as const;
+
+const DEFAULT_AUDIO_MODE = {
+  allowsRecordingIOS: false,
+  playsInSilentModeIOS: false,
+  interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
+  interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
+  shouldDuckAndroid: true,
+  staysActiveInBackground: false,
+  playThroughEarpieceAndroid: false,
+} as const;
+
+const configureSpeechAudioMode = () =>
+  Audio.setAudioModeAsync(SPEECH_AUDIO_MODE);
+
+const resetSpeechAudioMode = () =>
+  Audio.setAudioModeAsync(DEFAULT_AUDIO_MODE);
 
 const clampRate = (rate: number | undefined): number => {
   const fallbackRate = DEFAULT_CONFIG.rate ?? 1;
@@ -375,9 +402,12 @@ export const speak = async (
   const config = await resolveSpeechOptions({ ...DEFAULT_CONFIG, ...options });
   const chunks = splitSpeechPassage(normalizedText);
   const playbackToken = ++currentPlaybackToken;
+  let didConfigureAudioMode = false;
 
   try {
     await stopActivePlayback();
+    await configureSpeechAudioMode();
+    didConfigureAudioMode = true;
 
     for (let index = 0; index < chunks.length; index += 1) {
       if (playbackToken !== currentPlaybackToken) {
@@ -400,12 +430,25 @@ export const speak = async (
       options?.onError?.(speechError);
     }
     throw speechError;
+  } finally {
+    if (didConfigureAudioMode && playbackToken === currentPlaybackToken) {
+      await resetSpeechAudioMode();
+    }
   }
 };
 
+export const speakWord = (
+  text: string,
+  options?: SpeechOptions,
+): Promise<void> => speak(text, options);
+
 export const stopSpeech = async (): Promise<void> => {
   currentPlaybackToken += 1;
-  await stopActivePlayback();
+  try {
+    await stopActivePlayback();
+  } finally {
+    await resetSpeechAudioMode();
+  }
 };
 
 export const pauseSpeech = async (): Promise<void> => {
