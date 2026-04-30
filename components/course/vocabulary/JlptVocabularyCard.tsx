@@ -15,7 +15,7 @@ import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useCardSpeechCleanup } from "../../../src/hooks/useCardSpeechCleanup";
-import { useSpeech } from "../../../src/hooks/useSpeech";
+import { useStudySpeech } from "../../../src/hooks/useStudyMode";
 import { VocabularyCard } from "../../../src/types/vocabulary";
 import {
   splitJapaneseTextSegments,
@@ -123,7 +123,7 @@ const ExampleBlock = React.memo(function ExampleBlock({
 }: ExampleBlockProps) {
   const fontColors = getFontColors(isDark);
   useCardSpeechCleanup(isActive);
-  const { speak } = useSpeech();
+  const { handleSpeech } = useStudySpeech();
   const hiddenExample = React.useMemo(
     () => (example ? stripKanaParens(example) : example),
     [example],
@@ -154,9 +154,9 @@ const ExampleBlock = React.memo(function ExampleBlock({
         return;
       }
       const ttsText = furiganaLines[index] ?? stripKanaParens(text);
-      void speak(ttsText, { language: "ja-JP" });
+      void handleSpeech(ttsText, "JP");
     },
-    [isActive, speak, furiganaLines],
+    [handleSpeech, isActive, furiganaLines],
   );
 
   if (rowCount === 0) {
@@ -243,7 +243,7 @@ export function JlptVocabularyCard({
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
   const { i18n } = useTranslation();
-  const { speak } = useSpeech();
+  const { handleSpeech } = useStudySpeech();
   useCardSpeechCleanup(isActive);
   const resolved = React.useMemo(
     () => resolveVocabularyContent(item, i18n.language),
@@ -262,10 +262,8 @@ export function JlptVocabularyCard({
     if (!isActive) {
       return;
     }
-    void speak(resolved.sharedPronunciation ?? item.word, {
-      language: "ja-JP",
-    });
-  }, [isActive, item.word, resolved.sharedPronunciation, speak]);
+    void handleSpeech(resolved.sharedPronunciation ?? item.word, "JP");
+  }, [handleSpeech, isActive, item.word, resolved.sharedPronunciation]);
 
   const dynamicFontSize = React.useMemo(() => {
     return getDynamicFontSize(item.word, 48, 24);

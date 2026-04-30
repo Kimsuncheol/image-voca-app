@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
-import { useSpeech } from "../../../src/hooks/useSpeech";
+import { useStudySpeech } from "../../../src/hooks/useStudyMode";
 import type { KanjiWord } from "../../../src/types/vocabulary";
 import {
   buildKanjiMeaningDisplayRows,
@@ -78,16 +78,16 @@ export function FaceSide({
   onFlip,
   language = "en",
 }: FaceSideProps) {
-  const { speak } = useSpeech();
+  const { handleSpeech } = useStudySpeech();
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
 
   const handleSpeakItem = React.useCallback(
     (text: string) => {
       if (!isActive) return;
-      void speak(text, { language: "ja-JP" });
+      void handleSpeech(text, "JP");
     },
-    [isActive, speak],
+    [handleSpeech, isActive],
   );
 
   const dynamicFontSize = React.useMemo(() => {

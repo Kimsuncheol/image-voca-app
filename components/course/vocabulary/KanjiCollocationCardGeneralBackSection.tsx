@@ -7,7 +7,7 @@ import {
   type GestureResponderEvent,
 } from "react-native";
 import { getFontColors } from "../../../constants/fontColors";
-import { useSpeech } from "../../../src/hooks/useSpeech";
+import { useStudySpeech } from "../../../src/hooks/useStudyMode";
 import {
   splitJapaneseTextSegments,
   stripKanaParens,
@@ -52,7 +52,7 @@ export function GeneralBackSection({
   showFurigana,
   onFlip,
 }: GeneralBackSectionProps) {
-  const { speak } = useSpeech();
+  const { handleSpeech } = useStudySpeech();
   const fontColors = getFontColors(isDark);
   const items = examples
     .map((example, index) => ({
@@ -67,9 +67,9 @@ export function GeneralBackSection({
       event?.stopPropagation();
       if (!isActive) return;
       const tts = trimmedStringAt(hurigana, index) ?? stripKanaParens(text);
-      void speak(tts, { language: "ja-JP" });
+      void handleSpeech(tts, "JP");
     },
-    [isActive, speak, hurigana],
+    [handleSpeech, isActive, hurigana],
   );
 
   if (items.length === 0) return null;

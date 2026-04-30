@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import Collapsible from "react-native-collapsible";
 import { getFontColors } from "../../constants/fontColors";
-import { useSpeech } from "../../src/hooks/useSpeech";
+import { useStudySpeech } from "../../src/hooks/useStudyMode";
 import { styles } from "./EnglishCollocationCardStyle";
 import {
   stripRoleLabels,
@@ -45,7 +45,7 @@ export default React.memo(function ExampleSection({
   isDark,
   maxHeight,
 }: ExampleSectionProps) {
-  const { speak } = useSpeech();
+  const { handleSpeech } = useStudySpeech();
   const fontColors = getFontColors(isDark);
   const spokenExampleText = useMemo(() => stripRoleLabels(example), [example]);
   const exampleTurns = useMemo(() => toDialogueTurns(example), [example]);
@@ -85,10 +85,10 @@ export default React.memo(function ExampleSection({
       return;
     }
 
-    void speak(spokenExampleText, { language: "en-US" }).catch((error) => {
+    void handleSpeech(spokenExampleText, "EN").catch((error) => {
       console.error("Collocation example TTS error:", error);
     });
-  }, [speak, spokenExampleText]);
+  }, [handleSpeech, spokenExampleText]);
 
   return (
     <View>

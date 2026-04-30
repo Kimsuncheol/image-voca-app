@@ -10,7 +10,10 @@ import {
 } from "react-native";
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
-import { useSpeech } from "../../src/hooks/useSpeech";
+import {
+  getStudyLanguageTypeFromSpeechLanguage,
+  useStudySpeech,
+} from "../../src/hooks/useStudyMode";
 import { formatSynonyms } from "../../src/utils/synonyms";
 import {
   parseWordVariants,
@@ -88,7 +91,16 @@ export default React.memo(function FaceSide({
   // ============================================================================
   // Contexts & State
   // ============================================================================
-  const { speak: speakText } = useSpeech();
+  const { handleSpeech } = useStudySpeech();
+  const speakText = React.useCallback(
+    (text: string, options?: Parameters<typeof handleSpeech>[2]) =>
+      handleSpeech(
+        text,
+        getStudyLanguageTypeFromSpeechLanguage(options?.language),
+        options,
+      ),
+    [handleSpeech],
+  );
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
 

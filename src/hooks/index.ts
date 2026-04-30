@@ -12,3 +12,11 @@ export {
   type VolumeLevel,
 } from "./useSoundMode";
 export { useAndroidImmersiveStudyMode } from "./useAndroidImmersiveStudyMode";
+export {
+  StudyModeProvider,
+  getStudyLanguageTypeFromSpeechLanguage,
+  useStudyMode,
+  useStudySpeech,
+  type StudyLanguageType,
+  type StudyModeReturn,
+} from "./useStudyMode";

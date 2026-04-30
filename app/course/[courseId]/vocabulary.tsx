@@ -1,5 +1,5 @@
 import { FontWeights } from "@/constants/fontWeights";
-import { useAndroidImmersiveStudyMode } from "@/src/hooks/useAndroidImmersiveStudyMode";
+import { StudyModeProvider } from "@/src/hooks/useStudyMode";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Stack,
@@ -64,11 +64,17 @@ const { width } = Dimensions.get("window");
  * 4. Swipe Interface: Uses a tinder-like swipe deck for standard courses and a pager for collocations.
  */
 export default function VocabularyScreen() {
+  return (
+    <StudyModeProvider keepAwakeTag="VocabularyStudyScreen">
+      <VocabularyScreenContent />
+    </StudyModeProvider>
+  );
+}
+
+function VocabularyScreenContent() {
   // ============================================================================
   // Section 1: Hooks & Contexts
   // ============================================================================
-  useAndroidImmersiveStudyMode("VocabularyStudyScreen");
-
   const { isDark } = useTheme();
   const bgColors = getBackgroundColors(isDark);
   const { user } = useAuth();

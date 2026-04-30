@@ -13,7 +13,10 @@ import {
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
-import { useSpeech } from "../../src/hooks/useSpeech";
+import {
+  getStudyLanguageTypeFromSpeechLanguage,
+  useStudySpeech,
+} from "../../src/hooks/useStudyMode";
 import {
   splitJapaneseTextSegments,
   stripKanaParens,
@@ -71,7 +74,7 @@ export function WordCardExample({
   expandToContent = false,
   showKana = true,
 }: WordCardExampleProps) {
-  const { speak } = useSpeech();
+  const { handleSpeech } = useStudySpeech();
   useCardSpeechCleanup();
   const { t } = useTranslation();
   const isCollocation = course === "COLLOCATION";
@@ -161,12 +164,16 @@ export function WordCardExample({
   const handleSpeak = React.useCallback(
     async (text: string) => {
       try {
-        await speak(text, { language: speakLanguage, pitch: 1.0 });
+        await handleSpeech(
+          text,
+          getStudyLanguageTypeFromSpeechLanguage(speakLanguage),
+          { language: speakLanguage, pitch: 1.0 },
+        );
       } catch (error) {
         console.error("TTS error:", error);
       }
     },
-    [speak, speakLanguage],
+    [handleSpeech, speakLanguage],
   );
 
   const renderMeta = () => (

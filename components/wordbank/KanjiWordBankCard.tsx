@@ -6,7 +6,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
-import { useSpeech } from "../../src/hooks/useSpeech";
+import { useStudySpeech } from "../../src/hooks/useStudyMode";
 import { FontSizes } from "@/constants/fontSizes";
 import {
   buildKanjiMeaningDisplayRows,
@@ -31,7 +31,7 @@ export function KanjiWordBankCard({
   isDark,
   onSavedWordChange,
 }: KanjiWordBankCardProps) {
-  const { speak } = useSpeech();
+  const { handleSpeech } = useStudySpeech();
   useCardSpeechCleanup();
   const { i18n } = useTranslation();
   const useKorean = i18n.language === "ko";
@@ -49,8 +49,8 @@ export function KanjiWordBankCard({
     : (word.exampleEnglishTranslation ?? []);
 
   const handleSpeakKanji = React.useCallback(() => {
-    void speak(word.kanji ?? "", { language: "ja-JP" });
-  }, [speak, word.kanji]);
+    void handleSpeech(word.kanji ?? "", "JP");
+  }, [handleSpeech, word.kanji]);
   const handleStaticExampleRowPress = React.useCallback(() => {}, []);
 
   const hasGeneralExamples = (word.exampleHurigana?.length ?? 0) > 0 ||

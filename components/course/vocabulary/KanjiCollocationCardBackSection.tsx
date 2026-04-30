@@ -7,7 +7,7 @@ import {
   type GestureResponderEvent,
 } from "react-native";
 import { getFontColors } from "../../../constants/fontColors";
-import { useSpeech } from "../../../src/hooks/useSpeech";
+import { useStudySpeech } from "../../../src/hooks/useStudyMode";
 import type { KanjiNestedListGroup } from "../../../src/types/vocabulary";
 import { styles } from "./KanjiCollocationCardStyles";
 import { itemsAt } from "./kanjiCollocationUtils";
@@ -54,7 +54,7 @@ export function BackSection({
   isActive,
   onFlip,
 }: BackSectionProps) {
-  const { speak } = useSpeech();
+  const { handleSpeech } = useStudySpeech();
   const fontColors = getFontColors(isDark);
 
   const entries = values
@@ -70,9 +70,9 @@ export function BackSection({
     (event: GestureResponderEvent | undefined, text: string) => {
       event?.stopPropagation();
       if (!isActive) return;
-      void speak(text, { language: "ja-JP" });
+      void handleSpeech(text, "JP");
     },
-    [isActive, speak],
+    [handleSpeech, isActive],
   );
 
   if (entries.length === 0) return null;

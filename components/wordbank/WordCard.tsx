@@ -7,7 +7,10 @@ import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
-import { useSpeech } from "../../src/hooks/useSpeech";
+import {
+  getStudyLanguageTypeFromSpeechLanguage,
+  useStudySpeech,
+} from "../../src/hooks/useStudyMode";
 import { FontSizes } from "@/constants/fontSizes";
 import type {
   KanjiNestedListGroup,
@@ -93,7 +96,7 @@ function StandardWordCard({
   showPronunciation = true,
   expandExampleToContent = false,
 }: WordCardProps) {
-  const { speak } = useSpeech();
+  const { handleSpeech } = useStudySpeech();
   useCardSpeechCleanup();
   const { i18n } = useTranslation();
   const { learningLanguage } = useLearningLanguage();
@@ -155,13 +158,28 @@ function StandardWordCard({
       const textToSpeak = learningLanguage === "ja"
         ? (resolved.sharedPronunciation ?? word.word ?? "")
         : word.word ?? "";
-      await speakWordVariants(textToSpeak, speak, {
-        language: speakLanguage,
-      });
+      await speakWordVariants(
+        textToSpeak,
+        (text, options) =>
+          handleSpeech(
+            text,
+            getStudyLanguageTypeFromSpeechLanguage(options?.language),
+            options,
+          ),
+        {
+          language: speakLanguage,
+        },
+      );
     } catch (error) {
       console.error("Word card TTS error:", error);
     }
-  }, [speak, word.word, learningLanguage, resolved.sharedPronunciation, speakLanguage]);
+  }, [
+    handleSpeech,
+    learningLanguage,
+    resolved.sharedPronunciation,
+    speakLanguage,
+    word.word,
+  ]);
 
   return (
     <View

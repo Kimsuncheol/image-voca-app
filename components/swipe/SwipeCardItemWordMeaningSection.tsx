@@ -4,7 +4,7 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
-import { useSpeech } from "../../src/hooks/useSpeech";
+import { useStudySpeech } from "../../src/hooks/useStudyMode";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { getIdiomTitleFontSize } from "../../src/utils/idiomDisplay";
 import { speakWordVariants } from "../../src/utils/wordVariants";
@@ -45,7 +45,12 @@ export function SwipeCardItemWordMeaningSection({
 }: SwipeCardItemWordMeaningSectionProps) {
   const fontColors = getFontColors(isDark);
   useCardSpeechCleanup(isActive);
-  const { speak: speakText } = useSpeech();
+  const { handleSpeech } = useStudySpeech();
+  const speakText = React.useCallback(
+    (text: string, options?: Parameters<typeof handleSpeech>[2]) =>
+      handleSpeech(text, "EN", options),
+    [handleSpeech],
+  );
   const normalizedPronunciation = pronunciation?.trim();
   const wordVariants = React.useMemo(() => parseWordVariants(word), [word]);
   const isMultiVariantWord = wordVariants.length > 1;

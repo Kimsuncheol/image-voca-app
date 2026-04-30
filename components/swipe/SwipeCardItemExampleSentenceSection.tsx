@@ -14,7 +14,7 @@ import {
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
-import { useSpeech } from "../../src/hooks/useSpeech";
+import { useStudySpeech } from "../../src/hooks/useStudyMode";
 import { stripKanaParens } from "../../src/utils/japaneseText";
 import { formatSynonyms } from "../../src/utils/synonyms";
 
@@ -41,7 +41,7 @@ export function SwipeCardItemExampleSentenceSection({
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
   useCardSpeechCleanup(isActive);
-  const { speak } = useSpeech();
+  const { handleSpeech } = useStudySpeech();
 
   // Split examples and translations by newlines
   // Remove number prefixes (e.g., "1. ", "2. ") from the raw text
@@ -70,9 +70,9 @@ export function SwipeCardItemExampleSentenceSection({
       if (!isActive) {
         return;
       }
-      await speak(text, { language: "en-US" });
+      await handleSpeech(text, "EN");
     },
-    [isActive, speak],
+    [handleSpeech, isActive],
   );
 
   return (

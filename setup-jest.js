@@ -6,6 +6,18 @@ jest.mock(
   () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
 );
 
+jest.mock("@react-navigation/native", () => {
+  const React = require("react");
+  const actual = jest.requireActual("@react-navigation/native");
+
+  return {
+    ...actual,
+    useFocusEffect: (callback) => {
+      React.useEffect(() => callback(), [callback]);
+    },
+  };
+});
+
 jest.mock("expo-constants", () => {
   const constants = {
     appOwnership: null,
@@ -84,6 +96,41 @@ jest.mock("expo-speech", () => ({
   isSpeakingAsync: jest.fn(async () => false),
   getAvailableVoicesAsync: jest.fn(async () => []),
 }));
+
+jest.mock("expo-keep-awake", () => ({
+  activateKeepAwakeAsync: jest.fn(async () => undefined),
+  deactivateKeepAwake: jest.fn(async () => undefined),
+}));
+
+jest.mock("expo-navigation-bar", () => ({
+  setBehaviorAsync: jest.fn(async () => undefined),
+  setVisibilityAsync: jest.fn(async () => undefined),
+}));
+
+jest.mock("react-native-volume-manager", () => {
+  const RingerModeType = {
+    silent: 0,
+    vibrate: 1,
+    normal: 2,
+  };
+
+  const VolumeManager = {
+    getVolume: jest.fn(async () => ({ volume: 1 })),
+    setVolume: jest.fn(async () => undefined),
+    showNativeVolumeUI: jest.fn(async () => undefined),
+  };
+
+  return {
+    VolumeManager,
+    RingerModeType,
+    useVolume: () => ({ volume: 1 }),
+    useSilentSwitch: () => ({ isMuted: false, initialQuery: false }),
+    useRingerMode: () => ({
+      mode: RingerModeType.normal,
+      initialValueLoaded: true,
+    }),
+  };
+});
 
 jest.mock("expo-crypto", () => ({
   CryptoDigestAlgorithm: {

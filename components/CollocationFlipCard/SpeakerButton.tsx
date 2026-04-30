@@ -7,6 +7,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import {
+  getStudyLanguageTypeFromSpeechLanguage,
+  useStudySpeech,
+} from "../../src/hooks/useStudyMode";
 import { useSpeech } from "../../src/hooks/useSpeech";
 import { useSoundMode } from "../../src/hooks/useSoundMode";
 
@@ -21,12 +25,11 @@ export const SpeakerButton: React.FC<SpeakerButtonProps> = ({
   isDark,
   speakOptions,
 }) => {
-  const { speak, stop, pause, resume, isSpeaking, isPaused } = useSpeech();
+  const { stop, pause, resume, isSpeaking, isPaused } = useSpeech();
+  const { handleSpeech: speakWithStudyMode } = useStudySpeech();
   const {
-    mode,
     isMuted,
     isVibrate,
-    volume,
     volumeLevel,
     isVolumeMuted,
     isVolumeLow,
@@ -44,22 +47,6 @@ export const SpeakerButton: React.FC<SpeakerButtonProps> = ({
         await pause();
       }
     } else {
-      // Check volume level before speaking
-      if (isVolumeMuted) {
-        // Show alert when volume is at 0
-        Alert.alert(
-          "Volume is Muted",
-          "Your device volume is set to 0. Please increase the volume to hear the audio.",
-          [
-            {
-              text: "OK",
-              style: "default",
-            },
-          ]
-        );
-        return; // Don't play audio
-      }
-
       // Check iOS silent switch
       if (isMuted && Platform.OS === "ios") {
         // Show alert when silent switch is on
@@ -71,32 +58,12 @@ export const SpeakerButton: React.FC<SpeakerButtonProps> = ({
               text: "Play Anyway",
               onPress: async () => {
                 // User wants to play anyway (they might adjust volume during playback)
-                await speak(text, {
-                  language: speakOptions?.language ?? "en-US",
-                });
-              },
-            },
-            {
-              text: "Cancel",
-              style: "cancel",
-            },
-          ]
-        );
-        return;
-      }
-
-      // Warn about low volume but allow playback
-      if (isVolumeLow) {
-        Alert.alert(
-          "Low Volume",
-          `Volume is low (${Math.round(volume * 100)}%). You may not hear the audio clearly.`,
-          [
-            {
-              text: "Play Anyway",
-              onPress: async () => {
-                await speak(text, {
-                  language: speakOptions?.language ?? "en-US",
-                });
+                await speakWithStudyMode(
+                  text,
+                  getStudyLanguageTypeFromSpeechLanguage(
+                    speakOptions?.language ?? "en-US",
+                  ),
+                );
               },
             },
             {
@@ -109,20 +76,18 @@ export const SpeakerButton: React.FC<SpeakerButtonProps> = ({
       }
 
       // Start speaking (normal volume)
-      await speak(text, {
-        language: speakOptions?.language ?? "en-US",
-      });
+      await speakWithStudyMode(
+        text,
+        getStudyLanguageTypeFromSpeechLanguage(speakOptions?.language ?? "en-US"),
+      );
     }
   }, [
     text,
     speakOptions,
     isPaused,
     isSpeaking,
-    isVolumeMuted,
     isMuted,
-    isVolumeLow,
-    volume,
-    speak,
+    speakWithStudyMode,
     stop,
     pause,
     resume,
