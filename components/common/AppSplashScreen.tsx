@@ -9,15 +9,22 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import { useColorScheme } from "../../hooks/use-color-scheme";
+
 interface Props {
   visible: boolean;
   onHidden: () => void;
 }
 
 export function AppSplashScreen({ visible, onHidden }: Props) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
   const containerOpacity = useSharedValue(1);
   const logoScale = useSharedValue(0.82);
   const logoOpacity = useSharedValue(0);
+  const logoSource = isDark
+    ? require("../../assets/images/icon.png")
+    : require("../../assets/images/icon_white.png");
 
   useEffect(() => {
     logoOpacity.value = withTiming(1, {
@@ -49,10 +56,15 @@ export function AppSplashScreen({ visible, onHidden }: Props) {
   }));
 
   return (
-    <Animated.View style={[styles.container, containerStyle]}>
+    <Animated.View
+      style={[
+        styles.container,
+        { backgroundColor: isDark ? "#000" : "#fff" },
+        containerStyle,
+      ]}
+    >
       <Animated.Image
-         
-        source={require("../../assets/images/icon.png")}
+        source={logoSource}
         style={[styles.logo, logoStyle]}
         resizeMode="contain"
       />
@@ -63,7 +75,6 @@ export function AppSplashScreen({ visible, onHidden }: Props) {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "#000",
     alignItems: "center",
     justifyContent: "center",
     zIndex: 999,

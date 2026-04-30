@@ -399,7 +399,7 @@ export function WordCardExample({
         <ScrollView
           testID="word-card-example-scroll"
           style={[styles.container, styles.containerCapped]}
-          showsVerticalScrollIndicator={true}
+          showsVerticalScrollIndicator={false}
           nestedScrollEnabled={true}
         >
           {standardContent}
