@@ -47,9 +47,6 @@ export function CourseCard({ course, onPress, isRecent }: CourseCardProps) {
         <ThemedText style={styles.description}>
           {t(course.descriptionKey, { defaultValue: course.description })}
         </ThemedText>
-        <ThemedText style={styles.wordCount}>
-          {t("courses.wordCount", { count: course.wordCount })}
-        </ThemedText>
       </View>
       <Ionicons
         name="chevron-forward"
@@ -88,11 +85,6 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.label,
     opacity: 0.6,
     marginTop: 2,
-  },
-  wordCount: {
-    fontSize: FontSizes.caption,
-    opacity: 0.5,
-    marginTop: 4,
   },
   recentBadge: {
     paddingHorizontal: 8,

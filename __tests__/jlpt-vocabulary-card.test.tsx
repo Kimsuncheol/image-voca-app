@@ -1,4 +1,4 @@
-import { fireEvent, render } from "@testing-library/react-native";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
 import { StyleSheet } from "react-native";
 import { getBackgroundColors } from "../constants/backgroundColors";
@@ -119,6 +119,9 @@ describe("JlptVocabularyCard", () => {
     expect(getByText("https://cdn.example.com/jlpt.jpg")).toBeTruthy();
     expect(getByTestId("jlpt-card-info")).toBeTruthy();
     expect(getByTestId("jlpt-card-info-scroll")).toBeTruthy();
+    expect(getByTestId("jlpt-card-info-scroll").props.showsVerticalScrollIndicator).toBe(
+      false,
+    );
     expect(getByText("間")).toBeTruthy();
     expect(getByText("あいだ")).toBeTruthy();
     expect(getByText("interval; space; between")).toBeTruthy();
@@ -451,7 +454,7 @@ describe("JlptVocabularyCard", () => {
     });
   });
 
-  it("uses exampleHurigana for TTS when the example is tapped", () => {
+  it("uses exampleHurigana for TTS when the example is tapped", async () => {
     const { getByText } = render(
       <JlptVocabularyCard
         item={buildCard({
@@ -463,12 +466,14 @@ describe("JlptVocabularyCard", () => {
 
     fireEvent.press(getByText("雨戸を閉める。"));
 
-    expect(mockSpeak).toHaveBeenCalledWith("あまどをしめる。", {
-      language: "ja-JP",
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledWith("あまどをしめる。", {
+        language: "ja-JP",
+      });
     });
   });
 
-  it("falls back to stripped example text for TTS when exampleHurigana is missing", () => {
+  it("falls back to stripped example text for TTS when exampleHurigana is missing", async () => {
     const { getByText } = render(
       <JlptVocabularyCard
         item={buildCard({
@@ -480,12 +485,14 @@ describe("JlptVocabularyCard", () => {
 
     fireEvent.press(getByText("雨戸を閉める。"));
 
-    expect(mockSpeak).toHaveBeenCalledWith("雨戸を閉める。", {
-      language: "ja-JP",
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledWith("雨戸を閉める。", {
+        language: "ja-JP",
+      });
     });
   });
 
-  it("keeps exampleHurigana hidden while showKana only changes visible text", () => {
+  it("keeps exampleHurigana hidden while showKana only changes visible text", async () => {
     const { getByText } = render(
       <JlptVocabularyCard
         item={buildCard({
@@ -498,8 +505,10 @@ describe("JlptVocabularyCard", () => {
 
     fireEvent.press(getByText("雨(あま)戸(ど)を閉(し)める。"));
 
-    expect(mockSpeak).toHaveBeenCalledWith("あまどをしめる。", {
-      language: "ja-JP",
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledWith("あまどをしめる。", {
+        language: "ja-JP",
+      });
     });
   });
 });

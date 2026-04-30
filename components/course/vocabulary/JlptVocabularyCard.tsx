@@ -295,7 +295,7 @@ export function JlptVocabularyCard({
         <ScrollView
           testID="jlpt-card-info-scroll"
           style={styles.cardInfoScroll}
-          showsVerticalScrollIndicator={true}
+          showsVerticalScrollIndicator={false}
           nestedScrollEnabled={true}
           contentContainerStyle={styles.cardInfoContent}
         >
