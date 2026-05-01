@@ -5,6 +5,7 @@ import {
   DefaultTheme,
   ThemeProvider as NavigationThemeProvider,
 } from "@react-navigation/native";
+import * as Localization from "expo-localization";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -32,7 +33,7 @@ import {
 import { useAuthenticatedDeviceRegistration } from "../src/hooks/useAuthenticatedDeviceRegistration";
 import { useDeviceDeletionEnforcement } from "../src/hooks/useDeviceDeletionEnforcement";
 import { useStudyReminderNotifications } from "../src/hooks/useStudyReminderNotifications";
-import { hydrateLanguage } from "../src/i18n";
+import { hydrateLanguage, syncLanguageWithSystemLocales } from "../src/i18n";
 import { initializeMobileAds } from "../src/services/mobileAds";
 import {
   fetchVocabularyCards,
@@ -54,6 +55,22 @@ const sleep = (ms: number) =>
   new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+
+function LanguageSettingsSync() {
+  const locales = Localization.useLocales();
+  const localeSignature = locales
+    .map(
+      (locale) =>
+        `${locale.languageTag}:${locale.languageCode}:${locale.regionCode}`,
+    )
+    .join("|");
+
+  useEffect(() => {
+    void syncLanguageWithSystemLocales(locales);
+  }, [localeSignature, locales]);
+
+  return null;
+}
 
 export function RootLayoutNav() {
   const colorScheme = useColorScheme();
@@ -121,6 +138,7 @@ export function RootLayoutNav() {
         <NavigationThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
+          <LanguageSettingsSync />
           <NetworkErrorOverlay />
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

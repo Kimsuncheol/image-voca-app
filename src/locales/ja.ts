@@ -82,6 +82,7 @@ const ja = {
     },
     language: {
       title: "言語",
+      systemDefault: "システム既定",
       english: "英語",
       korean: "韓国語",
       japanese: "日本語",

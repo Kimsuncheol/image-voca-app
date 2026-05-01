@@ -48,7 +48,7 @@ jest.mock("../src/context/ThemeContext", () => ({
 }));
 
 jest.mock("../src/i18n", () => ({
-  setLanguage: jest.fn(),
+  setLanguageMode: jest.fn(),
 }));
 
 jest.mock("../src/services/firebase", () => ({
@@ -68,6 +68,14 @@ jest.mock("../src/stores/dashboardSettingsStore", () => ({
   useDashboardSettingsStore: () => ({
     loadSettings: mockLoadDashboardSettings,
   }),
+}));
+
+jest.mock("../src/stores/languageSettingsStore", () => ({
+  useLanguageSettingsStore: (selector: any) =>
+    selector({
+      mode: "system",
+      effectiveLanguage: "en",
+    }),
 }));
 
 jest.mock("../src/utils/notifications", () => ({

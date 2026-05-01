@@ -85,6 +85,7 @@ const ko = {
     },
     language: {
       title: "언어",
+      systemDefault: "시스템 기본값",
       english: "영어",
       korean: "한국어",
       japanese: "일본어",

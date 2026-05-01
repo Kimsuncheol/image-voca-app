@@ -7,7 +7,11 @@ const mockReplace = jest.fn();
 const mockUseAuth = jest.fn();
 
 jest.mock("expo-router", () => {
-  const Stack = ({ children }: { children: React.ReactNode }) => children;
+  const Stack = (({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  )) as React.FC<{ children: React.ReactNode }> & {
+    Screen: React.FC;
+  };
   Stack.displayName = "MockStack";
   Stack.Screen = () => null;
   Stack.Screen.displayName = "MockStackScreen";
@@ -81,6 +85,13 @@ jest.mock("../../src/hooks/useDeviceDeletionEnforcement", () => ({
 
 jest.mock("../../src/i18n", () => ({
   hydrateLanguage: jest.fn().mockResolvedValue(undefined),
+  syncLanguageWithSystemLocales: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock("expo-localization", () => ({
+  useLocales: () => [
+    { languageTag: "en-US", languageCode: "en", regionCode: "US" },
+  ],
 }));
 
 jest.mock("../../src/services/vocabularyPrefetch", () => ({

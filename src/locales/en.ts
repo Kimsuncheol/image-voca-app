@@ -86,6 +86,7 @@ const en = {
     },
     language: {
       title: "Language",
+      systemDefault: "System Default",
       english: "English",
       korean: "Korean",
       japanese: "Japanese",

@@ -45,9 +45,13 @@ import { SpeechSection } from "../../components/settings/SpeechSection"; // Pron
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useTheme } from "../../src/context/ThemeContext"; // Theme preferences context
-import { setLanguage, SupportedLanguage } from "../../src/i18n"; // Language configuration
+import {
+  setLanguageMode,
+  type LanguageMode,
+} from "../../src/i18n"; // Language configuration
 import { auth } from "../../src/services/firebase"; // Firebase auth instance
 import { useDashboardSettingsStore } from "../../src/stores/dashboardSettingsStore";
+import { useLanguageSettingsStore } from "../../src/stores/languageSettingsStore";
 
 // ============================================================================
 // NOTIFICATION UTILITIES
@@ -91,12 +95,13 @@ export default function SettingsScreen() {
   // NAVIGATION & INTERNATIONALIZATION
   // ============================================================================
   const router = useRouter(); // For navigation (e.g., redirecting after sign out)
-  const { t, i18n } = useTranslation(); // Translation function and i18n instance
+  const { t } = useTranslation(); // Translation function
 
   // ============================================================================
   // USER DATA & STORES
   // ============================================================================
   const { loadSettings: loadDashboardSettings } = useDashboardSettingsStore();
+  const languageMode = useLanguageSettingsStore((state) => state.mode);
 
   // ============================================================================
   // INITIALIZATION EFFECT
@@ -284,12 +289,12 @@ export default function SettingsScreen() {
    * Supported languages are defined in the i18n configuration.
    *
    * @async
-   * @param {SupportedLanguage} language - Language code (e.g., 'en', 'ko', 'ja')
+   * @param {LanguageMode} mode - Language mode (system, en, ko, ja)
    * @returns {Promise<void>}
    */
-  const handleLanguageChange = async (language: SupportedLanguage) => {
+  const handleLanguageModeChange = async (mode: LanguageMode) => {
     try {
-      await setLanguage(language); // Updates i18n and saves to AsyncStorage
+      await setLanguageMode(mode); // Updates i18n and saves to AsyncStorage
       if (studyReminderEnabled) {
         await scheduleDailyNotifications();
       }
@@ -379,8 +384,8 @@ export default function SettingsScreen() {
         <LanguageSection
           styles={styles}
           isDark={isDark}
-          currentLanguage={i18n.language}
-          onChangeLanguage={handleLanguageChange}
+          currentMode={languageMode}
+          onChangeLanguageMode={handleLanguageModeChange}
           t={t}
         />
 
@@ -465,6 +470,11 @@ const getStyles = (isDark: boolean) => {
     optionLeft: {
       flexDirection: "row",
       alignItems: "center",
+      flex: 1,
+    },
+
+    optionTextGroup: {
+      flex: 1,
     },
 
     // Option label text
