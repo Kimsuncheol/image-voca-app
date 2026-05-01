@@ -10,6 +10,7 @@ import { FontSizes } from "@/constants/fontSizes";
 import {
   DashboardHeader,
   DashboardPopFamousQuote,
+  DashboardPopQuizCard,
   DashboardStats,
 } from "../../components/dashboard";
 import { BackgroundColors, getBackgroundColors } from "../../constants/backgroundColors";
@@ -86,6 +87,7 @@ export default function DashboardScreen() {
             <Ionicons name="close" size={18} color="#fff" />
           </TouchableOpacity>
         )}
+        <DashboardPopQuizCard />
         {elementOrder.map((id) => elementMap[id])}
         <DashboardStats
           streak={stats?.currentStreak ?? 0}
