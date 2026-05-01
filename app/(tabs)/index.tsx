@@ -13,6 +13,7 @@ import {
   DashboardPopQuizCard,
   DashboardStats,
 } from "../../components/dashboard";
+import { TopBannerAd } from "../../components/ads/TopBannerAd";
 import { BackgroundColors, getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext";
@@ -65,6 +66,7 @@ export default function DashboardScreen() {
     <View
       style={[styles.container, { backgroundColor: bgColors.screen }]}
     >
+      <TopBannerAd includeTopInset={false} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
