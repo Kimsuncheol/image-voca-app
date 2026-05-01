@@ -17,7 +17,8 @@ import { useAuth } from "../../src/context/AuthContext";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import {
-  fetchPopQuizMatchingGame,
+  fetchPopQuizMatchingGamesBatch,
+  type FetchPopQuizBatchResult,
   type PopQuizMatchingGame,
   type PopQuizUnavailableReason,
 } from "../../src/services/popQuizService";
@@ -29,6 +30,13 @@ import {
   isCourseAvailableForLanguage,
   isJlptLevelCourseId,
 } from "../../src/types/vocabulary";
+import {
+  formatIdiomMeaningForDisplay,
+  formatIdiomTitleForDisplay,
+  getIdiomTitleFontSize,
+  getIdiomTitleMinimumFontScale,
+  isNumberedMeaningDisplayCourseId,
+} from "../../src/utils/idiomDisplay";
 import { ThemedText } from "../themed-text";
 
 const WRONG_FEEDBACK_MS = 700;
@@ -60,6 +68,81 @@ const shuffleArray = <T,>(items: T[]): T[] => {
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
+};
+
+const getTileTextMetrics = (
+  text: string,
+  variant: "item" | "choice",
+  courseId?: string,
+) => {
+  if (variant === "item" && isNumberedMeaningDisplayCourseId(courseId)) {
+    const longestLine = text
+      .split("\n")
+      .reduce((longest, line) => (line.length > longest.length ? line : longest), "");
+    const fontSize = getIdiomTitleFontSize(
+      longestLine || text,
+      courseId,
+      FontSizes.titleLg,
+    );
+
+    return {
+      fontSize,
+      lineHeight: Math.round(fontSize * 1.25),
+      fontWeight: FontWeights.bold,
+      minimumFontScale: getIdiomTitleMinimumFontScale(
+        courseId,
+        FontSizes.titleLg,
+        fontSize,
+      ),
+    };
+  }
+
+  const compactLength = text.replace(/\s+/g, "").length;
+  const hasMultipleLines = text.includes("\n");
+
+  if (variant === "choice") {
+    if (hasMultipleLines || compactLength > 34) {
+      return {
+        fontSize: FontSizes.caption,
+        lineHeight: LineHeights.body,
+        fontWeight: FontWeights.semiBold,
+        minimumFontScale: 0.7,
+      };
+    }
+    if (compactLength > 22) {
+      return {
+        fontSize: FontSizes.label,
+        lineHeight: LineHeights.bodyMd,
+        fontWeight: FontWeights.semiBold,
+        minimumFontScale: 0.72,
+      };
+    }
+  }
+
+  if (compactLength > 26) {
+    return {
+      fontSize: FontSizes.body,
+      lineHeight: LineHeights.bodyLg,
+      fontWeight: FontWeights.semiBold,
+      minimumFontScale: 0.64,
+    };
+  }
+
+  if (compactLength > 16) {
+    return {
+      fontSize: FontSizes.bodyMd,
+      lineHeight: LineHeights.bodyXl,
+      fontWeight: FontWeights.bold,
+      minimumFontScale: 0.68,
+    };
+  }
+
+  return {
+    fontSize: FontSizes.bodyLg,
+    lineHeight: LineHeights.title,
+    fontWeight: FontWeights.bold,
+    minimumFontScale: 0.78,
+  };
 };
 
 const getFirstIncompleteDay = (
@@ -114,6 +197,9 @@ export function DashboardPopQuizCard() {
   const [loading, setLoading] = useState(true);
   const [state, setState] = useState<QuizState>(INITIAL_STATE);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const [activeDayNumber, setActiveDayNumber] = useState(1);
+  const [prefetchedDayResults, setPrefetchedDayResults] =
+    useState<FetchPopQuizBatchResult>({});
   const [shuffledChoices, setShuffledChoices] =
     useState<PopQuizMatchingGame["choices"]>([]);
   const wrongTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -218,14 +304,20 @@ export function DashboardPopQuizCard() {
         setGame(null);
         resetGame(null);
 
-        const result = await fetchPopQuizMatchingGame({
+        const results = await fetchPopQuizMatchingGamesBatch({
           language: learningLanguage,
           course: selectedCourse,
-          day: dayNumber,
+          days: [dayNumber, dayNumber + 1],
           appLanguage: i18n.language,
         });
 
         if (!active) return;
+        const result = results[dayNumber] ?? {
+          game: null,
+          reason: "missing-day" as const,
+        };
+        setActiveDayNumber(dayNumber);
+        setPrefetchedDayResults(results);
         setGame(result.game);
         setUnavailableReason(result.reason);
         resetGame(result.game);
@@ -266,6 +358,59 @@ export function DashboardPopQuizCard() {
       }
     };
   }, [clearTransientState, currentPageMatched, isLastPage, state.completed, totalPages]);
+
+  React.useEffect(() => {
+    if (!state.completed || !game) return undefined;
+
+    const nextDay = activeDayNumber + 1;
+    const nextResult = prefetchedDayResults[nextDay] ?? {
+      game: null,
+      reason: "missing-day" as const,
+    };
+
+    pageAdvanceTimerRef.current = setTimeout(() => {
+      setActiveDayNumber(nextDay);
+      setGame(nextResult.game);
+      setUnavailableReason(nextResult.reason);
+      resetGame(nextResult.game);
+      setLoading(false);
+      pageAdvanceTimerRef.current = null;
+
+      if (nextResult.game) {
+        void fetchPopQuizMatchingGamesBatch({
+          language: learningLanguage,
+          course: selectedCourse,
+          days: [nextDay + 1],
+          appLanguage: i18n.language,
+        })
+          .then((results) => {
+            setPrefetchedDayResults((current) => ({
+              ...current,
+              ...results,
+            }));
+          })
+          .catch(() => {
+            // Prefetch failures should not interrupt the active quiz.
+          });
+      }
+    }, PAGE_ADVANCE_MS);
+
+    return () => {
+      if (pageAdvanceTimerRef.current) {
+        clearTimeout(pageAdvanceTimerRef.current);
+        pageAdvanceTimerRef.current = null;
+      }
+    };
+  }, [
+    activeDayNumber,
+    game,
+    i18n.language,
+    learningLanguage,
+    prefetchedDayResults,
+    resetGame,
+    selectedCourse,
+    state.completed,
+  ]);
 
   const completeMatch = useCallback(
     (itemId: string, choiceId: string) => {
@@ -360,7 +505,9 @@ export function DashboardPopQuizCard() {
             {t("dashboard.popQuiz.unavailable.title")}
           </ThemedText>
           <ThemedText style={styles.stateText}>
-            {t(getUnavailableKey(unavailableReason))}
+            {t(getUnavailableKey(unavailableReason), {
+              day: activeDayNumber,
+            })}
           </ThemedText>
         </View>
       ) : (
@@ -369,10 +516,17 @@ export function DashboardPopQuizCard() {
             <View style={styles.column}>
               {visibleItems.map((item) => {
                 const isMatched = Boolean(state.matchedChoiceByItemId[item.id]);
+                const displayText = formatIdiomTitleForDisplay(
+                  item.word,
+                  game.course,
+                  FontSizes.titleLg,
+                );
                 return (
                   <PopQuizTile
                     key={item.id}
-                    text={item.word}
+                    text={displayText}
+                    variant="item"
+                    courseId={game.course}
                     isDark={isDark}
                     color={courseColor}
                     state={
@@ -395,10 +549,16 @@ export function DashboardPopQuizCard() {
             <View style={styles.column}>
               {visibleChoices.map((choice) => {
                 const isMatched = matchedChoiceIds.has(choice.id);
+                const displayText = formatIdiomMeaningForDisplay(
+                  choice.text,
+                  game.course,
+                );
                 return (
                   <PopQuizTile
                     key={choice.id}
-                    text={choice.text}
+                    text={displayText}
+                    variant="choice"
+                    courseId={game.course}
                     isDark={isDark}
                     color={courseColor}
                     state={
@@ -427,6 +587,8 @@ export function DashboardPopQuizCard() {
 
 function PopQuizTile({
   text,
+  variant,
+  courseId,
   state,
   color,
   isDark,
@@ -435,6 +597,8 @@ function PopQuizTile({
   testID,
 }: {
   text: string;
+  variant: "item" | "choice";
+  courseId?: string;
   state: "neutral" | "selected" | "correct" | "wrong";
   color: string;
   isDark: boolean;
@@ -459,6 +623,17 @@ function PopQuizTile({
         : state === "selected"
           ? `${color}18`
           : backgroundColor;
+  const textMetrics = getTileTextMetrics(text, variant, courseId);
+  const isIdiomTitle =
+    variant === "item" && isNumberedMeaningDisplayCourseId(courseId);
+  const hasDisplayLineBreak = text.includes("\n");
+  const shouldFitSingleLineIdiomTitle = isIdiomTitle && !hasDisplayLineBreak;
+  const numberOfLines =
+    isIdiomTitle || (variant === "choice" && hasDisplayLineBreak)
+      ? hasDisplayLineBreak
+        ? undefined
+        : 1
+      : 2;
 
   return (
     <Pressable
@@ -476,11 +651,19 @@ function PopQuizTile({
       ]}
     >
       <ThemedText
-        numberOfLines={2}
-        adjustsFontSizeToFit
-        minimumFontScale={0.78}
+        testID={testID ? `${testID}-text` : undefined}
+        numberOfLines={numberOfLines}
+        adjustsFontSizeToFit={
+          shouldFitSingleLineIdiomTitle ? true : !hasDisplayLineBreak
+        }
+        minimumFontScale={textMetrics.minimumFontScale}
         style={[
           styles.tileText,
+          {
+            fontSize: textMetrics.fontSize,
+            lineHeight: textMetrics.lineHeight,
+            fontWeight: textMetrics.fontWeight,
+          },
           state === "selected" && { color },
           state === "correct" && styles.correctText,
           state === "wrong" && styles.wrongText,

@@ -48,6 +48,8 @@ export type FetchPopQuizResult = {
   reason?: PopQuizUnavailableReason;
 };
 
+export type FetchPopQuizBatchResult = Record<number, FetchPopQuizResult>;
+
 type RawMatchingItem = {
   id?: unknown;
   word?: unknown;
@@ -139,29 +141,36 @@ const resolveChoiceText = (
   language: "english" | "japanese",
   appLanguage?: string,
 ) => {
-  const directText = normalizeString(source.text);
-  if (directText) return directText;
-
-  const directMeaning = normalizeString(source.meaning);
-  if (directMeaning) return directMeaning;
+  const useKorean = appLanguage?.toLowerCase().startsWith("ko") ?? false;
 
   if (language === "japanese") {
     const meaningRecord = asRecord(source.meaning);
     const preferred =
-      appLanguage === "ko"
+      useKorean
         ? normalizeString(source.meaningKorean) ??
           normalizeString(meaningRecord?.meaningKorean)
         : normalizeString(source.meaningEnglish) ??
           normalizeString(meaningRecord?.meaningEnglish);
     const fallback =
-      appLanguage === "ko"
+      useKorean
         ? normalizeString(source.meaningEnglish) ??
           normalizeString(meaningRecord?.meaningEnglish)
         : normalizeString(source.meaningKorean) ??
           normalizeString(meaningRecord?.meaningKorean);
 
-    return preferred ?? fallback;
+    return (
+      preferred ??
+      fallback ??
+      normalizeString(source.text) ??
+      normalizeString(source.meaning)
+    );
   }
+
+  const directText = normalizeString(source.text);
+  if (directText) return directText;
+
+  const directMeaning = normalizeString(source.meaning);
+  if (directMeaning) return directMeaning;
 
   return (
     normalizeString(source.meaningEnglish) ??
@@ -381,48 +390,117 @@ export const fetchPopQuizMatchingGame = async ({
   day: number;
   appLanguage?: string;
 }): Promise<FetchPopQuizResult> => {
-  if (!course) return { game: null, reason: "missing-course" };
+  const results = await fetchPopQuizMatchingGamesBatch({
+    language,
+    course,
+    days: [day],
+    appLanguage,
+  });
+  return results[day] ?? { game: null, reason: "missing-day" };
+};
+
+export const fetchPopQuizMatchingGamesBatch = async ({
+  language,
+  course,
+  days,
+  appLanguage,
+}: {
+  language: LearningLanguage;
+  course?: CourseType;
+  days: number[];
+  appLanguage?: string;
+}): Promise<FetchPopQuizBatchResult> => {
+  const uniqueDays = Array.from(
+    new Set(days.filter((day) => Number.isInteger(day) && day > 0)),
+  );
+  if (uniqueDays.length === 0) return {};
+
+  if (!course) {
+    return Object.fromEntries(
+      uniqueDays.map((day) => [day, { game: null, reason: "missing-course" }]),
+    );
+  }
 
   const storageLanguage = language === "ja" ? "japanese" : "english";
   const storageLevel = language === "ja" ? getPopQuizStorageLevel(course) : null;
   if (language === "ja" && !storageLevel) {
-    return { game: null, reason: "missing-level" };
+    return Object.fromEntries(
+      uniqueDays.map((day) => [day, { game: null, reason: "missing-level" }]),
+    );
   }
 
-  const cacheKey = getPopQuizCacheKey({
-    language: storageLanguage,
-    course,
-    level: storageLevel,
-    day,
-  });
-  const cached = await readCachedGame(cacheKey, appLanguage);
-  if (cached) return { game: cached };
+  const results: FetchPopQuizBatchResult = {};
+  const uncachedDays: number[] = [];
+
+  await Promise.all(
+    uniqueDays.map(async (day) => {
+      const cacheKey = getPopQuizCacheKey({
+        language: storageLanguage,
+        course,
+        level: storageLevel,
+        day,
+      });
+      const cached = await readCachedGame(cacheKey, appLanguage);
+      if (cached) {
+        results[day] = { game: cached };
+        return;
+      }
+      uncachedDays.push(day);
+    }),
+  );
+
+  if (uncachedDays.length === 0) return results;
+
+  const setUncachedReason = (reason: PopQuizUnavailableReason) => {
+    uncachedDays.forEach((day) => {
+      results[day] = { game: null, reason };
+    });
+    return results;
+  };
 
   const configuredPath = getPopQuizCollectionPath(language);
   if (!normalizeString(configuredPath)) {
-    return { game: null, reason: "missing-config" };
+    return setUncachedReason("missing-config");
   }
 
   const pathSegments = buildPopQuizDocPathSegments(language);
-  if (!pathSegments) return { game: null, reason: "invalid-config" };
+  if (!pathSegments) return setUncachedReason("invalid-config");
   const [firstSegment, ...restSegments] = pathSegments;
 
   const snapshot = await getDoc(doc(db, firstSegment, ...restSegments));
-  if (!snapshot.exists()) return { game: null, reason: "not-found" };
+  if (!snapshot.exists()) return setUncachedReason("not-found");
 
   const root = snapshot.data() as Record<string, unknown>;
-  const nested = getPopQuizNestedDayData({
-    root,
-    language,
-    course,
-    level: storageLevel,
-    day,
-  });
-  if (!nested.data) return { game: null, reason: nested.reason };
+  await Promise.all(
+    uncachedDays.map(async (day) => {
+      const nested = getPopQuizNestedDayData({
+        root,
+        language,
+        course,
+        level: storageLevel,
+        day,
+      });
+      if (!nested.data) {
+        results[day] = { game: null, reason: nested.reason };
+        return;
+      }
 
-  const game = normalizePopQuizMatchingGame(nested.data, appLanguage);
-  if (!game) return { game: null, reason: "malformed" };
+      const game = normalizePopQuizMatchingGame(nested.data, appLanguage);
+      if (!game) {
+        results[day] = { game: null, reason: "malformed" };
+        return;
+      }
 
-  await writeCachedGame(cacheKey, game);
-  return { game };
+      const cacheKey = getPopQuizCacheKey({
+        language: storageLanguage,
+        course,
+        level: storageLevel,
+        day,
+      });
+      await writeCachedGame(cacheKey, game);
+      results[day] = { game };
+    }),
+  );
+
+  return results;
 };

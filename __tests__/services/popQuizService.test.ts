@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { doc, getDoc } from "firebase/firestore";
 import {
   buildPopQuizDocPathSegments,
+  fetchPopQuizMatchingGamesBatch,
   fetchPopQuizMatchingGame,
   getPopQuizCacheKey,
   getPopQuizStorageLevel,
@@ -59,6 +60,14 @@ const japaneseQuiz = {
     },
   ],
   answer_key: [{ item_id: "q1", choice_id: "c1" }],
+};
+
+const englishQuizDay2 = {
+  ...englishQuiz,
+  day: 2,
+  items: [{ id: "q3", word: "water", meaning: "liquid" }],
+  choices: [{ id: "c3", meaning: "liquid" }],
+  answer_key: [{ item_id: "q3", choice_id: "c3" }],
 };
 
 describe("popQuizService", () => {
@@ -127,6 +136,70 @@ describe("popQuizService", () => {
     ]);
   });
 
+  it("batch fetches multiple English days with one document read and caches each day", async () => {
+    (getDoc as jest.Mock).mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        courses: {
+          TOEIC: {
+            days: {
+              "1": englishQuiz,
+              "2": englishQuizDay2,
+            },
+          },
+        },
+      }),
+    });
+
+    const result = await fetchPopQuizMatchingGamesBatch({
+      language: "en",
+      course: "TOEIC",
+      days: [1, 2],
+      appLanguage: "en",
+    });
+
+    expect(getDoc).toHaveBeenCalledTimes(1);
+    expect(result[1].game?.items[0].word).toBe("make a decision");
+    expect(result[2].game?.items[0].word).toBe("water");
+
+    (getDoc as jest.Mock).mockClear();
+    const cachedResult = await fetchPopQuizMatchingGamesBatch({
+      language: "en",
+      course: "TOEIC",
+      days: [1, 2],
+      appLanguage: "en",
+    });
+
+    expect(getDoc).not.toHaveBeenCalled();
+    expect(cachedResult[1].game?.choices[0].text).toBe("decide");
+    expect(cachedResult[2].game?.choices[0].text).toBe("liquid");
+  });
+
+  it("batch fetch preserves current day when the next day is missing", async () => {
+    (getDoc as jest.Mock).mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        courses: {
+          TOEIC: {
+            days: {
+              "1": englishQuiz,
+            },
+          },
+        },
+      }),
+    });
+
+    const result = await fetchPopQuizMatchingGamesBatch({
+      language: "en",
+      course: "TOEIC",
+      days: [1, 2],
+      appLanguage: "en",
+    });
+
+    expect(result[1].game?.day).toBe(1);
+    expect(result[2]).toEqual({ game: null, reason: "missing-day" });
+  });
+
   it("maps JLPT course ids to Japanese levels before reading nested day data", async () => {
     (getDoc as jest.Mock).mockResolvedValue({
       exists: () => true,
@@ -163,7 +236,47 @@ describe("popQuizService", () => {
   });
 
   it("localizes Japanese choice text to Korean when the app language is Korean", () => {
-    const result = normalizePopQuizMatchingGame(japaneseQuiz, "ko");
+    const result = normalizePopQuizMatchingGame(japaneseQuiz, "ko-KR");
+
+    expect(result?.choices[0].text).toBe("해결");
+  });
+
+  it("prefers Japanese meaningEnglish over legacy text and meaning for English UI", () => {
+    const result = normalizePopQuizMatchingGame(
+      {
+        ...japaneseQuiz,
+        choices: [
+          {
+            id: "c1",
+            text: "legacy text",
+            meaning: "legacy meaning",
+            meaningEnglish: "solution",
+            meaningKorean: "해결",
+          },
+        ],
+      },
+      "en",
+    );
+
+    expect(result?.choices[0].text).toBe("solution");
+  });
+
+  it("prefers Japanese meaningKorean over legacy text and meaning for Korean UI", () => {
+    const result = normalizePopQuizMatchingGame(
+      {
+        ...japaneseQuiz,
+        choices: [
+          {
+            id: "c1",
+            text: "legacy text",
+            meaning: "legacy meaning",
+            meaningEnglish: "solution",
+            meaningKorean: "해결",
+          },
+        ],
+      },
+      "ko-KR",
+    );
 
     expect(result?.choices[0].text).toBe("해결");
   });

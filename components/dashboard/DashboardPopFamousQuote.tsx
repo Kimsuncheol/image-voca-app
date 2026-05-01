@@ -3,6 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { db } from "../../src/services/firebase";
@@ -26,6 +27,7 @@ interface FamousQuote {
   id: string;
   quote: string;
   translation: string;
+  translationKorean?: string;
   author: string;
   language: "English" | "Japanese";
 }
@@ -37,8 +39,9 @@ interface CachedQuote {
 
 async function loadQuote(
   language: LearningLanguage,
+  appLanguage: string,
 ): Promise<FamousQuote | null> {
-  const cacheKey = `@famous_quote_cache_${language}`;
+  const cacheKey = `@famous_quote_cache_${language}_${appLanguage}`;
 
   try {
     const raw = await AsyncStorage.getItem(cacheKey);
@@ -214,6 +217,7 @@ const skeletonStyles = StyleSheet.create({
 
 export function DashboardPopFamousQuote() {
   const { isDark } = useTheme();
+  const { i18n } = useTranslation();
   const { learningLanguage } = useLearningLanguage();
   const [quote, setQuote] = useState<FamousQuote | null>(null);
   const [loading, setLoading] = useState(true);
@@ -221,10 +225,10 @@ export function DashboardPopFamousQuote() {
 
   useEffect(() => {
     setLoading(true);
-    loadQuote(learningLanguage)
+    loadQuote(learningLanguage, i18n.language)
       .then(setQuote)
       .finally(() => setLoading(false));
-  }, [learningLanguage]);
+  }, [i18n.language, learningLanguage]);
 
   if (loading) {
     return <FamousQuoteSkeleton />;
@@ -242,6 +246,11 @@ export function DashboardPopFamousQuote() {
         showKana ? quote.quote : stripKanaParens(quote.quote),
       )
     : null;
+  const useKoreanTranslation = i18n.language.toLowerCase().startsWith("ko");
+  const translationText =
+    isJapanese && useKoreanTranslation
+      ? quote.translationKorean || quote.translation
+      : quote.translation;
 
   return (
     <View style={[styles.card, { backgroundColor: cardBg }]}>
@@ -265,7 +274,7 @@ export function DashboardPopFamousQuote() {
         </ThemedText>
       )}
       <ThemedText style={[styles.translation, { color: mutedColor }]}>
-        {quote.translation}
+        {translationText}
       </ThemedText>
       {quote.author.length > 0 && (
         <ThemedText style={[styles.author, { color: mutedColor }]}>

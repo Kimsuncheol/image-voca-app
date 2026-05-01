@@ -1,7 +1,7 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
 import { DashboardPopQuizCard } from "../components/dashboard/DashboardPopQuizCard";
-import { fetchPopQuizMatchingGame } from "../src/services/popQuizService";
+import { fetchPopQuizMatchingGamesBatch } from "../src/services/popQuizService";
 
 jest.mock("expo-router", () => ({
   useFocusEffect: (callback: () => void | (() => void)) => {
@@ -14,6 +14,9 @@ jest.mock("react-i18next", () => ({
   useTranslation: () => ({
     i18n: { language: "en" },
     t: (key: string, values?: Record<string, unknown>) => {
+      if (key === "dashboard.popQuiz.unavailable.missingData") {
+        return `missing day ${String(values?.day)}`;
+      }
       if (!values) return key;
       return Object.entries(values).reduce(
         (text, [name, value]) => text.replace(`{{${name}}}`, String(value)),
@@ -65,7 +68,7 @@ jest.mock("../src/stores", () => ({
 }));
 
 jest.mock("../src/services/popQuizService", () => ({
-  fetchPopQuizMatchingGame: jest.fn(),
+  fetchPopQuizMatchingGamesBatch: jest.fn(),
 }));
 
 const popQuizGame = {
@@ -104,6 +107,40 @@ const pagedPopQuizGame = {
   })),
 };
 
+const buildPopQuizGame = (day: number, count: number) => ({
+  ...popQuizGame,
+  day,
+  items: Array.from({ length: count }, (_, index) => ({
+    id: `d${day}-q${index + 1}`,
+    word: `day ${day} word ${index + 1}`,
+  })),
+  choices: Array.from({ length: count }, (_, index) => ({
+    id: `d${day}-c${index + 1}`,
+    text: `day ${day} meaning ${index + 1}`,
+  })),
+  answer_key: Array.from({ length: count }, (_, index) => ({
+    item_id: `d${day}-q${index + 1}`,
+    choice_id: `d${day}-c${index + 1}`,
+  })),
+});
+
+const completePagedGame = async (
+  screen: ReturnType<typeof render>,
+  day: number,
+  count: number,
+) => {
+  for (let index = 1; index <= count; index += 1) {
+    fireEvent.press(screen.getByTestId(`pop-quiz-item-d${day}-q${index}`));
+    fireEvent.press(screen.getByTestId(`pop-quiz-choice-d${day}-c${index}`));
+
+    if (index % 5 === 0 && index < count) {
+      await act(async () => {
+        jest.advanceTimersByTime(250);
+      });
+    }
+  }
+};
+
 describe("DashboardPopQuizCard", () => {
   afterEach(() => {
     jest.useRealTimers();
@@ -114,8 +151,9 @@ describe("DashboardPopQuizCard", () => {
     jest.useRealTimers();
     learningLanguageState.learningLanguage = "en";
     learningLanguageState.recentCourseByLanguage = { en: "TOEIC" };
-    (fetchPopQuizMatchingGame as jest.Mock).mockResolvedValue({
-      game: popQuizGame,
+    (fetchPopQuizMatchingGamesBatch as jest.Mock).mockResolvedValue({
+      2: { game: popQuizGame },
+      3: { game: null, reason: "missing-day" },
     });
   });
 
@@ -127,18 +165,18 @@ describe("DashboardPopQuizCard", () => {
     });
 
     expect(mockFetchCourseProgress).toHaveBeenCalledWith("user-1", "TOEIC");
-    expect(fetchPopQuizMatchingGame).toHaveBeenCalledWith({
+    expect(fetchPopQuizMatchingGamesBatch).toHaveBeenCalledWith({
       language: "en",
       course: "TOEIC",
-      day: 2,
+      days: [2, 3],
       appLanguage: "en",
     });
     expect(screen.getByText("dashboard.popQuiz.title")).toBeTruthy();
   });
 
   it("renders vocabulary prompts on the left and meanings on the right", async () => {
-    (fetchPopQuizMatchingGame as jest.Mock).mockResolvedValue({
-      game: {
+    (fetchPopQuizMatchingGamesBatch as jest.Mock).mockResolvedValue({
+      2: { game: {
         ...popQuizGame,
         items: [
           { id: "q1", word: "解決" },
@@ -152,7 +190,8 @@ describe("DashboardPopQuizCard", () => {
           { item_id: "q1", choice_id: "c1" },
           { item_id: "q2", choice_id: "c2" },
         ],
-      },
+      } },
+      3: { game: null, reason: "missing-day" },
     });
 
     const screen = render(<DashboardPopQuizCard />);
@@ -173,10 +212,146 @@ describe("DashboardPopQuizCard", () => {
     );
   });
 
+  it("formats CSAT idiom titles and all numbered meanings visually", async () => {
+    (fetchPopQuizMatchingGamesBatch as jest.Mock).mockResolvedValue({
+      2: { game: {
+        ...popQuizGame,
+        course: "CSAT_IDIOMS",
+        items: [
+          {
+            id: "q1",
+            word: "in order to v [so as to v]",
+          },
+          {
+            id: "q2",
+            word: "A / B",
+          },
+          {
+            id: "q3",
+            word: "for example[instance]",
+          },
+        ],
+        choices: [
+          {
+            id: "c1",
+            text: "1. first 2. second 3. third",
+          },
+          {
+            id: "c2",
+            text: "A or B",
+          },
+          {
+            id: "c3",
+            text: "as an example",
+          },
+        ],
+        answer_key: [
+          { item_id: "q1", choice_id: "c1" },
+          { item_id: "q2", choice_id: "c2" },
+          { item_id: "q3", choice_id: "c3" },
+        ],
+      } },
+      3: { game: null, reason: "missing-day" },
+    });
+
+    const screen = render(<DashboardPopQuizCard />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("pop-quiz-choice-c1")).toBeTruthy();
+    });
+
+    expect(screen.getByTestId("pop-quiz-item-q1")).toHaveTextContent(
+      "in order to v\n[so as to v]",
+    );
+    expect(screen.getByTestId("pop-quiz-item-q2")).toHaveTextContent("A\n/ B");
+    expect(screen.getByTestId("pop-quiz-item-q3")).toHaveTextContent(
+      "for example[instance]",
+    );
+    expect(screen.getByTestId("pop-quiz-choice-c1")).toHaveTextContent(
+      "1. first\n2. second\n3. third",
+    );
+    expect(screen.getByTestId("pop-quiz-choice-c1-text").props.numberOfLines)
+      .toBeUndefined();
+  });
+
+  it("leaves non-idiom numbered titles and meanings unchanged", async () => {
+    (fetchPopQuizMatchingGamesBatch as jest.Mock).mockResolvedValue({
+      2: { game: {
+        ...popQuizGame,
+        course: "TOEIC",
+        items: [
+          {
+            id: "q1",
+            word: "in order to v [so as to v]",
+          },
+        ],
+        choices: [
+          {
+            id: "c1",
+            text: "1. first 2. second 3. third",
+          },
+        ],
+        answer_key: [{ item_id: "q1", choice_id: "c1" }],
+      } },
+      3: { game: null, reason: "missing-day" },
+    });
+
+    const screen = render(<DashboardPopQuizCard />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("pop-quiz-choice-c1")).toBeTruthy();
+    });
+
+    expect(screen.getByTestId("pop-quiz-item-q1")).toHaveTextContent(
+      "in order to v [so as to v]",
+    );
+    expect(screen.getByTestId("pop-quiz-choice-c1")).toHaveTextContent(
+      "1. first 2. second 3. third",
+    );
+  });
+
+  it("uses flexible tile font sizes for long vocabulary and meaning text", async () => {
+    (fetchPopQuizMatchingGamesBatch as jest.Mock).mockResolvedValue({
+      2: { game: {
+        ...popQuizGame,
+        items: [
+          {
+            id: "q1",
+            word: "make a difficult decision under intense pressure",
+          },
+        ],
+        choices: [
+          {
+            id: "c1",
+            text: "1. extremely busy with many urgent tasks 2. needing any possible help 3. overwhelmed",
+          },
+        ],
+        answer_key: [{ item_id: "q1", choice_id: "c1" }],
+      } },
+      3: { game: null, reason: "missing-day" },
+    });
+
+    const screen = render(<DashboardPopQuizCard />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("pop-quiz-item-q1-text")).toBeTruthy();
+    });
+
+    expect(screen.getByTestId("pop-quiz-item-q1-text")).toHaveStyle({
+      fontSize: 14,
+      lineHeight: 18,
+    });
+    expect(screen.getByTestId("pop-quiz-choice-c1-text")).toHaveStyle({
+      fontSize: 12,
+      lineHeight: 15,
+    });
+  });
+
   it("hides chrome controls and auto-advances after a page is matched", async () => {
     jest.useFakeTimers();
-    (fetchPopQuizMatchingGame as jest.Mock).mockResolvedValue({
-      game: pagedPopQuizGame,
+    (fetchPopQuizMatchingGamesBatch as jest.Mock).mockResolvedValue({
+      2: { game: pagedPopQuizGame },
+      3: { game: null, reason: "missing-day" },
     });
 
     const screen = render(<DashboardPopQuizCard />);
@@ -223,9 +398,9 @@ describe("DashboardPopQuizCard", () => {
   });
 
   it("shows a friendly unavailable state instead of crashing", async () => {
-    (fetchPopQuizMatchingGame as jest.Mock).mockResolvedValue({
-      game: null,
-      reason: "missing-day",
+    (fetchPopQuizMatchingGamesBatch as jest.Mock).mockResolvedValue({
+      2: { game: null, reason: "missing-day" },
+      3: { game: null, reason: "missing-day" },
     });
 
     const screen = render(<DashboardPopQuizCard />);
@@ -233,7 +408,70 @@ describe("DashboardPopQuizCard", () => {
     await waitFor(() => {
       expect(screen.getByText("dashboard.popQuiz.unavailable.title")).toBeTruthy();
     });
-    expect(screen.getByText("dashboard.popQuiz.unavailable.missingData")).toBeTruthy();
+    expect(screen.getByText("missing day 2")).toBeTruthy();
+  });
+
+  it("loads the prefetched next day after completing all pairs", async () => {
+    jest.useFakeTimers();
+    const day2Game = buildPopQuizGame(2, 20);
+    const day3Game = buildPopQuizGame(3, 20);
+    (fetchPopQuizMatchingGamesBatch as jest.Mock)
+      .mockResolvedValueOnce({
+        2: { game: day2Game },
+        3: { game: day3Game },
+      })
+      .mockResolvedValueOnce({
+        4: { game: null, reason: "missing-day" },
+      });
+
+    const screen = render(<DashboardPopQuizCard />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("pop-quiz-item-d2-q1")).toBeTruthy();
+    });
+
+    await completePagedGame(screen, 2, 20);
+
+    await act(async () => {
+      jest.advanceTimersByTime(250);
+    });
+
+    expect(screen.queryByTestId("pop-quiz-item-d2-q16")).toBeNull();
+    expect(screen.getByTestId("pop-quiz-item-d3-q1")).toBeTruthy();
+    expect(screen.getByTestId("pop-quiz-choice-d3-c1")).toBeTruthy();
+    await waitFor(() => {
+      expect(fetchPopQuizMatchingGamesBatch).toHaveBeenCalledWith({
+        language: "en",
+        course: "TOEIC",
+        days: [4],
+        appLanguage: "en",
+      });
+    });
+  });
+
+  it("shows unavailable state when the next day is missing after completion", async () => {
+    jest.useFakeTimers();
+    const day2Game = buildPopQuizGame(2, 20);
+    (fetchPopQuizMatchingGamesBatch as jest.Mock).mockResolvedValueOnce({
+      2: { game: day2Game },
+      3: { game: null, reason: "missing-day" },
+    });
+
+    const screen = render(<DashboardPopQuizCard />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("pop-quiz-item-d2-q1")).toBeTruthy();
+    });
+
+    await completePagedGame(screen, 2, 20);
+
+    await act(async () => {
+      jest.advanceTimersByTime(250);
+    });
+
+    expect(screen.queryByTestId("pop-quiz-item-d2-q16")).toBeNull();
+    expect(screen.getByText("dashboard.popQuiz.unavailable.title")).toBeTruthy();
+    expect(screen.getByText("missing day 3")).toBeTruthy();
   });
 
   it("uses answer ids rather than display text and completes after correct pairs", async () => {
