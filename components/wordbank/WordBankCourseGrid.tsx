@@ -1,4 +1,3 @@
-import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -14,22 +13,18 @@ import { ThemedText } from "../themed-text";
 interface WordBankCourseGridProps {
   courses: Course[];
   onCoursePress: (courseId: CourseType) => void;
-  wordCounts?: Record<string, number>;
 }
 
 export function WordBankCourseGrid({
   courses,
   onCoursePress,
-  wordCounts = {},
 }: WordBankCourseGridProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
 
   return (
     <View style={styles.courseGrid}>
-      {courses.map((course) => {
-        const count = wordCounts[course.id] ?? 0;
-        return (
+      {courses.map((course) => (
           <TouchableOpacity
             key={course.id}
             style={[
@@ -57,14 +52,8 @@ export function WordBankCourseGrid({
             <ThemedText style={styles.courseDescription}>
               {t(course.descriptionKey, { defaultValue: course.description })}
             </ThemedText>
-            {count > 0 && (
-              <ThemedText style={[styles.wordCountBadge, { color: course.color }]}>
-                {t("wordBank.wordsCount", { count })}
-              </ThemedText>
-            )}
           </TouchableOpacity>
-        );
-      })}
+        ))}
     </View>
   );
 }
@@ -98,10 +87,5 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     textAlign: "center",
     marginTop: 4,
-  },
-  wordCountBadge: {
-    fontSize: FontSizes.caption,
-    fontWeight: FontWeights.semiBold,
-    marginTop: 6,
   },
 });

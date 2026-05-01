@@ -94,7 +94,6 @@ export default function JlptLevelsScreen() {
 
         <JlptLevelList
           levels={JLPT_LEVELS}
-          totalDaysByLevel={totalDaysByLevel}
           onLevelPress={handleLevelPress}
         />
       </ScrollView>

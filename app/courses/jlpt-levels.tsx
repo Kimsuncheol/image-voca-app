@@ -62,7 +62,6 @@ function WordBankJlptLevelsScreenContent() {
 
         <JlptLevelList
           levels={JLPT_LEVELS}
-          totalDaysByLevel={{}}
           onLevelPress={handleLevelPress}
         />
       </ScrollView>

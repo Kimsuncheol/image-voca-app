@@ -66,13 +66,6 @@ export function DayCard({
             <Ionicons name="checkmark-circle" size={20} color={courseColor} />
           ) : null}
         </View>
-        {progress && !isLocked && (
-          <ThemedText style={styles.progressText}>
-            {t("course.wordCount", {
-              count: progress.totalWords ?? 0,
-            })}
-          </ThemedText>
-        )}
       </TouchableOpacity>
 
       {isCompleted && !isLocked && (
@@ -138,10 +131,6 @@ const styles = StyleSheet.create({
   },
   dayNumber: {
     fontSize: FontSizes.bodyLg,
-  },
-  progressText: {
-    fontSize: FontSizes.sm,
-    opacity: 0.6,
   },
   quizButton: {
     flexDirection: "row",

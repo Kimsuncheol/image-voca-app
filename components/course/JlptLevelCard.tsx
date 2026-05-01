@@ -10,13 +10,11 @@ import { FontSizes } from "@/constants/fontSizes";
 
 interface JlptLevelCardProps {
   level: JLPTLevelCourse;
-  totalDays?: number;
   onPress: () => void;
 }
 
 export function JlptLevelCard({
   level,
-  totalDays,
   onPress,
 }: JlptLevelCardProps) {
   const { isDark } = useTheme();
@@ -49,14 +47,6 @@ export function JlptLevelCard({
         <ThemedText style={styles.description}>
           {t(level.descriptionKey, { defaultValue: level.description })}
         </ThemedText>
-        {typeof totalDays === "number" && totalDays > 0 ? (
-          <ThemedText style={styles.meta}>
-            {t("courses.jlpt.levelDays", {
-              defaultValue: "{{count}} days",
-              count: totalDays,
-            })}
-          </ThemedText>
-        ) : null}
       </View>
 
       <Ionicons
@@ -97,10 +87,5 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.label,
     opacity: 0.65,
     marginTop: 3,
-  },
-  meta: {
-    fontSize: FontSizes.caption,
-    opacity: 0.55,
-    marginTop: 6,
   },
 });
