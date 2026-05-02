@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react-native";
+import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
 import { SwipeCardItem } from "../components/swipe/SwipeCardItem";
 import { VocabularyCard } from "../src/types/vocabulary";
@@ -92,7 +92,7 @@ describe("SwipeCardItem synonyms", () => {
   });
 
   it("renders all example rows without a show-more control or line caps", () => {
-    const { getByText, queryByText } = render(
+    const { getByText, queryByText, toJSON } = render(
       <SwipeCardItem
         item={buildCard({
           course: "TOEIC",
@@ -112,5 +112,43 @@ describe("SwipeCardItem synonyms", () => {
     expect(queryByText("Show 1 more")).toBeNull();
     expect(firstExample.props.numberOfLines).toBeUndefined();
     expect(firstTranslation.props.numberOfLines).toBeUndefined();
+    expect(JSON.stringify(toJSON()).indexOf("Fourth complete translation.")).toBeLessThan(
+      JSON.stringify(toJSON()).indexOf("swipe-card-mask-toggle-row"),
+    );
+  });
+
+  it("renders the Mask and Show controls at the bottom of standard cards", () => {
+    const { getByText, getByTestId } = render(
+      <SwipeCardItem item={buildCard({ course: "TOEIC" })} />,
+    );
+
+    expect(getByTestId("swipe-card-mask-toggle-row")).toBeTruthy();
+    expect(getByTestId("swipe-card-mask-toggle")).toBeTruthy();
+    expect(getByText("Mask")).toBeTruthy();
+    expect(getByText("Show")).toBeTruthy();
+  });
+
+  it("calls onMaskChange from the standard card Mask and Show controls", () => {
+    const onMaskChange = jest.fn();
+    const { getByTestId } = render(
+      <SwipeCardItem
+        item={buildCard({ course: "TOEIC" })}
+        isReviewMode={true}
+        onMaskChange={onMaskChange}
+      />,
+    );
+
+    expect(getByTestId("swipe-card-mask-toggle-mask").props.accessibilityState).toEqual({
+      selected: true,
+    });
+    expect(getByTestId("swipe-card-mask-toggle-show").props.accessibilityState).toEqual({
+      selected: false,
+    });
+
+    fireEvent.press(getByTestId("swipe-card-mask-toggle-show"));
+    fireEvent.press(getByTestId("swipe-card-mask-toggle-mask"));
+
+    expect(onMaskChange).toHaveBeenNthCalledWith(1, false);
+    expect(onMaskChange).toHaveBeenNthCalledWith(2, true);
   });
 });

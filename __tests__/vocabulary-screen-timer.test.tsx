@@ -7,7 +7,6 @@ const mockBufferWordLearned = jest.fn();
 const mockFlushWordStats = jest.fn();
 const mockUpdateCourseDayProgress = jest.fn();
 const mockFetchCourseProgress = jest.fn();
-const mockReplace = jest.fn();
 const mockPush = jest.fn();
 const mockNavigationDispatch = jest.fn();
 const mockNavigationAddListener = jest.fn();
@@ -20,7 +19,7 @@ let mockUser: { uid: string } | null = null;
 let mockCourseProgress: Record<string, Record<number, { completed?: boolean }>> =
   {};
 let mockPreviewParam: string | undefined;
-let mockModeParam: string | undefined;
+let mockCourseId = "TOEIC";
 
 const cards = [
   {
@@ -42,16 +41,18 @@ let mockCards = cards;
 
 jest.mock("expo-router", () => ({
   Stack: {
-    Screen: (props: unknown) => mockStackScreen(props),
+    Screen: (props: { options?: { headerRight?: () => React.ReactNode } }) => {
+      mockStackScreen(props);
+      const HeaderRight = props.options?.headerRight;
+      return HeaderRight ? <HeaderRight /> : null;
+    },
   },
   useLocalSearchParams: () => ({
-    courseId: "TOEIC",
+    courseId: mockCourseId,
     day: "1",
     preview: mockPreviewParam,
-    mode: mockModeParam,
   }),
   useRouter: () => ({
-    replace: mockReplace,
     push: mockPush,
   }),
   useNavigation: () => ({
@@ -126,6 +127,12 @@ jest.mock("react-i18next", () => ({
       }
       if (key === "course.review") {
         return "Review";
+      }
+      if (key === "course.mask") {
+        return "Mask";
+      }
+      if (key === "course.show") {
+        return "Show";
       }
       return key;
     },
@@ -208,14 +215,11 @@ jest.mock("../components/course/vocabulary/VocabularyEmptyState", () => ({
 }));
 
 jest.mock("../components/course/vocabulary/VocabularyFinishView", () => ({
-  VocabularyFinishView: ({ onReview, onDays }: { onReview: () => void; onDays: () => void }) => {
+  VocabularyFinishView: ({ onDays }: { onDays: () => void }) => {
     const { Text, TouchableOpacity, View } = require("react-native");
     return (
       <View>
         <Text>Finish View</Text>
-        <TouchableOpacity onPress={onReview}>
-          <Text>Review Button</Text>
-        </TouchableOpacity>
         <TouchableOpacity onPress={onDays}>
           <Text>Finish Button</Text>
         </TouchableOpacity>
@@ -245,7 +249,7 @@ jest.mock("../components/course/vocabulary/VocabularySwipeDeck", () => ({
         <Text>Vocabulary Deck</Text>
         <Text>{`Initial Index ${initialIndex}`}</Text>
         <Text>{`Preview Mode ${isPreviewMode ? "on" : "off"}`}</Text>
-        <Text>{`Review Mode ${isReviewMode ? "on" : "off"}`}</Text>
+        <Text>{`Mask Mode ${isReviewMode ? "on" : "off"}`}</Text>
         <TouchableOpacity onPress={() => onIndexChange(1)}>
           <Text>Advance Deck</Text>
         </TouchableOpacity>
@@ -267,9 +271,9 @@ describe("VocabularyScreen deck state", () => {
     jest.clearAllMocks();
     mockCards = cards;
     mockUser = null;
+    mockCourseId = "TOEIC";
     mockCourseProgress = {};
     mockPreviewParam = undefined;
-    mockModeParam = undefined;
     mockFetchCourseProgress.mockResolvedValue(undefined);
     mockGetResumeProgress.mockResolvedValue(null);
     mockSaveResumeProgress.mockResolvedValue(null);
@@ -648,44 +652,51 @@ describe("VocabularyScreen deck state", () => {
     expect(Alert.alert).not.toHaveBeenCalled();
   });
 
-  it("renders review mode from the first card without progress, resume, or completion side effects", async () => {
+  it("defaults to masked learning while normal progress remains active", async () => {
     mockUser = { uid: "user-1" };
-    mockModeParam = "review";
-    mockGetResumeProgress.mockResolvedValue({
-      courseId: "TOEIC",
-      dayNumber: 1,
-      currentIndex: 1,
-      cardId: "word-2",
-      updatedAt: "2026-04-27T00:00:00.000Z",
-    });
 
     const screen = render(<VocabularyScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Review Mode on")).toBeTruthy();
+      expect(screen.getByText("Mask Mode on")).toBeTruthy();
       expect(screen.getByText("Initial Index 0")).toBeTruthy();
+      expect(mockFetchCourseProgress).toHaveBeenCalledWith("user-1", "TOEIC");
+      expect(mockGetResumeProgress).toHaveBeenCalled();
     });
 
     fireEvent.press(screen.getByText("Advance Deck"));
+
+    await waitFor(() => {
+      expect(mockSaveResumeProgress).toHaveBeenCalledWith(
+        expect.objectContaining({
+          currentIndex: 1,
+          courseId: "TOEIC",
+          dayNumber: 1,
+        }),
+      );
+      expect(mockBufferWordLearned).toHaveBeenCalledWith(
+        "user-1",
+        "TOEIC-word-2",
+      );
+    });
+
     fireEvent.press(screen.getByText("Finish Deck"));
 
     await waitFor(() => {
       expect(screen.getByText("Finish View")).toBeTruthy();
+      expect(mockFlushWordStats).toHaveBeenCalledWith("user-1");
+      expect(mockUpdateDoc).toHaveBeenCalledWith("mock-doc-ref", {
+        "courseProgress.TOEIC.1.completed": true,
+        "courseProgress.TOEIC.1.totalWords": 2,
+        "courseProgress.TOEIC.1.wordsLearned": 1,
+      });
     });
-
-    expect(mockFetchCourseProgress).not.toHaveBeenCalled();
-    expect(mockGetResumeProgress).not.toHaveBeenCalled();
-    expect(mockSaveResumeProgress).not.toHaveBeenCalled();
-    expect(mockClearResumeProgress).not.toHaveBeenCalled();
-    expect(mockBufferWordLearned).not.toHaveBeenCalled();
-    expect(mockFlushWordStats).not.toHaveBeenCalled();
-    expect(mockUpdateDoc).not.toHaveBeenCalled();
 
     fireEvent.press(screen.getByText("Finish Button"));
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/course/[courseId]/days",
-      params: { courseId: "TOEIC", mode: "learning" },
+      params: { courseId: "TOEIC" },
     });
 
     const event = {
@@ -700,7 +711,49 @@ describe("VocabularyScreen deck state", () => {
     expect(Alert.alert).not.toHaveBeenCalled();
   });
 
-  it("starts masked review from the finish view and returns days in learning mode", async () => {
+  it("hides the header mask toggle for standard English routes", async () => {
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Mask Mode on")).toBeTruthy();
+    });
+
+    expect(screen.queryByText("Mask")).toBeNull();
+    expect(screen.queryByText("Show")).toBeNull();
+  });
+
+  it("hides the header mask toggle for JLPT routes", async () => {
+    mockCourseId = "JLPT_N5";
+    mockCards = cards.map((card) => ({ ...card, course: "JLPT_N5" }));
+
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Mask Mode on")).toBeTruthy();
+    });
+
+    expect(screen.queryByText("Mask")).toBeNull();
+    expect(screen.queryByText("Show")).toBeNull();
+  });
+
+  it.each(["COLLOCATION", "KANJI"])(
+    "hides the header mask toggle for %s routes",
+    async (courseId) => {
+      mockCourseId = courseId;
+      mockCards = cards.map((card) => ({ ...card, course: courseId }));
+
+      const screen = render(<VocabularyScreen />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Mask Mode on")).toBeTruthy();
+      });
+
+      expect(screen.queryByText("Mask")).toBeNull();
+      expect(screen.queryByText("Show")).toBeNull();
+    },
+  );
+
+  it("omits the finish-view review action and returns days without mode", async () => {
     const screen = render(<VocabularyScreen />);
 
     await waitFor(() => {
@@ -710,16 +763,17 @@ describe("VocabularyScreen deck state", () => {
     fireEvent.press(screen.getByText("Finish Deck"));
 
     await waitFor(() => {
-      expect(screen.getByText("Review Button")).toBeTruthy();
+      expect(screen.getByText("Finish View")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("Review Button"));
+    expect(screen.queryByText("Review Button")).toBeNull();
 
-    expect(mockReplace).toHaveBeenCalledWith({
-      pathname: "/course/[courseId]/vocabulary",
-      params: { courseId: "TOEIC", day: "1", mode: "review" },
+    fireEvent.press(screen.getByText("Finish Button"));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/course/[courseId]/days",
+      params: { courseId: "TOEIC" },
     });
-
   });
 
 

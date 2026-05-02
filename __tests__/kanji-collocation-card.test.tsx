@@ -19,6 +19,8 @@ jest.mock("../src/context/ThemeContext", () => ({
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
     i18n: { language: mockLanguage },
+    t: (_key: string, options?: { defaultValue?: string }) =>
+      options?.defaultValue ?? _key,
   }),
 }));
 
@@ -510,6 +512,47 @@ describe("KanjiCollocationCard", () => {
     expect(flattenStyleOf(getByTestId("kanji-collocation-meaning-hurigana-0-0")).color).toBe(lightFontColors.learningCardMuted);
     expect(flattenStyleOf(getByTestId("kanji-collocation-reading-hurigana-0-0")).color).toBe(lightFontColors.learningCardMuted);
     expect(textChildrenOf(getByTestId("kanji-collocation-example-visible-0"))).toEqual(["語を学ぶ。"]);
+  });
+
+  it("renders the back mask toggle beside がな with matching control height", () => {
+    const onMaskChange = jest.fn();
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord()}
+        isReviewMode={true}
+        onMaskChange={onMaskChange}
+      />,
+    );
+    flipToBack(screen);
+
+    const controlRow = screen.getByTestId("kanji-collocation-back-control-row");
+    const maskToggle = screen.getByTestId("kanji-collocation-back-mask-toggle");
+    const furiganaToggle = screen.getByTestId("kanji-collocation-furigana-toggle");
+    const maskSegment = screen.getByTestId("kanji-collocation-back-mask-toggle-mask");
+    const renderedTree = JSON.stringify(screen.toJSON());
+
+    expect(maskToggle).toBeTruthy();
+    expect(screen.getByText("Mask")).toBeTruthy();
+    expect(screen.getByText("Show")).toBeTruthy();
+    expect(screen.getByText("がな")).toBeTruthy();
+    expect(flattenStyleOf(controlRow)).toEqual(
+      expect.objectContaining({ gap: 12 }),
+    );
+    expect(renderedTree.indexOf("kanji-collocation-back-mask-toggle")).toBeLessThan(
+      renderedTree.indexOf("kanji-collocation-furigana-toggle"),
+    );
+    expect(flattenStyleOf(maskSegment).minHeight).toBe(30);
+    expect(flattenStyleOf(furiganaToggle).minHeight).toBe(30);
+    expect(screen.getByTestId("kanji-collocation-back-mask-toggle-mask").props.accessibilityState).toEqual({
+      selected: true,
+    });
+
+    fireEvent.press(screen.getByTestId("kanji-collocation-back-mask-toggle-show"));
+    fireEvent.press(screen.getByTestId("kanji-collocation-back-mask-toggle-mask"));
+
+    expect(onMaskChange).toHaveBeenNthCalledWith(1, false);
+    expect(onMaskChange).toHaveBeenNthCalledWith(2, true);
+    expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
   });
 
   it("renders meaning and reading hurigana at font size 8 when がな is active", () => {

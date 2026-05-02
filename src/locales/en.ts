@@ -675,6 +675,8 @@ const en = {
     dayCompleted: "Day completed!",
     takeQuiz: "Take Quiz",
     review: "Review",
+    mask: "Mask",
+    show: "Show",
     modes: {
       learning: "Learning",
       review: "Review",

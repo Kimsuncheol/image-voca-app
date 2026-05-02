@@ -10,7 +10,6 @@ interface VocabularyFinishViewProps {
   isDark: boolean;
   day: number;
   onQuiz: () => void;
-  onReview: () => void;
   onDays: () => void;
   t: (key: string, options?: Record<string, unknown>) => string;
 }
@@ -19,7 +18,6 @@ export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
   isDark,
   day,
   onQuiz,
-  onReview,
   onDays,
   t,
 }) => {
@@ -31,13 +29,6 @@ export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
           <TouchableOpacity style={[styles.button, styles.quizButton]} onPress={onQuiz}>
             <Ionicons name="clipboard-outline" size={22} color="#1a1a1a" />
             <Text style={styles.buttonText}>{t("course.takeQuiz")}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.button, styles.reviewButton]} onPress={onReview}>
-            <Ionicons name="eye-outline" size={22} color="#1a1a1a" />
-            <Text style={styles.buttonText}>
-              {t("course.review", { defaultValue: "Review" })}
-            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.button, styles.daysButton]} onPress={onDays}>
@@ -89,9 +80,6 @@ const styles = StyleSheet.create({
   },
   quizButton: {
     backgroundColor: "#6BCB77",
-  },
-  reviewButton: {
-    backgroundColor: "#5B9CDB",
   },
   daysButton: {
     backgroundColor: "#FFD166",

@@ -47,6 +47,7 @@ interface CarouselSwipeDeckProps<
   onSwipeStart?: () => void;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  onMaskChange?: (enabled: boolean) => void;
   renderCard?: (params: {
     item: TCard;
     isSaved: boolean;
@@ -54,6 +55,7 @@ interface CarouselSwipeDeckProps<
     dayNumber: number;
     isPreviewMode: boolean;
     isReviewMode: boolean;
+    onMaskChange?: (enabled: boolean) => void;
     onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   }) => React.ReactNode;
 }
@@ -72,6 +74,7 @@ interface CardItemProps {
   isActiveWindow: boolean;
   isPreviewMode: boolean;
   isReviewMode: boolean;
+  onMaskChange?: (enabled: boolean) => void;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   renderCard?: CarouselSwipeDeckProps<CourseVocabularyCard>["renderCard"];
 }
@@ -86,6 +89,7 @@ const CardItem = React.memo(function CardItem({
   isActiveWindow,
   isPreviewMode,
   isReviewMode,
+  onMaskChange,
   onSavedWordChange,
   renderCard,
 }: CardItemProps) {
@@ -109,6 +113,7 @@ const CardItem = React.memo(function CardItem({
             dayNumber,
             isPreviewMode,
             isReviewMode,
+            onMaskChange,
             onSavedWordChange,
           })
         ) : !isKanjiWord(item) ? (
@@ -120,6 +125,7 @@ const CardItem = React.memo(function CardItem({
             onSavedWordChange={isPreviewMode ? undefined : onSavedWordChange}
             isPreviewMode={isPreviewMode}
             isReviewMode={isReviewMode}
+            onMaskChange={onMaskChange}
           />
         ) : null
       ) : (
@@ -146,6 +152,7 @@ export function CarouselSwipeDeck<TCard extends CourseVocabularyCard>({
   onSwipeStart,
   isPreviewMode = false,
   isReviewMode = false,
+  onMaskChange,
   renderCard,
 }: CarouselSwipeDeckProps<TCard>) {
   const translateX = useSharedValue(0);
@@ -279,6 +286,7 @@ export function CarouselSwipeDeck<TCard extends CourseVocabularyCard>({
               isActiveWindow={Math.abs(index - activeIndex) <= 1}
               isPreviewMode={isPreviewMode}
               isReviewMode={isReviewMode}
+              onMaskChange={onMaskChange}
               onSavedWordChange={onSavedWordChange}
               renderCard={
                 renderCard as CarouselSwipeDeckProps<CourseVocabularyCard>["renderCard"]

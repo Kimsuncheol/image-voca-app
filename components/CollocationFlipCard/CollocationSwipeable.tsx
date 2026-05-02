@@ -21,6 +21,7 @@ interface Props {
   isStudyCompleted?: boolean;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  onMaskChange?: (enabled: boolean) => void;
 }
 
 const FEEDBACK_THROTTLE_MS = 900;
@@ -38,6 +39,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
   isStudyCompleted = false,
   isPreviewMode = false,
   isReviewMode = false,
+  onMaskChange,
 }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -284,6 +286,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
                   onFirstFlipToBack={() => handleCardFirstFlip(index)}
                   isActive={activeIndex === index}
                   isReviewMode={isReviewMode}
+                  onMaskChange={onMaskChange}
                 />
               ) : (
                 <View style={styles.swipeableCardPlaceholder} />

@@ -1,7 +1,5 @@
 import type { TextStyle } from "react-native";
 
-export type VocabularyStudyMode = "learning" | "review";
-
 type ReviewMaskSegment = {
   text: string;
   masked: boolean;
@@ -9,13 +7,6 @@ type ReviewMaskSegment = {
 
 const MASK_START = "[[[";
 const MASK_END = "]]]";
-
-export function normalizeVocabularyStudyMode(
-  value?: string | string[],
-): VocabularyStudyMode {
-  const mode = Array.isArray(value) ? value[0] : value;
-  return mode === "review" ? "review" : "learning";
-}
 
 export function parseReviewMaskSegments(value?: string): ReviewMaskSegment[] {
   if (!value) return [];

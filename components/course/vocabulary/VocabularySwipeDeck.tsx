@@ -28,6 +28,7 @@ interface VocabularySwipeDeckProps {
   isStudyCompleted?: boolean;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  onMaskChange?: (enabled: boolean) => void;
 }
 
 export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
@@ -46,6 +47,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
   isStudyCompleted,
   isPreviewMode = false,
   isReviewMode = false,
+  onMaskChange,
 }) => {
   if (courseId === "COLLOCATION") {
     const vocabularyCards = cards.filter(
@@ -65,6 +67,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         isStudyCompleted={isStudyCompleted}
         isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
+        onMaskChange={onMaskChange}
       />
     );
   }
@@ -86,6 +89,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         initialIndex={initialIndex}
         isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
+        onMaskChange={onMaskChange}
       />
     );
   }
@@ -105,6 +109,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         initialIndex={initialIndex}
         isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
+        onMaskChange={onMaskChange}
       />
     );
   }
@@ -126,6 +131,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
       initialIndex={initialIndex}
       isPreviewMode={isPreviewMode}
       isReviewMode={isReviewMode}
+      onMaskChange={onMaskChange}
     />
   );
 };

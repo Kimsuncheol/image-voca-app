@@ -19,6 +19,7 @@ interface SwipeCardItemProps {
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  onMaskChange?: (enabled: boolean) => void;
 }
 
 export function SwipeCardItem({
@@ -29,6 +30,7 @@ export function SwipeCardItem({
   onSavedWordChange,
   isPreviewMode = false,
   isReviewMode = false,
+  onMaskChange,
 }: SwipeCardItemProps) {
   const { isDark } = useTheme();
   const bgColors = getBackgroundColors(isDark);
@@ -74,6 +76,7 @@ export function SwipeCardItem({
         onSavedWordChange={onSavedWordChange}
         isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
+        onMaskChange={onMaskChange}
       />
     </View>
   );

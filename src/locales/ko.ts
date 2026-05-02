@@ -664,6 +664,8 @@ const ko = {
     dayCompleted: "오늘 학습 완료!",
     takeQuiz: "퀴즈 풀기",
     review: "복습",
+    mask: "가리기",
+    show: "보기",
     modes: {
       learning: "학습",
       review: "복습",

@@ -1,5 +1,13 @@
 import React from "react";
-import { Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import {
+  Pressable,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+  type GestureResponderEvent,
+} from "react-native";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
 import type { KanjiWord } from "../../../src/types/vocabulary";
@@ -24,6 +32,8 @@ export interface BackSideProps {
   useKorean: boolean;
   /** Whether the card should hide review targets under tape masks */
   isReviewMode?: boolean;
+  /** Callback triggered when the mask visibility is changed */
+  onMaskChange?: (enabled: boolean) => void;
   /** Callback triggered to flip the card horizontally back to the front face */
   onFlip: () => void;
 }
@@ -42,8 +52,10 @@ export function BackSide({
   language,
   useKorean,
   isReviewMode = false,
+  onMaskChange = () => {},
   onFlip,
 }: BackSideProps) {
+  const { t } = useTranslation();
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
   const meanings = item.meaning;
@@ -61,6 +73,22 @@ export function BackSide({
     if (!isActive) setShowFurigana(false);
   }, [isActive]);
 
+  const handleMaskChange = React.useCallback(
+    (event: GestureResponderEvent, enabled: boolean) => {
+      event?.stopPropagation();
+      onMaskChange(enabled);
+    },
+    [onMaskChange],
+  );
+
+  const handleToggleFurigana = React.useCallback(
+    (event: GestureResponderEvent) => {
+      event?.stopPropagation();
+      setShowFurigana((v) => !v);
+    },
+    [],
+  );
+
   return (
     <Pressable
       testID="kanji-collocation-back-side"
@@ -73,9 +101,62 @@ export function BackSide({
       ]}
       onPress={onFlip}
     >
-      <View style={styles.backHeader}>
+      <View testID="kanji-collocation-back-control-row" style={styles.backHeader}>
+        <View
+          testID="kanji-collocation-back-mask-toggle"
+          style={[
+            styles.backMaskToggleGroup,
+            {
+              backgroundColor: bgColors.learningCardSurfaceAlt,
+              borderColor: fontColors.learningCardDividerMuted,
+            },
+          ]}
+        >
+          {([true, false] as const).map((enabled) => {
+            const isSelected = isReviewMode === enabled;
+            const labelKey = enabled ? "course.mask" : "course.show";
+            const defaultValue = enabled ? "Mask" : "Show";
+
+            return (
+              <TouchableOpacity
+                key={labelKey}
+                testID={
+                  enabled
+                    ? "kanji-collocation-back-mask-toggle-mask"
+                    : "kanji-collocation-back-mask-toggle-show"
+                }
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
+                onPress={(event) => handleMaskChange(event, enabled)}
+                activeOpacity={0.78}
+                style={[
+                  styles.backMaskToggleSegment,
+                  {
+                    backgroundColor: isSelected
+                      ? bgColors.learningCardSurface
+                      : "transparent",
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.backMaskToggleText,
+                    {
+                      color: isSelected
+                        ? fontColors.learningCardPrimary
+                        : fontColors.learningCardMuted,
+                    },
+                  ]}
+                >
+                  {t(labelKey, { defaultValue })}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
         <TouchableOpacity
-          onPress={() => setShowFurigana((v) => !v)}
+          testID="kanji-collocation-furigana-toggle"
+          onPress={handleToggleFurigana}
           activeOpacity={0.7}
           style={[
             styles.furiganaButton,

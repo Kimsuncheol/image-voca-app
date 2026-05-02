@@ -15,6 +15,7 @@ interface JlptSwipeDeckProps {
   initialIndex?: number;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  onMaskChange?: (enabled: boolean) => void;
 }
 
 interface JlptDeckCardProps {
@@ -27,6 +28,7 @@ interface JlptDeckCardProps {
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isPreviewMode: boolean;
   isReviewMode: boolean;
+  onMaskChange?: (enabled: boolean) => void;
 }
 
 const JlptDeckCard = React.memo(function JlptDeckCard({
@@ -39,6 +41,7 @@ const JlptDeckCard = React.memo(function JlptDeckCard({
   onSavedWordChange,
   isPreviewMode,
   isReviewMode,
+  onMaskChange,
 }: JlptDeckCardProps) {
   const [showKana, setShowKana] = React.useState(
     () => Boolean(kanaStateCacheRef.current[item.id]),
@@ -69,6 +72,7 @@ const JlptDeckCard = React.memo(function JlptDeckCard({
       onSavedWordChange={isPreviewMode ? undefined : onSavedWordChange}
       isPreviewMode={isPreviewMode}
       isReviewMode={isReviewMode}
+      onMaskChange={onMaskChange}
       showKana={showKana}
       onToggleKana={handleToggleKana}
     />
@@ -96,6 +100,7 @@ export const JlptSwipeDeck: React.FC<JlptSwipeDeckProps> = (props) => {
       dayNumber,
       isPreviewMode,
       isReviewMode,
+      onMaskChange,
       onSavedWordChange,
     }: {
       item: VocabularyCard;
@@ -104,6 +109,7 @@ export const JlptSwipeDeck: React.FC<JlptSwipeDeckProps> = (props) => {
       dayNumber: number;
       isPreviewMode: boolean;
       isReviewMode: boolean;
+      onMaskChange?: (enabled: boolean) => void;
       onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
     }) => (
       <JlptDeckCard
@@ -117,6 +123,7 @@ export const JlptSwipeDeck: React.FC<JlptSwipeDeckProps> = (props) => {
         onSavedWordChange={onSavedWordChange}
         isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
+        onMaskChange={onMaskChange}
       />
     ),
     [cardIdsKey],

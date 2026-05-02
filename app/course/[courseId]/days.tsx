@@ -25,7 +25,6 @@ import { ThemedText } from "../../../components/themed-text";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useLearningLanguage } from "../../../src/context/LearningLanguageContext";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
-import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import {
   getTotalDaysForCourse,
@@ -41,7 +40,6 @@ import {
   findRuntimeCourse,
   getLearningLanguageForCourse,
 } from "../../../src/types/vocabulary";
-import { normalizeVocabularyStudyMode } from "../../../src/utils/reviewMasking";
 
 // -----------------------------------------------------------------------------
 // Type Definitions
@@ -64,7 +62,6 @@ export default function DayPickerScreen() {
   // ---------------------------------------------------------------------------
   const { isDark } = useTheme();
   const bgColors = getBackgroundColors(isDark);
-  const fontColors = getFontColors(isDark);
   const { user } = useAuth();
   const router = useRouter();
   const isFocusedRef = React.useRef(true);
@@ -74,10 +71,9 @@ export default function DayPickerScreen() {
     useLearningLanguage();
 
   // Route params: Identify which course we are viewing
-  const { courseId, initialTotalDays, mode } = useLocalSearchParams<{
+  const { courseId, initialTotalDays } = useLocalSearchParams<{
     courseId: CourseType;
     initialTotalDays?: string;
-    mode?: string;
   }>();
 
   // Stores: Access stats and subscription logic
@@ -92,8 +88,6 @@ export default function DayPickerScreen() {
     () => getLearningLanguageForCourse(courseId),
     [courseId],
   );
-  const studyMode = normalizeVocabularyStudyMode(mode);
-  const isReviewMode = studyMode === "review";
   const [totalDays, setTotalDays] = useState(() => {
     const parsed = initialTotalDays ? parseInt(initialTotalDays, 10) : NaN;
     return isNaN(parsed) ? 0 : parsed;
@@ -266,10 +260,10 @@ export default function DayPickerScreen() {
       if (!isFocusedRef.current) return;
       router.push({
         pathname: "/course/[courseId]/vocabulary",
-        params: { courseId, day: day.toString(), mode: studyMode },
+        params: { courseId, day: day.toString() },
       });
     },
-    [courseId, dayProgress, router, studyMode, t],
+    [courseId, dayProgress, router, t],
   );
 
   /**
@@ -344,49 +338,8 @@ export default function DayPickerScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.modeChips}>
-          {(["learning", "review"] as const).map((option) => {
-            const isSelected = studyMode === option;
-            const tint = course?.color ?? "#007AFF";
-
-            return (
-              <TouchableOpacity
-                key={option}
-                accessibilityRole="button"
-                accessibilityState={{ selected: isSelected }}
-                onPress={() => {
-                  router.setParams?.({ mode: option });
-                }}
-                activeOpacity={0.75}
-                style={[
-                  styles.modeChip,
-                  {
-                    borderColor: isSelected ? tint : "transparent",
-                    backgroundColor: isSelected
-                      ? `${tint}20`
-                      : isDark
-                        ? "#1c1c1e"
-                        : "#f5f5f5",
-                  },
-                ]}
-              >
-                <ThemedText
-                  style={[
-                    styles.modeChipText,
-                    { color: isSelected ? tint : fontColors.screenMuted },
-                  ]}
-                >
-                  {t(`course.modes.${option}`, {
-                    defaultValue: option === "learning" ? "Learning" : "Review",
-                  })}
-                </ThemedText>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
         {/* Continue banner — shown when the user has prior progress */}
-        {!isReviewMode && firstIncompleteDay > 1 && (
+        {firstIncompleteDay > 1 && (
           <TouchableOpacity
             style={[
               styles.continueBanner,
@@ -431,7 +384,6 @@ export default function DayPickerScreen() {
             courseId={courseId!}
             onDayPress={handleDayPress}
             onQuizPress={handleQuizPress}
-            hideProgressUi={isReviewMode}
           />
         )}
       </ScrollView>
@@ -470,24 +422,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     marginBottom: 20,
-  },
-  modeChips: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 16,
-  },
-  modeChip: {
-    flex: 1,
-    minHeight: 42,
-    borderRadius: 21,
-    borderWidth: 1.5,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 14,
-  },
-  modeChipText: {
-    fontSize: FontSizes.bodyMd,
-    fontWeight: FontWeights.bold,
   },
   previewBanner: {
     flexDirection: "row",

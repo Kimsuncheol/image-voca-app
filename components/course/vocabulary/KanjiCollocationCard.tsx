@@ -16,6 +16,7 @@ interface KanjiCollocationCardProps {
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  onMaskChange?: (enabled: boolean) => void;
 }
 
 export function KanjiCollocationCard({
@@ -26,6 +27,7 @@ export function KanjiCollocationCard({
   onSavedWordChange,
   isPreviewMode = false,
   isReviewMode = false,
+  onMaskChange,
 }: KanjiCollocationCardProps) {
   const { isDark } = useTheme();
   const { i18n } = useTranslation();
@@ -76,6 +78,7 @@ export function KanjiCollocationCard({
         language={i18n.language}
         useKorean={i18n.language === "ko"}
         isReviewMode={isReviewMode}
+        onMaskChange={onMaskChange}
         onFlip={() => flip(false)}
       />
     </FlipCard>

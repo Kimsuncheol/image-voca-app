@@ -1,6 +1,5 @@
 import {
   getReviewTapeTextStyle,
-  normalizeVocabularyStudyMode,
   parseReviewMaskSegments,
   stripReviewMaskDelimiters,
 } from "../src/utils/reviewMasking";
@@ -18,12 +17,6 @@ describe("reviewMasking", () => {
       { text: "target", masked: true },
       { text: " B", masked: false },
     ]);
-  });
-
-  it("defaults unknown route values to learning", () => {
-    expect(normalizeVocabularyStudyMode(undefined)).toBe("learning");
-    expect(normalizeVocabularyStudyMode("preview")).toBe("learning");
-    expect(normalizeVocabularyStudyMode("review")).toBe("review");
   });
 
   it("uses invisible mask styles in both themes", () => {

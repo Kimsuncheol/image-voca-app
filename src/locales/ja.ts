@@ -656,6 +656,8 @@ const ja = {
     dayCompleted: "今日の学習完了！",
     takeQuiz: "クイズを受ける",
     review: "復習",
+    mask: "隠す",
+    show: "表示",
     modes: {
       learning: "学習",
       review: "復習",

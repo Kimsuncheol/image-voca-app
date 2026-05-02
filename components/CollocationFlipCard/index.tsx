@@ -26,6 +26,8 @@ interface Props {
   onImageLoad?: () => void;
   // Hides review targets under tape masks while preserving layout
   isReviewMode?: boolean;
+  // Changes whether review targets are masked
+  onMaskChange?: (enabled: boolean) => void;
 }
 
 /**
@@ -48,6 +50,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
     isActive = true,
     onImageLoad,
     isReviewMode = false,
+    onMaskChange,
   }) => {
     // ============================================================================
     // State Management
@@ -140,6 +143,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
           isVisible={isBackVisible}
           onFlip={handleFlipToFront}
           isReviewMode={isReviewMode}
+          onMaskChange={onMaskChange}
         />
       </FlipCard>
     );

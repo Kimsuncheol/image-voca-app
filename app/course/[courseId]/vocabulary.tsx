@@ -39,9 +39,11 @@ import {
   isVocabularyCacheFresh,
 } from "../../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../../src/stores";
-import { CourseType, CourseVocabularyCard } from "../../../src/types/vocabulary";
+import {
+  CourseType,
+  CourseVocabularyCard,
+} from "../../../src/types/vocabulary";
 import { formatDateKey } from "../../../src/utils/calendarStats";
-import { normalizeVocabularyStudyMode } from "../../../src/utils/reviewMasking";
 
 // Components
 import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
@@ -92,11 +94,10 @@ function VocabularyScreenContent() {
 
 
   // Navigation parameters: courseId (e.g., 'TOEIC') and day (e.g., '1')
-  const { courseId, day, preview, mode } = useLocalSearchParams<{
+  const { courseId, day, preview } = useLocalSearchParams<{
     courseId: CourseType;
     day: string;
     preview?: string;
-    mode?: string;
   }>();
   const router = useRouter();
   const navigation = useNavigation();
@@ -141,9 +142,8 @@ function VocabularyScreenContent() {
   const dayNumber = parseInt(day || "1", 10);
   const typedCourseId = courseId as CourseType;
   const isPreviewMode = preview === "1";
-  const studyMode = normalizeVocabularyStudyMode(mode);
-  const isReviewMode = studyMode === "review";
-  const isProgressDisabled = isPreviewMode || isReviewMode;
+  const [isMaskEnabled, setIsMaskEnabled] = useState(true);
+  const isProgressDisabled = isPreviewMode;
   const isStudyCompleted =
     (!isProgressDisabled &&
       (isFinished ||
@@ -156,7 +156,8 @@ function VocabularyScreenContent() {
     leaveConfirmedRef.current = false;
     resumePromptShownRef.current = null;
     setInitialDeckIndex(0);
-  }, [courseId, dayNumber, studyMode]);
+    setIsMaskEnabled(true);
+  }, [courseId, dayNumber]);
 
   const trackSessionLearnedWord = useCallback((wordId: string) => {
     if (sessionLearnedWordIdsRef.current.has(wordId)) {
@@ -321,7 +322,6 @@ function VocabularyScreenContent() {
   const persistCurrentResumeProgress = useCallback(async () => {
     if (
       isPreviewMode ||
-      isReviewMode ||
       !user ||
       !courseId ||
       cards.length === 0 ||
@@ -342,7 +342,6 @@ function VocabularyScreenContent() {
     courseId,
     dayNumber,
     isPreviewMode,
-    isReviewMode,
     isStudyCompleted,
     typedCourseId,
     user,
@@ -371,7 +370,6 @@ function VocabularyScreenContent() {
   useEffect(() => {
     if (
       isPreviewMode ||
-      isReviewMode ||
       !user ||
       !courseId ||
       cards.length === 0 ||
@@ -449,7 +447,6 @@ function VocabularyScreenContent() {
     courseProgressLoaded,
     dayNumber,
     isPreviewMode,
-    isReviewMode,
     isStudyCompleted,
     t,
     typedCourseId,
@@ -471,7 +468,6 @@ function VocabularyScreenContent() {
         !user ||
         !courseId ||
         isPreviewMode ||
-        isReviewMode ||
         loading ||
         cards.length === 0 ||
         isStudyCompleted
@@ -509,7 +505,6 @@ function VocabularyScreenContent() {
     cards.length,
     courseId,
     isPreviewMode,
-    isReviewMode,
     isStudyCompleted,
     loading,
     navigation,
@@ -665,21 +660,6 @@ function VocabularyScreenContent() {
   // ============================================================================
 
   /**
-   * Action: Restart Day
-   * Resets the current learning session.
-   */
-  const handleReview = () => {
-    currentIndexRef.current = 0;
-    setInitialDeckIndex(0);
-    setIsFinished(false);
-    setCards([...cards]);
-    router.replace({
-      pathname: "/course/[courseId]/vocabulary",
-      params: { courseId, day, mode: "review" },
-    });
-  };
-
-  /**
    * Action: Start Quiz
    * Navigates to the Quiz selection screen for this day.
    */
@@ -697,7 +677,7 @@ function VocabularyScreenContent() {
   const handleDays = () => {
     router.push({
       pathname: "/course/[courseId]/days",
-      params: { courseId, mode: "learning" },
+      params: { courseId },
     });
   };
 
@@ -731,7 +711,6 @@ function VocabularyScreenContent() {
         isDark={isDark}
         day={dayNumber}
         onQuiz={handleQuiz}
-        onReview={handleReview}
         onDays={handleDays}
         t={t}
       />
@@ -754,11 +733,13 @@ function VocabularyScreenContent() {
           headerBackTitle: t("common.back"),
           title: isPreviewMode
             ? t("course.preview", { defaultValue: "Preview" })
-            : isReviewMode
-              ? t("course.review", { defaultValue: "Review" })
             : "",
           headerRight: hasCards() && !isFinished
-            ? () => <DayBadge day={dayNumber} />
+            ? () => (
+                <View style={styles.headerRight}>
+                  <DayBadge day={dayNumber} />
+                </View>
+              )
             : undefined,
           headerBackVisible: !splashVisible && hasCards() ? true : false,
           gestureEnabled: !loading,
@@ -792,10 +773,11 @@ function VocabularyScreenContent() {
                 initialIndex={initialDeckIndex}
                 renderFinishView={renderFinishedView}
                 isStudyCompleted={
-                  isStudyCompleted || isPreviewMode || isReviewMode
+                  isStudyCompleted || isPreviewMode
                 }
                 isPreviewMode={isPreviewMode}
-                isReviewMode={isReviewMode}
+                isReviewMode={isMaskEnabled}
+                onMaskChange={setIsMaskEnabled}
               />
             )
           ) : (
@@ -838,6 +820,11 @@ const styles = StyleSheet.create({
   },
   activeDeckContainer: {
     justifyContent: "flex-start",
+  },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   previewFinishContainer: {
     flex: 1,
