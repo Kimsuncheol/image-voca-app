@@ -25,6 +25,7 @@ import { ThemedText } from "../../../components/themed-text";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useLearningLanguage } from "../../../src/context/LearningLanguageContext";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
+import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import {
   getTotalDaysForCourse,
@@ -63,6 +64,7 @@ export default function DayPickerScreen() {
   // ---------------------------------------------------------------------------
   const { isDark } = useTheme();
   const bgColors = getBackgroundColors(isDark);
+  const fontColors = getFontColors(isDark);
   const { user } = useAuth();
   const router = useRouter();
   const isFocusedRef = React.useRef(true);
@@ -371,7 +373,7 @@ export default function DayPickerScreen() {
                 <ThemedText
                   style={[
                     styles.modeChipText,
-                    { color: isSelected ? tint : undefined },
+                    { color: isSelected ? tint : fontColors.screenMuted },
                   ]}
                 >
                   {t(`course.modes.${option}`, {

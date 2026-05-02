@@ -31,6 +31,7 @@ import { Alert, Linking, ScrollView, StyleSheet, View } from "react-native";
 // ============================================================================
 // Each section component represents a specific category of settings
 import { AccountSection } from "../../components/settings/AccountSection"; // Account management options
+import { TopBannerAd } from "../../components/ads/TopBannerAd";
 import { AppearanceSection } from "../../components/settings/AppearanceSection"; // Theme and visual preferences
 import { LanguageSection } from "../../components/settings/LanguageSection"; // Language selection
 import { LearningLanguageSection } from "../../components/settings/LearningLanguageSection"; // Language to learn
@@ -314,6 +315,7 @@ export default function SettingsScreen() {
   // ============================================================================
   return (
     <View style={styles.container}>
+      <TopBannerAd includeTopInset={false} />
       <ScrollView style={{ flex: 1 }}>
         {/* ================================================================
             SCREEN HEADER CONFIGURATION
