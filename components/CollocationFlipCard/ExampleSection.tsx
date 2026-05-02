@@ -1,14 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
-import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   Text,
   TouchableOpacity,
   View,
-  type GestureResponderEvent,
 } from "react-native";
-import { getBackgroundColors } from "../../constants/backgroundColors";
 import Collapsible from "react-native-collapsible";
 import { getFontColors } from "../../constants/fontColors";
 import { useStudySpeech } from "../../src/hooks/useStudyMode";
@@ -22,6 +19,7 @@ import {
   stripRoleLabels,
   toDialogueTurns,
 } from "../../src/utils/roleplayUtils";
+import { MaskVisibilityToggle } from "../common/MaskVisibilityToggle";
 
 const CHARACTER_MIN_WIDTH = 88;
 const CHARACTER_MAX_WIDTH = 120;
@@ -57,9 +55,7 @@ export default React.memo(function ExampleSection({
   isReviewMode = false,
   onMaskChange = () => {},
 }: ExampleSectionProps) {
-  const { t } = useTranslation();
   const { handleSpeech } = useStudySpeech();
-  const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
   const spokenExampleText = useMemo(
     () => stripReviewMaskDelimiters(stripRoleLabels(example)),
@@ -106,13 +102,6 @@ export default React.memo(function ExampleSection({
       console.error("Collocation example TTS error:", error);
     });
   }, [handleSpeech, spokenExampleText]);
-  const handleMaskChange = React.useCallback(
-    (event: GestureResponderEvent, enabled: boolean) => {
-      event?.stopPropagation();
-      onMaskChange(enabled);
-    },
-    [onMaskChange],
-  );
 
   return (
     <View>
@@ -133,58 +122,13 @@ export default React.memo(function ExampleSection({
           EXAMPLE
         </Text>
         <View style={styles.exampleHeaderActions}>
-          <View
+          <MaskVisibilityToggle
+            isDark={isDark}
+            isMaskEnabled={isReviewMode}
+            onMaskChange={onMaskChange}
             testID="collocation-example-mask-toggle"
-            style={[
-              styles.exampleMaskToggleGroup,
-              {
-                backgroundColor: bgColors.learningCardSurfaceAlt,
-                borderColor: fontColors.learningCardDividerMuted,
-              },
-            ]}
-          >
-            {([true, false] as const).map((enabled) => {
-              const isSelected = isReviewMode === enabled;
-              const labelKey = enabled ? "course.mask" : "course.show";
-              const defaultValue = enabled ? "Mask" : "Show";
-
-              return (
-                <TouchableOpacity
-                  key={labelKey}
-                  testID={
-                    enabled
-                      ? "collocation-example-mask-toggle-mask"
-                      : "collocation-example-mask-toggle-show"
-                  }
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isSelected }}
-                  activeOpacity={0.78}
-                  onPress={(event) => handleMaskChange(event, enabled)}
-                  style={[
-                    styles.exampleMaskToggleSegment,
-                    {
-                      backgroundColor: isSelected
-                        ? bgColors.learningCardSurface
-                        : "transparent",
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.exampleMaskToggleText,
-                      {
-                        color: isSelected
-                          ? fontColors.learningCardPrimary
-                          : fontColors.learningCardMuted,
-                      },
-                    ]}
-                  >
-                    {t(labelKey, { defaultValue })}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+            stopPropagation
+          />
           <Ionicons
             name={isOpen ? "chevron-up" : "chevron-forward"}
             size={24}

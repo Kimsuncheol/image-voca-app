@@ -258,25 +258,6 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     gap: 12,
   },
-  exampleMaskToggleGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 999,
-    borderWidth: 1,
-    padding: 2,
-  },
-  exampleMaskToggleSegment: {
-    minHeight: 30,
-    minWidth: 50,
-    borderRadius: 999,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 10,
-  },
-  exampleMaskToggleText: {
-    fontSize: FontSizes.caption,
-    fontWeight: FontWeights.bold,
-  },
   backSectionContent: {
     paddingVertical: 12,
     marginBottom: 28,

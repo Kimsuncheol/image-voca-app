@@ -133,25 +133,6 @@ export const styles = StyleSheet.create({
     paddingBottom: 4,
     gap: 12,
   },
-  backMaskToggleGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 999,
-    borderWidth: 1,
-    padding: 2,
-  },
-  backMaskToggleSegment: {
-    minHeight: 30,
-    minWidth: 50,
-    borderRadius: 999,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 10,
-  },
-  backMaskToggleText: {
-    fontSize: FontSizes.caption,
-    fontWeight: FontWeights.bold,
-  },
   furiganaButton: {
     minHeight: 30,
     minWidth: 50,

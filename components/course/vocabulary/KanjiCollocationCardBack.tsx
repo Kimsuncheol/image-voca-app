@@ -1,5 +1,4 @@
 import React from "react";
-import { useTranslation } from "react-i18next";
 import {
   Pressable,
   ScrollView,
@@ -15,6 +14,7 @@ import { BackSection } from "./KanjiCollocationCardBackSection";
 import { GeneralBackSection } from "./KanjiCollocationCardGeneralBackSection";
 import { DottedDivider } from "./KanjiCollocationCardDivider";
 import { styles } from "./KanjiCollocationCardStyles";
+import { MaskVisibilityToggle } from "../../common/MaskVisibilityToggle";
 
 /**
  * Props passed to the back face component of the Kanji Collocation Card.
@@ -55,7 +55,6 @@ export function BackSide({
   onMaskChange = () => {},
   onFlip,
 }: BackSideProps) {
-  const { t } = useTranslation();
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
   const meanings = item.meaning;
@@ -72,14 +71,6 @@ export function BackSide({
   React.useEffect(() => {
     if (!isActive) setShowFurigana(false);
   }, [isActive]);
-
-  const handleMaskChange = React.useCallback(
-    (event: GestureResponderEvent, enabled: boolean) => {
-      event?.stopPropagation();
-      onMaskChange(enabled);
-    },
-    [onMaskChange],
-  );
 
   const handleToggleFurigana = React.useCallback(
     (event: GestureResponderEvent) => {
@@ -102,58 +93,13 @@ export function BackSide({
       onPress={onFlip}
     >
       <View testID="kanji-collocation-back-control-row" style={styles.backHeader}>
-        <View
+        <MaskVisibilityToggle
+          isDark={isDark}
+          isMaskEnabled={isReviewMode}
+          onMaskChange={onMaskChange}
           testID="kanji-collocation-back-mask-toggle"
-          style={[
-            styles.backMaskToggleGroup,
-            {
-              backgroundColor: bgColors.learningCardSurfaceAlt,
-              borderColor: fontColors.learningCardDividerMuted,
-            },
-          ]}
-        >
-          {([true, false] as const).map((enabled) => {
-            const isSelected = isReviewMode === enabled;
-            const labelKey = enabled ? "course.mask" : "course.show";
-            const defaultValue = enabled ? "Mask" : "Show";
-
-            return (
-              <TouchableOpacity
-                key={labelKey}
-                testID={
-                  enabled
-                    ? "kanji-collocation-back-mask-toggle-mask"
-                    : "kanji-collocation-back-mask-toggle-show"
-                }
-                accessibilityRole="button"
-                accessibilityState={{ selected: isSelected }}
-                onPress={(event) => handleMaskChange(event, enabled)}
-                activeOpacity={0.78}
-                style={[
-                  styles.backMaskToggleSegment,
-                  {
-                    backgroundColor: isSelected
-                      ? bgColors.learningCardSurface
-                      : "transparent",
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.backMaskToggleText,
-                    {
-                      color: isSelected
-                        ? fontColors.learningCardPrimary
-                        : fontColors.learningCardMuted,
-                    },
-                  ]}
-                >
-                  {t(labelKey, { defaultValue })}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+          stopPropagation
+        />
         <TouchableOpacity
           testID="kanji-collocation-furigana-toggle"
           onPress={handleToggleFurigana}

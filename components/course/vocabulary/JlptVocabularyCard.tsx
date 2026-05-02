@@ -28,6 +28,7 @@ import {
   stripReviewMaskDelimiters,
 } from "../../../src/utils/reviewMasking";
 import { InlineMeaningWithChips } from "../../common/InlineMeaningWithChips";
+import { MaskVisibilityToggle } from "../../common/MaskVisibilityToggle";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
 import { SwipeCardItemImageSection } from "../../swipe/SwipeCardItemImageSection";
 import { LineHeights } from "@/constants/lineHeights";
@@ -281,7 +282,7 @@ export function JlptVocabularyCard({
   const { isDark } = useTheme();
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
-  const { i18n, t } = useTranslation();
+  const { i18n } = useTranslation();
   const { handleSpeech } = useStudySpeech();
   useCardSpeechCleanup(isActive);
   const resolved = React.useMemo(
@@ -411,57 +412,12 @@ export function JlptVocabularyCard({
         </ScrollView>
 
         <View testID="jlpt-card-kana-toggle-bar" style={styles.kanaToggleBar}>
-          <View
+          <MaskVisibilityToggle
+            isDark={isDark}
+            isMaskEnabled={isReviewMode}
+            onMaskChange={onMaskChange}
             testID="jlpt-card-mask-toggle"
-            style={[
-              styles.maskToggleGroup,
-              {
-                backgroundColor: bgColors.learningCardSurfaceAlt,
-                borderColor: fontColors.learningCardDividerMuted,
-              },
-            ]}
-          >
-            {([true, false] as const).map((enabled) => {
-              const isSelected = isReviewMode === enabled;
-              const labelKey = enabled ? "course.mask" : "course.show";
-              const defaultValue = enabled ? "Mask" : "Show";
-
-              return (
-                <Pressable
-                  key={labelKey}
-                  testID={
-                    enabled
-                      ? "jlpt-card-mask-toggle-mask"
-                      : "jlpt-card-mask-toggle-show"
-                  }
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isSelected }}
-                  onPress={() => onMaskChange(enabled)}
-                  style={[
-                    styles.maskToggleSegment,
-                    {
-                      backgroundColor: isSelected
-                        ? bgColors.learningCardSurface
-                        : "transparent",
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.maskToggleText,
-                      {
-                        color: isSelected
-                          ? fontColors.learningCardPrimary
-                          : fontColors.learningCardMuted,
-                      },
-                    ]}
-                  >
-                    {t(labelKey, { defaultValue })}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          />
 
           {hasKanaToggle ? (
             <Pressable
@@ -532,25 +488,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     marginBottom: 20,
     gap: 12,
-  },
-  maskToggleGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 999,
-    borderWidth: 1,
-    padding: 2,
-  },
-  maskToggleSegment: {
-    minHeight: 30,
-    minWidth: 50,
-    borderRadius: 999,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 10,
-  },
-  maskToggleText: {
-    fontSize: FontSizes.caption,
-    fontWeight: FontWeights.bold,
   },
   kanaTogglePill: {
     minHeight: 34,
