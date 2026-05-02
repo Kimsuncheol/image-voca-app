@@ -58,9 +58,7 @@ export function stripReviewMaskDelimiters(value?: string): string {
 export function getReviewTapeTextStyle(isDark: boolean): TextStyle {
   return {
     color: "transparent",
-    backgroundColor: isDark
-      ? "rgba(155, 155, 161, 0.34)"
-      : "rgba(107, 114, 128, 0.30)",
+    backgroundColor: "transparent",
     borderRadius: 4,
     overflow: "hidden",
   };

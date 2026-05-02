@@ -26,11 +26,11 @@ describe("reviewMasking", () => {
     expect(normalizeVocabularyStudyMode("review")).toBe("review");
   });
 
-  it("uses theme-matched grey tape colors", () => {
+  it("uses invisible mask styles in both themes", () => {
     expect(getReviewTapeTextStyle(false)).toEqual(
       expect.objectContaining({
         color: "transparent",
-        backgroundColor: "rgba(107, 114, 128, 0.30)",
+        backgroundColor: "transparent",
         borderRadius: 4,
         overflow: "hidden",
       }),
@@ -38,7 +38,7 @@ describe("reviewMasking", () => {
     expect(getReviewTapeTextStyle(true)).toEqual(
       expect.objectContaining({
         color: "transparent",
-        backgroundColor: "rgba(155, 155, 161, 0.34)",
+        backgroundColor: "transparent",
         borderRadius: 4,
         overflow: "hidden",
       }),
