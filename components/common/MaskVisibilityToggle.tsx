@@ -1,6 +1,7 @@
 import { FontSizes } from "@/constants/fontSizes";
 import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   Text,
@@ -9,7 +10,6 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
-import { useTranslation } from "react-i18next";
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 

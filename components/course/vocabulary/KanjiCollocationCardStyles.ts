@@ -1,5 +1,5 @@
-import { FontWeights } from "@/constants/fontWeights";
 import { FontSizes } from "@/constants/fontSizes";
+import { FontWeights } from "@/constants/fontWeights";
 import { LineHeights } from "@/constants/lineHeights";
 import { StyleSheet } from "react-native";
 import { FontColors } from "../../../constants/fontColors";
@@ -134,10 +134,10 @@ export const styles = StyleSheet.create({
     gap: 12,
   },
   furiganaButton: {
-    minHeight: 30,
+    minHeight: 36,
     minWidth: 50,
     paddingHorizontal: 10,
-    paddingVertical: 0,
+    paddingVertical: 2,
     borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
