@@ -4,6 +4,7 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { FontSizes } from "@/constants/fontSizes";
 import { LineHeights } from "@/constants/lineHeights";
+import { TopBannerAd } from "../../ads/TopBannerAd";
 
 interface VocabularyFinishViewProps {
   isDark: boolean;
@@ -24,23 +25,26 @@ export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-<View style={styles.buttonsContainer}>
-        <TouchableOpacity style={[styles.button, styles.quizButton]} onPress={onQuiz}>
-          <Ionicons name="clipboard-outline" size={22} color="#1a1a1a" />
-          <Text style={styles.buttonText}>{t("course.takeQuiz")}</Text>
-        </TouchableOpacity>
+      <TopBannerAd />
+      <View style={styles.content}>
+        <View style={styles.buttonsContainer}>
+          <TouchableOpacity style={[styles.button, styles.quizButton]} onPress={onQuiz}>
+            <Ionicons name="clipboard-outline" size={22} color="#1a1a1a" />
+            <Text style={styles.buttonText}>{t("course.takeQuiz")}</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, styles.reviewButton]} onPress={onReview}>
-          <Ionicons name="eye-outline" size={22} color="#1a1a1a" />
-          <Text style={styles.buttonText}>
-            {t("course.review", { defaultValue: "Review" })}
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={[styles.button, styles.reviewButton]} onPress={onReview}>
+            <Ionicons name="eye-outline" size={22} color="#1a1a1a" />
+            <Text style={styles.buttonText}>
+              {t("course.review", { defaultValue: "Review" })}
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, styles.daysButton]} onPress={onDays}>
-          <Ionicons name="calendar-outline" size={22} color="#1a1a1a" />
-          <Text style={styles.buttonText}>{t("course.finish")}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={[styles.button, styles.daysButton]} onPress={onDays}>
+            <Ionicons name="calendar-outline" size={22} color="#1a1a1a" />
+            <Text style={styles.buttonText}>{t("course.finish")}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -48,6 +52,9 @@ export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  content: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",

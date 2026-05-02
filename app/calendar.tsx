@@ -3,7 +3,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { TopInstallNativeAd } from "../components/ads/TopInstallNativeAd";
+import { TopBannerAd } from "../components/ads/TopBannerAd";
 import { CalendarChart } from "../components/calendar/CalendarChart";
 import { CalendarDayDetailCard } from "../components/calendar/CalendarDayDetailCard";
 import { CalendarMonthGrid } from "../components/calendar/CalendarMonthGrid";
@@ -205,7 +205,7 @@ export default function CalendarScreen() {
       style={[styles.container, { backgroundColor: bgColors.screen }]}
       edges={["left", "right"]}
     >
-      <TopInstallNativeAd />
+      <TopBannerAd includeTopInset={false} />
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}

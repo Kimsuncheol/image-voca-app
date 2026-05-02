@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "../themed-text";
 import { FontSizes } from "@/constants/fontSizes";
+import { TopBannerAd } from "../ads/TopBannerAd";
 
 interface QuizFinishViewProps {
   score: number;
@@ -28,46 +29,49 @@ export function QuizFinishView({
 
   return (
     <View style={styles.resultContainer}>
-      <View
-        style={[
-          styles.scoreCircle,
-          {
-            borderColor:
-              percentage >= 80
-                ? "#28a745"
-                : percentage >= 60
-                  ? "#ffc107"
-                  : "#dc3545",
-          },
-        ]}
-      >
-        <ThemedText type="title" style={styles.scoreText}>
-          {percentage}%
-        </ThemedText>
-        <ThemedText style={styles.scoreLabel}>
-          {score}/{totalQuestions}
-        </ThemedText>
-      </View>
+      <TopBannerAd includeTopInset={false} />
+      <View style={styles.resultContent}>
+        <View
+          style={[
+            styles.scoreCircle,
+            {
+              borderColor:
+                percentage >= 80
+                  ? "#28a745"
+                  : percentage >= 60
+                    ? "#ffc107"
+                    : "#dc3545",
+            },
+          ]}
+        >
+          <ThemedText type="title" style={styles.scoreText}>
+            {percentage}%
+          </ThemedText>
+          <ThemedText style={styles.scoreLabel}>
+            {score}/{totalQuestions}
+          </ThemedText>
+        </View>
 
-      <View style={styles.resultButtons}>
-        <TouchableOpacity
-          style={[styles.resultButton, styles.retryButton]}
-          onPress={onRetry}
-        >
-          <Ionicons name="refresh" size={20} color="#fff" />
-          <ThemedText style={styles.resultButtonText}>
-            {t("common.retry")}
-          </ThemedText>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.resultButton, styles.finishButton]}
-          onPress={onFinish}
-        >
-          <Ionicons name="checkmark" size={20} color="#fff" />
-          <ThemedText style={styles.resultButtonText}>
-            {t("common.finish")}
-          </ThemedText>
-        </TouchableOpacity>
+        <View style={styles.resultButtons}>
+          <TouchableOpacity
+            style={[styles.resultButton, styles.retryButton]}
+            onPress={onRetry}
+          >
+            <Ionicons name="refresh" size={20} color="#fff" />
+            <ThemedText style={styles.resultButtonText}>
+              {t("common.retry")}
+            </ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.resultButton, styles.finishButton]}
+            onPress={onFinish}
+          >
+            <Ionicons name="checkmark" size={20} color="#fff" />
+            <ThemedText style={styles.resultButtonText}>
+              {t("common.finish")}
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -75,6 +79,9 @@ export function QuizFinishView({
 
 const styles = StyleSheet.create({
   resultContainer: {
+    flex: 1,
+  },
+  resultContent: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",

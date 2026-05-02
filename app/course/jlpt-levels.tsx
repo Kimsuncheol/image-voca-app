@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { TopInstallNativeAd } from "../../components/ads/TopInstallNativeAd";
+import { TopBannerAd } from "../../components/ads/TopBannerAd";
 import { JlptLevelList } from "../../components/course/JlptLevelList";
 import { ThemedText } from "../../components/themed-text";
 import { getBackgroundColors } from "../../constants/backgroundColors";
@@ -80,7 +80,7 @@ export default function JlptLevelsScreen() {
           headerBackTitle: t("common.back"),
         }}
       />
-      <TopInstallNativeAd containerStyle={styles.topInstallAd} />
+      <TopBannerAd includeTopInset={false} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -109,12 +109,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 0,
     paddingBottom: 40,
-  },
-  topInstallAd: {
-    marginHorizontal: 0,
-    marginTop: 0,
-    marginBottom: 24,
-    overflow: "hidden",
   },
   header: {
     marginBottom: 24,

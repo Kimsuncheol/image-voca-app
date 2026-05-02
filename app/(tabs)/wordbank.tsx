@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import React, { useRef } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
-import { TopInstallNativeAd } from "../../components/ads/TopInstallNativeAd";
+import { TopBannerAd } from "../../components/ads/TopBannerAd";
 import { WordBankCourseGrid, WordBankHeader } from "../../components/wordbank";
 import { StudyModeProvider } from "../../src/hooks/useStudyMode";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
@@ -45,7 +45,7 @@ function WordBankScreenContent() {
     <View
       style={[styles.container, { backgroundColor: bgColors.screen }]}
     >
-      <TopInstallNativeAd />
+      <TopBannerAd includeTopInset={false} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

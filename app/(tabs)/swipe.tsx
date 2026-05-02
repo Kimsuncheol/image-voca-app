@@ -12,7 +12,7 @@ import {
   RecentCourseSection,
   VocaHeader,
 } from "../../components/course";
-import { TopInstallNativeAd } from "../../components/ads/TopInstallNativeAd";
+import { TopBannerAd } from "../../components/ads/TopBannerAd";
 import { ThemedText } from "../../components/themed-text";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { getBackgroundColors } from "../../constants/backgroundColors";
@@ -84,7 +84,7 @@ export default function CourseSelectionScreen() {
     <View
       style={[styles.container, { backgroundColor: bgColors.screen }]}
     >
-      <TopInstallNativeAd />
+      <TopBannerAd includeTopInset={false} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
