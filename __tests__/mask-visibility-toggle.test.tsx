@@ -29,6 +29,22 @@ describe("MaskVisibilityToggle", () => {
     });
   });
 
+  it("renders Show before Mask", () => {
+    const { getByTestId } = render(
+      <MaskVisibilityToggle
+        isDark={false}
+        isMaskEnabled={false}
+        testID="mask-toggle"
+      />,
+    );
+
+    const segmentOrder = getByTestId("mask-toggle").props.children.map(
+      (segment: React.ReactElement) => segment.props.testID,
+    );
+
+    expect(segmentOrder).toEqual(["mask-toggle-show", "mask-toggle-mask"]);
+  });
+
   it("calls onMaskChange with the pressed segment value", () => {
     const onMaskChange = jest.fn();
     const { getByTestId } = render(

@@ -56,7 +56,7 @@ export function MaskVisibilityToggle({
         style,
       ]}
     >
-      {([true, false] as const).map((enabled) => {
+      {([false, true] as const).map((enabled) => {
         const isSelected = isMaskEnabled === enabled;
         const labelKey = enabled ? "course.mask" : "course.show";
         const defaultValue = enabled ? "Mask" : "Show";

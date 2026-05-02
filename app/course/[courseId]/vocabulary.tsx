@@ -142,7 +142,7 @@ function VocabularyScreenContent() {
   const dayNumber = parseInt(day || "1", 10);
   const typedCourseId = courseId as CourseType;
   const isPreviewMode = preview === "1";
-  const [isMaskEnabled, setIsMaskEnabled] = useState(true);
+  const [isMaskEnabled, setIsMaskEnabled] = useState(false);
   const isProgressDisabled = isPreviewMode;
   const isStudyCompleted =
     (!isProgressDisabled &&
@@ -156,7 +156,7 @@ function VocabularyScreenContent() {
     leaveConfirmedRef.current = false;
     resumePromptShownRef.current = null;
     setInitialDeckIndex(0);
-    setIsMaskEnabled(true);
+    setIsMaskEnabled(false);
   }, [courseId, dayNumber]);
 
   const trackSessionLearnedWord = useCallback((wordId: string) => {
@@ -166,6 +166,10 @@ function VocabularyScreenContent() {
 
     sessionLearnedWordIdsRef.current.add(wordId);
     return sessionLearnedWordIdsRef.current.size;
+  }, []);
+
+  const resetMaskToDefault = useCallback(() => {
+    setIsMaskEnabled(false);
   }, []);
 
   // ============================================================================
@@ -492,6 +496,7 @@ function VocabularyScreenContent() {
                 })
                 .finally(() => {
                   leaveConfirmedRef.current = true;
+                  resetMaskToDefault();
                   navigation.dispatch(event.data.action);
                 });
             },
@@ -509,6 +514,7 @@ function VocabularyScreenContent() {
     loading,
     navigation,
     persistCurrentResumeProgress,
+    resetMaskToDefault,
     t,
     user,
   ]);
@@ -549,6 +555,7 @@ function VocabularyScreenContent() {
    * 3. Marks the course day as 'completed' in user profile.
    */
   const handleRunOutOfCards = async () => {
+    resetMaskToDefault();
     setIsFinished(true);
     if (isProgressDisabled) {
       return;
@@ -620,6 +627,7 @@ function VocabularyScreenContent() {
    * we simply record the word as learned when the user navigates to its page.
    */
   const handlePageChange = (index: number) => {
+    resetMaskToDefault();
     currentIndexRef.current = index;
 
     if (isProgressDisabled) {
@@ -675,6 +683,7 @@ function VocabularyScreenContent() {
    * Navigates back to the day picker for this course.
    */
   const handleDays = () => {
+    resetMaskToDefault();
     router.push({
       pathname: "/course/[courseId]/days",
       params: { courseId },

@@ -235,12 +235,14 @@ jest.mock("../components/course/vocabulary/VocabularySwipeDeck", () => ({
     initialIndex,
     isPreviewMode,
     isReviewMode,
+    onMaskChange,
   }: {
     onIndexChange: (index: number) => void;
     onFinish: () => void;
     initialIndex: number;
     isPreviewMode?: boolean;
     isReviewMode?: boolean;
+    onMaskChange?: (enabled: boolean) => void;
   }) => {
     const { Text, TouchableOpacity, View } = require("react-native");
 
@@ -250,6 +252,12 @@ jest.mock("../components/course/vocabulary/VocabularySwipeDeck", () => ({
         <Text>{`Initial Index ${initialIndex}`}</Text>
         <Text>{`Preview Mode ${isPreviewMode ? "on" : "off"}`}</Text>
         <Text>{`Mask Mode ${isReviewMode ? "on" : "off"}`}</Text>
+        <TouchableOpacity onPress={() => onMaskChange?.(false)}>
+          <Text>Show Mask</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => onMaskChange?.(true)}>
+          <Text>Mask Words</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => onIndexChange(1)}>
           <Text>Advance Deck</Text>
         </TouchableOpacity>
@@ -652,21 +660,28 @@ describe("VocabularyScreen deck state", () => {
     expect(Alert.alert).not.toHaveBeenCalled();
   });
 
-  it("defaults to masked learning while normal progress remains active", async () => {
+  it("defaults to shown learning while normal progress remains active", async () => {
     mockUser = { uid: "user-1" };
 
     const screen = render(<VocabularyScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Mask Mode on")).toBeTruthy();
+      expect(screen.getByText("Mask Mode off")).toBeTruthy();
       expect(screen.getByText("Initial Index 0")).toBeTruthy();
       expect(mockFetchCourseProgress).toHaveBeenCalledWith("user-1", "TOEIC");
       expect(mockGetResumeProgress).toHaveBeenCalled();
     });
 
+    fireEvent.press(screen.getByText("Mask Words"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Mask Mode on")).toBeTruthy();
+    });
+
     fireEvent.press(screen.getByText("Advance Deck"));
 
     await waitFor(() => {
+      expect(screen.getByText("Mask Mode off")).toBeTruthy();
       expect(mockSaveResumeProgress).toHaveBeenCalledWith(
         expect.objectContaining({
           currentIndex: 1,
@@ -711,11 +726,79 @@ describe("VocabularyScreen deck state", () => {
     expect(Alert.alert).not.toHaveBeenCalled();
   });
 
+  it("keeps mask mode when leave is cancelled and resets to show on confirmed leave", async () => {
+    mockUser = { uid: "user-1" };
+
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Mask Mode off")).toBeTruthy();
+      expect(beforeRemoveHandler).toBeDefined();
+    });
+
+    fireEvent.press(screen.getByText("Mask Words"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Mask Mode on")).toBeTruthy();
+    });
+
+    const firstEvent = {
+      preventDefault: jest.fn(),
+      data: { action: { type: "GO_BACK" } },
+    };
+    act(() => {
+      beforeRemoveHandler?.(firstEvent);
+    });
+
+    expect(firstEvent.preventDefault).toHaveBeenCalled();
+
+    const cancelCall = alertSpy.mock.calls.find(
+      (call) => call[0] === "Leave this day?",
+    );
+    const cancelButtons = cancelCall?.[2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+
+    act(() => {
+      cancelButtons.find((button) => button.text === "Cancel")?.onPress?.();
+    });
+
+    expect(screen.getByText("Mask Mode on")).toBeTruthy();
+    expect(mockNavigationDispatch).not.toHaveBeenCalled();
+
+    const secondEvent = {
+      preventDefault: jest.fn(),
+      data: { action: { type: "GO_BACK" } },
+    };
+    act(() => {
+      beforeRemoveHandler?.(secondEvent);
+    });
+
+    const leaveCall = alertSpy.mock.calls
+      .slice()
+      .reverse()
+      .find((call) => call[0] === "Leave this day?");
+    const leaveButtons = leaveCall?.[2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+
+    act(() => {
+      leaveButtons.find((button) => button.text === "Leave")?.onPress?.();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Mask Mode off")).toBeTruthy();
+      expect(mockNavigationDispatch).toHaveBeenCalledWith({ type: "GO_BACK" });
+    });
+  });
+
   it("hides the header mask toggle for standard English routes", async () => {
     const screen = render(<VocabularyScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Mask Mode on")).toBeTruthy();
+      expect(screen.getByText("Mask Mode off")).toBeTruthy();
     });
 
     expect(screen.queryByText("Mask")).toBeNull();
@@ -729,7 +812,7 @@ describe("VocabularyScreen deck state", () => {
     const screen = render(<VocabularyScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Mask Mode on")).toBeTruthy();
+      expect(screen.getByText("Mask Mode off")).toBeTruthy();
     });
 
     expect(screen.queryByText("Mask")).toBeNull();
@@ -745,7 +828,7 @@ describe("VocabularyScreen deck state", () => {
       const screen = render(<VocabularyScreen />);
 
       await waitFor(() => {
-        expect(screen.getByText("Mask Mode on")).toBeTruthy();
+        expect(screen.getByText("Mask Mode off")).toBeTruthy();
       });
 
       expect(screen.queryByText("Mask")).toBeNull();
