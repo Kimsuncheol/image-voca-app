@@ -11,6 +11,7 @@ export const FontSizes = {
   body: 14,
   bodyMd: 15,
   bodyLg: 16,
+  popQuizMeaning: 13,
 
   // Subheading (17–22): card headers, section labels
   subhead: 17,

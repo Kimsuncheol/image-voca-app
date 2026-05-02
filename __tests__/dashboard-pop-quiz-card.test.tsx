@@ -157,6 +157,21 @@ describe("DashboardPopQuizCard", () => {
     });
   });
 
+  it("renders a shimmer skeleton instead of loading text while pop quiz data loads", () => {
+    (fetchPopQuizMatchingGamesBatch as jest.Mock).mockReturnValue(
+      new Promise(() => {}),
+    );
+
+    const screen = render(<DashboardPopQuizCard />);
+
+    expect(screen.getByText("dashboard.popQuiz.title")).toBeTruthy();
+    expect(screen.getByTestId("pop-quiz-skeleton")).toBeTruthy();
+    expect(screen.getByTestId("pop-quiz-skeleton-row-5")).toBeTruthy();
+    expect(screen.getByTestId("pop-quiz-skeleton-left-1")).toBeTruthy();
+    expect(screen.getByTestId("pop-quiz-skeleton-right-5")).toBeTruthy();
+    expect(screen.queryByText("dashboard.popQuiz.loading")).toBeNull();
+  });
+
   it("loads the first incomplete recent-course day and renders the game", async () => {
     const screen = render(<DashboardPopQuizCard />);
 
@@ -210,6 +225,11 @@ describe("DashboardPopQuizCard", () => {
     expect(screen.getByTestId("pop-quiz-choice-c2")).toHaveTextContent(
       "achieve a goal",
     );
+    expect(screen.getByTestId("pop-quiz-choice-c1-text")).toHaveStyle({
+      color: "#1f2937",
+      fontSize: 13,
+      fontWeight: "500",
+    });
   });
 
   it("formats CSAT idiom titles and all numbered meanings visually", async () => {
@@ -344,6 +364,21 @@ describe("DashboardPopQuizCard", () => {
     expect(screen.getByTestId("pop-quiz-choice-c1-text")).toHaveStyle({
       fontSize: 12,
       lineHeight: 15,
+      fontWeight: "500",
+    });
+  });
+
+  it("overrides neutral meaning color when a choice is selected", async () => {
+    const screen = render(<DashboardPopQuizCard />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("pop-quiz-choice-c1")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId("pop-quiz-choice-c1"));
+
+    expect(screen.getByTestId("pop-quiz-choice-c1-text")).toHaveStyle({
+      color: "#4ECDC4",
     });
   });
 
@@ -485,12 +520,18 @@ describe("DashboardPopQuizCard", () => {
     fireEvent.press(screen.getByTestId("pop-quiz-choice-c2"));
 
     expect(screen.queryByTestId("pop-quiz-completed")).toBeNull();
+    expect(screen.getByTestId("pop-quiz-choice-c2-text")).toHaveStyle({
+      color: "#FF3B30",
+    });
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 750));
     });
 
     fireEvent.press(screen.getByTestId("pop-quiz-item-q1"));
+    expect(screen.getByTestId("pop-quiz-item-q1-text")).toHaveStyle({
+      color: "#4ECDC4",
+    });
     fireEvent.press(screen.getByTestId("pop-quiz-choice-c1"));
     fireEvent.press(screen.getByTestId("pop-quiz-item-q2"));
     fireEvent.press(screen.getByTestId("pop-quiz-choice-c2"));
@@ -501,6 +542,9 @@ describe("DashboardPopQuizCard", () => {
     });
     expect(screen.getByTestId("pop-quiz-choice-c2")).toHaveStyle({
       borderColor: "#34C759",
+    });
+    expect(screen.getByTestId("pop-quiz-choice-c2-text")).toHaveStyle({
+      color: "#34C759",
     });
   });
 

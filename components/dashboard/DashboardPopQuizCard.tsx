@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
+  Animated,
   Pressable,
   StyleSheet,
   View,
@@ -105,18 +105,24 @@ const getTileTextMetrics = (
       return {
         fontSize: FontSizes.caption,
         lineHeight: LineHeights.body,
-        fontWeight: FontWeights.semiBold,
+        fontWeight: FontWeights.popQuizMeaning,
         minimumFontScale: 0.7,
       };
     }
     if (compactLength > 22) {
       return {
-        fontSize: FontSizes.label,
+        fontSize: FontSizes.popQuizMeaning,
         lineHeight: LineHeights.bodyMd,
-        fontWeight: FontWeights.semiBold,
+        fontWeight: FontWeights.popQuizMeaning,
         minimumFontScale: 0.72,
       };
     }
+    return {
+      fontSize: FontSizes.popQuizMeaning,
+      lineHeight: LineHeights.bodyMd,
+      fontWeight: FontWeights.popQuizMeaning,
+      minimumFontScale: 0.76,
+    };
   }
 
   if (compactLength > 26) {
@@ -492,12 +498,7 @@ export function DashboardPopQuizCard() {
       </View>
 
       {loading ? (
-        <View style={styles.stateBlock}>
-          <ActivityIndicator color={courseColor} />
-          <ThemedText style={styles.stateText}>
-            {t("dashboard.popQuiz.loading")}
-          </ThemedText>
-        </View>
+        <DashboardPopQuizSkeleton isDark={isDark} />
       ) : !game ? (
         <View style={styles.stateBlock}>
           <Ionicons name="game-controller-outline" size={28} color={fontColors.iconMuted} />
@@ -527,6 +528,7 @@ export function DashboardPopQuizCard() {
                     text={displayText}
                     variant="item"
                     courseId={game.course}
+                    neutralChoiceTextColor={fontColors.popQuizMeaning}
                     isDark={isDark}
                     color={courseColor}
                     state={
@@ -559,6 +561,7 @@ export function DashboardPopQuizCard() {
                     text={displayText}
                     variant="choice"
                     courseId={game.course}
+                    neutralChoiceTextColor={fontColors.popQuizMeaning}
                     isDark={isDark}
                     color={courseColor}
                     state={
@@ -589,6 +592,7 @@ function PopQuizTile({
   text,
   variant,
   courseId,
+  neutralChoiceTextColor,
   state,
   color,
   isDark,
@@ -599,6 +603,7 @@ function PopQuizTile({
   text: string;
   variant: "item" | "choice";
   courseId?: string;
+  neutralChoiceTextColor: string;
   state: "neutral" | "selected" | "correct" | "wrong";
   color: string;
   isDark: boolean;
@@ -664,6 +669,8 @@ function PopQuizTile({
             lineHeight: textMetrics.lineHeight,
             fontWeight: textMetrics.fontWeight,
           },
+          variant === "choice" &&
+            state === "neutral" && { color: neutralChoiceTextColor },
           state === "selected" && { color },
           state === "correct" && styles.correctText,
           state === "wrong" && styles.wrongText,
@@ -672,6 +679,58 @@ function PopQuizTile({
         {text}
       </ThemedText>
     </Pressable>
+  );
+}
+
+function DashboardPopQuizSkeleton({ isDark }: { isDark: boolean }) {
+  const animatedValue = React.useRef(new Animated.Value(0.3)).current;
+
+  React.useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(animatedValue, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedValue, {
+          toValue: 0.3,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [animatedValue]);
+
+  const skeletonColor = isDark ? "#333" : "#E1E9EE";
+
+  return (
+    <View testID="pop-quiz-skeleton" style={styles.skeletonGrid}>
+      {Array.from({ length: PAIRS_PER_PAGE }, (_, index) => (
+        <View
+          key={`pop-quiz-skeleton-row-${index}`}
+          testID={`pop-quiz-skeleton-row-${index + 1}`}
+          style={styles.skeletonRow}
+        >
+          <Animated.View
+            testID={`pop-quiz-skeleton-left-${index + 1}`}
+            style={[
+              styles.skeletonTile,
+              { backgroundColor: skeletonColor, opacity: animatedValue },
+            ]}
+          />
+          <Animated.View
+            testID={`pop-quiz-skeleton-right-${index + 1}`}
+            style={[
+              styles.skeletonTile,
+              { backgroundColor: skeletonColor, opacity: animatedValue },
+            ]}
+          />
+        </View>
+      ))}
+    </View>
   );
 }
 
@@ -714,6 +773,18 @@ const styles = StyleSheet.create({
     lineHeight: LineHeights.bodyLg,
     opacity: 0.68,
     textAlign: "center",
+  },
+  skeletonGrid: {
+    gap: 10,
+  },
+  skeletonRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  skeletonTile: {
+    flex: 1,
+    height: 62,
+    borderRadius: 10,
   },
   gameGrid: {
     flexDirection: "row",

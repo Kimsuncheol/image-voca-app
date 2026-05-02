@@ -76,7 +76,8 @@ export type FontColorRole =
   | "learningCardDivider"
   | "learningCardDividerMuted"
   | "learningCardChipText"
-  | "learningCardActionText";
+  | "learningCardActionText"
+  | "popQuizMeaning";
 
 export type FontColorTokens = Record<FontColorRole, string>;
 
@@ -158,6 +159,7 @@ export const FontColors: Record<FontColorScheme, FontColorTokens> = {
     learningCardDividerMuted: "rgba(17,24,39,0.12)",
     learningCardChipText: "#2563EB",
     learningCardActionText: "#007AFF",
+    popQuizMeaning: "#1f2937",
   },
   dark: {
     primary: "#fff",
@@ -236,6 +238,7 @@ export const FontColors: Record<FontColorScheme, FontColorTokens> = {
     learningCardDividerMuted: "rgba(255,255,255,0.24)",
     learningCardChipText: "#9B9BA1",
     learningCardActionText: "#0A84FF",
+    popQuizMeaning: "#c7c7cc",
   },
 };
 
