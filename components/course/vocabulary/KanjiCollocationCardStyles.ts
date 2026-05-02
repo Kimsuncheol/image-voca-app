@@ -84,6 +84,12 @@ export const styles = StyleSheet.create({
     flexShrink: 0,
     gap: 8,
   },
+  faceMaskToggleRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    marginTop: 12,
+  },
   faceSection: {
     gap: 4,
   },

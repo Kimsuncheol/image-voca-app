@@ -146,9 +146,13 @@ describe("KanjiCollocationCard", () => {
       />,
     );
     const stopPropagation = jest.fn();
+    const renderedTree = JSON.stringify(screen.toJSON());
 
     expect(screen.getByTestId("kanji-collocation-face-mask-toggle-button")).toBeTruthy();
     expect(screen.getByText("Mask")).toBeTruthy();
+    expect(renderedTree.indexOf("kanji-collocation-face-reading-0")).toBeLessThan(
+      renderedTree.indexOf("kanji-collocation-face-mask-toggle"),
+    );
 
     fireEvent(
       screen.getByTestId("kanji-collocation-face-mask-toggle-button"),

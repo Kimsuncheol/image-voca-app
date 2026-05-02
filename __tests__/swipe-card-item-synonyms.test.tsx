@@ -119,14 +119,18 @@ describe("SwipeCardItem synonyms", () => {
   });
 
   it("renders the mask visibility control at the bottom of standard cards", () => {
-    const { getByText, getByTestId, queryByText } = render(
+    const { getByText, getByTestId, queryByText, toJSON } = render(
       <SwipeCardItem item={buildCard({ course: "TOEIC" })} />,
     );
+    const renderedTree = JSON.stringify(toJSON());
 
     expect(getByTestId("swipe-card-mask-toggle-row")).toBeTruthy();
     expect(getByTestId("swipe-card-mask-toggle")).toBeTruthy();
     expect(getByText("Mask")).toBeTruthy();
     expect(queryByText("Show")).toBeNull();
+    expect(renderedTree.indexOf("inline-meaning")).toBeLessThan(
+      renderedTree.indexOf("swipe-card-mask-toggle-row"),
+    );
   });
 
   it("calls onMaskChange from the standard card visibility control", () => {

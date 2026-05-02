@@ -184,9 +184,13 @@ describe("Collocation FaceSide word bank toggle", () => {
         onMaskChange={onMaskChange}
       />,
     );
+    const renderedTree = JSON.stringify(screen.toJSON());
 
     expect(screen.getByTestId("collocation-face-mask-toggle-button")).toBeTruthy();
     expect(screen.getByText("Mask")).toBeTruthy();
+    expect(renderedTree.indexOf("mock_synonym_1")).toBeLessThan(
+      renderedTree.indexOf("collocation-face-mask-toggle"),
+    );
 
     fireEvent(
       screen.getByTestId("collocation-face-mask-toggle-button"),

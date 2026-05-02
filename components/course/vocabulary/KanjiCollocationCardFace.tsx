@@ -158,13 +158,6 @@ export function FaceSide({
               {stripReviewMaskDelimiters(item.kanji)}
             </Text>
             <View style={styles.kanjiHeaderActions}>
-              <MaskVisibilityToggle
-                isDark={isDark}
-                isMaskEnabled={isReviewMode}
-                onMaskChange={onMaskChange}
-                testID="kanji-collocation-face-mask-toggle"
-                stopPropagation
-              />
               {!isPreviewMode && (
                 <SwipeCardItemAddToWordBankButton
                   item={item}
@@ -298,6 +291,15 @@ export function FaceSide({
               </View>
             </View>
           )}
+        </View>
+        <View style={styles.faceMaskToggleRow}>
+          <MaskVisibilityToggle
+            isDark={isDark}
+            isMaskEnabled={isReviewMode}
+            onMaskChange={onMaskChange}
+            testID="kanji-collocation-face-mask-toggle"
+            stopPropagation
+          />
         </View>
       </View>
     </Pressable>

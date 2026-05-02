@@ -314,13 +314,6 @@ export default React.memo(function FaceSide({
             </View>
 
             <View style={styles.faceHeaderActions}>
-              <MaskVisibilityToggle
-                isDark={isDark}
-                isMaskEnabled={isReviewMode}
-                onMaskChange={onMaskChange}
-                testID="collocation-face-mask-toggle"
-                stopPropagation
-              />
               {canAddToWordBank && !isDeleteMode && (
                 <AddToWordBankButton
                   itemId={wordBankConfig!.id}
@@ -392,6 +385,16 @@ export default React.memo(function FaceSide({
             >
               {formatSynonyms(data.synonyms?.length ? data.synonyms : ["mock_synonym_1", "mock_synonym_2"])}
             </Text>
+          </View>
+
+          <View style={styles.faceMaskToggleRow}>
+            <MaskVisibilityToggle
+              isDark={isDark}
+              isMaskEnabled={isReviewMode}
+              onMaskChange={onMaskChange}
+              testID="collocation-face-mask-toggle"
+              stopPropagation
+            />
           </View>
         </View>
       </View>
