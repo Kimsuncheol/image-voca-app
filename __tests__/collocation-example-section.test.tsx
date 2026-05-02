@@ -89,6 +89,33 @@ describe("ExampleSection", () => {
     expect(queryByText("Speaker Button")).toBeNull();
   });
 
+  test("masks the collocation explanation value while masked", () => {
+    const { getByText } = render(
+      <BackSide
+        data={{
+          collocation: "make a decision",
+          meaning: "decide",
+          explanation: "make a decision pronunciation",
+          example: "She [[[made a decision]]].",
+          translation: "그녀는 결정을 내렸다.",
+          imageUrl: "",
+        }}
+        isDark={false}
+        isVisible={true}
+        isReviewMode={true}
+      />,
+    );
+
+    expect(
+      StyleSheet.flatten(getByText("make a decision pronunciation").props.style),
+    ).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+  });
+
   test("speaks the full original example when example text is pressed", async () => {
     const fullExample =
       "John: I want to go to the beach. Mary: Let's go to the mountains.";
@@ -280,8 +307,8 @@ describe("ExampleSection", () => {
     const renderedTree = JSON.stringify(toJSON());
 
     expect(getByText("EXAMPLE")).toBeTruthy();
-    expect(getByText("Show")).toBeTruthy();
-    expect(queryByText("Mask")).toBeNull();
+    expect(getByText("Mask")).toBeTruthy();
+    expect(queryByText("Show")).toBeNull();
     expect(getByTestId("collocation-example-chevron-chevron-up")).toBeTruthy();
     expect(getByTestId("collocation-example-mask-toggle-button").props.accessibilityState).toEqual({
       selected: true,

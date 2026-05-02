@@ -98,6 +98,7 @@ export default React.memo(function BackSide({
           isOpen={isExplanationOpen}
           onToggle={handleToggleExplanation}
           isDark={isDark}
+          isReviewMode={isReviewMode}
         />
 
         <ExampleSection

@@ -1,5 +1,6 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
+import { StyleSheet } from "react-native";
 import { SwipeCardItem } from "../components/swipe/SwipeCardItem";
 import { VocabularyCard } from "../src/types/vocabulary";
 
@@ -124,8 +125,8 @@ describe("SwipeCardItem synonyms", () => {
 
     expect(getByTestId("swipe-card-mask-toggle-row")).toBeTruthy();
     expect(getByTestId("swipe-card-mask-toggle")).toBeTruthy();
-    expect(getByText("Show")).toBeTruthy();
-    expect(queryByText("Mask")).toBeNull();
+    expect(getByText("Mask")).toBeTruthy();
+    expect(queryByText("Show")).toBeNull();
   });
 
   it("calls onMaskChange from the standard card visibility control", () => {
@@ -156,5 +157,18 @@ describe("SwipeCardItem synonyms", () => {
 
     expect(onMaskChange).toHaveBeenNthCalledWith(1, true);
     expect(onMaskChange).toHaveBeenNthCalledWith(2, false);
+  });
+
+  it("masks the standard card pronunciation while masked", () => {
+    const { getByText } = render(
+      <SwipeCardItem item={buildCard({ course: "TOEIC" })} isReviewMode />,
+    );
+
+    expect(StyleSheet.flatten(getByText("/əˈbæn.dən/").props.style)).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
   });
 });

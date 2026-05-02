@@ -80,7 +80,10 @@ export function SwipeCardItemExampleSentenceSection({
         <Text style={styles.metaText}>
           {`${t("notifications.labels.pronunciation", {
             defaultValue: "Pronunciation",
-          })}: ${pronunciation}`}
+          })}: `}
+          <Text style={isReviewMode ? getReviewTapeTextStyle(isDark) : undefined}>
+            {pronunciation}
+          </Text>
         </Text>
       ) : null}
       <ScrollView

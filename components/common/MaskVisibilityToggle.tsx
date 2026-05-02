@@ -44,8 +44,8 @@ export function MaskVisibilityToggle({
     [isMaskEnabled, onMaskChange, stopPropagation],
   );
 
-  const labelKey = isMaskEnabled ? "course.mask" : "course.show";
-  const defaultValue = isMaskEnabled ? "Mask" : "Show";
+  const labelKey = isMaskEnabled ? "course.show" : "course.mask";
+  const defaultValue = isMaskEnabled ? "Show" : "Mask";
 
   return (
     <View

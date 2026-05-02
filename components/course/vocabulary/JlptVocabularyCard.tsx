@@ -385,7 +385,9 @@ export function JlptVocabularyCard({
               testID="jlpt-card-pronunciation"
               style={[
                 styles.cardSubtitle,
-                { color: fontColors.learningCardMuted },
+                isReviewMode
+                  ? getReviewTapeTextStyle(isDark)
+                  : { color: fontColors.learningCardMuted },
               ]}
             >
               {pronunciation}

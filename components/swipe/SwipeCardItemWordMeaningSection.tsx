@@ -181,7 +181,9 @@ export function SwipeCardItemWordMeaningSection({
         <Text
           style={[
             styles.cardSubtitle,
-            { color: fontColors.learningCardMuted },
+            isReviewMode
+              ? getReviewTapeTextStyle(isDark)
+              : { color: fontColors.learningCardMuted },
           ]}
         >
           {normalizedPronunciation}

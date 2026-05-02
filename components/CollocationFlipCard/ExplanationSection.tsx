@@ -3,6 +3,7 @@ import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import Collapsible from "react-native-collapsible";
 import { getFontColors } from "../../constants/fontColors";
+import { getReviewTapeTextStyle } from "../../src/utils/reviewMasking";
 import { styles } from "./EnglishCollocationCardStyle";
 
 interface ExplanationSectionProps {
@@ -10,6 +11,7 @@ interface ExplanationSectionProps {
   isOpen: boolean;
   onToggle: () => void;
   isDark: boolean;
+  isReviewMode?: boolean;
 }
 
 export default React.memo(function ExplanationSection({
@@ -17,6 +19,7 @@ export default React.memo(function ExplanationSection({
   isOpen,
   onToggle,
   isDark,
+  isReviewMode = false,
 }: ExplanationSectionProps) {
   const fontColors = getFontColors(isDark);
 
@@ -50,7 +53,9 @@ export default React.memo(function ExplanationSection({
           <Text
             style={[
               styles.explanationValue,
-              { color: fontColors.learningCardPrimary },
+              isReviewMode
+                ? getReviewTapeTextStyle(isDark)
+                : { color: fontColors.learningCardPrimary },
             ]}
           >
             {explanation}

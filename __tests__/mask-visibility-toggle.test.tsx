@@ -10,7 +10,7 @@ jest.mock("react-i18next", () => ({
 }));
 
 describe("MaskVisibilityToggle", () => {
-  it("renders Show as the current state when masking is disabled", () => {
+  it("renders Mask as the next action when masking is disabled", () => {
     const { getByText, getByTestId, queryByText } = render(
       <MaskVisibilityToggle
         isDark={false}
@@ -19,14 +19,14 @@ describe("MaskVisibilityToggle", () => {
       />,
     );
 
-    expect(getByText("Show")).toBeTruthy();
-    expect(queryByText("Mask")).toBeNull();
+    expect(getByText("Mask")).toBeTruthy();
+    expect(queryByText("Show")).toBeNull();
     expect(getByTestId("mask-toggle-button").props.accessibilityState).toEqual({
       selected: true,
     });
   });
 
-  it("renders Mask as the current state when masking is enabled", () => {
+  it("renders Show as the next action when masking is enabled", () => {
     const { getByText, queryByText } = render(
       <MaskVisibilityToggle
         isDark={false}
@@ -35,8 +35,8 @@ describe("MaskVisibilityToggle", () => {
       />,
     );
 
-    expect(getByText("Mask")).toBeTruthy();
-    expect(queryByText("Show")).toBeNull();
+    expect(getByText("Show")).toBeTruthy();
+    expect(queryByText("Mask")).toBeNull();
   });
 
   it("calls onMaskChange with the opposite state when pressed", () => {

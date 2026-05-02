@@ -113,7 +113,9 @@ export function BackSection({
               suppressHighlighting
               style={[
                 styles.backGroupLabel,
-                { color: fontColors.learningCardPrimary },
+                title.toLowerCase() === "reading" && isReviewMode
+                  ? getReviewTapeTextStyle(isDark)
+                  : { color: fontColors.learningCardPrimary },
               ]}
             >
               {entry.value}
@@ -182,9 +184,11 @@ export function BackSection({
                       testID={`kanji-collocation-${title.toLowerCase()}-hurigana-${i}-${j}`}
                       style={[
                         styles.backFurigana,
-                        hasHurigana
-                          ? { color: fontColors.learningCardMuted }
-                          : styles.backFuriganaSpacer,
+                        title.toLowerCase() === "reading" && isReviewMode
+                          ? getReviewTapeTextStyle(isDark)
+                          : hasHurigana
+                            ? { color: fontColors.learningCardMuted }
+                            : styles.backFuriganaSpacer,
                       ]}
                     >
                       {huriganaText}

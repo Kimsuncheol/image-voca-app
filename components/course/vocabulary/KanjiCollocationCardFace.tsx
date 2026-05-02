@@ -262,10 +262,13 @@ export function FaceSide({
                       <Text
                         style={[
                           styles.faceListItem,
-                          {
-                            color: fontColors.learningCardMuted,
-                            fontSize: FontSizes.body,
-                          },
+                          isReviewMode
+                            ? getReviewTapeTextStyle(isDark)
+                            : {
+                                color: fontColors.learningCardMuted,
+                                fontSize: FontSizes.body,
+                              },
+                          { fontSize: FontSizes.body },
                         ]}
                       >
                         {r.localizedText}
@@ -281,7 +284,9 @@ export function FaceSide({
                         <Text
                           style={[
                             styles.faceListItem,
-                            { color: fontColors.learningCardSecondary },
+                            isReviewMode
+                              ? getReviewTapeTextStyle(isDark)
+                              : { color: fontColors.learningCardSecondary },
                           ]}
                         >
                           {r.baseText}

@@ -281,6 +281,21 @@ describe("JlptVocabularyCard", () => {
     expect(queryByTestId("jlpt-card-example-roman")).toBeNull();
   });
 
+  it("masks the JLPT pronunciation while masked", () => {
+    const { getByTestId } = render(
+      <JlptVocabularyCard item={buildCard()} isReviewMode />,
+    );
+
+    expect(
+      StyleSheet.flatten(getByTestId("jlpt-card-pronunciation").props.style),
+    ).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+  });
+
   it("hides the pronunciation row when word and pronunciation are identical", () => {
     const { queryByTestId, queryByText } = render(
       <JlptVocabularyCard
@@ -414,8 +429,8 @@ describe("JlptVocabularyCard", () => {
     expect(getByTestId("jlpt-card-kana-toggle-bar")).toHaveStyle({ gap: 12 });
     expect(getByTestId("jlpt-card-mask-toggle")).toBeTruthy();
     expect(getByTestId("jlpt-card-kana-toggle-pill")).toBeTruthy();
-    expect(getByText("Show")).toBeTruthy();
-    expect(queryByText("Mask")).toBeNull();
+    expect(getByText("Mask")).toBeTruthy();
+    expect(queryByText("Show")).toBeNull();
     expect(getByText("がな")).toBeTruthy();
 
     const renderedTree = JSON.stringify(toJSON());
@@ -439,8 +454,8 @@ describe("JlptVocabularyCard", () => {
     );
 
     expect(getByTestId("jlpt-card-kana-toggle-pill")).toBeTruthy();
-    expect(getByText("Show")).toBeTruthy();
-    expect(queryByText("Mask")).toBeNull();
+    expect(getByText("Mask")).toBeTruthy();
+    expect(queryByText("Show")).toBeNull();
     expect(getByText("がな")).toBeTruthy();
   });
 
@@ -465,8 +480,8 @@ describe("JlptVocabularyCard", () => {
     expect(getByTestId("jlpt-card-kana-toggle-bar")).toBeTruthy();
     expect(getByTestId("jlpt-card-kana-toggle-bar")).toHaveStyle({ gap: 12 });
     expect(getByTestId("jlpt-card-mask-toggle")).toBeTruthy();
-    expect(getByText("Show")).toBeTruthy();
-    expect(queryByText("Mask")).toBeNull();
+    expect(getByText("Mask")).toBeTruthy();
+    expect(queryByText("Show")).toBeNull();
     expect(queryByTestId("jlpt-card-kana-toggle-pill")).toBeNull();
   });
 
@@ -481,8 +496,8 @@ describe("JlptVocabularyCard", () => {
     );
 
     expect(getByTestId("jlpt-card-mask-toggle")).toBeTruthy();
-    expect(getByText("Show")).toBeTruthy();
-    expect(queryByText("Mask")).toBeNull();
+    expect(getByText("Mask")).toBeTruthy();
+    expect(queryByText("Show")).toBeNull();
     expect(queryByTestId("jlpt-card-kana-toggle-pill")).toBeNull();
   });
 

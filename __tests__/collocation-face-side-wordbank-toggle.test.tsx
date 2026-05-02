@@ -186,7 +186,7 @@ describe("Collocation FaceSide word bank toggle", () => {
     );
 
     expect(screen.getByTestId("collocation-face-mask-toggle-button")).toBeTruthy();
-    expect(screen.getByText("Show")).toBeTruthy();
+    expect(screen.getByText("Mask")).toBeTruthy();
 
     fireEvent(
       screen.getByTestId("collocation-face-mask-toggle-button"),

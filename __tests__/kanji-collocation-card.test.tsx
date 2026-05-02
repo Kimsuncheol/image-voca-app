@@ -148,7 +148,7 @@ describe("KanjiCollocationCard", () => {
     const stopPropagation = jest.fn();
 
     expect(screen.getByTestId("kanji-collocation-face-mask-toggle-button")).toBeTruthy();
-    expect(screen.getByText("Show")).toBeTruthy();
+    expect(screen.getByText("Mask")).toBeTruthy();
 
     fireEvent(
       screen.getByTestId("kanji-collocation-face-mask-toggle-button"),
@@ -160,6 +160,27 @@ describe("KanjiCollocationCard", () => {
     expect(onMaskChange).toHaveBeenCalledWith(true);
     expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
     expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
+  });
+
+  it("masks face reading values while masked", () => {
+    const screen = render(
+      <KanjiCollocationCard item={buildKanjiWord()} isReviewMode />,
+    );
+
+    const readingTexts = screen.getByTestId("kanji-collocation-face-reading-0").findAllByType(Text);
+
+    expect(StyleSheet.flatten(readingTexts[0].props.style)).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(StyleSheet.flatten(readingTexts[1].props.style)).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
   });
 
   it("uses the themed light surfaces and hides save in preview", () => {
@@ -558,7 +579,7 @@ describe("KanjiCollocationCard", () => {
     const renderedTree = JSON.stringify(screen.toJSON());
 
     expect(maskToggle).toBeTruthy();
-    expect(screen.getByText("Show")).toBeTruthy();
+    expect(screen.getByText("Mask")).toBeTruthy();
     expect(screen.getByText("がな")).toBeTruthy();
     expect(flattenStyleOf(controlRow)).toEqual(
       expect.objectContaining({ gap: 12 }),
@@ -587,6 +608,30 @@ describe("KanjiCollocationCard", () => {
     expect(onMaskChange).toHaveBeenNthCalledWith(1, true);
     expect(onMaskChange).toHaveBeenNthCalledWith(2, false);
     expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
+  });
+
+  it("masks back reading values while masked", () => {
+    const screen = render(
+      <KanjiCollocationCard item={buildKanjiWord()} isReviewMode />,
+    );
+    flipToBack(screen);
+
+    expect(
+      flattenStyleOf(screen.getByTestId("kanji-collocation-reading-value-row-0").findByType(Text)),
+    ).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(
+      flattenStyleOf(screen.getByTestId("kanji-collocation-reading-hurigana-0-0")),
+    ).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
   });
 
   it("renders meaning and reading hurigana at font size 8 when がな is active", () => {
