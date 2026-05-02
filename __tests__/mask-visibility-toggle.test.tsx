@@ -10,8 +10,24 @@ jest.mock("react-i18next", () => ({
 }));
 
 describe("MaskVisibilityToggle", () => {
-  it("renders Mask and Show with selected state", () => {
-    const { getByText, getByTestId } = render(
+  it("renders Show as the current state when masking is disabled", () => {
+    const { getByText, getByTestId, queryByText } = render(
+      <MaskVisibilityToggle
+        isDark={false}
+        isMaskEnabled={false}
+        testID="mask-toggle"
+      />,
+    );
+
+    expect(getByText("Show")).toBeTruthy();
+    expect(queryByText("Mask")).toBeNull();
+    expect(getByTestId("mask-toggle-button").props.accessibilityState).toEqual({
+      selected: true,
+    });
+  });
+
+  it("renders Mask as the current state when masking is enabled", () => {
+    const { getByText, queryByText } = render(
       <MaskVisibilityToggle
         isDark={false}
         isMaskEnabled={true}
@@ -20,34 +36,23 @@ describe("MaskVisibilityToggle", () => {
     );
 
     expect(getByText("Mask")).toBeTruthy();
-    expect(getByText("Show")).toBeTruthy();
-    expect(getByTestId("mask-toggle-mask").props.accessibilityState).toEqual({
-      selected: true,
-    });
-    expect(getByTestId("mask-toggle-show").props.accessibilityState).toEqual({
-      selected: false,
-    });
+    expect(queryByText("Show")).toBeNull();
   });
 
-  it("renders Show before Mask", () => {
-    const { getByTestId } = render(
+  it("calls onMaskChange with the opposite state when pressed", () => {
+    const onMaskChange = jest.fn();
+    const { getByTestId, rerender } = render(
       <MaskVisibilityToggle
         isDark={false}
         isMaskEnabled={false}
+        onMaskChange={onMaskChange}
         testID="mask-toggle"
       />,
     );
 
-    const segmentOrder = getByTestId("mask-toggle").props.children.map(
-      (segment: React.ReactElement) => segment.props.testID,
-    );
+    fireEvent.press(getByTestId("mask-toggle-button"));
 
-    expect(segmentOrder).toEqual(["mask-toggle-show", "mask-toggle-mask"]);
-  });
-
-  it("calls onMaskChange with the pressed segment value", () => {
-    const onMaskChange = jest.fn();
-    const { getByTestId } = render(
+    rerender(
       <MaskVisibilityToggle
         isDark={false}
         isMaskEnabled={true}
@@ -56,11 +61,10 @@ describe("MaskVisibilityToggle", () => {
       />,
     );
 
-    fireEvent.press(getByTestId("mask-toggle-show"));
-    fireEvent.press(getByTestId("mask-toggle-mask"));
+    fireEvent.press(getByTestId("mask-toggle-button"));
 
-    expect(onMaskChange).toHaveBeenNthCalledWith(1, false);
-    expect(onMaskChange).toHaveBeenNthCalledWith(2, true);
+    expect(onMaskChange).toHaveBeenNthCalledWith(1, true);
+    expect(onMaskChange).toHaveBeenNthCalledWith(2, false);
   });
 
   it("stops propagation when requested", () => {
@@ -76,7 +80,7 @@ describe("MaskVisibilityToggle", () => {
       />,
     );
 
-    fireEvent(getByTestId("mask-toggle-mask"), "press", { stopPropagation });
+    fireEvent(getByTestId("mask-toggle-button"), "press", { stopPropagation });
 
     expect(stopPropagation).toHaveBeenCalledTimes(1);
     expect(onMaskChange).toHaveBeenCalledWith(true);

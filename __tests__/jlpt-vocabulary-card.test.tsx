@@ -404,7 +404,7 @@ describe("JlptVocabularyCard", () => {
   });
 
   it("renders the がな footer control below the scrollable card content", () => {
-    const { getByTestId, getByText, toJSON } = render(
+    const { getByTestId, getByText, queryByText, toJSON } = render(
       <JlptVocabularyCard
         item={buildCard({ exampleFurigana: "えきとホテルのあいだ" })}
       />,
@@ -414,8 +414,8 @@ describe("JlptVocabularyCard", () => {
     expect(getByTestId("jlpt-card-kana-toggle-bar")).toHaveStyle({ gap: 12 });
     expect(getByTestId("jlpt-card-mask-toggle")).toBeTruthy();
     expect(getByTestId("jlpt-card-kana-toggle-pill")).toBeTruthy();
-    expect(getByText("Mask")).toBeTruthy();
     expect(getByText("Show")).toBeTruthy();
+    expect(queryByText("Mask")).toBeNull();
     expect(getByText("がな")).toBeTruthy();
 
     const renderedTree = JSON.stringify(toJSON());
@@ -428,7 +428,7 @@ describe("JlptVocabularyCard", () => {
   });
 
   it("shows the がな control when the example has kana parentheticals without furigana data", () => {
-    const { getByTestId, getByText } = render(
+    const { getByTestId, getByText, queryByText } = render(
       <JlptVocabularyCard
         item={buildCard({
           example: "雨(あま)戸(ど)を閉(し)める。",
@@ -439,8 +439,8 @@ describe("JlptVocabularyCard", () => {
     );
 
     expect(getByTestId("jlpt-card-kana-toggle-pill")).toBeTruthy();
-    expect(getByText("Mask")).toBeTruthy();
     expect(getByText("Show")).toBeTruthy();
+    expect(queryByText("Mask")).toBeNull();
     expect(getByText("がな")).toBeTruthy();
   });
 
@@ -458,20 +458,20 @@ describe("JlptVocabularyCard", () => {
   });
 
   it("shows the mask toggle row even when the がな button is unavailable", () => {
-    const { getByTestId, queryByTestId, getByText } = render(
+    const { getByTestId, queryByTestId, getByText, queryByText } = render(
       <JlptVocabularyCard item={buildCard()} />,
     );
 
     expect(getByTestId("jlpt-card-kana-toggle-bar")).toBeTruthy();
     expect(getByTestId("jlpt-card-kana-toggle-bar")).toHaveStyle({ gap: 12 });
     expect(getByTestId("jlpt-card-mask-toggle")).toBeTruthy();
-    expect(getByText("Mask")).toBeTruthy();
     expect(getByText("Show")).toBeTruthy();
+    expect(queryByText("Mask")).toBeNull();
     expect(queryByTestId("jlpt-card-kana-toggle-pill")).toBeNull();
   });
 
   it("hides the がな control when normalized furigana matches the example", () => {
-    const { getByTestId, queryByTestId, getByText } = render(
+    const { getByTestId, queryByTestId, getByText, queryByText } = render(
       <JlptVocabularyCard
         item={buildCard({
           example: "1. [[[駅]]]で待ちます",
@@ -481,8 +481,8 @@ describe("JlptVocabularyCard", () => {
     );
 
     expect(getByTestId("jlpt-card-mask-toggle")).toBeTruthy();
-    expect(getByText("Mask")).toBeTruthy();
     expect(getByText("Show")).toBeTruthy();
+    expect(queryByText("Mask")).toBeNull();
     expect(queryByTestId("jlpt-card-kana-toggle-pill")).toBeNull();
   });
 
@@ -532,9 +532,19 @@ describe("JlptVocabularyCard", () => {
     });
   });
 
-  it("calls onMaskChange when the Mask and Show controls are pressed", () => {
+  it("calls onMaskChange when the visibility control is pressed", () => {
     const onMaskChange = jest.fn();
-    const { getByTestId } = render(
+    const { getByTestId, rerender } = render(
+      <JlptVocabularyCard
+        item={buildCard({ exampleFurigana: "えきとホテルのあいだ" })}
+        isReviewMode={false}
+        onMaskChange={onMaskChange}
+      />,
+    );
+
+    fireEvent.press(getByTestId("jlpt-card-mask-toggle-button"));
+
+    rerender(
       <JlptVocabularyCard
         item={buildCard({ exampleFurigana: "えきとホテルのあいだ" })}
         isReviewMode={true}
@@ -542,11 +552,10 @@ describe("JlptVocabularyCard", () => {
       />,
     );
 
-    fireEvent.press(getByTestId("jlpt-card-mask-toggle-show"));
-    fireEvent.press(getByTestId("jlpt-card-mask-toggle-mask"));
+    fireEvent.press(getByTestId("jlpt-card-mask-toggle-button"));
 
-    expect(onMaskChange).toHaveBeenNthCalledWith(1, false);
-    expect(onMaskChange).toHaveBeenNthCalledWith(2, true);
+    expect(onMaskChange).toHaveBeenNthCalledWith(1, true);
+    expect(onMaskChange).toHaveBeenNthCalledWith(2, false);
   });
 
   it("uses exampleHurigana for TTS when the example is tapped", async () => {

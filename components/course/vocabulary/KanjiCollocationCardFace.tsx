@@ -20,6 +20,7 @@ import {
   buildKanjiReadingDisplayRows,
 } from "../../../src/utils/kanjiDisplayRows";
 import { CollocationCardImage } from "../../common/CollocationCardImage";
+import { MaskVisibilityToggle } from "../../common/MaskVisibilityToggle";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
 import { DottedDivider } from "./KanjiCollocationCardDivider";
 import { styles } from "./KanjiCollocationCardStyles";
@@ -46,6 +47,8 @@ export interface FaceSideProps {
   isPreviewMode?: boolean;
   /** Whether the card should hide review targets under tape masks */
   isReviewMode?: boolean;
+  /** Callback triggered when the mask visibility is changed */
+  onMaskChange?: (enabled: boolean) => void;
   /** Callback triggered to flip the card horizontally to the back */
   onFlip: () => void;
 }
@@ -82,6 +85,7 @@ export function FaceSide({
   onSavedWordChange,
   isPreviewMode = false,
   isReviewMode = false,
+  onMaskChange = () => {},
   onFlip,
   language = "en",
 }: FaceSideProps) {
@@ -154,6 +158,13 @@ export function FaceSide({
               {stripReviewMaskDelimiters(item.kanji)}
             </Text>
             <View style={styles.kanjiHeaderActions}>
+              <MaskVisibilityToggle
+                isDark={isDark}
+                isMaskEnabled={isReviewMode}
+                onMaskChange={onMaskChange}
+                testID="kanji-collocation-face-mask-toggle"
+                stopPropagation
+              />
               {!isPreviewMode && (
                 <SwipeCardItemAddToWordBankButton
                   item={item}

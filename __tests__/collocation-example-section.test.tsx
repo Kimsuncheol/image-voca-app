@@ -265,7 +265,33 @@ describe("ExampleSection", () => {
   test("renders mask toggle in the example header without toggling the section", () => {
     const onToggle = jest.fn();
     const onMaskChange = jest.fn();
-    const { getByText, getByTestId, toJSON } = render(
+    const { getByText, getByTestId, queryByText, rerender, toJSON } = render(
+      <ExampleSection
+        example="John: I want to go to the beach."
+        translation="Jane: 난 해변에 가고 싶어."
+        isOpen={true}
+        onToggle={onToggle}
+        isDark={false}
+        isReviewMode={false}
+        onMaskChange={onMaskChange}
+      />,
+    );
+
+    const renderedTree = JSON.stringify(toJSON());
+
+    expect(getByText("EXAMPLE")).toBeTruthy();
+    expect(getByText("Show")).toBeTruthy();
+    expect(queryByText("Mask")).toBeNull();
+    expect(getByTestId("collocation-example-chevron-chevron-up")).toBeTruthy();
+    expect(getByTestId("collocation-example-mask-toggle-button").props.accessibilityState).toEqual({
+      selected: true,
+    });
+    expect(renderedTree).toContain("collocation-example-mask-toggle");
+    expect(renderedTree).toContain("collocation-example-chevron-chevron-up");
+
+    fireEvent.press(getByTestId("collocation-example-mask-toggle-button"));
+
+    rerender(
       <ExampleSection
         example="John: I want to go to the beach."
         translation="Jane: 난 해변에 가고 싶어."
@@ -277,24 +303,11 @@ describe("ExampleSection", () => {
       />,
     );
 
-    const renderedTree = JSON.stringify(toJSON());
-
-    expect(getByText("EXAMPLE")).toBeTruthy();
-    expect(getByText("Mask")).toBeTruthy();
-    expect(getByText("Show")).toBeTruthy();
-    expect(getByTestId("collocation-example-chevron-chevron-up")).toBeTruthy();
-    expect(getByTestId("collocation-example-mask-toggle-mask").props.accessibilityState).toEqual({
-      selected: true,
-    });
-    expect(renderedTree).toContain("collocation-example-mask-toggle");
-    expect(renderedTree).toContain("collocation-example-chevron-chevron-up");
-
-    fireEvent.press(getByTestId("collocation-example-mask-toggle-show"));
-    fireEvent.press(getByTestId("collocation-example-mask-toggle-mask"));
+    fireEvent.press(getByTestId("collocation-example-mask-toggle-button"));
 
     expect(onToggle).not.toHaveBeenCalled();
-    expect(onMaskChange).toHaveBeenNthCalledWith(1, false);
-    expect(onMaskChange).toHaveBeenNthCalledWith(2, true);
+    expect(onMaskChange).toHaveBeenNthCalledWith(1, true);
+    expect(onMaskChange).toHaveBeenNthCalledWith(2, false);
   });
 
   test("keeps bracketed example spans invisible only while masked", () => {

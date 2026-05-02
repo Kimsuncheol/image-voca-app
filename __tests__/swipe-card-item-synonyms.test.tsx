@@ -117,20 +117,34 @@ describe("SwipeCardItem synonyms", () => {
     );
   });
 
-  it("renders the Mask and Show controls at the bottom of standard cards", () => {
-    const { getByText, getByTestId } = render(
+  it("renders the mask visibility control at the bottom of standard cards", () => {
+    const { getByText, getByTestId, queryByText } = render(
       <SwipeCardItem item={buildCard({ course: "TOEIC" })} />,
     );
 
     expect(getByTestId("swipe-card-mask-toggle-row")).toBeTruthy();
     expect(getByTestId("swipe-card-mask-toggle")).toBeTruthy();
-    expect(getByText("Mask")).toBeTruthy();
     expect(getByText("Show")).toBeTruthy();
+    expect(queryByText("Mask")).toBeNull();
   });
 
-  it("calls onMaskChange from the standard card Mask and Show controls", () => {
+  it("calls onMaskChange from the standard card visibility control", () => {
     const onMaskChange = jest.fn();
-    const { getByTestId } = render(
+    const { getByTestId, rerender } = render(
+      <SwipeCardItem
+        item={buildCard({ course: "TOEIC" })}
+        isReviewMode={false}
+        onMaskChange={onMaskChange}
+      />,
+    );
+
+    expect(getByTestId("swipe-card-mask-toggle-button").props.accessibilityState).toEqual({
+      selected: true,
+    });
+
+    fireEvent.press(getByTestId("swipe-card-mask-toggle-button"));
+
+    rerender(
       <SwipeCardItem
         item={buildCard({ course: "TOEIC" })}
         isReviewMode={true}
@@ -138,17 +152,9 @@ describe("SwipeCardItem synonyms", () => {
       />,
     );
 
-    expect(getByTestId("swipe-card-mask-toggle-mask").props.accessibilityState).toEqual({
-      selected: true,
-    });
-    expect(getByTestId("swipe-card-mask-toggle-show").props.accessibilityState).toEqual({
-      selected: false,
-    });
+    fireEvent.press(getByTestId("swipe-card-mask-toggle-button"));
 
-    fireEvent.press(getByTestId("swipe-card-mask-toggle-show"));
-    fireEvent.press(getByTestId("swipe-card-mask-toggle-mask"));
-
-    expect(onMaskChange).toHaveBeenNthCalledWith(1, false);
-    expect(onMaskChange).toHaveBeenNthCalledWith(2, true);
+    expect(onMaskChange).toHaveBeenNthCalledWith(1, true);
+    expect(onMaskChange).toHaveBeenNthCalledWith(2, false);
   });
 });

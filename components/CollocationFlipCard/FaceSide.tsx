@@ -24,6 +24,7 @@ import {
   stripReviewMaskDelimiters,
 } from "../../src/utils/reviewMasking";
 import { CollocationCardImage } from "../common/CollocationCardImage";
+import { MaskVisibilityToggle } from "../common/MaskVisibilityToggle";
 import { AddToWordBankButton } from "../wordbank/AddToWordBankButton";
 import { SavedWord } from "../wordbank/WordCard";
 import { styles } from "./EnglishCollocationCardStyle";
@@ -36,6 +37,7 @@ interface FaceSideProps {
   onFlip?: () => void;
   onImageLoad?: () => void;
   isReviewMode?: boolean;
+  onMaskChange?: (enabled: boolean) => void;
 }
 
 /**
@@ -93,6 +95,7 @@ export default React.memo(function FaceSide({
   onFlip,
   onImageLoad,
   isReviewMode = false,
+  onMaskChange = () => {},
 }: FaceSideProps) {
   // ============================================================================
   // Contexts & State
@@ -311,6 +314,13 @@ export default React.memo(function FaceSide({
             </View>
 
             <View style={styles.faceHeaderActions}>
+              <MaskVisibilityToggle
+                isDark={isDark}
+                isMaskEnabled={isReviewMode}
+                onMaskChange={onMaskChange}
+                testID="collocation-face-mask-toggle"
+                stopPropagation
+              />
               {canAddToWordBank && !isDeleteMode && (
                 <AddToWordBankButton
                   itemId={wordBankConfig!.id}

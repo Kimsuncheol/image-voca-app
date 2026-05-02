@@ -69,6 +69,7 @@ export function KanjiCollocationCard({
         onSavedWordChange={onSavedWordChange}
         isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
+        onMaskChange={onMaskChange}
         onFlip={() => flip(true)}
       />
       <BackSide

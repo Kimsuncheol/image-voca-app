@@ -132,6 +132,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
           onFlip={wordBankConfig?.isDeleteMode ? undefined : handleFlipToBack}
           onImageLoad={onImageLoad}
           isReviewMode={isReviewMode}
+          onMaskChange={onMaskChange}
         />
 
         {/* ============================================================ */}

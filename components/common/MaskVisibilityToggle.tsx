@@ -35,14 +35,17 @@ export function MaskVisibilityToggle({
   const fontColors = getFontColors(isDark);
 
   const handlePress = React.useCallback(
-    (event: { stopPropagation?: () => void } | undefined, enabled: boolean) => {
+    (event: { stopPropagation?: () => void } | undefined) => {
       if (stopPropagation) {
         event?.stopPropagation?.();
       }
-      onMaskChange(enabled);
+      onMaskChange(!isMaskEnabled);
     },
-    [onMaskChange, stopPropagation],
+    [isMaskEnabled, onMaskChange, stopPropagation],
   );
+
+  const labelKey = isMaskEnabled ? "course.mask" : "course.show";
+  const defaultValue = isMaskEnabled ? "Mask" : "Show";
 
   return (
     <View
@@ -56,43 +59,30 @@ export function MaskVisibilityToggle({
         style,
       ]}
     >
-      {([false, true] as const).map((enabled) => {
-        const isSelected = isMaskEnabled === enabled;
-        const labelKey = enabled ? "course.mask" : "course.show";
-        const defaultValue = enabled ? "Mask" : "Show";
-
-        return (
-          <TouchableOpacity
-            key={labelKey}
-            testID={`${testID}-${enabled ? "mask" : "show"}`}
-            accessibilityRole="button"
-            accessibilityState={{ selected: isSelected }}
-            activeOpacity={0.78}
-            onPress={(event) => handlePress(event, enabled)}
-            style={[
-              styles.segment,
-              {
-                backgroundColor: isSelected
-                  ? bgColors.learningCardSurface
-                  : "transparent",
-              },
-            ]}
-          >
-            <Text
-              style={[
-                styles.text,
-                {
-                  color: isSelected
-                    ? fontColors.learningCardPrimary
-                    : fontColors.learningCardMuted,
-                },
-              ]}
-            >
-              {t(labelKey, { defaultValue })}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+      <TouchableOpacity
+        testID={`${testID}-button`}
+        accessibilityRole="button"
+        accessibilityState={{ selected: true }}
+        activeOpacity={0.78}
+        onPress={handlePress}
+        style={[
+          styles.segment,
+          {
+            backgroundColor: bgColors.learningCardSurface,
+          },
+        ]}
+      >
+        <Text
+          style={[
+            styles.text,
+            {
+              color: fontColors.learningCardPrimary,
+            },
+          ]}
+        >
+          {t(labelKey, { defaultValue })}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }

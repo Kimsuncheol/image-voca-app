@@ -36,9 +36,24 @@ jest.mock("firebase/firestore", () => ({
   runTransaction: jest.fn(),
 }));
 
+jest.mock("@expo/vector-icons", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+
+  return {
+    FontAwesome: ({ name, testID }: { name: string; testID?: string }) => (
+      <Text testID={testID}>{name}</Text>
+    ),
+    Ionicons: ({ name, testID }: { name: string; testID?: string }) => (
+      <Text testID={testID}>{name}</Text>
+    ),
+  };
+});
+
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string, options?: { defaultValue?: string }) =>
+      options?.defaultValue ?? key,
   }),
 }));
 
@@ -96,12 +111,12 @@ describe("Collocation FaceSide word bank toggle", () => {
 
     const screen = render(buildFaceSide());
 
-    fireEvent.press(screen.getByText("star-outline"));
+    fireEvent.press(screen.getByText("sticky-note-o"));
 
     await waitFor(() => {
       expect(mockRecordWordLearned).toHaveBeenCalledWith("user-1");
       expect(mockOnSavedStateChange).toHaveBeenCalledWith("1", true);
-      expect(screen.getByText("star")).toBeTruthy();
+      expect(screen.getByText("sticky-note")).toBeTruthy();
     });
 
     expect(Alert.alert).not.toHaveBeenCalledWith(
@@ -121,11 +136,11 @@ describe("Collocation FaceSide word bank toggle", () => {
 
     const screen = render(buildFaceSide(true));
 
-    fireEvent.press(screen.getByText("star"));
+    fireEvent.press(screen.getByText("sticky-note"));
 
     await waitFor(() => {
       expect(mockOnSavedStateChange).toHaveBeenCalledWith("1", false);
-      expect(screen.getByText("star-outline")).toBeTruthy();
+      expect(screen.getByText("sticky-note-o")).toBeTruthy();
     });
 
     expect(mockRecordWordLearned).not.toHaveBeenCalled();
@@ -144,8 +159,43 @@ describe("Collocation FaceSide word bank toggle", () => {
     expect(imageStyle).toEqual(
       expect.objectContaining({
         marginHorizontal: 4,
-        marginTop: 10,
+        marginTop: 0,
       }),
     );
+  });
+
+  it("renders the face mask toggle without flipping the card", () => {
+    const onFlip = jest.fn();
+    const onMaskChange = jest.fn();
+    const stopPropagation = jest.fn();
+    const screen = render(
+      <FaceSide
+        data={{
+          collocation: "make a decision",
+          meaning: "결정을 내리다",
+          explanation: "",
+          example: "She made a decision quickly.",
+          translation: "그녀는 빨리 결정을 내렸다.",
+          imageUrl: "https://cdn.example.com/collocation.png",
+        }}
+        isDark={false}
+        onFlip={onFlip}
+        isReviewMode={false}
+        onMaskChange={onMaskChange}
+      />,
+    );
+
+    expect(screen.getByTestId("collocation-face-mask-toggle-button")).toBeTruthy();
+    expect(screen.getByText("Show")).toBeTruthy();
+
+    fireEvent(
+      screen.getByTestId("collocation-face-mask-toggle-button"),
+      "press",
+      { stopPropagation },
+    );
+
+    expect(stopPropagation).toHaveBeenCalledTimes(1);
+    expect(onMaskChange).toHaveBeenCalledWith(true);
+    expect(onFlip).not.toHaveBeenCalled();
   });
 });

@@ -136,6 +136,32 @@ describe("KanjiCollocationCard", () => {
     expect(getByText("ご")).toBeTruthy();
   });
 
+  it("renders the front mask toggle without flipping the card", () => {
+    const onMaskChange = jest.fn();
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord()}
+        isReviewMode={false}
+        onMaskChange={onMaskChange}
+      />,
+    );
+    const stopPropagation = jest.fn();
+
+    expect(screen.getByTestId("kanji-collocation-face-mask-toggle-button")).toBeTruthy();
+    expect(screen.getByText("Show")).toBeTruthy();
+
+    fireEvent(
+      screen.getByTestId("kanji-collocation-face-mask-toggle-button"),
+      "press",
+      { stopPropagation },
+    );
+
+    expect(stopPropagation).toHaveBeenCalledTimes(1);
+    expect(onMaskChange).toHaveBeenCalledWith(true);
+    expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
+    expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
+  });
+
   it("uses the themed light surfaces and hides save in preview", () => {
     const normal = render(
       <KanjiCollocationCard item={buildKanjiWord()} day={1} />,
@@ -519,7 +545,7 @@ describe("KanjiCollocationCard", () => {
     const screen = render(
       <KanjiCollocationCard
         item={buildKanjiWord()}
-        isReviewMode={true}
+        isReviewMode={false}
         onMaskChange={onMaskChange}
       />,
     );
@@ -528,11 +554,10 @@ describe("KanjiCollocationCard", () => {
     const controlRow = screen.getByTestId("kanji-collocation-back-control-row");
     const maskToggle = screen.getByTestId("kanji-collocation-back-mask-toggle");
     const furiganaToggle = screen.getByTestId("kanji-collocation-furigana-toggle");
-    const maskSegment = screen.getByTestId("kanji-collocation-back-mask-toggle-mask");
+    const maskButton = screen.getByTestId("kanji-collocation-back-mask-toggle-button");
     const renderedTree = JSON.stringify(screen.toJSON());
 
     expect(maskToggle).toBeTruthy();
-    expect(screen.getByText("Mask")).toBeTruthy();
     expect(screen.getByText("Show")).toBeTruthy();
     expect(screen.getByText("がな")).toBeTruthy();
     expect(flattenStyleOf(controlRow)).toEqual(
@@ -541,17 +566,26 @@ describe("KanjiCollocationCard", () => {
     expect(renderedTree.indexOf("kanji-collocation-back-mask-toggle")).toBeLessThan(
       renderedTree.indexOf("kanji-collocation-furigana-toggle"),
     );
-    expect(flattenStyleOf(maskSegment).minHeight).toBe(30);
-    expect(flattenStyleOf(furiganaToggle).minHeight).toBe(30);
-    expect(screen.getByTestId("kanji-collocation-back-mask-toggle-mask").props.accessibilityState).toEqual({
+    expect(flattenStyleOf(maskButton).minHeight).toBe(30);
+    expect(flattenStyleOf(furiganaToggle).minHeight).toBe(36);
+    expect(screen.getByTestId("kanji-collocation-back-mask-toggle-button").props.accessibilityState).toEqual({
       selected: true,
     });
 
-    fireEvent.press(screen.getByTestId("kanji-collocation-back-mask-toggle-show"));
-    fireEvent.press(screen.getByTestId("kanji-collocation-back-mask-toggle-mask"));
+    fireEvent.press(screen.getByTestId("kanji-collocation-back-mask-toggle-button"));
 
-    expect(onMaskChange).toHaveBeenNthCalledWith(1, false);
-    expect(onMaskChange).toHaveBeenNthCalledWith(2, true);
+    screen.rerender(
+      <KanjiCollocationCard
+        item={buildKanjiWord()}
+        isReviewMode={true}
+        onMaskChange={onMaskChange}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId("kanji-collocation-back-mask-toggle-button"));
+
+    expect(onMaskChange).toHaveBeenNthCalledWith(1, true);
+    expect(onMaskChange).toHaveBeenNthCalledWith(2, false);
     expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
   });
 
