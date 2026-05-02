@@ -674,6 +674,11 @@ const en = {
     preparingVocabulary: "Preparing vocabulary...",
     dayCompleted: "Day completed!",
     takeQuiz: "Take Quiz",
+    review: "Review",
+    modes: {
+      learning: "Learning",
+      review: "Review",
+    },
     preview: "Preview",
     previewSelectDay: "Select a day to preview",
     previewComplete: "Preview complete",

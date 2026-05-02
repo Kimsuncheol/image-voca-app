@@ -46,12 +46,14 @@ interface CarouselSwipeDeckProps<
   initialIndex?: number;
   onSwipeStart?: () => void;
   isPreviewMode?: boolean;
+  isReviewMode?: boolean;
   renderCard?: (params: {
     item: TCard;
     isSaved: boolean;
     isActive: boolean;
     dayNumber: number;
     isPreviewMode: boolean;
+    isReviewMode: boolean;
     onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   }) => React.ReactNode;
 }
@@ -69,6 +71,7 @@ interface CardItemProps {
   isActive: boolean;
   isActiveWindow: boolean;
   isPreviewMode: boolean;
+  isReviewMode: boolean;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   renderCard?: CarouselSwipeDeckProps<CourseVocabularyCard>["renderCard"];
 }
@@ -82,6 +85,7 @@ const CardItem = React.memo(function CardItem({
   isActive,
   isActiveWindow,
   isPreviewMode,
+  isReviewMode,
   onSavedWordChange,
   renderCard,
 }: CardItemProps) {
@@ -104,6 +108,7 @@ const CardItem = React.memo(function CardItem({
             isActive,
             dayNumber,
             isPreviewMode,
+            isReviewMode,
             onSavedWordChange,
           })
         ) : !isKanjiWord(item) ? (
@@ -114,6 +119,7 @@ const CardItem = React.memo(function CardItem({
             isActive={isActive}
             onSavedWordChange={isPreviewMode ? undefined : onSavedWordChange}
             isPreviewMode={isPreviewMode}
+            isReviewMode={isReviewMode}
           />
         ) : null
       ) : (
@@ -139,6 +145,7 @@ export function CarouselSwipeDeck<TCard extends CourseVocabularyCard>({
   initialIndex = 0,
   onSwipeStart,
   isPreviewMode = false,
+  isReviewMode = false,
   renderCard,
 }: CarouselSwipeDeckProps<TCard>) {
   const translateX = useSharedValue(0);
@@ -271,6 +278,7 @@ export function CarouselSwipeDeck<TCard extends CourseVocabularyCard>({
               isActive={index === activeIndex}
               isActiveWindow={Math.abs(index - activeIndex) <= 1}
               isPreviewMode={isPreviewMode}
+              isReviewMode={isReviewMode}
               onSavedWordChange={onSavedWordChange}
               renderCard={
                 renderCard as CarouselSwipeDeckProps<CourseVocabularyCard>["renderCard"]

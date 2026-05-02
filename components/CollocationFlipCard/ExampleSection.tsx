@@ -9,6 +9,11 @@ import {
 import Collapsible from "react-native-collapsible";
 import { getFontColors } from "../../constants/fontColors";
 import { useStudySpeech } from "../../src/hooks/useStudyMode";
+import {
+  getReviewTapeTextStyle,
+  parseReviewMaskSegments,
+  stripReviewMaskDelimiters,
+} from "../../src/utils/reviewMasking";
 import { styles } from "./EnglishCollocationCardStyle";
 import {
   stripRoleLabels,
@@ -35,6 +40,7 @@ interface ExampleSectionProps {
   onToggle: () => void;
   isDark: boolean;
   maxHeight?: number;
+  isReviewMode?: boolean;
 }
 
 export default React.memo(function ExampleSection({
@@ -44,10 +50,14 @@ export default React.memo(function ExampleSection({
   onToggle,
   isDark,
   maxHeight,
+  isReviewMode = false,
 }: ExampleSectionProps) {
   const { handleSpeech } = useStudySpeech();
   const fontColors = getFontColors(isDark);
-  const spokenExampleText = useMemo(() => stripRoleLabels(example), [example]);
+  const spokenExampleText = useMemo(
+    () => stripReviewMaskDelimiters(stripRoleLabels(example)),
+    [example],
+  );
   const exampleTurns = useMemo(() => toDialogueTurns(example), [example]);
   const translationTurns = useMemo(
     () => toDialogueTurns(translation || ""),
@@ -162,7 +172,20 @@ export default React.memo(function ExampleSection({
                                 ]}
                                 onPress={handleSpeakExample}
                               >
-                                {item.exampleText}
+                                {parseReviewMaskSegments(item.exampleText).map(
+                                  (segment, segmentIndex) => (
+                                    <Text
+                                      key={`${index}-${segmentIndex}`}
+                                      style={
+                                        isReviewMode && segment.masked
+                                          ? getReviewTapeTextStyle(isDark)
+                                          : undefined
+                                      }
+                                    >
+                                      {segment.text}
+                                    </Text>
+                                  ),
+                                )}
                               </Text>
                             </View>
                           </View>
@@ -187,7 +210,7 @@ export default React.memo(function ExampleSection({
                                 ]}
                                 onPress={handleSpeakExample}
                               >
-                                {item.translationText}
+                                {stripReviewMaskDelimiters(item.translationText)}
                               </Text>
                             </View>
                           </View>

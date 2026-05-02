@@ -19,6 +19,10 @@ import {
   parseWordVariants,
   speakWordVariants,
 } from "../../src/utils/wordVariants";
+import {
+  getReviewTapeTextStyle,
+  stripReviewMaskDelimiters,
+} from "../../src/utils/reviewMasking";
 import { CollocationCardImage } from "../common/CollocationCardImage";
 import { AddToWordBankButton } from "../wordbank/AddToWordBankButton";
 import { SavedWord } from "../wordbank/WordCard";
@@ -31,6 +35,7 @@ interface FaceSideProps {
   wordBankConfig?: CollocationWordBankConfig;
   onFlip?: () => void;
   onImageLoad?: () => void;
+  isReviewMode?: boolean;
 }
 
 /**
@@ -87,6 +92,7 @@ export default React.memo(function FaceSide({
   wordBankConfig,
   onFlip,
   onImageLoad,
+  isReviewMode = false,
 }: FaceSideProps) {
   // ============================================================================
   // Contexts & State
@@ -109,7 +115,7 @@ export default React.memo(function FaceSide({
   }, [data.imageUrl, onImageLoad]);
 
   const collocationVariants = React.useMemo(
-    () => parseWordVariants(data.collocation),
+    () => parseWordVariants(stripReviewMaskDelimiters(data.collocation)),
     [data.collocation],
   );
   const isMultiVariantCollocation = collocationVariants.length > 1;
@@ -143,7 +149,10 @@ export default React.memo(function FaceSide({
     }
 
     try {
-      await speakWordVariants(data.collocation, speakText);
+      await speakWordVariants(
+        stripReviewMaskDelimiters(data.collocation),
+        speakText,
+      );
     } catch (error) {
       console.error("Collocation TTS error:", error);
     }
@@ -186,10 +195,10 @@ export default React.memo(function FaceSide({
         <Text
           style={[
             styles.faceCollocationText,
-            {
-              color: fontColors.learningCardPrimary,
-              fontSize: dynamicFontSize,
-            },
+            isReviewMode
+              ? getReviewTapeTextStyle(isDark)
+              : { color: fontColors.learningCardPrimary },
+            { fontSize: dynamicFontSize },
           ]}
           numberOfLines={1}
           adjustsFontSizeToFit
@@ -208,10 +217,10 @@ export default React.memo(function FaceSide({
             style={[
               styles.faceCollocationText,
               styles.faceCollocationTextVariant,
-              {
-                color: fontColors.learningCardPrimary,
-                fontSize: dynamicFontSize,
-              },
+              isReviewMode
+                ? getReviewTapeTextStyle(isDark)
+                : { color: fontColors.learningCardPrimary },
+              { fontSize: dynamicFontSize },
             ]}
           >
             {variant} {CARD_HEIGHT}
@@ -341,7 +350,7 @@ export default React.memo(function FaceSide({
                       { color: fontColors.learningCardSecondary },
                     ]}
                   >
-                    {part.trim()}
+                    {stripReviewMaskDelimiters(part.trim())}
                   </Text>
                 ))
               ) : (
@@ -351,7 +360,7 @@ export default React.memo(function FaceSide({
                     { color: fontColors.learningCardSecondary },
                   ]}
                 >
-                  {data.meaning}
+                  {stripReviewMaskDelimiters(data.meaning)}
                 </Text>
               )}
             </View>

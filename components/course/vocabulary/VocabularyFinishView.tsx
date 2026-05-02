@@ -9,7 +9,7 @@ interface VocabularyFinishViewProps {
   isDark: boolean;
   day: number;
   onQuiz: () => void;
-  onRestart: () => void;
+  onReview: () => void;
   onDays: () => void;
   t: (key: string, options?: Record<string, unknown>) => string;
 }
@@ -18,7 +18,7 @@ export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
   isDark,
   day,
   onQuiz,
-  onRestart,
+  onReview,
   onDays,
   t,
 }) => {
@@ -30,9 +30,11 @@ export const VocabularyFinishView: React.FC<VocabularyFinishViewProps> = ({
           <Text style={styles.buttonText}>{t("course.takeQuiz")}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, styles.restartButton]} onPress={onRestart}>
-          <Ionicons name="refresh-circle-outline" size={22} color="#1a1a1a" />
-          <Text style={styles.buttonText}>{t("common.restart")}</Text>
+        <TouchableOpacity style={[styles.button, styles.reviewButton]} onPress={onReview}>
+          <Ionicons name="eye-outline" size={22} color="#1a1a1a" />
+          <Text style={styles.buttonText}>
+            {t("course.review", { defaultValue: "Review" })}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.button, styles.daysButton]} onPress={onDays}>
@@ -81,7 +83,7 @@ const styles = StyleSheet.create({
   quizButton: {
     backgroundColor: "#6BCB77",
   },
-  restartButton: {
+  reviewButton: {
     backgroundColor: "#5B9CDB",
   },
   daysButton: {

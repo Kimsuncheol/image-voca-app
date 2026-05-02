@@ -1,4 +1,4 @@
-import { fireEvent, render } from "@testing-library/react-native";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
 import { StyleSheet, Text } from "react-native";
 import { KanjiCollocationCard } from "../components/course/vocabulary/KanjiCollocationCard";
@@ -185,7 +185,7 @@ describe("KanjiCollocationCard", () => {
     expect(screen.queryByTestId("kanji-collocation-face-side")).toBeNull();
   });
 
-  it("renders one tappable face-side row per source index", () => {
+  it("renders one tappable face-side row per source index", async () => {
     const screen = render(
       <KanjiCollocationCard
         item={buildKanjiWord({
@@ -219,9 +219,11 @@ describe("KanjiCollocationCard", () => {
 
     fireEvent.press(screen.getByTestId("kanji-collocation-face-meaning-speak-0"));
 
-    expect(mockSpeak).toHaveBeenCalledTimes(1);
-    expect(mockSpeak).toHaveBeenLastCalledWith("person", {
-      language: "ja-JP",
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledTimes(1);
+      expect(mockSpeak).toHaveBeenLastCalledWith("person", {
+        language: "ja-JP",
+      });
     });
     expect(mockStopCardSpeech).not.toHaveBeenCalled();
     expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
@@ -229,9 +231,11 @@ describe("KanjiCollocationCard", () => {
 
     fireEvent.press(screen.getByTestId("kanji-collocation-face-reading-speak-1"));
 
-    expect(mockSpeak).toHaveBeenCalledTimes(2);
-    expect(mockSpeak).toHaveBeenLastCalledWith("いち", {
-      language: "ja-JP",
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledTimes(2);
+      expect(mockSpeak).toHaveBeenLastCalledWith("いち", {
+        language: "ja-JP",
+      });
     });
     expect(mockStopCardSpeech).not.toHaveBeenCalled();
     expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
@@ -741,15 +745,17 @@ describe("KanjiCollocationCard", () => {
     );
   });
 
-  it("uses exampleHurigana for Japanese TTS when available", () => {
+  it("uses exampleHurigana for Japanese TTS when available", async () => {
     const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
     flipToBack(screen);
     const { getByText, getByTestId } = screen;
 
     fireEvent.press(getByTestId("kanji-collocation-example-visible-0"));
 
-    expect(mockSpeak).toHaveBeenCalledWith("ごをまなぶ。", {
-      language: "ja-JP",
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledWith("ごをまなぶ。", {
+        language: "ja-JP",
+      });
     });
     expect(getByTestId("kanji-collocation-back-side")).toBeTruthy();
   });
@@ -884,7 +890,7 @@ describe("KanjiCollocationCard", () => {
     expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
   });
 
-  it("speaks without flipping when a meaning example item is pressed", () => {
+  it("speaks without flipping when a meaning example item is pressed", async () => {
     const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
     flipToBack(screen);
     mockSpeak.mockClear();
@@ -892,8 +898,10 @@ describe("KanjiCollocationCard", () => {
 
     fireEvent.press(screen.getByTestId("kanji-collocation-meaning-pair-item-0-0"));
 
-    expect(mockSpeak).toHaveBeenCalledWith("じゅくご", {
-      language: "ja-JP",
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledWith("じゅくご", {
+        language: "ja-JP",
+      });
     });
     expect(mockStopCardSpeech).not.toHaveBeenCalled();
     expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
@@ -911,7 +919,7 @@ describe("KanjiCollocationCard", () => {
     expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
   });
 
-  it("speaks without flipping when a reading example item is pressed", () => {
+  it("speaks without flipping when a reading example item is pressed", async () => {
     const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
     flipToBack(screen);
     mockSpeak.mockClear();
@@ -919,8 +927,10 @@ describe("KanjiCollocationCard", () => {
 
     fireEvent.press(screen.getByTestId("kanji-collocation-reading-pair-item-0-0"));
 
-    expect(mockSpeak).toHaveBeenCalledWith("にほんご", {
-      language: "ja-JP",
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledWith("にほんご", {
+        language: "ja-JP",
+      });
     });
     expect(mockStopCardSpeech).not.toHaveBeenCalled();
     expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
@@ -938,7 +948,7 @@ describe("KanjiCollocationCard", () => {
     expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
   });
 
-  it("speaks without flipping when a general example item is pressed", () => {
+  it("speaks without flipping when a general example item is pressed", async () => {
     const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
     flipToBack(screen);
     mockSpeak.mockClear();
@@ -946,8 +956,10 @@ describe("KanjiCollocationCard", () => {
 
     fireEvent.press(screen.getByTestId("kanji-collocation-example-item-0"));
 
-    expect(mockSpeak).toHaveBeenCalledWith("ごをまなぶ。", {
-      language: "ja-JP",
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledWith("ごをまなぶ。", {
+        language: "ja-JP",
+      });
     });
     expect(mockStopCardSpeech).not.toHaveBeenCalled();
     expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();

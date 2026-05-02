@@ -9,6 +9,11 @@ import {
 import { getFontColors } from "../../../constants/fontColors";
 import { useStudySpeech } from "../../../src/hooks/useStudyMode";
 import type { KanjiNestedListGroup } from "../../../src/types/vocabulary";
+import {
+  getReviewTapeTextStyle,
+  parseReviewMaskSegments,
+  stripReviewMaskDelimiters,
+} from "../../../src/utils/reviewMasking";
 import { styles } from "./KanjiCollocationCardStyles";
 import { itemsAt } from "./kanjiCollocationUtils";
 
@@ -33,6 +38,8 @@ interface BackSectionProps {
   isActive: boolean;
   /** State determining if the furigana text should be visibly rendered */
   showFurigana: boolean;
+  /** Whether example target spans should be hidden under tape masks */
+  isReviewMode?: boolean;
   /** Callback triggered to flip the card horizontally back to the front face */
   onFlip: () => void;
 }
@@ -52,6 +59,7 @@ export function BackSection({
   translations,
   isDark,
   isActive,
+  isReviewMode = false,
   onFlip,
 }: BackSectionProps) {
   const { handleSpeech } = useStudySpeech();
@@ -70,7 +78,7 @@ export function BackSection({
     (event: GestureResponderEvent | undefined, text: string) => {
       event?.stopPropagation();
       if (!isActive) return;
-      void handleSpeech(text, "JP");
+      void handleSpeech(stripReviewMaskDelimiters(text), "JP");
     },
     [handleSpeech, isActive],
   );
@@ -144,8 +152,21 @@ export function BackSection({
                           { color: fontColors.learningCardPrimary },
                         ]}
                       >
-                        {example}
-                      </Text>
+                          {parseReviewMaskSegments(example).map(
+                            (segment, segmentIndex) => (
+                              <Text
+                                key={`${title}-${i}-${j}-${segmentIndex}`}
+                                style={
+                                  isReviewMode && segment.masked
+                                    ? getReviewTapeTextStyle(isDark)
+                                    : undefined
+                                }
+                              >
+                                {segment.text}
+                              </Text>
+                            ),
+                          )}
+                        </Text>
                       {entry.translations[j] ? (
                         <Text
                           style={[

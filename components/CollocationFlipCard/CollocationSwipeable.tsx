@@ -20,6 +20,7 @@ interface Props {
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isStudyCompleted?: boolean;
   isPreviewMode?: boolean;
+  isReviewMode?: boolean;
 }
 
 const FEEDBACK_THROTTLE_MS = 900;
@@ -36,6 +37,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
   onSavedWordChange,
   isStudyCompleted = false,
   isPreviewMode = false,
+  isReviewMode = false,
 }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -281,6 +283,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
                   }}
                   onFirstFlipToBack={() => handleCardFirstFlip(index)}
                   isActive={activeIndex === index}
+                  isReviewMode={isReviewMode}
                 />
               ) : (
                 <View style={styles.swipeableCardPlaceholder} />

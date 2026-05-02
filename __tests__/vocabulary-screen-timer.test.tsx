@@ -20,6 +20,7 @@ let mockUser: { uid: string } | null = null;
 let mockCourseProgress: Record<string, Record<number, { completed?: boolean }>> =
   {};
 let mockPreviewParam: string | undefined;
+let mockModeParam: string | undefined;
 
 const cards = [
   {
@@ -47,6 +48,7 @@ jest.mock("expo-router", () => ({
     courseId: "TOEIC",
     day: "1",
     preview: mockPreviewParam,
+    mode: mockModeParam,
   }),
   useRouter: () => ({
     replace: mockReplace,
@@ -121,6 +123,9 @@ jest.mock("react-i18next", () => ({
       }
       if (key === "course.preview") {
         return "Preview";
+      }
+      if (key === "course.review") {
+        return "Review";
       }
       return key;
     },
@@ -203,12 +208,17 @@ jest.mock("../components/course/vocabulary/VocabularyEmptyState", () => ({
 }));
 
 jest.mock("../components/course/vocabulary/VocabularyFinishView", () => ({
-  VocabularyFinishView: () => {
-    const { Text, View } = require("react-native");
+  VocabularyFinishView: ({ onReview, onDays }: { onReview: () => void; onDays: () => void }) => {
+    const { Text, TouchableOpacity, View } = require("react-native");
     return (
       <View>
         <Text>Finish View</Text>
-
+        <TouchableOpacity onPress={onReview}>
+          <Text>Review Button</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onDays}>
+          <Text>Finish Button</Text>
+        </TouchableOpacity>
       </View>
     );
   },
@@ -220,11 +230,13 @@ jest.mock("../components/course/vocabulary/VocabularySwipeDeck", () => ({
     onFinish,
     initialIndex,
     isPreviewMode,
+    isReviewMode,
   }: {
     onIndexChange: (index: number) => void;
     onFinish: () => void;
     initialIndex: number;
     isPreviewMode?: boolean;
+    isReviewMode?: boolean;
   }) => {
     const { Text, TouchableOpacity, View } = require("react-native");
 
@@ -233,6 +245,7 @@ jest.mock("../components/course/vocabulary/VocabularySwipeDeck", () => ({
         <Text>Vocabulary Deck</Text>
         <Text>{`Initial Index ${initialIndex}`}</Text>
         <Text>{`Preview Mode ${isPreviewMode ? "on" : "off"}`}</Text>
+        <Text>{`Review Mode ${isReviewMode ? "on" : "off"}`}</Text>
         <TouchableOpacity onPress={() => onIndexChange(1)}>
           <Text>Advance Deck</Text>
         </TouchableOpacity>
@@ -256,6 +269,7 @@ describe("VocabularyScreen deck state", () => {
     mockUser = null;
     mockCourseProgress = {};
     mockPreviewParam = undefined;
+    mockModeParam = undefined;
     mockFetchCourseProgress.mockResolvedValue(undefined);
     mockGetResumeProgress.mockResolvedValue(null);
     mockSaveResumeProgress.mockResolvedValue(null);
@@ -632,6 +646,80 @@ describe("VocabularyScreen deck state", () => {
 
     expect(event.preventDefault).not.toHaveBeenCalled();
     expect(Alert.alert).not.toHaveBeenCalled();
+  });
+
+  it("renders review mode from the first card without progress, resume, or completion side effects", async () => {
+    mockUser = { uid: "user-1" };
+    mockModeParam = "review";
+    mockGetResumeProgress.mockResolvedValue({
+      courseId: "TOEIC",
+      dayNumber: 1,
+      currentIndex: 1,
+      cardId: "word-2",
+      updatedAt: "2026-04-27T00:00:00.000Z",
+    });
+
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Review Mode on")).toBeTruthy();
+      expect(screen.getByText("Initial Index 0")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("Advance Deck"));
+    fireEvent.press(screen.getByText("Finish Deck"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Finish View")).toBeTruthy();
+    });
+
+    expect(mockFetchCourseProgress).not.toHaveBeenCalled();
+    expect(mockGetResumeProgress).not.toHaveBeenCalled();
+    expect(mockSaveResumeProgress).not.toHaveBeenCalled();
+    expect(mockClearResumeProgress).not.toHaveBeenCalled();
+    expect(mockBufferWordLearned).not.toHaveBeenCalled();
+    expect(mockFlushWordStats).not.toHaveBeenCalled();
+    expect(mockUpdateDoc).not.toHaveBeenCalled();
+
+    fireEvent.press(screen.getByText("Finish Button"));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/course/[courseId]/days",
+      params: { courseId: "TOEIC", mode: "learning" },
+    });
+
+    const event = {
+      preventDefault: jest.fn(),
+      data: { action: { type: "GO_BACK" } },
+    };
+    act(() => {
+      beforeRemoveHandler?.(event);
+    });
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(Alert.alert).not.toHaveBeenCalled();
+  });
+
+  it("starts masked review from the finish view and returns days in learning mode", async () => {
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Finish Deck")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("Finish Deck"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Review Button")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("Review Button"));
+
+    expect(mockReplace).toHaveBeenCalledWith({
+      pathname: "/course/[courseId]/vocabulary",
+      params: { courseId: "TOEIC", day: "1", mode: "review" },
+    });
+
   });
 
 

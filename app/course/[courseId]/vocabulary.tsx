@@ -41,6 +41,7 @@ import {
 import { useUserStatsStore } from "../../../src/stores";
 import { CourseType, CourseVocabularyCard } from "../../../src/types/vocabulary";
 import { formatDateKey } from "../../../src/utils/calendarStats";
+import { normalizeVocabularyStudyMode } from "../../../src/utils/reviewMasking";
 
 // Components
 import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
@@ -91,10 +92,11 @@ function VocabularyScreenContent() {
 
 
   // Navigation parameters: courseId (e.g., 'TOEIC') and day (e.g., '1')
-  const { courseId, day, preview } = useLocalSearchParams<{
+  const { courseId, day, preview, mode } = useLocalSearchParams<{
     courseId: CourseType;
     day: string;
     preview?: string;
+    mode?: string;
   }>();
   const router = useRouter();
   const navigation = useNavigation();
@@ -139,8 +141,11 @@ function VocabularyScreenContent() {
   const dayNumber = parseInt(day || "1", 10);
   const typedCourseId = courseId as CourseType;
   const isPreviewMode = preview === "1";
+  const studyMode = normalizeVocabularyStudyMode(mode);
+  const isReviewMode = studyMode === "review";
+  const isProgressDisabled = isPreviewMode || isReviewMode;
   const isStudyCompleted =
-    (!isPreviewMode &&
+    (!isProgressDisabled &&
       (isFinished ||
         courseProgress[courseId as string]?.[dayNumber]?.completed)) ||
     false;
@@ -151,7 +156,7 @@ function VocabularyScreenContent() {
     leaveConfirmedRef.current = false;
     resumePromptShownRef.current = null;
     setInitialDeckIndex(0);
-  }, [courseId, dayNumber]);
+  }, [courseId, dayNumber, studyMode]);
 
   const trackSessionLearnedWord = useCallback((wordId: string) => {
     if (sessionLearnedWordIdsRef.current.has(wordId)) {
@@ -297,7 +302,7 @@ function VocabularyScreenContent() {
    * Retrieves the course progress to check if the day has been completed.
    */
   useEffect(() => {
-    if (!isPreviewMode && user && courseId) {
+    if (!isProgressDisabled && user && courseId) {
       let isActive = true;
       setCourseProgressLoaded(false);
       void fetchCourseProgress(user.uid, courseId as string).finally(() => {
@@ -311,11 +316,12 @@ function VocabularyScreenContent() {
     }
 
     setCourseProgressLoaded(true);
-  }, [user, courseId, fetchCourseProgress, isPreviewMode]);
+  }, [user, courseId, fetchCourseProgress, isProgressDisabled]);
 
   const persistCurrentResumeProgress = useCallback(async () => {
     if (
       isPreviewMode ||
+      isReviewMode ||
       !user ||
       !courseId ||
       cards.length === 0 ||
@@ -336,6 +342,7 @@ function VocabularyScreenContent() {
     courseId,
     dayNumber,
     isPreviewMode,
+    isReviewMode,
     isStudyCompleted,
     typedCourseId,
     user,
@@ -364,6 +371,7 @@ function VocabularyScreenContent() {
   useEffect(() => {
     if (
       isPreviewMode ||
+      isReviewMode ||
       !user ||
       !courseId ||
       cards.length === 0 ||
@@ -441,6 +449,7 @@ function VocabularyScreenContent() {
     courseProgressLoaded,
     dayNumber,
     isPreviewMode,
+    isReviewMode,
     isStudyCompleted,
     t,
     typedCourseId,
@@ -462,6 +471,7 @@ function VocabularyScreenContent() {
         !user ||
         !courseId ||
         isPreviewMode ||
+        isReviewMode ||
         loading ||
         cards.length === 0 ||
         isStudyCompleted
@@ -499,6 +509,7 @@ function VocabularyScreenContent() {
     cards.length,
     courseId,
     isPreviewMode,
+    isReviewMode,
     isStudyCompleted,
     loading,
     navigation,
@@ -516,7 +527,7 @@ function VocabularyScreenContent() {
    * Records the word as learned in the local buffer.
    */
   const onSwipeRight = (item: CourseVocabularyCard) => {
-    if (isPreviewMode) {
+    if (isProgressDisabled) {
       return;
     }
 
@@ -544,7 +555,7 @@ function VocabularyScreenContent() {
    */
   const handleRunOutOfCards = async () => {
     setIsFinished(true);
-    if (isPreviewMode) {
+    if (isProgressDisabled) {
       return;
     }
 
@@ -616,7 +627,7 @@ function VocabularyScreenContent() {
   const handlePageChange = (index: number) => {
     currentIndexRef.current = index;
 
-    if (isPreviewMode) {
+    if (isProgressDisabled) {
       return;
     }
 
@@ -657,12 +668,14 @@ function VocabularyScreenContent() {
    * Action: Restart Day
    * Resets the current learning session.
    */
-  const handleRestart = () => {
-    // Reset cards to force re-render/reset of deck
+  const handleReview = () => {
+    currentIndexRef.current = 0;
+    setInitialDeckIndex(0);
+    setIsFinished(false);
     setCards([...cards]);
     router.replace({
       pathname: "/course/[courseId]/vocabulary",
-      params: { courseId, day },
+      params: { courseId, day, mode: "review" },
     });
   };
 
@@ -684,7 +697,7 @@ function VocabularyScreenContent() {
   const handleDays = () => {
     router.push({
       pathname: "/course/[courseId]/days",
-      params: { courseId },
+      params: { courseId, mode: "learning" },
     });
   };
 
@@ -718,7 +731,7 @@ function VocabularyScreenContent() {
         isDark={isDark}
         day={dayNumber}
         onQuiz={handleQuiz}
-        onRestart={handleRestart}
+        onReview={handleReview}
         onDays={handleDays}
         t={t}
       />
@@ -741,6 +754,8 @@ function VocabularyScreenContent() {
           headerBackTitle: t("common.back"),
           title: isPreviewMode
             ? t("course.preview", { defaultValue: "Preview" })
+            : isReviewMode
+              ? t("course.review", { defaultValue: "Review" })
             : "",
           headerRight: hasCards() && !isFinished
             ? () => <DayBadge day={dayNumber} />
@@ -776,8 +791,11 @@ function VocabularyScreenContent() {
                 onFinish={handleRunOutOfCards}
                 initialIndex={initialDeckIndex}
                 renderFinishView={renderFinishedView}
-                isStudyCompleted={isStudyCompleted || isPreviewMode}
+                isStudyCompleted={
+                  isStudyCompleted || isPreviewMode || isReviewMode
+                }
                 isPreviewMode={isPreviewMode}
+                isReviewMode={isReviewMode}
               />
             )
           ) : (

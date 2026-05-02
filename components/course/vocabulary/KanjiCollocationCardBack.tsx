@@ -22,6 +22,8 @@ export interface BackSideProps {
   language?: string;
   /** Whether the user speaks Korean. Used to toggle dynamically between Korean/English translations. */
   useKorean: boolean;
+  /** Whether the card should hide review targets under tape masks */
+  isReviewMode?: boolean;
   /** Callback triggered to flip the card horizontally back to the front face */
   onFlip: () => void;
 }
@@ -33,7 +35,15 @@ export interface BackSideProps {
  * detailed collocations, grouped meanings, readings, Japanese usages, and example sentences.
  * It also holds the "がな" (Furigana) toggle button to show or hide reading aids.
  */
-export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }: BackSideProps) {
+export function BackSide({
+  item,
+  isDark,
+  isActive,
+  language,
+  useKorean,
+  isReviewMode = false,
+  onFlip,
+}: BackSideProps) {
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
   const meanings = item.meaning;
@@ -115,6 +125,7 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
                 isDark={isDark}
                 isActive={isActive}
                 showFurigana={showFurigana}
+                isReviewMode={isReviewMode}
                 onFlip={onFlip}
               />
             ) : null}
@@ -136,6 +147,7 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
                 isDark={isDark}
                 isActive={isActive}
                 showFurigana={showFurigana}
+                isReviewMode={isReviewMode}
                 onFlip={onFlip}
               />
             ) : null}
@@ -155,6 +167,7 @@ export function BackSide({ item, isDark, isActive, language, useKorean, onFlip }
                 isDark={isDark}
                 isActive={isActive}
                 showFurigana={showFurigana}
+                isReviewMode={isReviewMode}
                 onFlip={onFlip}
               />
             ) : null}

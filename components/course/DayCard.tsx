@@ -18,7 +18,7 @@ interface DayCardProps {
   courseColor?: string;
   onDayPress: () => void;
   onQuizPress: () => void;
-
+  hideProgressUi?: boolean;
 }
 
 export function DayCard({
@@ -28,7 +28,7 @@ export function DayCard({
   courseColor,
   onDayPress,
   onQuizPress,
-
+  hideProgressUi = false,
 }: DayCardProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -36,6 +36,8 @@ export function DayCard({
   const isCompleted = progress?.completed || false;
   const quizCompleted = progress?.quizCompleted || false;
   const isRetake = progress?.isRetake || false;
+  const showProgressUi = !hideProgressUi;
+  const showCompletedState = showProgressUi && isCompleted;
 
   return (
     <View style={styles.dayCardWrapper}>
@@ -43,7 +45,7 @@ export function DayCard({
         style={[
           styles.dayCard,
           { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
-          isCompleted && {
+          showCompletedState && {
             backgroundColor: courseColor + "20",
             borderWidth: 2,
             borderColor: courseColor,
@@ -62,13 +64,13 @@ export function DayCard({
           </ThemedText>
           {isLocked ? (
             <Ionicons name="lock-closed" size={16} color="#999" />
-          ) : isCompleted ? (
+          ) : showCompletedState ? (
             <Ionicons name="checkmark-circle" size={20} color={courseColor} />
           ) : null}
         </View>
       </TouchableOpacity>
 
-      {isCompleted && !isLocked && (
+      {showProgressUi && isCompleted && !isLocked && (
         <TouchableOpacity
           style={[
             styles.quizButton,

@@ -14,6 +14,11 @@ import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useStudySpeech } from "../../src/hooks/useStudyMode";
 import { stripKanaParens } from "../../src/utils/japaneseText";
+import {
+  getReviewTapeTextStyle,
+  parseReviewMaskSegments,
+  stripReviewMaskDelimiters,
+} from "../../src/utils/reviewMasking";
 import { formatSynonyms } from "../../src/utils/synonyms";
 
 interface SwipeCardItemExampleSentenceSectionProps {
@@ -24,6 +29,7 @@ interface SwipeCardItemExampleSentenceSectionProps {
   courseId: string;
   isDark: boolean;
   isActive?: boolean;
+  isReviewMode?: boolean;
 }
 
 export function SwipeCardItemExampleSentenceSection({
@@ -34,6 +40,7 @@ export function SwipeCardItemExampleSentenceSection({
   courseId,
   isDark,
   isActive = true,
+  isReviewMode = false,
 }: SwipeCardItemExampleSentenceSectionProps) {
   const { t } = useTranslation();
   const fontColors = getFontColors(isDark);
@@ -86,7 +93,9 @@ export function SwipeCardItemExampleSentenceSection({
             {/* Example sentence */}
             <TouchableOpacity
               onPress={() => {
-                void handleSpeak(stripKanaParens(exampleText.trim()));
+                void handleSpeak(
+                  stripKanaParens(stripReviewMaskDelimiters(exampleText.trim())),
+                );
               }}
               activeOpacity={0.7}
             >
@@ -96,7 +105,20 @@ export function SwipeCardItemExampleSentenceSection({
                   { color: fontColors.learningCardPrimary },
                 ]}
               >
-                {exampleText.trim()}
+                {parseReviewMaskSegments(exampleText.trim()).map(
+                  (segment, segmentIndex) => (
+                    <Text
+                      key={`${index}-${segmentIndex}`}
+                      style={
+                        isReviewMode && segment.masked
+                          ? getReviewTapeTextStyle(isDark)
+                          : undefined
+                      }
+                    >
+                      {segment.text}
+                    </Text>
+                  ),
+                )}
               </Text>
             </TouchableOpacity>
             {/* Translation */}
@@ -107,7 +129,7 @@ export function SwipeCardItemExampleSentenceSection({
                   { color: fontColors.learningCardMuted },
                 ]}
               >
-                {translations[index].trim()}
+                {stripReviewMaskDelimiters(translations[index].trim())}
               </Text>
             )}
           </View>

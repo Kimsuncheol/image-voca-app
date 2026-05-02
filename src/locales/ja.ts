@@ -655,6 +655,11 @@ const ja = {
     preparingVocabulary: "単語を読み込み中...",
     dayCompleted: "今日の学習完了！",
     takeQuiz: "クイズを受ける",
+    review: "復習",
+    modes: {
+      learning: "学習",
+      review: "復習",
+    },
     preview: "プレビュー",
     previewSelectDay: "プレビューする日を選択してください",
     previewComplete: "プレビュー完了",

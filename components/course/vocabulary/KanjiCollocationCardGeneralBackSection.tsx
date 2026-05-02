@@ -12,6 +12,11 @@ import {
   splitJapaneseTextSegments,
   stripKanaParens,
 } from "../../../src/utils/japaneseText";
+import {
+  getReviewTapeTextStyle,
+  parseReviewMaskSegments,
+  stripReviewMaskDelimiters,
+} from "../../../src/utils/reviewMasking";
 import { styles } from "./KanjiCollocationCardStyles";
 import { trimmedStringAt } from "./kanjiCollocationUtils";
 
@@ -32,6 +37,8 @@ interface GeneralBackSectionProps {
   isActive: boolean;
   /** State determining if the inline furigana parenthesis text should be visibly rendered */
   showFurigana: boolean;
+  /** Whether example target spans should be hidden under tape masks */
+  isReviewMode?: boolean;
   /** Callback triggered to flip the card horizontally back to the front face */
   onFlip: () => void;
 }
@@ -50,6 +57,7 @@ export function GeneralBackSection({
   isDark,
   isActive,
   showFurigana,
+  isReviewMode = false,
   onFlip,
 }: GeneralBackSectionProps) {
   const { handleSpeech } = useStudySpeech();
@@ -66,7 +74,9 @@ export function GeneralBackSection({
     (event: GestureResponderEvent | undefined, text: string, index: number) => {
       event?.stopPropagation();
       if (!isActive) return;
-      const tts = trimmedStringAt(hurigana, index) ?? stripKanaParens(text);
+      const tts =
+        trimmedStringAt(hurigana, index) ??
+        stripKanaParens(stripReviewMaskDelimiters(text));
       void handleSpeech(tts, "JP");
     },
     [handleSpeech, isActive, hurigana],
@@ -101,7 +111,7 @@ export function GeneralBackSection({
             const visibleExample = showFurigana
               ? item.example
               : stripKanaParens(item.example);
-            const visibleSegments = splitJapaneseTextSegments(visibleExample);
+            const visibleSegments = parseReviewMaskSegments(visibleExample);
 
             return (
               <TouchableOpacity
@@ -124,21 +134,25 @@ export function GeneralBackSection({
                       styles.backExampleSizer,
                     ]}
                   >
-                    {visibleSegments.map((segment, segmentIndex) => (
-                      <Text
-                        key={`sizer-${item.originalIndex}-${segmentIndex}`}
-                        style={
-                          segment.isKanaParen
-                            ? [
-                                styles.backInlineFurigana,
-                                styles.backExampleSizer,
-                              ]
-                            : undefined
-                        }
-                      >
-                        {segment.text}
-                      </Text>
-                    ))}
+                    {visibleSegments.flatMap((reviewSegment, segmentIndex) =>
+                      splitJapaneseTextSegments(reviewSegment.text).map(
+                        (segment, japaneseSegmentIndex) => (
+                          <Text
+                            key={`sizer-${item.originalIndex}-${segmentIndex}-${japaneseSegmentIndex}`}
+                            style={
+                              segment.isKanaParen
+                                ? [
+                                    styles.backInlineFurigana,
+                                    styles.backExampleSizer,
+                                  ]
+                                : undefined
+                            }
+                          >
+                            {segment.text}
+                          </Text>
+                        ),
+                      ),
+                    )}
                   </Text>
                   <Text
                     testID={`kanji-collocation-example-visible-${item.originalIndex}`}
@@ -148,26 +162,35 @@ export function GeneralBackSection({
                       { color: fontColors.learningCardPrimary },
                     ]}
                   >
-                    {visibleSegments.map((segment, segmentIndex) => (
-                      <Text
-                        key={`visible-${item.originalIndex}-${segmentIndex}`}
-                        testID={
-                          segment.isKanaParen
-                            ? `kanji-collocation-example-furigana-segment-${item.originalIndex}-${segmentIndex}`
-                            : undefined
-                        }
-                        style={
-                          segment.isKanaParen
-                            ? [
-                                styles.backInlineFurigana,
-                                { color: fontColors.learningCardMuted },
-                              ]
-                            : undefined
-                        }
-                      >
-                        {segment.text}
-                      </Text>
-                    ))}
+                    {visibleSegments.flatMap((reviewSegment, segmentIndex) =>
+                      splitJapaneseTextSegments(reviewSegment.text).map(
+                        (segment, japaneseSegmentIndex) => (
+                          <Text
+                            key={`visible-${item.originalIndex}-${segmentIndex}-${japaneseSegmentIndex}`}
+                            testID={
+                              segment.isKanaParen
+                                ? segmentIndex === 0
+                                  ? `kanji-collocation-example-furigana-segment-${item.originalIndex}-${japaneseSegmentIndex}`
+                                  : `kanji-collocation-example-furigana-segment-${item.originalIndex}-${segmentIndex}-${japaneseSegmentIndex}`
+                                : undefined
+                            }
+                            style={[
+                              segment.isKanaParen
+                                ? [
+                                    styles.backInlineFurigana,
+                                    { color: fontColors.learningCardMuted },
+                                  ]
+                                : undefined,
+                              isReviewMode && reviewSegment.masked
+                                ? getReviewTapeTextStyle(isDark)
+                                : undefined,
+                            ]}
+                          >
+                            {segment.text}
+                          </Text>
+                        ),
+                      ),
+                    )}
                   </Text>
                 </View>
                 {item.translation ? (

@@ -12,6 +12,10 @@ import { getFontColors } from "../../../constants/fontColors";
 import { useStudySpeech } from "../../../src/hooks/useStudyMode";
 import type { KanjiWord } from "../../../src/types/vocabulary";
 import {
+  getReviewTapeTextStyle,
+  stripReviewMaskDelimiters,
+} from "../../../src/utils/reviewMasking";
+import {
   buildKanjiMeaningDisplayRows,
   buildKanjiReadingDisplayRows,
 } from "../../../src/utils/kanjiDisplayRows";
@@ -40,6 +44,8 @@ export interface FaceSideProps {
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   /** Whether the card is rendered in read-only preview mode */
   isPreviewMode?: boolean;
+  /** Whether the card should hide review targets under tape masks */
+  isReviewMode?: boolean;
   /** Callback triggered to flip the card horizontally to the back */
   onFlip: () => void;
 }
@@ -75,6 +81,7 @@ export function FaceSide({
   initialIsSaved,
   onSavedWordChange,
   isPreviewMode = false,
+  isReviewMode = false,
   onFlip,
   language = "en",
 }: FaceSideProps) {
@@ -91,7 +98,7 @@ export function FaceSide({
   );
 
   const dynamicFontSize = React.useMemo(() => {
-    return getDynamicFontSize(item.kanji, 64, 32);
+    return getDynamicFontSize(stripReviewMaskDelimiters(item.kanji), 64, 32);
   }, [item.kanji]);
 
   const meanings = buildKanjiMeaningDisplayRows(item, language);
@@ -138,12 +145,13 @@ export function FaceSide({
                   color: fontColors.learningCardPrimary,
                   fontSize: dynamicFontSize,
                 },
+                isReviewMode ? getReviewTapeTextStyle(isDark) : undefined,
               ]}
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.5}
             >
-              {item.kanji}
+              {stripReviewMaskDelimiters(item.kanji)}
             </Text>
             <View style={styles.kanjiHeaderActions}>
               {!isPreviewMode && (

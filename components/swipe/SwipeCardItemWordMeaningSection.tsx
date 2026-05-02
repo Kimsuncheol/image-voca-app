@@ -16,6 +16,10 @@ import {
   parseWordVariants,
   speakWordVariants,
 } from "../../src/utils/wordVariants";
+import {
+  getReviewTapeTextStyle,
+  stripReviewMaskDelimiters,
+} from "../../src/utils/reviewMasking";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { FontSizes } from "@/constants/fontSizes";
 import { SwipeCardItemAddToWordBankButton } from "./SwipeCardItemAddToWordBankButton";
@@ -31,6 +35,7 @@ interface SwipeCardItemWordMeaningSectionProps {
   day?: number;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isPreviewMode?: boolean;
+  isReviewMode?: boolean;
 }
 
 export function SwipeCardItemWordMeaningSection({
@@ -44,6 +49,7 @@ export function SwipeCardItemWordMeaningSection({
   day,
   onSavedWordChange,
   isPreviewMode = false,
+  isReviewMode = false,
 }: SwipeCardItemWordMeaningSectionProps) {
   const fontColors = getFontColors(isDark);
   useCardSpeechCleanup(isActive);
@@ -58,7 +64,7 @@ export function SwipeCardItemWordMeaningSection({
     () =>
       parseWordVariants(word).map((variant) =>
         formatIdiomTitleForDisplay(
-          variant,
+          stripReviewMaskDelimiters(variant),
           item.course,
           FontSizes.displayXl,
         ),
@@ -100,7 +106,7 @@ export function SwipeCardItemWordMeaningSection({
       return;
     }
 
-    await speakWordVariants(word, speakText, {
+    await speakWordVariants(stripReviewMaskDelimiters(word), speakText, {
       language: "en-US",
     });
   }, [isActive, speakText, word]);
@@ -121,7 +127,9 @@ export function SwipeCardItemWordMeaningSection({
               testID={index === 0 ? "swipe-card-word-title" : undefined}
               style={[
                 styles.cardTitle,
-                { color: fontColors.learningCardPrimary },
+                isReviewMode
+                  ? getReviewTapeTextStyle(isDark)
+                  : { color: fontColors.learningCardPrimary },
                 index > 0 && styles.cardTitleVariant,
                 { fontSize: titleFontSize, lineHeight: titleLineHeight },
               ]}

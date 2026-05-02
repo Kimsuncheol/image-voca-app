@@ -663,6 +663,11 @@ const ko = {
     preparingVocabulary: "단어를 불러오는 중...",
     dayCompleted: "오늘 학습 완료!",
     takeQuiz: "퀴즈 풀기",
+    review: "복습",
+    modes: {
+      learning: "학습",
+      review: "복습",
+    },
     preview: "미리보기",
     previewSelectDay: "미리볼 일차를 선택하세요",
     previewComplete: "미리보기가 끝났어요",

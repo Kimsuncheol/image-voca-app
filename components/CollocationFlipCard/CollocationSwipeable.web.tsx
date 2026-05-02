@@ -24,6 +24,7 @@ interface Props {
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isStudyCompleted?: boolean;
   isPreviewMode?: boolean;
+  isReviewMode?: boolean;
 }
 
 const HINT_TIMEOUT_MS = 1200;
@@ -40,6 +41,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
   onSavedWordChange,
   isStudyCompleted = false,
   isPreviewMode = false,
+  isReviewMode = false,
 }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -161,6 +163,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
             }}
             onFirstFlipToBack={handleCardFirstFlip}
             isActive={true}
+            isReviewMode={isReviewMode}
           />
         ) : (
           renderFinalPage?.()

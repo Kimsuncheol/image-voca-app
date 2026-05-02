@@ -20,6 +20,7 @@ interface CardInfoSectionProps {
   day?: number;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isPreviewMode?: boolean;
+  isReviewMode?: boolean;
 }
 
 export function SwipeCardItemCardInfoSection({
@@ -38,6 +39,7 @@ export function SwipeCardItemCardInfoSection({
   day,
   onSavedWordChange,
   isPreviewMode = false,
+  isReviewMode = false,
 }: CardInfoSectionProps) {
   const bgColors = getBackgroundColors(isDark);
 
@@ -66,6 +68,7 @@ export function SwipeCardItemCardInfoSection({
         day={day}
         onSavedWordChange={onSavedWordChange}
         isPreviewMode={isPreviewMode}
+        isReviewMode={isReviewMode}
       />
     </View>
   );

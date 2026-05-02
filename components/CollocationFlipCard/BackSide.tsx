@@ -14,6 +14,7 @@ interface BackSideProps {
   isVisible: boolean;
   initialSection?: "explanation" | "example" | "translation";
   onFlip?: () => void;
+  isReviewMode?: boolean;
 }
 
 export default React.memo(function BackSide({
@@ -22,6 +23,7 @@ export default React.memo(function BackSide({
   isVisible,
   initialSection = "explanation",
   onFlip,
+  isReviewMode = false,
 }: BackSideProps) {
   const bgColors = getBackgroundColors(isDark);
   const normalizedInitialSection: BackSideSection =
@@ -103,6 +105,7 @@ export default React.memo(function BackSide({
           onToggle={handleToggleExample}
           isDark={isDark}
           maxHeight={exampleMaxHeight}
+          isReviewMode={isReviewMode}
         />
       </View>
 

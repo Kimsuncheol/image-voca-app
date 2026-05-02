@@ -22,6 +22,11 @@ import {
   stripKanaParens,
 } from "../../../src/utils/japaneseText";
 import { resolveVocabularyContent } from "../../../src/utils/localizedVocabulary";
+import {
+  getReviewTapeTextStyle,
+  parseReviewMaskSegments,
+  stripReviewMaskDelimiters,
+} from "../../../src/utils/reviewMasking";
 import { InlineMeaningWithChips } from "../../common/InlineMeaningWithChips";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
 import { SwipeCardItemImageSection } from "../../swipe/SwipeCardItemImageSection";
@@ -38,6 +43,7 @@ interface JlptVocabularyCardProps {
   showKana?: boolean;
   onToggleKana?: () => void;
   isPreviewMode?: boolean;
+  isReviewMode?: boolean;
 }
 
 interface LabeledMeaningRowProps {
@@ -53,6 +59,7 @@ interface ExampleBlockProps {
   isDark: boolean;
   isActive: boolean;
   showKana: boolean;
+  isReviewMode: boolean;
 }
 
 const getDynamicFontSize = (text: string, baseFontSize: number, minFontSize: number): number => {
@@ -120,6 +127,7 @@ const ExampleBlock = React.memo(function ExampleBlock({
   isDark,
   isActive,
   showKana,
+  isReviewMode,
 }: ExampleBlockProps) {
   const fontColors = getFontColors(isDark);
   useCardSpeechCleanup(isActive);
@@ -153,7 +161,9 @@ const ExampleBlock = React.memo(function ExampleBlock({
       if (!isActive) {
         return;
       }
-      const ttsText = furiganaLines[index] ?? stripKanaParens(text);
+      const ttsText =
+        furiganaLines[index] ??
+        stripKanaParens(stripReviewMaskDelimiters(text));
       void handleSpeech(ttsText, "JP");
     },
     [handleSpeech, isActive, furiganaLines],
@@ -168,9 +178,6 @@ const ExampleBlock = React.memo(function ExampleBlock({
       {rowIndices.map((index) => {
         const exampleText = examples[index];
         const translationText = translations[index];
-        const exampleSegments = exampleText
-          ? splitJapaneseTextSegments(exampleText)
-          : [];
 
         return (
           <View key={index} style={styles.exampleGroup}>
@@ -185,26 +192,36 @@ const ExampleBlock = React.memo(function ExampleBlock({
                     { color: fontColors.learningCardPrimary },
                   ]}
                 >
-                  {exampleSegments.map((segment, segmentIndex) => (
-                    <Text
-                      key={`${index}-${segmentIndex}`}
-                      testID={
-                        segment.isKanaParen
-                          ? `jlpt-card-furigana-${index}-${segmentIndex}`
-                          : undefined
-                      }
-                      style={
-                        segment.isKanaParen
-                          ? [
-                              styles.cardFurigana,
-                              { color: fontColors.learningCardMuted },
-                            ]
-                          : undefined
-                      }
-                    >
-                      {segment.text}
-                    </Text>
-                  ))}
+                  {parseReviewMaskSegments(exampleText).flatMap(
+                    (reviewSegment, reviewSegmentIndex) =>
+                      splitJapaneseTextSegments(reviewSegment.text).map(
+                        (segment, segmentIndex) => (
+                          <Text
+                            key={`${index}-${reviewSegmentIndex}-${segmentIndex}`}
+                            testID={
+                              segment.isKanaParen
+                                ? reviewSegmentIndex === 0
+                                  ? `jlpt-card-furigana-${index}-${segmentIndex}`
+                                  : `jlpt-card-furigana-${index}-${reviewSegmentIndex}-${segmentIndex}`
+                                : undefined
+                            }
+                            style={[
+                              segment.isKanaParen
+                                ? [
+                                    styles.cardFurigana,
+                                    { color: fontColors.learningCardMuted },
+                                  ]
+                                : undefined,
+                              isReviewMode && reviewSegment.masked
+                                ? getReviewTapeTextStyle(isDark)
+                                : undefined,
+                            ]}
+                          >
+                            {segment.text}
+                          </Text>
+                        ),
+                      ),
+                  )}
                 </Text>
               </TouchableOpacity>
             ) : null}
@@ -217,7 +234,7 @@ const ExampleBlock = React.memo(function ExampleBlock({
                   { color: fontColors.learningCardMuted },
                 ]}
               >
-                {translationText}
+                {stripReviewMaskDelimiters(translationText)}
               </Text>
             ) : null}
           </View>
@@ -236,6 +253,7 @@ export function JlptVocabularyCard({
   showKana = false,
   onToggleKana = () => {},
   isPreviewMode = false,
+  isReviewMode = false,
 }: JlptVocabularyCardProps) {
   const { isDark } = useTheme();
   const bgColors = getBackgroundColors(isDark);
@@ -247,7 +265,7 @@ export function JlptVocabularyCard({
     () => resolveVocabularyContent(item, i18n.language),
     [i18n.language, item],
   );
-  const displayWord = toDisplayValue(item.word);
+  const displayWord = toDisplayValue(stripReviewMaskDelimiters(item.word));
   const pronunciation = React.useMemo(() => {
     const candidate = toDisplayValue(resolved.sharedPronunciation);
     if (!candidate) {
@@ -260,11 +278,14 @@ export function JlptVocabularyCard({
     if (!isActive) {
       return;
     }
-    void handleSpeech(resolved.sharedPronunciation ?? item.word, "JP");
+    void handleSpeech(
+      stripReviewMaskDelimiters(resolved.sharedPronunciation ?? item.word),
+      "JP",
+    );
   }, [handleSpeech, isActive, item.word, resolved.sharedPronunciation]);
 
   const dynamicFontSize = React.useMemo(() => {
-    return getDynamicFontSize(item.word, 48, 24);
+      return getDynamicFontSize(stripReviewMaskDelimiters(item.word), 48, 24);
   }, [item.word]);
 
   return (
@@ -304,15 +325,17 @@ export function JlptVocabularyCard({
                   style={[
                     styles.cardTitle,
                     {
-                      color: fontColors.learningCardPrimary,
                       fontSize: dynamicFontSize,
                     },
+                    isReviewMode
+                      ? getReviewTapeTextStyle(isDark)
+                      : { color: fontColors.learningCardPrimary },
                   ]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.5}
                 >
-                  {item.word}
+                  {stripReviewMaskDelimiters(item.word)}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -356,6 +379,7 @@ export function JlptVocabularyCard({
             isDark={isDark}
             isActive={isActive}
             showKana={showKana}
+            isReviewMode={isReviewMode}
           />
         </ScrollView>
 

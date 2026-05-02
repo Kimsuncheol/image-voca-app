@@ -15,6 +15,7 @@ interface KanjiCollocationCardProps {
   isActive?: boolean;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isPreviewMode?: boolean;
+  isReviewMode?: boolean;
 }
 
 export function KanjiCollocationCard({
@@ -24,6 +25,7 @@ export function KanjiCollocationCard({
   isActive = true,
   onSavedWordChange,
   isPreviewMode = false,
+  isReviewMode = false,
 }: KanjiCollocationCardProps) {
   const { isDark } = useTheme();
   const { i18n } = useTranslation();
@@ -64,6 +66,7 @@ export function KanjiCollocationCard({
         initialIsSaved={initialIsSaved}
         onSavedWordChange={onSavedWordChange}
         isPreviewMode={isPreviewMode}
+        isReviewMode={isReviewMode}
         onFlip={() => flip(true)}
       />
       <BackSide
@@ -72,6 +75,7 @@ export function KanjiCollocationCard({
         isActive={isActive}
         language={i18n.language}
         useKorean={i18n.language === "ko"}
+        isReviewMode={isReviewMode}
         onFlip={() => flip(false)}
       />
     </FlipCard>

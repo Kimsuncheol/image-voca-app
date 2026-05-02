@@ -24,6 +24,8 @@ interface Props {
   isActive?: boolean;
   // Called when the card image finishes loading (or errors, or there is no image)
   onImageLoad?: () => void;
+  // Hides review targets under tape masks while preserving layout
+  isReviewMode?: boolean;
 }
 
 /**
@@ -45,6 +47,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
     onFirstFlipToBack,
     isActive = true,
     onImageLoad,
+    isReviewMode = false,
   }) => {
     // ============================================================================
     // State Management
@@ -125,6 +128,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
           wordBankConfig={wordBankConfig}
           onFlip={wordBankConfig?.isDeleteMode ? undefined : handleFlipToBack}
           onImageLoad={onImageLoad}
+          isReviewMode={isReviewMode}
         />
 
         {/* ============================================================ */}
@@ -135,6 +139,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
           isDark={isDark}
           isVisible={isBackVisible}
           onFlip={handleFlipToFront}
+          isReviewMode={isReviewMode}
         />
       </FlipCard>
     );
