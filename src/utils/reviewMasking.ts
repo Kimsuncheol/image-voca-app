@@ -59,8 +59,8 @@ export function getReviewTapeTextStyle(isDark: boolean): TextStyle {
   return {
     color: "transparent",
     backgroundColor: isDark
-      ? "rgba(255, 214, 102, 0.45)"
-      : "rgba(250, 204, 21, 0.58)",
+      ? "rgba(155, 155, 161, 0.34)"
+      : "rgba(107, 114, 128, 0.30)",
     borderRadius: 4,
     overflow: "hidden",
   };

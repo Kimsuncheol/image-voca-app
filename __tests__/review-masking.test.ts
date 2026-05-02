@@ -1,4 +1,5 @@
 import {
+  getReviewTapeTextStyle,
   normalizeVocabularyStudyMode,
   parseReviewMaskSegments,
   stripReviewMaskDelimiters,
@@ -23,5 +24,24 @@ describe("reviewMasking", () => {
     expect(normalizeVocabularyStudyMode(undefined)).toBe("learning");
     expect(normalizeVocabularyStudyMode("preview")).toBe("learning");
     expect(normalizeVocabularyStudyMode("review")).toBe("review");
+  });
+
+  it("uses theme-matched grey tape colors", () => {
+    expect(getReviewTapeTextStyle(false)).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "rgba(107, 114, 128, 0.30)",
+        borderRadius: 4,
+        overflow: "hidden",
+      }),
+    );
+    expect(getReviewTapeTextStyle(true)).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "rgba(155, 155, 161, 0.34)",
+        borderRadius: 4,
+        overflow: "hidden",
+      }),
+    );
   });
 });
