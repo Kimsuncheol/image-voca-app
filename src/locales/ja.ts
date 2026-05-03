@@ -86,6 +86,7 @@ const ja = {
       english: "英語",
       korean: "韓国語",
       japanese: "日本語",
+      learningLanguage: "学習言語",
       wishToLearn: "学習したい言語",
     },
     speech: {

@@ -89,6 +89,7 @@ const ko = {
       english: "영어",
       korean: "한국어",
       japanese: "일본어",
+      learningLanguage: "학습 언어",
       wishToLearn: "학습하고 싶은 언어",
     },
     speech: {

@@ -169,6 +169,13 @@ export function RootLayoutNav() {
               }}
             />
             <Stack.Screen
+              name="settings-learning-language"
+              options={{
+                title: t("settings.language.learningLanguage"),
+                headerStyle: { backgroundColor: bgColors.screenAlt },
+              }}
+            />
+            <Stack.Screen
               name="settings-speech-speed"
               options={{
                 title: t("settings.speech.speed"),

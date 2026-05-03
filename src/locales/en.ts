@@ -90,6 +90,7 @@ const en = {
       english: "English",
       korean: "Korean",
       japanese: "Japanese",
+      learningLanguage: "Learning language",
       wishToLearn: "The language you wish to learn",
     },
     speech: {

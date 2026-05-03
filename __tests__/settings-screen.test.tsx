@@ -43,7 +43,21 @@ jest.mock("firebase/auth", () => ({
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, options?: { defaultValue?: string }) =>
-      options?.defaultValue ?? key,
+      ({
+        "settings.language.learningLanguage": "Learning language",
+        "settings.language.title": "Language",
+        "settings.language.systemDefault": "System Default",
+        "settings.language.english": "English",
+        "settings.language.japanese": "Japanese",
+        "settings.speech.title": "Speech & Mask",
+        "settings.speech.speed": "Speech speed",
+        "settings.speech.normal": "Normal",
+        "settings.speech.autoVocabularySpeech": "Auto speech",
+        "settings.speech.reviewMaskTarget": "Mask target",
+        "settings.speech.maskTargets.word-pronunciation": "Word",
+      })[key] ??
+      options?.defaultValue ??
+      key,
     i18n: { language: "en" },
   }),
 }));
@@ -63,6 +77,7 @@ jest.mock("../src/context/ThemeContext", () => ({
 jest.mock("../src/context/LearningLanguageContext", () => ({
   useLearningLanguage: () => ({
     learningLanguage: "en",
+    setLearningLanguage: jest.fn(),
   }),
 }));
 
@@ -138,15 +153,7 @@ jest.mock("../components/settings/LanguageSection", () => ({
 }));
 
 jest.mock("../components/settings/LearningLanguageSection", () => ({
-  LearningLanguageSection: () => {
-    const ReactNative = require("react-native");
-
-    return (
-      <ReactNative.View testID="settings-learning-language-section">
-        <ReactNative.Text>The language you wish to learn</ReactNative.Text>
-      </ReactNative.View>
-    );
-  },
+  ...jest.requireActual("../components/settings/LearningLanguageSection"),
 }));
 
 jest.mock("../components/settings/NotificationsSection", () => ({
@@ -202,6 +209,20 @@ describe("SettingsScreen", () => {
     expect(mockRouterPush).toHaveBeenCalledWith("/settings-language");
   });
 
+  it("renders the learning-language row that opens its detail screen", () => {
+    const screen = render(<SettingsScreen />);
+
+    expect(screen.getAllByText("Learning language").length).toBeGreaterThan(0);
+    expect(screen.queryByText("The language you wish to learn")).toBeNull();
+    expect(
+      screen.queryByTestId("settings-learning-language-option-ja"),
+    ).toBeNull();
+
+    fireEvent.press(screen.getByTestId("settings-learning-language-row"));
+
+    expect(mockRouterPush).toHaveBeenCalledWith("/settings-learning-language");
+  });
+
   it("renders the review-mask-target row that opens its detail screen", async () => {
     const screen = render(<SettingsScreen />);
 
@@ -251,9 +272,7 @@ describe("SettingsScreen", () => {
 
     collectTestIds(root);
 
-    const learningIndex = orderedTestIds.indexOf(
-      "settings-learning-language-section",
-    );
+    const learningIndex = orderedTestIds.indexOf("settings-learning-language-row");
     const languageIndex = orderedTestIds.indexOf("settings-language-row");
     const speechIndex = orderedTestIds.indexOf("settings-speech-speed-row");
 
