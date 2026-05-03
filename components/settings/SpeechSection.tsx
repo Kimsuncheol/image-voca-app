@@ -1,16 +1,11 @@
-import { FontSizes } from "@/constants/fontSizes";
-import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useSpeechPreferences } from "../../src/hooks/useSpeechPreferences";
-import {
-  ReviewMaskTarget,
-  SpeechPreferenceLanguage,
-  getNextSpeechSpeedPreset,
-} from "../../src/services/speechPreferences";
+import type { SpeechPreferenceLanguage } from "../../src/services/speechPreferences";
 import { ToggleSwitch } from "../common/ToggleSwitch";
 
 interface SpeechSectionProps {
@@ -20,32 +15,17 @@ interface SpeechSectionProps {
 
 export function SpeechSection({ styles, isDark }: SpeechSectionProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const { learningLanguage } = useLearningLanguage();
   const {
     getPreset,
-    setPreset,
     vocabularyPreferences,
     setAutoSpeakVocabulary,
-    setReviewMaskTarget,
   } = useSpeechPreferences();
   const speechLanguage: SpeechPreferenceLanguage =
     learningLanguage === "ja" ? "ja" : "en";
   const selectedPreset = getPreset(speechLanguage);
-  const maskTargetOptions: ReviewMaskTarget[] = [
-    "word-pronunciation",
-    "meaning",
-    "all",
-  ];
-  const togglePreset = async () => {
-    const result = await setPreset(
-      speechLanguage,
-      getNextSpeechSpeedPreset(selectedPreset),
-    );
-
-    if (!result.persistedLocally) {
-      Alert.alert(t("common.error"), t("settings.speech.saveFailed"));
-    }
-  };
+  const selectedPresetLabel = t(`settings.speech.${selectedPreset}`);
 
   const handleAutoSpeakChange = async (enabled: boolean) => {
     const result = await setAutoSpeakVocabulary(enabled);
@@ -55,19 +35,20 @@ export function SpeechSection({ styles, isDark }: SpeechSectionProps) {
     }
   };
 
-  const handleMaskTargetChange = async (target: ReviewMaskTarget) => {
-    const result = await setReviewMaskTarget(target);
-
-    if (!result.persistedLocally) {
-      Alert.alert(t("common.error"), t("settings.speech.saveFailed"));
-    }
-  };
+  const selectedMaskTarget = vocabularyPreferences.reviewMaskTarget;
+  const selectedMaskTargetLabel = t(
+    `settings.speech.maskTargets.${selectedMaskTarget}`,
+  );
 
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{t("settings.speech.title")}</Text>
       <View style={styles.card}>
-        <View style={[styles.option, localStyles.option]}>
+        <TouchableOpacity
+          testID="settings-speech-speed-row"
+          style={[styles.option, localStyles.option]}
+          onPress={() => router.push("/settings-speech-speed")}
+        >
           <View style={styles.optionLeft}>
             <Ionicons
               name="volume-high-outline"
@@ -82,27 +63,11 @@ export function SpeechSection({ styles, isDark }: SpeechSectionProps) {
               {t("settings.speech.speed")}
             </Text>
           </View>
-
-          <TouchableOpacity
-            testID="speech-speed-preset-toggle"
-            accessibilityRole="button"
-            accessibilityLabel={t("settings.speech.title")}
-            style={[
-              localStyles.presetToggle,
-              {
-                backgroundColor: isDark ? "#0a84ff" : "#007AFF",
-              },
-            ]}
-            onPress={() => {
-              void togglePreset();
-            }}
-          >
-            <Ionicons name="speedometer-outline" size={16} color="#fff" />
-            <Text style={localStyles.presetText}>
-              {t(`settings.speech.${selectedPreset}`)}
-            </Text>
-          </TouchableOpacity>
-        </View>
+          <View style={styles.optionRight}>
+            <Text style={styles.optionValue}>{selectedPresetLabel}</Text>
+            <Ionicons name="chevron-forward" size={20} color="#8e8e93" />
+          </View>
+        </TouchableOpacity>
         <View testID="speech-section-separator" style={styles.separator} />
         <View style={[styles.option, localStyles.option]}>
           <View style={styles.optionLeft}>
@@ -131,7 +96,11 @@ export function SpeechSection({ styles, isDark }: SpeechSectionProps) {
           />
         </View>
         <View testID="speech-section-separator" style={styles.separator} />
-        <View style={[styles.option, localStyles.maskTargetOption]}>
+        <TouchableOpacity
+          testID="settings-review-mask-target-row"
+          style={[styles.option, localStyles.option]}
+          onPress={() => router.push("/settings-review-mask-target")}
+        >
           <View style={styles.optionLeft}>
             <Ionicons
               name="eye-off-outline"
@@ -146,58 +115,11 @@ export function SpeechSection({ styles, isDark }: SpeechSectionProps) {
               {t("settings.speech.reviewMaskTarget")}
             </Text>
           </View>
-          <View
-            testID="review-mask-target-selector"
-            style={localStyles.maskTargetList}
-          >
-            {maskTargetOptions.map((target, index) => {
-              const isSelected =
-                vocabularyPreferences.reviewMaskTarget === target;
-              const selectedColor = isDark ? "#0a84ff" : "#007AFF";
-              const unselectedColor = isDark ? "#e5e7eb" : "#1f2937";
-
-              return (
-                <React.Fragment key={target}>
-                  <TouchableOpacity
-                    testID={`review-mask-target-${target}`}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: isSelected }}
-                    activeOpacity={0.78}
-                    onPress={() => {
-                      void handleMaskTargetChange(target);
-                    }}
-                    style={localStyles.maskTargetTextOption}
-                  >
-                    <Text
-                      style={[
-                        localStyles.maskTargetText,
-                        { color: isSelected ? selectedColor : unselectedColor },
-                      ]}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.86}
-                    >
-                      {t(`settings.speech.maskTargets.${target}`)}
-                    </Text>
-                  </TouchableOpacity>
-                  {index < maskTargetOptions.length - 1 && (
-                    <View
-                      testID="review-mask-target-option-divider"
-                      style={[
-                        localStyles.maskTargetOptionDivider,
-                        {
-                          backgroundColor: isDark
-                            ? "rgba(255,255,255,0.14)"
-                            : "#d1d1d6",
-                        },
-                      ]}
-                    />
-                  )}
-                </React.Fragment>
-              );
-            })}
+          <View style={styles.optionRight}>
+            <Text style={styles.optionValue}>{selectedMaskTargetLabel}</Text>
+            <Ionicons name="chevron-forward" size={20} color="#8e8e93" />
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -206,44 +128,5 @@ export function SpeechSection({ styles, isDark }: SpeechSectionProps) {
 const localStyles = StyleSheet.create({
   option: {
     gap: 12,
-  },
-  maskTargetOption: {
-    flexDirection: "column",
-    alignItems: "stretch",
-    gap: 12,
-  },
-  presetToggle: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    flexShrink: 0,
-    minHeight: 34,
-    paddingHorizontal: 15,
-    borderRadius: 17,
-  },
-  presetText: {
-    color: "#fff",
-    fontSize: FontSizes.label,
-    fontWeight: FontWeights.bold,
-  },
-  maskTargetList: {
-    flexDirection: "column",
-    alignSelf: "stretch",
-    paddingLeft: 32,
-  },
-  maskTargetTextOption: {
-    alignSelf: "flex-start",
-    minHeight: 28,
-    justifyContent: "center",
-  },
-  maskTargetText: {
-    fontSize: FontSizes.bodyLg,
-    fontWeight: FontWeights.medium,
-  },
-  maskTargetOptionDivider: {
-    alignSelf: "stretch",
-    height: StyleSheet.hairlineWidth,
-    marginVertical: 8,
   },
 });

@@ -89,7 +89,7 @@ const ja = {
       wishToLearn: "学習したい言語",
     },
     speech: {
-      title: "音声",
+      title: "音声 & マスク",
       speed: "音声速度",
       englishSpeed: "英語の発音速度",
       japaneseSpeed: "日本語の発音速度",
@@ -97,9 +97,9 @@ const ja = {
       normal: "標準",
       fast: "速い",
       autoVocabularySpeech: "自動読み上げ",
-      reviewMaskTarget: "復習で隠す対象",
+      reviewMaskTarget: "マスク対象",
       maskTargets: {
-        "word-pronunciation": "単語 + 発音",
+        "word-pronunciation": "単語",
         meaning: "意味",
         all: "すべて",
       },

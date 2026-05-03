@@ -3,10 +3,13 @@ import React from "react";
 import { StyleSheet } from "react-native";
 
 import { LanguageSection } from "../components/settings/LanguageSection";
-import type { LanguageMode } from "../src/i18n";
 
-jest.mock("../src/i18n", () => ({
-  __esModule: true,
+const mockRouterPush = jest.fn();
+
+jest.mock("expo-router", () => ({
+  useRouter: () => ({
+    push: mockRouterPush,
+  }),
 }));
 
 const styles = StyleSheet.create({
@@ -15,8 +18,10 @@ const styles = StyleSheet.create({
   card: {},
   option: {},
   optionLeft: {},
+  optionRight: {},
   optionTextGroup: {},
   optionText: {},
+  optionValue: {},
   separator: {},
 });
 
@@ -29,43 +34,39 @@ const translations: Record<string, string> = {
 };
 
 describe("LanguageSection", () => {
-  it("renders system and manual language options", () => {
-    const onChangeLanguageMode = jest.fn();
+  beforeEach(() => {
+    mockRouterPush.mockReset();
+  });
 
+  it("renders a compact display-language summary row", () => {
     const screen = render(
       <LanguageSection
         styles={styles}
         isDark={false}
         currentMode="system"
-        onChangeLanguageMode={onChangeLanguageMode}
         t={(key) => translations[key] ?? key}
       />,
     );
 
+    expect(screen.getAllByText("Language")).toHaveLength(2);
     expect(screen.getByText("System Default")).toBeTruthy();
-    expect(screen.queryByText("Current: Japanese")).toBeNull();
-    expect(screen.getByText("English")).toBeTruthy();
-    expect(screen.getByText("Korean")).toBeTruthy();
-    expect(screen.getByText("Japanese")).toBeTruthy();
+    expect(screen.queryByText("Korean")).toBeNull();
+    expect(screen.queryByText("Japanese")).toBeNull();
   });
 
-  it("emits the selected language mode", () => {
-    const onChangeLanguageMode = jest.fn<void, [LanguageMode]>();
-
+  it("navigates to the display language screen", () => {
     const screen = render(
       <LanguageSection
         styles={styles}
         isDark={false}
         currentMode="en"
-        onChangeLanguageMode={onChangeLanguageMode}
         t={(key) => translations[key] ?? key}
       />,
     );
 
-    fireEvent.press(screen.getByText("System Default"));
-    fireEvent.press(screen.getByText("Korean"));
+    expect(screen.getByText("English")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("settings-language-row"));
 
-    expect(onChangeLanguageMode).toHaveBeenNthCalledWith(1, "system");
-    expect(onChangeLanguageMode).toHaveBeenNthCalledWith(2, "ko");
+    expect(mockRouterPush).toHaveBeenCalledWith("/settings-language");
   });
 });

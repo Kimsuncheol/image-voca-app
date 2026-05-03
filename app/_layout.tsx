@@ -162,6 +162,27 @@ export function RootLayoutNav() {
                }}
             />
             <Stack.Screen
+              name="settings-language"
+              options={{
+                title: t("settings.language.title"),
+                headerStyle: { backgroundColor: bgColors.screenAlt },
+              }}
+            />
+            <Stack.Screen
+              name="settings-speech-speed"
+              options={{
+                title: t("settings.speech.speed"),
+                headerStyle: { backgroundColor: bgColors.screenAlt },
+              }}
+            />
+            <Stack.Screen
+              name="settings-review-mask-target"
+              options={{
+                title: t("settings.speech.reviewMaskTarget"),
+                headerStyle: { backgroundColor: bgColors.screenAlt },
+              }}
+            />
+            <Stack.Screen
               name="calendar"
               options={{ 
                 title: t("calendar.title"),

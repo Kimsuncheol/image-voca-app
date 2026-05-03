@@ -46,10 +46,6 @@ import { SpeechSection } from "../../components/settings/SpeechSection"; // Pron
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useTheme } from "../../src/context/ThemeContext"; // Theme preferences context
-import {
-  setLanguageMode,
-  type LanguageMode,
-} from "../../src/i18n"; // Language configuration
 import { auth } from "../../src/services/firebase"; // Firebase auth instance
 import { useDashboardSettingsStore } from "../../src/stores/dashboardSettingsStore";
 import { useLanguageSettingsStore } from "../../src/stores/languageSettingsStore";
@@ -279,32 +275,6 @@ export default function SettingsScreen() {
   };
 
   // ============================================================================
-  // LANGUAGE CHANGE HANDLER
-  // ============================================================================
-  /**
-   * Changes the app's display language
-   *
-   * Updates i18n configuration and saves the preference to AsyncStorage.
-   * The app's UI will immediately update to display text in the selected language.
-   *
-   * Supported languages are defined in the i18n configuration.
-   *
-   * @async
-   * @param {LanguageMode} mode - Language mode (system, en, ko, ja)
-   * @returns {Promise<void>}
-   */
-  const handleLanguageModeChange = async (mode: LanguageMode) => {
-    try {
-      await setLanguageMode(mode); // Updates i18n and saves to AsyncStorage
-      if (studyReminderEnabled) {
-        await scheduleDailyNotifications();
-      }
-    } catch (error) {
-      console.warn("Failed to change language", error);
-    }
-  };
-
-  // ============================================================================
   // STYLES
   // ============================================================================
   // Get theme-aware styles based on dark mode preference
@@ -387,7 +357,6 @@ export default function SettingsScreen() {
           styles={styles}
           isDark={isDark}
           currentMode={languageMode}
-          onChangeLanguageMode={handleLanguageModeChange}
           t={t}
         />
 
@@ -479,11 +448,24 @@ const getStyles = (isDark: boolean) => {
       flex: 1,
     },
 
+    optionRight: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      flexShrink: 0,
+      marginLeft: 12,
+    },
+
     // Option label text
     optionText: {
       fontSize: FontSizes.subhead, // iOS standard text size
       color: fontColors.screenTitle,
       marginLeft: 8, // Spacing after icon
+    },
+
+    optionValue: {
+      color: fontColors.screenMuted,
+      fontSize: FontSizes.bodyMd,
     },
 
     // Separator - Thin line between options in a card

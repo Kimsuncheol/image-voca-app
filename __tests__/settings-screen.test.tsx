@@ -10,6 +10,19 @@ const mockCancelAllScheduledNotifications = jest.fn();
 const mockScheduleDailyNotifications = jest.fn();
 const mockIsPermissionGranted = jest.fn();
 const mockMarkStudyDate = jest.fn();
+const mockRouterPush = jest.fn();
+
+jest.mock("@expo/vector-icons", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+
+  const Ionicons = ({ name, testID }: { name: string; testID?: string }) => (
+    <Text testID={testID ?? `icon-${name}`}>{name}</Text>
+  );
+  Ionicons.glyphMap = {};
+
+  return { Ionicons };
+});
 
 jest.mock("expo-router", () => ({
   Stack: {
@@ -18,7 +31,7 @@ jest.mock("expo-router", () => ({
   useFocusEffect: jest.fn(),
   useRouter: () => ({
     replace: jest.fn(),
-    push: jest.fn(),
+    push: mockRouterPush,
     back: jest.fn(),
   }),
 }));
@@ -44,6 +57,26 @@ jest.mock("../src/context/ThemeContext", () => ({
     theme: "light",
     setTheme: jest.fn(),
     isDark: false,
+  }),
+}));
+
+jest.mock("../src/context/LearningLanguageContext", () => ({
+  useLearningLanguage: () => ({
+    learningLanguage: "en",
+  }),
+}));
+
+jest.mock("../src/hooks/useSpeechPreferences", () => ({
+  useSpeechPreferences: () => ({
+    getPreset: () => "normal",
+    setPreset: jest.fn().mockResolvedValue({ persistedLocally: true }),
+    vocabularyPreferences: {
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: "word-pronunciation",
+    },
+    setAutoSpeakVocabulary: jest
+      .fn()
+      .mockResolvedValue({ persistedLocally: true }),
   }),
 }));
 
@@ -101,7 +134,7 @@ jest.mock("../components/settings/AppearanceSection", () => ({
 }));
 
 jest.mock("../components/settings/LanguageSection", () => ({
-  LanguageSection: () => null,
+  ...jest.requireActual("../components/settings/LanguageSection"),
 }));
 
 jest.mock("../components/settings/LearningLanguageSection", () => ({
@@ -139,7 +172,7 @@ jest.mock("../components/settings/SignOutSection", () => ({
 }));
 
 jest.mock("../components/settings/SpeechSection", () => ({
-  SpeechSection: () => null,
+  ...jest.requireActual("../components/settings/SpeechSection"),
 }));
 
 jest.mock("../components/settings/DashboardSection", () => ({
@@ -151,6 +184,42 @@ describe("SettingsScreen", () => {
     jest.clearAllMocks();
     mockConfigureNotifications.mockResolvedValue({ granted: true });
     mockIsPermissionGranted.mockReturnValue(true);
+  });
+
+  it("renders the display-language row that opens the language detail screen", () => {
+    const screen = render(<SettingsScreen />);
+
+    fireEvent.press(screen.getByTestId("settings-language-row"));
+
+    expect(mockRouterPush).toHaveBeenCalledWith("/settings-language");
+  });
+
+  it("renders the review-mask-target row that opens its detail screen", async () => {
+    const screen = render(<SettingsScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("settings-review-mask-target-row")).toBeTruthy();
+    });
+
+    expect(screen.queryByTestId("review-mask-target-selector")).toBeNull();
+
+    fireEvent.press(screen.getByTestId("settings-review-mask-target-row"));
+
+    expect(mockRouterPush).toHaveBeenCalledWith(
+      "/settings-review-mask-target",
+    );
+  });
+
+  it("renders the speech-speed row that opens its detail screen", async () => {
+    const screen = render(<SettingsScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("settings-speech-speed-row")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId("settings-speech-speed-row"));
+
+    expect(mockRouterPush).toHaveBeenCalledWith("/settings-speech-speed");
   });
 
   it("does not render the target score study section", () => {

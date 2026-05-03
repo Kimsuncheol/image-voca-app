@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -8,7 +9,6 @@ interface LanguageSectionProps {
   styles: Record<string, any>;
   isDark: boolean;
   currentMode: LanguageMode;
-  onChangeLanguageMode: (mode: LanguageMode) => void;
   t: (key: string) => string;
 }
 
@@ -16,9 +16,9 @@ export function LanguageSection({
   styles,
   isDark,
   currentMode,
-  onChangeLanguageMode,
   t,
 }: LanguageSectionProps) {
+  const router = useRouter();
   const options: {
     mode: LanguageMode;
     label: string;
@@ -28,38 +28,36 @@ export function LanguageSection({
     { mode: "ko", label: t("settings.language.korean") },
     { mode: "ja", label: t("settings.language.japanese") },
   ];
+  const currentLabel =
+    options.find((option) => option.mode === currentMode)?.label ??
+    t("settings.language.systemDefault");
 
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{t("settings.language.title")}</Text>
       <View style={styles.card}>
-        {options.map((option, index) => (
-          <React.Fragment key={option.mode}>
-            {index > 0 && <View style={styles.separator} />}
-            <TouchableOpacity
-              style={styles.option}
-              onPress={() => onChangeLanguageMode(option.mode)}
-            >
-              <View style={styles.optionLeft}>
-                <Ionicons
-                  name={
-                    option.mode === "system"
-                      ? "phone-portrait-outline"
-                      : "language-outline"
-                  }
-                  size={24}
-                  color={isDark ? "#fff" : "#333"}
-                />
-                <View style={styles.optionTextGroup}>
-                  <Text style={styles.optionText}>{option.label}</Text>
-                </View>
-              </View>
-              {currentMode === option.mode && (
-                <Ionicons name="checkmark" size={24} color="#007AFF" />
-              )}
-            </TouchableOpacity>
-          </React.Fragment>
-        ))}
+        <TouchableOpacity
+          testID="settings-language-row"
+          style={styles.option}
+          onPress={() => router.push("/settings-language")}
+        >
+          <View style={styles.optionLeft}>
+            <Ionicons
+              name="language-outline"
+              size={24}
+              color={isDark ? "#fff" : "#333"}
+            />
+            <View style={styles.optionTextGroup}>
+              <Text style={styles.optionText}>
+                {t("settings.language.title")}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.optionRight}>
+            <Text style={styles.optionValue}>{currentLabel}</Text>
+            <Ionicons name="chevron-forward" size={20} color="#8e8e93" />
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
