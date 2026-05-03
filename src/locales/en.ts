@@ -99,6 +99,13 @@ const en = {
       slow: "Slow",
       normal: "Normal",
       fast: "Fast",
+      autoVocabularySpeech: "Automatic vocabulary speech",
+      reviewMaskTarget: "Review mask target",
+      maskTargets: {
+        "word-pronunciation": "Word + pronunciation",
+        meaning: "Meaning",
+        all: "All",
+      },
       saveFailed:
         "Speech speed changed for now, but could not be saved on this device.",
     },

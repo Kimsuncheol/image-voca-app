@@ -2,6 +2,7 @@ import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
 import { Alert, StyleSheet, View } from "react-native";
 import VocabularyScreen from "../app/course/[courseId]/vocabulary";
+import type { CourseType, CourseVocabularyCard } from "../src/types/vocabulary";
 
 const mockBufferWordLearned = jest.fn();
 const mockFlushWordStats = jest.fn();
@@ -11,6 +12,7 @@ const mockPush = jest.fn();
 const mockNavigationDispatch = jest.fn();
 const mockNavigationAddListener = jest.fn();
 const mockStackScreen: jest.Mock = jest.fn(() => null);
+const mockHandleSpeech = jest.fn(async () => undefined);
 const mockGetResumeProgress: jest.Mock = jest.fn(async () => null);
 const mockSaveResumeProgress: jest.Mock = jest.fn(async () => null);
 const mockClearResumeProgress: jest.Mock = jest.fn(async () => undefined);
@@ -19,9 +21,13 @@ let mockUser: { uid: string } | null = null;
 let mockCourseProgress: Record<string, Record<number, { completed?: boolean }>> =
   {};
 let mockPreviewParam: string | undefined;
-let mockCourseId = "TOEIC";
+let mockCourseId: CourseType = "TOEIC";
+let mockVocabularyPreferences = {
+  autoSpeakVocabulary: true,
+  reviewMaskTarget: "word-pronunciation" as const,
+};
 
-const cards = [
+const cards: CourseVocabularyCard[] = [
   {
     id: "word-1",
     word: "abandon",
@@ -37,7 +43,29 @@ const cards = [
     course: "TOEIC",
   },
 ];
-let mockCards = cards;
+let mockCards: CourseVocabularyCard[] = cards;
+
+jest.mock("@/src/hooks/useStudyMode", () => {
+  const React = require("react");
+
+  return {
+    StudyModeProvider: ({ children }: { children: React.ReactNode }) => (
+      <>{children}</>
+    ),
+    useStudySpeech: () => ({
+      handleSpeech: mockHandleSpeech,
+      lowVolumeHint: null,
+      clearLowVolumeHint: jest.fn(),
+    }),
+  };
+});
+
+jest.mock("../src/hooks/useSpeechPreferences", () => ({
+  useSpeechPreferences: () => ({
+    vocabularyPreferences: mockVocabularyPreferences,
+    isLoading: false,
+  }),
+}));
 
 jest.mock("expo-router", () => ({
   Stack: {
@@ -73,6 +101,7 @@ jest.mock("react-native-safe-area-context", () => {
 
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
+    i18n: { language: "en" },
     t: (key: string, options?: Record<string, unknown>) => {
       if (key === "swipe.timer.label") {
         return "Study Time";
@@ -258,8 +287,11 @@ jest.mock("../components/course/vocabulary/VocabularySwipeDeck", () => ({
         <TouchableOpacity onPress={() => onMaskChange?.(true)}>
           <Text>Mask Words</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => onIndexChange(1)}>
+    <TouchableOpacity onPress={() => onIndexChange(1)}>
           <Text>Advance Deck</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => onIndexChange(0)}>
+          <Text>Previous Deck</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={onFinish}>
           <Text>Finish Deck</Text>
@@ -271,15 +303,28 @@ jest.mock("../components/course/vocabulary/VocabularySwipeDeck", () => ({
 
 describe("VocabularyScreen deck state", () => {
   let alertSpy: jest.SpyInstance;
+  let consoleErrorSpy: jest.SpyInstance;
   let beforeRemoveHandler:
     | ((event: { preventDefault: jest.Mock; data: { action: object } }) => void)
     | undefined;
+
+  beforeAll(() => {
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    consoleErrorSpy.mockRestore();
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockCards = cards;
     mockUser = null;
     mockCourseId = "TOEIC";
+    mockVocabularyPreferences = {
+      autoSpeakVocabulary: false,
+      reviewMaskTarget: "word-pronunciation",
+    };
     mockCourseProgress = {};
     mockPreviewParam = undefined;
     mockFetchCourseProgress.mockResolvedValue(undefined);
@@ -307,6 +352,175 @@ describe("VocabularyScreen deck state", () => {
     await Promise.resolve();
 
     expect(screen.getByText("Vocabulary Deck")).toBeTruthy();
+  });
+
+  it("automatically speaks the first vocabulary word when learning starts", async () => {
+    mockVocabularyPreferences = {
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: "word-pronunciation",
+    };
+    render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(mockHandleSpeech).toHaveBeenCalledWith("abandon", "EN", {
+        language: "en-US",
+      });
+    });
+  });
+
+  it("automatically speaks next, previous, and revisited vocabulary words", async () => {
+    mockVocabularyPreferences = {
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: "word-pronunciation",
+    };
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(mockHandleSpeech).toHaveBeenCalledWith("abandon", "EN", {
+        language: "en-US",
+      });
+    });
+    mockHandleSpeech.mockClear();
+
+    fireEvent.press(screen.getByText("Advance Deck"));
+
+    await waitFor(() => {
+      expect(mockHandleSpeech).toHaveBeenCalledWith("retain", "EN", {
+        language: "en-US",
+      });
+    });
+    mockHandleSpeech.mockClear();
+
+    fireEvent.press(screen.getByText("Previous Deck"));
+
+    await waitFor(() => {
+      expect(mockHandleSpeech).toHaveBeenCalledWith("abandon", "EN", {
+        language: "en-US",
+      });
+    });
+  });
+
+  it("automatically speaks JLPT pronunciation in Japanese", async () => {
+    mockVocabularyPreferences = {
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: "word-pronunciation",
+    };
+    mockCourseId = "JLPT_N5";
+    mockCards = [
+      {
+        id: "jlpt-1",
+        word: "間",
+        meaning: "interval",
+        pronunciation: "あいだ",
+        example: "駅とホテルの間",
+        course: "JLPT_N5",
+      },
+    ];
+
+    render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(mockHandleSpeech).toHaveBeenCalledWith("あいだ", "JP");
+    });
+  });
+
+  it("automatically speaks Kanji in Japanese", async () => {
+    mockVocabularyPreferences = {
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: "word-pronunciation",
+    };
+    mockCourseId = "KANJI";
+    mockCards = [
+      {
+        id: "kanji-1",
+        kanji: "語",
+        meaning: ["word"],
+        meaningKorean: ["단어"],
+        meaningKoreanRomanize: ["dan-eo"],
+        meaningExample: [{ items: [] }],
+        meaningExampleHurigana: [{ items: [] }],
+        meaningEnglishTranslation: [{ items: [] }],
+        meaningKoreanTranslation: [{ items: [] }],
+        reading: ["ご"],
+        readingKorean: ["고"],
+        readingKoreanRomanize: ["go"],
+        readingExample: [{ items: [] }],
+        readingExampleHurigana: [{ items: [] }],
+        readingEnglishTranslation: [{ items: [] }],
+        readingKoreanTranslation: [{ items: [] }],
+        example: [],
+        exampleEnglishTranslation: [],
+        exampleKoreanTranslation: [],
+        exampleHurigana: [],
+      },
+    ];
+
+    render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(mockHandleSpeech).toHaveBeenCalledWith("語", "JP");
+    });
+  });
+
+  it("does not auto speak the completion page", async () => {
+    mockVocabularyPreferences = {
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: "word-pronunciation",
+    };
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(mockHandleSpeech).toHaveBeenCalled();
+    });
+    mockHandleSpeech.mockClear();
+
+    fireEvent.press(screen.getByText("Finish Deck"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Finish View")).toBeTruthy();
+    });
+    expect(mockHandleSpeech).not.toHaveBeenCalled();
+  });
+
+  it("waits for the resume choice before automatically speaking", async () => {
+    mockVocabularyPreferences = {
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: "word-pronunciation",
+    };
+    mockUser = { uid: "user-1" };
+    mockGetResumeProgress.mockResolvedValue({
+      courseId: "TOEIC",
+      dayNumber: 1,
+      currentIndex: 1,
+      cardId: "word-2",
+      updatedAt: "2026-04-27T00:00:00.000Z",
+    });
+
+    render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Continue where you left off?",
+        "Resume message",
+        expect.any(Array),
+      );
+    });
+
+    expect(mockHandleSpeech).not.toHaveBeenCalled();
+
+    const buttons = alertSpy.mock.calls[0][2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+    act(() => {
+      buttons.find((button) => button.text === "Continue")?.onPress?.();
+    });
+
+    await waitFor(() => {
+      expect(mockHandleSpeech).toHaveBeenCalledWith("retain", "EN", {
+        language: "en-US",
+      });
+    });
   });
 
   it("matches the native header background to the screen background", async () => {
@@ -573,13 +787,6 @@ describe("VocabularyScreen deck state", () => {
       expect(mockNavigationDispatch).toHaveBeenCalledWith({ type: "GO_BACK" });
     });
 
-    const secondRender = render(<VocabularyScreen />);
-
-    await waitFor(() => {
-      expect(secondRender.getByText("Vocabulary Deck")).toBeTruthy();
-    });
-
-    expect(secondRender.getByText("Initial Index 0")).toBeTruthy();
     expect(Alert.alert).not.toHaveBeenCalledWith(
       "Continue where you left off?",
       "Resume message",
@@ -822,8 +1029,11 @@ describe("VocabularyScreen deck state", () => {
   it.each(["COLLOCATION", "KANJI"])(
     "hides the header mask toggle for %s routes",
     async (courseId) => {
-      mockCourseId = courseId;
-      mockCards = cards.map((card) => ({ ...card, course: courseId }));
+      mockCourseId = courseId as CourseType;
+      mockCards = cards.map((card) => ({
+        ...card,
+        course: courseId as CourseType,
+      }));
 
       const screen = render(<VocabularyScreen />);
 

@@ -296,6 +296,40 @@ describe("JlptVocabularyCard", () => {
     );
   });
 
+  it("masks JLPT meaning instead of word and pronunciation when configured", () => {
+    const { getByText, getByTestId } = render(
+      <JlptVocabularyCard
+        item={buildCard()}
+        isReviewMode
+        reviewMaskTarget="meaning"
+      />,
+    );
+
+    expect(StyleSheet.flatten(getByText("間").props.style)).not.toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(
+      StyleSheet.flatten(getByTestId("jlpt-card-pronunciation").props.style),
+    ).not.toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(getByTestId("jlpt-card-meaning-content")).toBeTruthy();
+    expect(
+      StyleSheet.flatten(getByText("interval; space; between").props.style),
+    ).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+  });
+
   it("hides the pronunciation row when word and pronunciation are identical", () => {
     const { queryByTestId, queryByText } = render(
       <JlptVocabularyCard

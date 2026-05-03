@@ -3,6 +3,7 @@ import FlipCard from "react-native-flip-card";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useCardSpeechCleanup } from "../../../src/hooks/useCardSpeechCleanup";
+import type { ReviewMaskTarget } from "../../../src/services/speechPreferences";
 import type { KanjiWord } from "../../../src/types/vocabulary";
 import { FaceSide } from "./KanjiCollocationCardFace";
 import { BackSide } from "./KanjiCollocationCardBack";
@@ -16,6 +17,7 @@ interface KanjiCollocationCardProps {
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
   onMaskChange?: (enabled: boolean) => void;
 }
 
@@ -27,6 +29,7 @@ export function KanjiCollocationCard({
   onSavedWordChange,
   isPreviewMode = false,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
   onMaskChange,
 }: KanjiCollocationCardProps) {
   const { isDark } = useTheme();
@@ -69,6 +72,7 @@ export function KanjiCollocationCard({
         onSavedWordChange={onSavedWordChange}
         isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
+        reviewMaskTarget={reviewMaskTarget}
         onMaskChange={onMaskChange}
         onFlip={() => flip(true)}
       />
@@ -79,6 +83,7 @@ export function KanjiCollocationCard({
         language={i18n.language}
         useKorean={i18n.language === "ko"}
         isReviewMode={isReviewMode}
+        reviewMaskTarget={reviewMaskTarget}
         onMaskChange={onMaskChange}
         onFlip={() => flip(false)}
       />

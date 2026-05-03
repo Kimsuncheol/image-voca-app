@@ -202,4 +202,35 @@ describe("Collocation FaceSide word bank toggle", () => {
     expect(onMaskChange).toHaveBeenCalledWith(true);
     expect(onFlip).not.toHaveBeenCalled();
   });
+
+  it("masks collocation meaning instead of word when configured", () => {
+    const screen = render(
+      <FaceSide
+        data={{
+          collocation: "make a decision",
+          meaning: "결정을 내리다",
+          explanation: "",
+          example: "She made a decision quickly.",
+          translation: "그녀는 빨리 결정을 내렸다.",
+          imageUrl: "https://cdn.example.com/collocation.png",
+        }}
+        isDark={false}
+        isReviewMode
+        reviewMaskTarget="meaning"
+      />,
+    );
+
+    expect(StyleSheet.flatten(screen.getByText("make a decision").props.style)).not.toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(StyleSheet.flatten(screen.getByText("결정을 내리다").props.style)).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+  });
 });

@@ -1,6 +1,7 @@
 import {
   getReviewTapeTextStyle,
   parseReviewMaskSegments,
+  shouldMaskReviewContent,
   stripReviewMaskDelimiters,
 } from "../src/utils/reviewMasking";
 
@@ -36,5 +37,24 @@ describe("reviewMasking", () => {
         overflow: "hidden",
       }),
     );
+  });
+
+  it("maps review mask targets to the expected content fields", () => {
+    expect(
+      shouldMaskReviewContent(true, "word-pronunciation", "word"),
+    ).toBe(true);
+    expect(
+      shouldMaskReviewContent(true, "word-pronunciation", "pronunciation"),
+    ).toBe(true);
+    expect(
+      shouldMaskReviewContent(true, "word-pronunciation", "example"),
+    ).toBe(true);
+    expect(
+      shouldMaskReviewContent(true, "word-pronunciation", "meaning"),
+    ).toBe(false);
+    expect(shouldMaskReviewContent(true, "meaning", "meaning")).toBe(true);
+    expect(shouldMaskReviewContent(true, "meaning", "word")).toBe(false);
+    expect(shouldMaskReviewContent(true, "all", "meaning")).toBe(true);
+    expect(shouldMaskReviewContent(false, "all", "meaning")).toBe(false);
   });
 });

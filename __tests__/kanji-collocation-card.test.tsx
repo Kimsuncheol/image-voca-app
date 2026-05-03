@@ -187,6 +187,72 @@ describe("KanjiCollocationCard", () => {
     );
   });
 
+  it("masks Kanji meaning and reading but not the Kanji when configured", () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord()}
+        isReviewMode
+        reviewMaskTarget="meaning"
+      />,
+    );
+
+    expect(StyleSheet.flatten(screen.getByText("語").props.style)).not.toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+
+    const meaningTexts = screen
+      .getByTestId("kanji-collocation-face-meaning-0")
+      .findAllByType(Text);
+    const readingTexts = screen
+      .getByTestId("kanji-collocation-face-reading-0")
+      .findAllByType(Text);
+
+    expect(StyleSheet.flatten(meaningTexts[0].props.style)).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(StyleSheet.flatten(readingTexts[0].props.style)).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+  });
+
+  it("masks every Kanji face field when mask target is all", () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord()}
+        isReviewMode
+        reviewMaskTarget="all"
+      />,
+    );
+
+    expect(StyleSheet.flatten(screen.getByText("語").props.style)).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(
+      StyleSheet.flatten(
+        screen
+          .getByTestId("kanji-collocation-face-meaning-0")
+          .findAllByType(Text)[0].props.style,
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+  });
+
   it("uses the themed light surfaces and hides save in preview", () => {
     const normal = render(
       <KanjiCollocationCard item={buildKanjiWord()} day={1} />,

@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { CollocationFlipCard } from "./index";
 
@@ -25,6 +26,8 @@ interface Props {
   isStudyCompleted?: boolean;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
+  onMaskChange?: (enabled: boolean) => void;
 }
 
 const HINT_TIMEOUT_MS = 1200;
@@ -42,6 +45,8 @@ export const CollocationSwipeable: React.FC<Props> = ({
   isStudyCompleted = false,
   isPreviewMode = false,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
+  onMaskChange,
 }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -164,6 +169,8 @@ export const CollocationSwipeable: React.FC<Props> = ({
             onFirstFlipToBack={handleCardFirstFlip}
             isActive={true}
             isReviewMode={isReviewMode}
+            reviewMaskTarget={reviewMaskTarget}
+            onMaskChange={onMaskChange}
           />
         ) : (
           renderFinalPage?.()

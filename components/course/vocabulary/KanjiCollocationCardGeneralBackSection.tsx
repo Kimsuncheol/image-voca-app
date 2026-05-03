@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { getFontColors } from "../../../constants/fontColors";
 import { useStudySpeech } from "../../../src/hooks/useStudyMode";
+import type { ReviewMaskTarget } from "../../../src/services/speechPreferences";
 import {
   splitJapaneseTextSegments,
   stripKanaParens,
@@ -15,6 +16,7 @@ import {
 import {
   getReviewTapeTextStyle,
   parseReviewMaskSegments,
+  shouldMaskReviewContent,
   stripReviewMaskDelimiters,
 } from "../../../src/utils/reviewMasking";
 import { styles } from "./KanjiCollocationCardStyles";
@@ -39,6 +41,7 @@ interface GeneralBackSectionProps {
   showFurigana: boolean;
   /** Whether example target spans should be hidden under tape masks */
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
   /** Callback triggered to flip the card horizontally back to the front face */
   onFlip: () => void;
 }
@@ -58,10 +61,16 @@ export function GeneralBackSection({
   isActive,
   showFurigana,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
   onFlip,
 }: GeneralBackSectionProps) {
   const { handleSpeech } = useStudySpeech();
   const fontColors = getFontColors(isDark);
+  const maskExample = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "example",
+  );
   const items = examples
     .map((example, index) => ({
       example: example.trim(),
@@ -181,7 +190,7 @@ export function GeneralBackSection({
                                     { color: fontColors.learningCardMuted },
                                   ]
                                 : undefined,
-                              isReviewMode && reviewSegment.masked
+                              maskExample && reviewSegment.masked
                                 ? getReviewTapeTextStyle(isDark)
                                 : undefined,
                             ]}

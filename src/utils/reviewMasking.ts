@@ -1,9 +1,16 @@
 import type { TextStyle } from "react-native";
+import type { ReviewMaskTarget } from "../services/speechPreferences";
 
 type ReviewMaskSegment = {
   text: string;
   masked: boolean;
 };
+
+export type ReviewMaskField =
+  | "word"
+  | "pronunciation"
+  | "meaning"
+  | "example";
 
 const MASK_START = "[[[";
 const MASK_END = "]]]";
@@ -53,4 +60,26 @@ export function getReviewTapeTextStyle(isDark: boolean): TextStyle {
     borderRadius: 4,
     overflow: "hidden",
   };
+}
+
+export function shouldMaskReviewContent(
+  isReviewMode: boolean,
+  reviewMaskTarget: ReviewMaskTarget = "word-pronunciation",
+  field: ReviewMaskField,
+): boolean {
+  if (!isReviewMode) {
+    return false;
+  }
+
+  if (reviewMaskTarget === "all") {
+    return true;
+  }
+
+  if (reviewMaskTarget === "meaning") {
+    return field === "meaning";
+  }
+
+  return (
+    field === "word" || field === "pronunciation" || field === "example"
+  );
 }

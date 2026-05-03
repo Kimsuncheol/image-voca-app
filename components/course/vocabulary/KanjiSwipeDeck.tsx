@@ -1,5 +1,6 @@
 import React from "react";
 import { stopAllCardSpeech } from "../../../src/hooks/useCardSpeechCleanup";
+import type { ReviewMaskTarget } from "../../../src/services/speechPreferences";
 import { KanjiWord } from "../../../src/types/vocabulary";
 import { CarouselSwipeDeck } from "./CarouselSwipeDeck";
 import { KanjiCollocationCard } from "./KanjiCollocationCard";
@@ -16,6 +17,7 @@ interface KanjiSwipeDeckProps {
   initialIndex?: number;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
   onMaskChange?: (enabled: boolean) => void;
 }
 
@@ -28,6 +30,7 @@ export const KanjiSwipeDeck: React.FC<KanjiSwipeDeckProps> = (props) => {
       dayNumber,
       isPreviewMode,
       isReviewMode,
+      reviewMaskTarget,
       onMaskChange,
       onSavedWordChange,
     }: {
@@ -37,6 +40,7 @@ export const KanjiSwipeDeck: React.FC<KanjiSwipeDeckProps> = (props) => {
       dayNumber: number;
       isPreviewMode: boolean;
       isReviewMode: boolean;
+      reviewMaskTarget: ReviewMaskTarget;
       onMaskChange?: (enabled: boolean) => void;
       onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
     }) => (
@@ -48,6 +52,7 @@ export const KanjiSwipeDeck: React.FC<KanjiSwipeDeckProps> = (props) => {
         onSavedWordChange={isPreviewMode ? undefined : onSavedWordChange}
         isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
+        reviewMaskTarget={reviewMaskTarget}
         onMaskChange={onMaskChange}
       />
     ),

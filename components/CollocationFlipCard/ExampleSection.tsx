@@ -9,9 +9,11 @@ import {
 import Collapsible from "react-native-collapsible";
 import { getFontColors } from "../../constants/fontColors";
 import { useStudySpeech } from "../../src/hooks/useStudyMode";
+import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
 import {
   getReviewTapeTextStyle,
   parseReviewMaskSegments,
+  shouldMaskReviewContent,
   stripReviewMaskDelimiters,
 } from "../../src/utils/reviewMasking";
 import { styles } from "./EnglishCollocationCardStyle";
@@ -42,6 +44,7 @@ interface ExampleSectionProps {
   isDark: boolean;
   maxHeight?: number;
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
   onMaskChange?: (enabled: boolean) => void;
 }
 
@@ -53,6 +56,7 @@ export default React.memo(function ExampleSection({
   isDark,
   maxHeight,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
   onMaskChange = () => {},
 }: ExampleSectionProps) {
   const { handleSpeech } = useStudySpeech();
@@ -60,6 +64,11 @@ export default React.memo(function ExampleSection({
   const spokenExampleText = useMemo(
     () => stripReviewMaskDelimiters(stripRoleLabels(example)),
     [example],
+  );
+  const maskExample = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "example",
   );
   const exampleTurns = useMemo(() => toDialogueTurns(example), [example]);
   const translationTurns = useMemo(
@@ -189,7 +198,7 @@ export default React.memo(function ExampleSection({
                                     <Text
                                       key={`${index}-${segmentIndex}`}
                                       style={
-                                        isReviewMode && segment.masked
+                                        maskExample && segment.masked
                                           ? getReviewTapeTextStyle(isDark)
                                           : undefined
                                       }

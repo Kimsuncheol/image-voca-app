@@ -2,26 +2,44 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
   DEFAULT_SPEECH_SPEED_PREFERENCES,
+  DEFAULT_VOCABULARY_SPEECH_PREFERENCES,
+  ReviewMaskTarget,
   SpeechPreferenceLanguage,
   SpeechSpeedPreferenceMutationResult,
   SpeechSpeedPreset,
   SpeechSpeedPreferences,
+  VocabularySpeechPreferenceMutationResult,
+  VocabularySpeechPreferences,
   getDefaultSpeechSpeedPreset,
   getSpeechRateForPreset,
   getSpeechSpeedPreferences,
+  getVocabularySpeechPreferences,
   hydrateSpeechSpeedPreferencesForUser,
+  hydrateVocabularySpeechPreferencesForUser,
+  setAutoSpeakVocabularyPreference,
+  setAutoSpeakVocabularyPreferenceForUser,
+  setReviewMaskTargetPreference,
+  setReviewMaskTargetPreferenceForUser,
   setSpeechSpeedPreference,
   setSpeechSpeedPreferenceForUser,
   subscribeToSpeechSpeedPreferences,
+  subscribeToVocabularySpeechPreferences,
 } from "../services/speechPreferences";
 
 export interface UseSpeechPreferencesReturn {
   preferences: SpeechSpeedPreferences;
+  vocabularyPreferences: VocabularySpeechPreferences;
   isLoading: boolean;
   setPreset: (
     language: SpeechPreferenceLanguage,
     preset: SpeechSpeedPreset,
   ) => Promise<SpeechSpeedPreferenceMutationResult>;
+  setAutoSpeakVocabulary: (
+    enabled: boolean,
+  ) => Promise<VocabularySpeechPreferenceMutationResult>;
+  setReviewMaskTarget: (
+    target: ReviewMaskTarget,
+  ) => Promise<VocabularySpeechPreferenceMutationResult>;
   getPreset: (language: SpeechPreferenceLanguage) => SpeechSpeedPreset;
   getRate: (language: SpeechPreferenceLanguage) => number;
 }
@@ -31,6 +49,10 @@ export const useSpeechPreferences = (): UseSpeechPreferencesReturn => {
   const [preferences, setPreferences] = useState<SpeechSpeedPreferences>(
     DEFAULT_SPEECH_SPEED_PREFERENCES,
   );
+  const [vocabularyPreferences, setVocabularyPreferences] =
+    useState<VocabularySpeechPreferences>(
+      DEFAULT_VOCABULARY_SPEECH_PREFERENCES,
+    );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -42,20 +64,35 @@ export const useSpeechPreferences = (): UseSpeechPreferencesReturn => {
         setPreferences(nextPreferences);
       }
     });
+    const unsubscribeVocabulary = subscribeToVocabularySpeechPreferences(
+      (nextPreferences) => {
+        if (isActive) {
+          setVocabularyPreferences(nextPreferences);
+        }
+      },
+    );
 
     const hydratePreferences = async () => {
       try {
-        const localPreferences = await getSpeechSpeedPreferences();
+        const [localPreferences, localVocabularyPreferences] =
+          await Promise.all([
+            getSpeechSpeedPreferences(),
+            getVocabularySpeechPreferences(),
+          ]);
         if (isActive) {
           setPreferences(localPreferences);
+          setVocabularyPreferences(localVocabularyPreferences);
         }
 
         if (user?.uid) {
-          const remotePreferences = await hydrateSpeechSpeedPreferencesForUser(
-            user.uid,
-          );
+          const [remotePreferences, remoteVocabularyPreferences] =
+            await Promise.all([
+              hydrateSpeechSpeedPreferencesForUser(user.uid),
+              hydrateVocabularySpeechPreferencesForUser(user.uid),
+            ]);
           if (isActive) {
             setPreferences(remotePreferences);
+            setVocabularyPreferences(remoteVocabularyPreferences);
           }
         }
       } catch (error) {
@@ -72,6 +109,7 @@ export const useSpeechPreferences = (): UseSpeechPreferencesReturn => {
     return () => {
       isActive = false;
       unsubscribe();
+      unsubscribeVocabulary();
     };
   }, [user?.uid]);
 
@@ -82,6 +120,28 @@ export const useSpeechPreferences = (): UseSpeechPreferencesReturn => {
       }
 
       return setSpeechSpeedPreference(language, preset);
+    },
+    [user?.uid],
+  );
+
+  const setAutoSpeakVocabulary = useCallback(
+    async (enabled: boolean) => {
+      if (user?.uid) {
+        return setAutoSpeakVocabularyPreferenceForUser(user.uid, enabled);
+      }
+
+      return setAutoSpeakVocabularyPreference(enabled);
+    },
+    [user?.uid],
+  );
+
+  const setReviewMaskTarget = useCallback(
+    async (target: ReviewMaskTarget) => {
+      if (user?.uid) {
+        return setReviewMaskTargetPreferenceForUser(user.uid, target);
+      }
+
+      return setReviewMaskTargetPreference(target);
     },
     [user?.uid],
   );
@@ -101,11 +161,23 @@ export const useSpeechPreferences = (): UseSpeechPreferencesReturn => {
   return useMemo(
     () => ({
       preferences,
+      vocabularyPreferences,
       isLoading,
       setPreset,
+      setAutoSpeakVocabulary,
+      setReviewMaskTarget,
       getPreset,
       getRate,
     }),
-    [getPreset, getRate, isLoading, preferences, setPreset],
+    [
+      getPreset,
+      getRate,
+      isLoading,
+      preferences,
+      setAutoSpeakVocabulary,
+      setPreset,
+      setReviewMaskTarget,
+      vocabularyPreferences,
+    ],
   );
 };

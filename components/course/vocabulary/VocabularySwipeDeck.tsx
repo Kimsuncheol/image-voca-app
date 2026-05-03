@@ -7,6 +7,7 @@ import {
   isJlptLevelCourseId,
   isKanjiWord,
 } from "../../../src/types/vocabulary";
+import type { ReviewMaskTarget } from "../../../src/services/speechPreferences";
 import { CollocationSwipeable } from "../../CollocationFlipCard/CollocationSwipeable";
 import { CarouselSwipeDeck } from "./CarouselSwipeDeck";
 import { JlptSwipeDeck } from "./JlptSwipeDeck";
@@ -28,6 +29,7 @@ interface VocabularySwipeDeckProps {
   isStudyCompleted?: boolean;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
   onMaskChange?: (enabled: boolean) => void;
 }
 
@@ -47,6 +49,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
   isStudyCompleted,
   isPreviewMode = false,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
   onMaskChange,
 }) => {
   if (courseId === "COLLOCATION") {
@@ -67,6 +70,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         isStudyCompleted={isStudyCompleted}
         isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
+        reviewMaskTarget={reviewMaskTarget}
         onMaskChange={onMaskChange}
       />
     );
@@ -89,6 +93,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         initialIndex={initialIndex}
         isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
+        reviewMaskTarget={reviewMaskTarget}
         onMaskChange={onMaskChange}
       />
     );
@@ -109,6 +114,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         initialIndex={initialIndex}
         isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
+        reviewMaskTarget={reviewMaskTarget}
         onMaskChange={onMaskChange}
       />
     );
@@ -131,6 +137,7 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
       initialIndex={initialIndex}
       isPreviewMode={isPreviewMode}
       isReviewMode={isReviewMode}
+      reviewMaskTarget={reviewMaskTarget}
       onMaskChange={onMaskChange}
     />
   );

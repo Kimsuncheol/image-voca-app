@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { getBackgroundColors } from "../../constants/backgroundColors";
+import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { MaskVisibilityToggle } from "../common/MaskVisibilityToggle";
 import { SwipeCardItemMeaningExampleSentenceSection } from "./SwipeCardItemMeaningExampleSentenceSection";
@@ -22,6 +23,7 @@ interface CardInfoSectionProps {
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
   onMaskChange?: (enabled: boolean) => void;
 }
 
@@ -42,6 +44,7 @@ export function SwipeCardItemCardInfoSection({
   onSavedWordChange,
   isPreviewMode = false,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
   onMaskChange = () => {},
 }: CardInfoSectionProps) {
   const bgColors = getBackgroundColors(isDark);
@@ -73,6 +76,7 @@ export function SwipeCardItemCardInfoSection({
           onSavedWordChange={onSavedWordChange}
           isPreviewMode={isPreviewMode}
           isReviewMode={isReviewMode}
+          reviewMaskTarget={reviewMaskTarget}
         />
       </View>
 

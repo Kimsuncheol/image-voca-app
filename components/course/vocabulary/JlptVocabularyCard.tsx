@@ -16,6 +16,7 @@ import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useCardSpeechCleanup } from "../../../src/hooks/useCardSpeechCleanup";
 import { useStudySpeech } from "../../../src/hooks/useStudyMode";
+import type { ReviewMaskTarget } from "../../../src/services/speechPreferences";
 import { VocabularyCard } from "../../../src/types/vocabulary";
 import {
   splitJapaneseTextSegments,
@@ -25,6 +26,7 @@ import { resolveVocabularyContent } from "../../../src/utils/localizedVocabulary
 import {
   getReviewTapeTextStyle,
   parseReviewMaskSegments,
+  shouldMaskReviewContent,
   stripReviewMaskDelimiters,
 } from "../../../src/utils/reviewMasking";
 import { InlineMeaningWithChips } from "../../common/InlineMeaningWithChips";
@@ -45,6 +47,7 @@ interface JlptVocabularyCardProps {
   onToggleKana?: () => void;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
   onMaskChange?: (enabled: boolean) => void;
 }
 
@@ -52,6 +55,7 @@ interface LabeledMeaningRowProps {
   testID: string;
   meaning?: string;
   isDark: boolean;
+  isMasked?: boolean;
 }
 
 interface ExampleBlockProps {
@@ -62,6 +66,7 @@ interface ExampleBlockProps {
   isActive: boolean;
   showKana: boolean;
   isReviewMode: boolean;
+  reviewMaskTarget: ReviewMaskTarget;
 }
 
 const getDynamicFontSize = (text: string, baseFontSize: number, minFontSize: number): number => {
@@ -117,6 +122,7 @@ function LabeledMeaningRow({
   testID,
   meaning,
   isDark,
+  isMasked = false,
 }: LabeledMeaningRowProps) {
   const displayMeaning = toDisplayValue(meaning);
   const fontColors = getFontColors(isDark);
@@ -132,7 +138,9 @@ function LabeledMeaningRow({
         isDark={isDark}
         textStyle={[
           styles.cardDescription,
-          { color: fontColors.learningCardSecondary },
+          isMasked
+            ? getReviewTapeTextStyle(isDark)
+            : { color: fontColors.learningCardSecondary },
         ]}
         containerStyle={styles.inlineMeaning}
         chipStyle={styles.inlineChip}
@@ -151,10 +159,16 @@ const ExampleBlock = React.memo(function ExampleBlock({
   isActive,
   showKana,
   isReviewMode,
+  reviewMaskTarget,
 }: ExampleBlockProps) {
   const fontColors = getFontColors(isDark);
   useCardSpeechCleanup(isActive);
   const { handleSpeech } = useStudySpeech();
+  const maskExample = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "example",
+  );
   const hiddenExample = React.useMemo(
     () => (example ? stripKanaParens(example) : example),
     [example],
@@ -235,7 +249,7 @@ const ExampleBlock = React.memo(function ExampleBlock({
                                     { color: fontColors.learningCardMuted },
                                   ]
                                 : undefined,
-                              isReviewMode && reviewSegment.masked
+                              maskExample && reviewSegment.masked
                                 ? getReviewTapeTextStyle(isDark)
                                 : undefined,
                             ]}
@@ -277,6 +291,7 @@ export function JlptVocabularyCard({
   onToggleKana = () => {},
   isPreviewMode = false,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
   onMaskChange = () => {},
 }: JlptVocabularyCardProps) {
   const { isDark } = useTheme();
@@ -285,6 +300,21 @@ export function JlptVocabularyCard({
   const { i18n } = useTranslation();
   const { handleSpeech } = useStudySpeech();
   useCardSpeechCleanup(isActive);
+  const maskWord = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "word",
+  );
+  const maskPronunciation = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "pronunciation",
+  );
+  const maskMeaning = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "meaning",
+  );
   const resolved = React.useMemo(
     () => resolveVocabularyContent(item, i18n.language),
     [i18n.language, item],
@@ -355,7 +385,7 @@ export function JlptVocabularyCard({
                     {
                       fontSize: dynamicFontSize,
                     },
-                    isReviewMode
+                    maskWord
                       ? getReviewTapeTextStyle(isDark)
                       : { color: fontColors.learningCardPrimary },
                   ]}
@@ -385,7 +415,7 @@ export function JlptVocabularyCard({
               testID="jlpt-card-pronunciation"
               style={[
                 styles.cardSubtitle,
-                isReviewMode
+                maskPronunciation
                   ? getReviewTapeTextStyle(isDark)
                   : { color: fontColors.learningCardMuted },
               ]}
@@ -399,6 +429,7 @@ export function JlptVocabularyCard({
               testID="jlpt-card-meaning"
               meaning={resolved.meaning}
               isDark={isDark}
+              isMasked={maskMeaning}
             />
           </View>
 
@@ -410,6 +441,7 @@ export function JlptVocabularyCard({
             isActive={isActive}
             showKana={showKana}
             isReviewMode={isReviewMode}
+            reviewMaskTarget={reviewMaskTarget}
           />
         </ScrollView>
 

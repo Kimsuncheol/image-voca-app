@@ -21,8 +21,10 @@ import {
 } from "../../src/utils/wordVariants";
 import {
   getReviewTapeTextStyle,
+  shouldMaskReviewContent,
   stripReviewMaskDelimiters,
 } from "../../src/utils/reviewMasking";
+import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
 import { CollocationCardImage } from "../common/CollocationCardImage";
 import { MaskVisibilityToggle } from "../common/MaskVisibilityToggle";
 import { AddToWordBankButton } from "../wordbank/AddToWordBankButton";
@@ -37,6 +39,7 @@ interface FaceSideProps {
   onFlip?: () => void;
   onImageLoad?: () => void;
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
   onMaskChange?: (enabled: boolean) => void;
 }
 
@@ -95,6 +98,7 @@ export default React.memo(function FaceSide({
   onFlip,
   onImageLoad,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
   onMaskChange = () => {},
 }: FaceSideProps) {
   // ============================================================================
@@ -112,6 +116,16 @@ export default React.memo(function FaceSide({
   );
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
+  const maskWord = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "word",
+  );
+  const maskMeaning = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "meaning",
+  );
 
   React.useEffect(() => {
     if (!data.imageUrl) onImageLoad?.();
@@ -198,7 +212,7 @@ export default React.memo(function FaceSide({
         <Text
           style={[
             styles.faceCollocationText,
-            isReviewMode
+            maskWord
               ? getReviewTapeTextStyle(isDark)
               : { color: fontColors.learningCardPrimary },
             { fontSize: dynamicFontSize },
@@ -220,7 +234,7 @@ export default React.memo(function FaceSide({
             style={[
               styles.faceCollocationText,
               styles.faceCollocationTextVariant,
-              isReviewMode
+              maskWord
                 ? getReviewTapeTextStyle(isDark)
                 : { color: fontColors.learningCardPrimary },
               { fontSize: dynamicFontSize },
@@ -350,7 +364,9 @@ export default React.memo(function FaceSide({
                     key={index}
                     style={[
                       styles.faceMeaningText,
-                      { color: fontColors.learningCardSecondary },
+                      maskMeaning
+                        ? getReviewTapeTextStyle(isDark)
+                        : { color: fontColors.learningCardSecondary },
                     ]}
                   >
                     {stripReviewMaskDelimiters(part.trim())}
@@ -360,7 +376,9 @@ export default React.memo(function FaceSide({
                 <Text
                   style={[
                     styles.faceMeaningText,
-                    { color: fontColors.learningCardSecondary },
+                    maskMeaning
+                      ? getReviewTapeTextStyle(isDark)
+                      : { color: fontColors.learningCardSecondary },
                   ]}
                 >
                   {stripReviewMaskDelimiters(data.meaning)}

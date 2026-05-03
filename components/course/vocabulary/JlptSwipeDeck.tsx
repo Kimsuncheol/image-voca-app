@@ -1,4 +1,5 @@
 import React from "react";
+import type { ReviewMaskTarget } from "../../../src/services/speechPreferences";
 import { VocabularyCard } from "../../../src/types/vocabulary";
 import { CarouselSwipeDeck } from "./CarouselSwipeDeck";
 import { JlptVocabularyCard } from "./JlptVocabularyCard";
@@ -15,6 +16,7 @@ interface JlptSwipeDeckProps {
   initialIndex?: number;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
   onMaskChange?: (enabled: boolean) => void;
 }
 
@@ -28,6 +30,7 @@ interface JlptDeckCardProps {
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isPreviewMode: boolean;
   isReviewMode: boolean;
+  reviewMaskTarget: ReviewMaskTarget;
   onMaskChange?: (enabled: boolean) => void;
 }
 
@@ -41,6 +44,7 @@ const JlptDeckCard = React.memo(function JlptDeckCard({
   onSavedWordChange,
   isPreviewMode,
   isReviewMode,
+  reviewMaskTarget,
   onMaskChange,
 }: JlptDeckCardProps) {
   const [showKana, setShowKana] = React.useState(
@@ -72,6 +76,7 @@ const JlptDeckCard = React.memo(function JlptDeckCard({
       onSavedWordChange={isPreviewMode ? undefined : onSavedWordChange}
       isPreviewMode={isPreviewMode}
       isReviewMode={isReviewMode}
+      reviewMaskTarget={reviewMaskTarget}
       onMaskChange={onMaskChange}
       showKana={showKana}
       onToggleKana={handleToggleKana}
@@ -100,6 +105,7 @@ export const JlptSwipeDeck: React.FC<JlptSwipeDeckProps> = (props) => {
       dayNumber,
       isPreviewMode,
       isReviewMode,
+      reviewMaskTarget,
       onMaskChange,
       onSavedWordChange,
     }: {
@@ -109,6 +115,7 @@ export const JlptSwipeDeck: React.FC<JlptSwipeDeckProps> = (props) => {
       dayNumber: number;
       isPreviewMode: boolean;
       isReviewMode: boolean;
+      reviewMaskTarget: ReviewMaskTarget;
       onMaskChange?: (enabled: boolean) => void;
       onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
     }) => (
@@ -123,6 +130,7 @@ export const JlptSwipeDeck: React.FC<JlptSwipeDeckProps> = (props) => {
         onSavedWordChange={onSavedWordChange}
         isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
+        reviewMaskTarget={reviewMaskTarget}
         onMaskChange={onMaskChange}
       />
     ),

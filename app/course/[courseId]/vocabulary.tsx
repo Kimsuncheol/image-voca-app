@@ -1,5 +1,8 @@
 import { FontWeights } from "@/constants/fontWeights";
-import { StudyModeProvider } from "@/src/hooks/useStudyMode";
+import {
+  StudyModeProvider,
+  useStudySpeech,
+} from "@/src/hooks/useStudyMode";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Stack,
@@ -39,11 +42,17 @@ import {
   isVocabularyCacheFresh,
 } from "../../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../../src/stores";
+import { useSpeechPreferences } from "../../../src/hooks/useSpeechPreferences";
 import {
   CourseType,
   CourseVocabularyCard,
+  isJlptLevelCourseId,
+  isKanjiWord,
 } from "../../../src/types/vocabulary";
 import { formatDateKey } from "../../../src/utils/calendarStats";
+import { resolveVocabularyContent } from "../../../src/utils/localizedVocabulary";
+import { stripReviewMaskDelimiters } from "../../../src/utils/reviewMasking";
+import { speakWordVariants } from "../../../src/utils/wordVariants";
 
 // Components
 import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
@@ -101,7 +110,11 @@ function VocabularyScreenContent() {
   }>();
   const router = useRouter();
   const navigation = useNavigation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLanguage = i18n?.language ?? "en";
+  const { handleSpeech } = useStudySpeech();
+  const { vocabularyPreferences, isLoading: speechPreferencesLoading } =
+    useSpeechPreferences();
 
   // ============================================================================
   // Section 2: State Management
@@ -110,7 +123,9 @@ function VocabularyScreenContent() {
   // Tracks if the user has completed swiping through all cards
   const [isFinished, setIsFinished] = useState(false);
   const [initialDeckIndex, setInitialDeckIndex] = useState(0);
+  const [activeSpeechIndex, setActiveSpeechIndex] = useState(0);
   const [courseProgressLoaded, setCourseProgressLoaded] = useState(false);
+  const [resumeProgressResolved, setResumeProgressResolved] = useState(false);
 
   // Track session-learned words outside React state so finish-time writes
   // cannot lag behind the last learn action.
@@ -119,6 +134,7 @@ function VocabularyScreenContent() {
   const lastAppStateRef = useRef(AppState.currentState);
   const leaveConfirmedRef = useRef(false);
   const resumePromptShownRef = useRef<string | null>(null);
+  const lastAutoSpokenKeyRef = useRef<string | null>(null);
 
   // Streak milestone modal
   const [streakModalVisible, setStreakModalVisible] = useState(false);
@@ -155,7 +171,10 @@ function VocabularyScreenContent() {
     currentIndexRef.current = 0;
     leaveConfirmedRef.current = false;
     resumePromptShownRef.current = null;
+    lastAutoSpokenKeyRef.current = null;
     setInitialDeckIndex(0);
+    setActiveSpeechIndex(0);
+    setResumeProgressResolved(false);
     setIsMaskEnabled(false);
   }, [courseId, dayNumber]);
 
@@ -171,6 +190,72 @@ function VocabularyScreenContent() {
   const resetMaskToDefault = useCallback(() => {
     setIsMaskEnabled(false);
   }, []);
+
+  const speakVocabularyCard = useCallback(
+    async (item: CourseVocabularyCard) => {
+      if (isKanjiWord(item)) {
+        await handleSpeech(stripReviewMaskDelimiters(item.kanji), "JP");
+        return;
+      }
+
+      const resolved = resolveVocabularyContent(item, currentLanguage);
+      const isJapaneseVocabulary = isJlptLevelCourseId(typedCourseId);
+
+      if (isJapaneseVocabulary) {
+        await handleSpeech(
+          stripReviewMaskDelimiters(
+            resolved.sharedPronunciation ?? resolved.word,
+          ),
+          "JP",
+        );
+        return;
+      }
+
+      await speakWordVariants(
+        stripReviewMaskDelimiters(resolved.word || item.word),
+        (text, options) => handleSpeech(text, "EN", options),
+        { language: "en-US" },
+      );
+    },
+    [currentLanguage, handleSpeech, typedCourseId],
+  );
+
+  useEffect(() => {
+    if (
+      speechPreferencesLoading ||
+      !vocabularyPreferences.autoSpeakVocabulary ||
+      !resumeProgressResolved ||
+      loading ||
+      isFinished ||
+      cards.length === 0 ||
+      activeSpeechIndex < 0 ||
+      activeSpeechIndex >= cards.length
+    ) {
+      return;
+    }
+
+    const item = cards[activeSpeechIndex];
+    const speechKey = `${courseId}:${dayNumber}:${activeSpeechIndex}:${item.id}`;
+    if (lastAutoSpokenKeyRef.current === speechKey) {
+      return;
+    }
+
+    lastAutoSpokenKeyRef.current = speechKey;
+    void speakVocabularyCard(item).catch((error) => {
+      console.warn("Failed to auto speak vocabulary card:", error);
+    });
+  }, [
+    activeSpeechIndex,
+    cards,
+    courseId,
+    dayNumber,
+    isFinished,
+    loading,
+    resumeProgressResolved,
+    speechPreferencesLoading,
+    speakVocabularyCard,
+    vocabularyPreferences.autoSpeakVocabulary,
+  ]);
 
   // ============================================================================
   // Section 3: Data Fetching Effects
@@ -379,10 +464,14 @@ function VocabularyScreenContent() {
       cards.length === 0 ||
       !courseProgressLoaded
     ) {
+      if (isPreviewMode || !user || !courseId) {
+        setResumeProgressResolved(true);
+      }
       return;
     }
 
     if (isStudyCompleted) {
+      setResumeProgressResolved(true);
       void clearResumeProgress({
         userId: user.uid,
         courseId: typedCourseId,
@@ -399,6 +488,7 @@ function VocabularyScreenContent() {
     }
 
     let isActive = true;
+    setResumeProgressResolved(false);
     void getResumeProgress({
       userId: user.uid,
       courseId: typedCourseId,
@@ -406,7 +496,11 @@ function VocabularyScreenContent() {
       cards,
     })
       .then((progress) => {
-        if (!isActive || !progress) return;
+        if (!isActive) return;
+        if (!progress) {
+          setResumeProgressResolved(true);
+          return;
+        }
         resumePromptShownRef.current = promptKey;
 
         Alert.alert(
@@ -419,6 +513,9 @@ function VocabularyScreenContent() {
               onPress: () => {
                 currentIndexRef.current = 0;
                 setInitialDeckIndex(0);
+                setActiveSpeechIndex(0);
+                lastAutoSpokenKeyRef.current = null;
+                setResumeProgressResolved(true);
                 void clearResumeProgress({
                   userId: user.uid,
                   courseId: typedCourseId,
@@ -433,6 +530,9 @@ function VocabularyScreenContent() {
               onPress: () => {
                 currentIndexRef.current = progress.currentIndex;
                 setInitialDeckIndex(progress.currentIndex);
+                setActiveSpeechIndex(progress.currentIndex);
+                lastAutoSpokenKeyRef.current = null;
+                setResumeProgressResolved(true);
               },
             },
           ],
@@ -440,6 +540,9 @@ function VocabularyScreenContent() {
       })
       .catch((error) => {
         console.warn("Failed to load vocabulary resume progress:", error);
+        if (isActive) {
+          setResumeProgressResolved(true);
+        }
       });
 
     return () => {
@@ -629,6 +732,7 @@ function VocabularyScreenContent() {
   const handlePageChange = (index: number) => {
     resetMaskToDefault();
     currentIndexRef.current = index;
+    setActiveSpeechIndex(index);
 
     if (isProgressDisabled) {
       return;
@@ -786,6 +890,7 @@ function VocabularyScreenContent() {
                 }
                 isPreviewMode={isPreviewMode}
                 isReviewMode={isMaskEnabled}
+                reviewMaskTarget={vocabularyPreferences.reviewMaskTarget}
                 onMaskChange={setIsMaskEnabled}
               />
             )

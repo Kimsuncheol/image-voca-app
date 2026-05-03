@@ -5,6 +5,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useStudySpeech } from "../../src/hooks/useStudyMode";
+import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import {
   formatIdiomTitleForDisplay,
@@ -18,6 +19,7 @@ import {
 } from "../../src/utils/wordVariants";
 import {
   getReviewTapeTextStyle,
+  shouldMaskReviewContent,
   stripReviewMaskDelimiters,
 } from "../../src/utils/reviewMasking";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
@@ -36,6 +38,7 @@ interface SwipeCardItemWordMeaningSectionProps {
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
 }
 
 export function SwipeCardItemWordMeaningSection({
@@ -50,6 +53,7 @@ export function SwipeCardItemWordMeaningSection({
   onSavedWordChange,
   isPreviewMode = false,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
 }: SwipeCardItemWordMeaningSectionProps) {
   const fontColors = getFontColors(isDark);
   useCardSpeechCleanup(isActive);
@@ -60,6 +64,21 @@ export function SwipeCardItemWordMeaningSection({
     [handleSpeech],
   );
   const normalizedPronunciation = pronunciation?.trim();
+  const maskWord = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "word",
+  );
+  const maskPronunciation = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "pronunciation",
+  );
+  const maskMeaning = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "meaning",
+  );
   const wordVariants = React.useMemo(
     () =>
       parseWordVariants(word).map((variant) =>
@@ -127,7 +146,7 @@ export function SwipeCardItemWordMeaningSection({
               testID={index === 0 ? "swipe-card-word-title" : undefined}
               style={[
                 styles.cardTitle,
-                isReviewMode
+                maskWord
                   ? getReviewTapeTextStyle(isDark)
                   : { color: fontColors.learningCardPrimary },
                 index > 0 && styles.cardTitleVariant,
@@ -181,7 +200,7 @@ export function SwipeCardItemWordMeaningSection({
         <Text
           style={[
             styles.cardSubtitle,
-            isReviewMode
+            maskPronunciation
               ? getReviewTapeTextStyle(isDark)
               : { color: fontColors.learningCardMuted },
           ]}
@@ -196,7 +215,9 @@ export function SwipeCardItemWordMeaningSection({
           isDark={isDark}
           textStyle={[
             styles.cardDescription,
-            { color: fontColors.learningCardSecondary },
+            maskMeaning
+              ? getReviewTapeTextStyle(isDark)
+              : { color: fontColors.learningCardSecondary },
           ]}
           containerStyle={styles.inlineMeaning}
           chipStyle={styles.inlineChip}

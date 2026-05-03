@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
+import type { ReviewMaskTarget } from "../../../src/services/speechPreferences";
 import type { KanjiWord } from "../../../src/types/vocabulary";
 import { BackSection } from "./KanjiCollocationCardBackSection";
 import { GeneralBackSection } from "./KanjiCollocationCardGeneralBackSection";
@@ -32,6 +33,7 @@ export interface BackSideProps {
   useKorean: boolean;
   /** Whether the card should hide review targets under tape masks */
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
   /** Callback triggered when the mask visibility is changed */
   onMaskChange?: (enabled: boolean) => void;
   /** Callback triggered to flip the card horizontally back to the front face */
@@ -52,6 +54,7 @@ export function BackSide({
   language,
   useKorean,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
   onMaskChange = () => {},
   onFlip,
 }: BackSideProps) {
@@ -153,6 +156,7 @@ export function BackSide({
                 isActive={isActive}
                 showFurigana={showFurigana}
                 isReviewMode={isReviewMode}
+                reviewMaskTarget={reviewMaskTarget}
                 onFlip={onFlip}
               />
             ) : null}
@@ -175,6 +179,7 @@ export function BackSide({
                 isActive={isActive}
                 showFurigana={showFurigana}
                 isReviewMode={isReviewMode}
+                reviewMaskTarget={reviewMaskTarget}
                 onFlip={onFlip}
               />
             ) : null}
@@ -195,6 +200,7 @@ export function BackSide({
                 isActive={isActive}
                 showFurigana={showFurigana}
                 isReviewMode={isReviewMode}
+                reviewMaskTarget={reviewMaskTarget}
                 onFlip={onFlip}
               />
             ) : null}

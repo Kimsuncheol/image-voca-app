@@ -95,6 +95,13 @@ const ja = {
       slow: "遅い",
       normal: "標準",
       fast: "速い",
+      autoVocabularySpeech: "語彙の自動読み上げ",
+      reviewMaskTarget: "復習で隠す対象",
+      maskTargets: {
+        "word-pronunciation": "単語 + 発音",
+        meaning: "意味",
+        all: "すべて",
+      },
       saveFailed:
         "発音速度は今すぐ反映されましたが、この端末には保存できませんでした。",
     },

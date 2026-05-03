@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import FlipCard from "react-native-flip-card";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
+import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
 import BackSide from "./BackSide";
 import FaceSide from "./FaceSide";
 import { CollocationData, CollocationWordBankConfig } from "./types";
@@ -26,6 +27,7 @@ interface Props {
   onImageLoad?: () => void;
   // Hides review targets under tape masks while preserving layout
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
   // Changes whether review targets are masked
   onMaskChange?: (enabled: boolean) => void;
 }
@@ -50,6 +52,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
     isActive = true,
     onImageLoad,
     isReviewMode = false,
+    reviewMaskTarget = "word-pronunciation",
     onMaskChange,
   }) => {
     // ============================================================================
@@ -132,6 +135,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
           onFlip={wordBankConfig?.isDeleteMode ? undefined : handleFlipToBack}
           onImageLoad={onImageLoad}
           isReviewMode={isReviewMode}
+          reviewMaskTarget={reviewMaskTarget}
           onMaskChange={onMaskChange}
         />
 
@@ -144,6 +148,7 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
           isVisible={isBackVisible}
           onFlip={handleFlipToFront}
           isReviewMode={isReviewMode}
+          reviewMaskTarget={reviewMaskTarget}
           onMaskChange={onMaskChange}
         />
       </FlipCard>

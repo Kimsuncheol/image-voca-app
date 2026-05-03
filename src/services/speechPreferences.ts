@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type SpeechPreferenceLanguage = "en" | "ja";
 export type SpeechSpeedPreset = "slow" | "normal" | "fast";
+export type ReviewMaskTarget = "word-pronunciation" | "meaning" | "all";
 
 export interface SpeechSpeedPreferences {
   en: SpeechSpeedPreset;
@@ -13,8 +14,20 @@ export interface SpeechSpeedPreferenceMutationResult {
   persistedLocally: boolean;
 }
 
+export interface VocabularySpeechPreferences {
+  autoSpeakVocabulary: boolean;
+  reviewMaskTarget: ReviewMaskTarget;
+}
+
+export interface VocabularySpeechPreferenceMutationResult {
+  preferences: VocabularySpeechPreferences;
+  persistedLocally: boolean;
+}
+
 export const SPEECH_SPEED_PREFERENCES_STORAGE_KEY =
   "@speech_speed_preferences";
+export const VOCABULARY_SPEECH_PREFERENCES_STORAGE_KEY =
+  "@vocabulary_speech_preferences";
 
 export const SPEECH_SPEED_PRESET_ORDER: SpeechSpeedPreset[] = [
   "slow",
@@ -43,13 +56,27 @@ export const DEFAULT_SPEECH_SPEED_PREFERENCES: SpeechSpeedPreferences = {
   ja: "normal",
 };
 
+export const DEFAULT_VOCABULARY_SPEECH_PREFERENCES: VocabularySpeechPreferences = {
+  autoSpeakVocabulary: true,
+  reviewMaskTarget: "word-pronunciation",
+};
+
 const speechPreferenceListeners = new Set<
   (preferences: SpeechSpeedPreferences) => void
 >();
+const vocabularySpeechPreferenceListeners = new Set<
+  (preferences: VocabularySpeechPreferences) => void
+>();
 let cachedSpeechSpeedPreferences: SpeechSpeedPreferences | null = null;
+let cachedVocabularySpeechPreferences: VocabularySpeechPreferences | null = null;
 
 const isSpeechSpeedPreset = (value: unknown): value is SpeechSpeedPreset =>
   value === "slow" || value === "normal" || value === "fast";
+
+export const isReviewMaskTarget = (
+  value: unknown,
+): value is ReviewMaskTarget =>
+  value === "word-pronunciation" || value === "meaning" || value === "all";
 
 export const getDefaultSpeechSpeedPreset = (
   _language: SpeechPreferenceLanguage,
@@ -122,13 +149,50 @@ const normalizeSpeechSpeedPreferences = (
   };
 };
 
+export const normalizeVocabularySpeechPreferences = (
+  value: unknown,
+): VocabularySpeechPreferences => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { ...DEFAULT_VOCABULARY_SPEECH_PREFERENCES };
+  }
+
+  const preferences = value as Partial<
+    Record<keyof VocabularySpeechPreferences, unknown>
+  >;
+
+  return {
+    autoSpeakVocabulary:
+      typeof preferences.autoSpeakVocabulary === "boolean"
+        ? preferences.autoSpeakVocabulary
+        : DEFAULT_VOCABULARY_SPEECH_PREFERENCES.autoSpeakVocabulary,
+    reviewMaskTarget: isReviewMaskTarget(preferences.reviewMaskTarget)
+      ? preferences.reviewMaskTarget
+      : DEFAULT_VOCABULARY_SPEECH_PREFERENCES.reviewMaskTarget,
+  };
+};
+
 const notifySpeechPreferenceListeners = (preferences: SpeechSpeedPreferences) => {
   speechPreferenceListeners.forEach((listener) => listener(preferences));
+};
+
+const notifyVocabularySpeechPreferenceListeners = (
+  preferences: VocabularySpeechPreferences,
+) => {
+  vocabularySpeechPreferenceListeners.forEach((listener) =>
+    listener(preferences),
+  );
 };
 
 const applySpeechSpeedPreferences = (preferences: SpeechSpeedPreferences) => {
   cachedSpeechSpeedPreferences = preferences;
   notifySpeechPreferenceListeners(preferences);
+};
+
+const applyVocabularySpeechPreferences = (
+  preferences: VocabularySpeechPreferences,
+) => {
+  cachedVocabularySpeechPreferences = preferences;
+  notifyVocabularySpeechPreferenceListeners(preferences);
 };
 
 const persistSpeechSpeedPreferences = async (
@@ -146,6 +210,21 @@ const persistSpeechSpeedPreferences = async (
   }
 };
 
+const persistVocabularySpeechPreferences = async (
+  preferences: VocabularySpeechPreferences,
+) => {
+  try {
+    await AsyncStorage.setItem(
+      VOCABULARY_SPEECH_PREFERENCES_STORAGE_KEY,
+      JSON.stringify(preferences),
+    );
+    return true;
+  } catch (error) {
+    console.warn("Failed to persist vocabulary speech preferences", error);
+    return false;
+  }
+};
+
 const writeSpeechSpeedPreferencesForUser = async (
   userId: string,
   preferences: SpeechSpeedPreferences,
@@ -157,6 +236,25 @@ const writeSpeechSpeedPreferencesForUser = async (
 
   await setDoc(
     doc(db, "users", userId, "pronunciation_speed", "preferences"),
+    {
+      ...preferences,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+};
+
+const writeVocabularySpeechPreferencesForUser = async (
+  userId: string,
+  preferences: VocabularySpeechPreferences,
+) => {
+  const { doc, serverTimestamp, setDoc } = require("firebase/firestore") as typeof import(
+    "firebase/firestore"
+  );
+  const { db } = require("./firebase") as typeof import("./firebase");
+
+  await setDoc(
+    doc(db, "users", userId, "vocabulary_speech", "preferences"),
     {
       ...preferences,
       updatedAt: serverTimestamp(),
@@ -193,6 +291,36 @@ export const getSpeechSpeedPreferences =
     return cachedSpeechSpeedPreferences;
   };
 
+export const getVocabularySpeechPreferences =
+  async (): Promise<VocabularySpeechPreferences> => {
+    if (cachedVocabularySpeechPreferences) {
+      return cachedVocabularySpeechPreferences;
+    }
+
+    try {
+      const rawPreferences = await AsyncStorage.getItem(
+        VOCABULARY_SPEECH_PREFERENCES_STORAGE_KEY,
+      );
+      const parsedPreferences = rawPreferences
+        ? JSON.parse(rawPreferences)
+        : undefined;
+      const normalizedPreferencesObject =
+        normalizeVocabularySpeechPreferences(parsedPreferences);
+      cachedVocabularySpeechPreferences = normalizedPreferencesObject;
+      const normalizedPreferences = JSON.stringify(normalizedPreferencesObject);
+      if (rawPreferences && rawPreferences !== normalizedPreferences) {
+        await persistVocabularySpeechPreferences(normalizedPreferencesObject);
+      }
+    } catch (error) {
+      console.warn("Failed to load vocabulary speech preferences", error);
+      cachedVocabularySpeechPreferences = {
+        ...DEFAULT_VOCABULARY_SPEECH_PREFERENCES,
+      };
+    }
+
+    return cachedVocabularySpeechPreferences;
+  };
+
 export const getSpeechRatePreference = async (
   language: SpeechPreferenceLanguage,
 ) => {
@@ -211,6 +339,42 @@ export const setSpeechSpeedPreference = async (
   };
   applySpeechSpeedPreferences(nextPreferences);
   const persistedLocally = await persistSpeechSpeedPreferences(nextPreferences);
+  return {
+    preferences: nextPreferences,
+    persistedLocally,
+  };
+};
+
+export const setAutoSpeakVocabularyPreference = async (
+  enabled: boolean,
+): Promise<VocabularySpeechPreferenceMutationResult> => {
+  const preferences = await getVocabularySpeechPreferences();
+  const nextPreferences = {
+    ...preferences,
+    autoSpeakVocabulary: enabled,
+  };
+  applyVocabularySpeechPreferences(nextPreferences);
+  const persistedLocally =
+    await persistVocabularySpeechPreferences(nextPreferences);
+  return {
+    preferences: nextPreferences,
+    persistedLocally,
+  };
+};
+
+export const setReviewMaskTargetPreference = async (
+  target: ReviewMaskTarget,
+): Promise<VocabularySpeechPreferenceMutationResult> => {
+  const preferences = await getVocabularySpeechPreferences();
+  const nextPreferences = {
+    ...preferences,
+    reviewMaskTarget: isReviewMaskTarget(target)
+      ? target
+      : DEFAULT_VOCABULARY_SPEECH_PREFERENCES.reviewMaskTarget,
+  };
+  applyVocabularySpeechPreferences(nextPreferences);
+  const persistedLocally =
+    await persistVocabularySpeechPreferences(nextPreferences);
   return {
     preferences: nextPreferences,
     persistedLocally,
@@ -249,6 +413,42 @@ export const hydrateSpeechSpeedPreferencesForUser = async (userId: string) => {
   }
 };
 
+export const hydrateVocabularySpeechPreferencesForUser = async (
+  userId: string,
+) => {
+  const localPreferences = await getVocabularySpeechPreferences();
+
+  try {
+    const { doc, getDoc } = require("firebase/firestore") as typeof import(
+      "firebase/firestore"
+    );
+    const { db } = require("./firebase") as typeof import("./firebase");
+    const preferencesRef = doc(
+      db,
+      "users",
+      userId,
+      "vocabulary_speech",
+      "preferences",
+    );
+    const snapshot = await getDoc(preferencesRef);
+
+    if (!snapshot.exists()) {
+      await writeVocabularySpeechPreferencesForUser(userId, localPreferences);
+      return localPreferences;
+    }
+
+    const remotePreferences = normalizeVocabularySpeechPreferences(
+      snapshot.data(),
+    );
+    applyVocabularySpeechPreferences(remotePreferences);
+    await persistVocabularySpeechPreferences(remotePreferences);
+    return remotePreferences;
+  } catch (error) {
+    console.warn("Failed to hydrate remote vocabulary speech preferences", error);
+    return localPreferences;
+  }
+};
+
 export const setSpeechSpeedPreferenceForUser = async (
   userId: string,
   language: SpeechPreferenceLanguage,
@@ -260,6 +460,36 @@ export const setSpeechSpeedPreferenceForUser = async (
     await writeSpeechSpeedPreferencesForUser(userId, result.preferences);
   } catch (error) {
     console.warn("Failed to sync speech speed preferences", error);
+  }
+
+  return result;
+};
+
+export const setAutoSpeakVocabularyPreferenceForUser = async (
+  userId: string,
+  enabled: boolean,
+): Promise<VocabularySpeechPreferenceMutationResult> => {
+  const result = await setAutoSpeakVocabularyPreference(enabled);
+
+  try {
+    await writeVocabularySpeechPreferencesForUser(userId, result.preferences);
+  } catch (error) {
+    console.warn("Failed to sync vocabulary speech preferences", error);
+  }
+
+  return result;
+};
+
+export const setReviewMaskTargetPreferenceForUser = async (
+  userId: string,
+  target: ReviewMaskTarget,
+): Promise<VocabularySpeechPreferenceMutationResult> => {
+  const result = await setReviewMaskTargetPreference(target);
+
+  try {
+    await writeVocabularySpeechPreferencesForUser(userId, result.preferences);
+  } catch (error) {
+    console.warn("Failed to sync vocabulary speech preferences", error);
   }
 
   return result;
@@ -278,7 +508,22 @@ export const subscribeToSpeechSpeedPreferences = (
   };
 };
 
+export const subscribeToVocabularySpeechPreferences = (
+  listener: (preferences: VocabularySpeechPreferences) => void,
+) => {
+  vocabularySpeechPreferenceListeners.add(listener);
+  if (cachedVocabularySpeechPreferences) {
+    listener(cachedVocabularySpeechPreferences);
+  }
+
+  return () => {
+    vocabularySpeechPreferenceListeners.delete(listener);
+  };
+};
+
 export const __resetSpeechPreferencesForTests = () => {
   cachedSpeechSpeedPreferences = null;
+  cachedVocabularySpeechPreferences = null;
   speechPreferenceListeners.clear();
+  vocabularySpeechPreferenceListeners.clear();
 };

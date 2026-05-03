@@ -1,4 +1,5 @@
 import React from "react";
+import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { SwipeCardItemExampleSentenceSection } from "./SwipeCardItemExampleSentenceSection";
 import { SwipeCardItemWordMeaningSection } from "./SwipeCardItemWordMeaningSection";
@@ -20,6 +21,7 @@ interface SwipeCardItemMeaningExampleSentenceSectionProps {
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
 }
 
 export function SwipeCardItemMeaningExampleSentenceSection({
@@ -39,6 +41,7 @@ export function SwipeCardItemMeaningExampleSentenceSection({
   onSavedWordChange,
   isPreviewMode = false,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
 }: SwipeCardItemMeaningExampleSentenceSectionProps) {
   return (
     <>
@@ -54,6 +57,7 @@ export function SwipeCardItemMeaningExampleSentenceSection({
         onSavedWordChange={onSavedWordChange}
         isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
+        reviewMaskTarget={reviewMaskTarget}
       />
       <SwipeCardItemExampleSentenceSection
         example={example}
@@ -64,6 +68,7 @@ export function SwipeCardItemMeaningExampleSentenceSection({
         isDark={isDark}
         isActive={isActive}
         isReviewMode={isReviewMode}
+        reviewMaskTarget={reviewMaskTarget}
       />
     </>
   );

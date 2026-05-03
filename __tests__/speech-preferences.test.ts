@@ -9,11 +9,19 @@ import {
   getSpeechRatePreference,
   getSpeechRateForPreset,
   getSpeechSpeedPreferences,
+  getVocabularySpeechPreferences,
   hydrateSpeechSpeedPreferencesForUser,
+  hydrateVocabularySpeechPreferencesForUser,
+  normalizeVocabularySpeechPreferences,
   resolveSpeechSpeedPreset,
+  setAutoSpeakVocabularyPreference,
+  setAutoSpeakVocabularyPreferenceForUser,
+  setReviewMaskTargetPreference,
+  setReviewMaskTargetPreferenceForUser,
   setSpeechSpeedPreference,
   setSpeechSpeedPreferenceForUser,
   subscribeToSpeechSpeedPreferences,
+  subscribeToVocabularySpeechPreferences,
 } from "../src/services/speechPreferences";
 
 const mockServerTimestamp = { __type: "serverTimestamp" };
@@ -38,6 +46,10 @@ describe("speechPreferences", () => {
     __resetSpeechPreferencesForTests();
     await AsyncStorage.clear();
     jest.clearAllMocks();
+    mockGetDoc.mockResolvedValue({
+      exists: () => false,
+    });
+    mockSetDoc.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -274,5 +286,126 @@ describe("speechPreferences", () => {
 
     setItemSpy.mockRestore();
     warnSpy.mockRestore();
+  });
+
+  it("loads default vocabulary speech preferences when storage is empty", async () => {
+    await expect(getVocabularySpeechPreferences()).resolves.toEqual({
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: "word-pronunciation",
+    });
+  });
+
+  it("normalizes invalid vocabulary speech preference values safely", async () => {
+    expect(
+      normalizeVocabularySpeechPreferences({
+        autoSpeakVocabulary: "yes",
+        reviewMaskTarget: "everything",
+      }),
+    ).toEqual({
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: "word-pronunciation",
+    });
+  });
+
+  it("updates vocabulary auto speech and mask target independently", async () => {
+    await expect(setAutoSpeakVocabularyPreference(false)).resolves.toEqual({
+      preferences: {
+        autoSpeakVocabulary: false,
+        reviewMaskTarget: "word-pronunciation",
+      },
+      persistedLocally: true,
+    });
+
+    await expect(setReviewMaskTargetPreference("all")).resolves.toEqual({
+      preferences: {
+        autoSpeakVocabulary: false,
+        reviewMaskTarget: "all",
+      },
+      persistedLocally: true,
+    });
+
+    expect(await getVocabularySpeechPreferences()).toEqual({
+      autoSpeakVocabulary: false,
+      reviewMaskTarget: "all",
+    });
+  });
+
+  it("hydrates signed-in vocabulary speech preferences from Firestore", async () => {
+    mockGetDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        autoSpeakVocabulary: false,
+        reviewMaskTarget: "meaning",
+      }),
+    });
+
+    await expect(
+      hydrateVocabularySpeechPreferencesForUser("user-1"),
+    ).resolves.toEqual({
+      autoSpeakVocabulary: false,
+      reviewMaskTarget: "meaning",
+    });
+
+    expect(mockDoc).toHaveBeenCalledWith(
+      expect.anything(),
+      "users",
+      "user-1",
+      "vocabulary_speech",
+      "preferences",
+    );
+    expect(await getVocabularySpeechPreferences()).toEqual({
+      autoSpeakVocabulary: false,
+      reviewMaskTarget: "meaning",
+    });
+  });
+
+  it("syncs vocabulary speech preferences to Firestore for signed-in users", async () => {
+    await setReviewMaskTargetPreference("meaning");
+
+    await expect(
+      setAutoSpeakVocabularyPreferenceForUser("user-1", false),
+    ).resolves.toEqual({
+      preferences: {
+        autoSpeakVocabulary: false,
+        reviewMaskTarget: "meaning",
+      },
+      persistedLocally: true,
+    });
+
+    expect(mockSetDoc).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pathSegments: ["users", "user-1", "vocabulary_speech", "preferences"],
+      }),
+      {
+        autoSpeakVocabulary: false,
+        reviewMaskTarget: "meaning",
+        updatedAt: mockServerTimestamp,
+      },
+      { merge: true },
+    );
+
+    await expect(
+      setReviewMaskTargetPreferenceForUser("user-1", "all"),
+    ).resolves.toEqual({
+      preferences: {
+        autoSpeakVocabulary: false,
+        reviewMaskTarget: "all",
+      },
+      persistedLocally: true,
+    });
+  });
+
+  it("notifies vocabulary speech preference listeners", async () => {
+    const listener = jest.fn();
+    const unsubscribe = subscribeToVocabularySpeechPreferences(listener);
+
+    await setReviewMaskTargetPreference("meaning");
+
+    expect(listener).toHaveBeenCalledWith({
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: "meaning",
+    });
+
+    unsubscribe();
   });
 });

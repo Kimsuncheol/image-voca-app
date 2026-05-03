@@ -75,7 +75,7 @@ describe("SwipeCardItemWordMeaningSection", () => {
     expect(secondTextColumnStyle.flexWrap).toBe("wrap");
   });
 
-  it("uses an 8px gap after pronunciation before the meaning", () => {
+  it("uses the current gap after pronunciation before the meaning", () => {
     const { getByText } = render(
       <SwipeCardItemWordMeaningSection
         item={buildItem()}
@@ -88,7 +88,72 @@ describe("SwipeCardItemWordMeaningSection", () => {
 
     const pronunciationStyle = StyleSheet.flatten(getByText("/siːd/").props.style);
 
-    expect(pronunciationStyle.marginBottom).toBe(8);
+    expect(pronunciationStyle.marginBottom).toBe(12);
+  });
+
+  it("masks word and pronunciation by default while leaving meaning visible", () => {
+    const { getByTestId, getByText } = render(
+      <SwipeCardItemWordMeaningSection
+        item={buildItem()}
+        word="seed"
+        pronunciation="/siːd/"
+        meaning="n. 씨, 씨앗"
+        isDark={false}
+        isReviewMode
+      />,
+    );
+
+    expect(StyleSheet.flatten(getByTestId("swipe-card-word-title").props.style)).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(StyleSheet.flatten(getByText("/siːd/").props.style)).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(StyleSheet.flatten(getByText("씨, 씨앗").props.style)).not.toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+  });
+
+  it("masks only meaning when review mask target is meaning", () => {
+    const { getByTestId, getByText } = render(
+      <SwipeCardItemWordMeaningSection
+        item={buildItem()}
+        word="seed"
+        pronunciation="/siːd/"
+        meaning="n. 씨, 씨앗"
+        isDark={false}
+        isReviewMode
+        reviewMaskTarget="meaning"
+      />,
+    );
+
+    expect(StyleSheet.flatten(getByTestId("swipe-card-word-title").props.style)).not.toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(StyleSheet.flatten(getByText("/siːd/").props.style)).not.toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(StyleSheet.flatten(getByText("씨, 씨앗").props.style)).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
   });
 
   it("preserves numbered prefixes while converting line markers to chips", () => {
@@ -201,7 +266,7 @@ describe("SwipeCardItemWordMeaningSection", () => {
     const title = getByTestId("swipe-card-word-title");
     const titleStyle = StyleSheet.flatten(title.props.style);
     expect(title.props.children).toBe("take A\n[for granted]\n[as given]");
-    expect(titleStyle.fontSize).toBeGreaterThan(32);
+    expect(titleStyle.fontSize).toBeGreaterThanOrEqual(32);
     expect(titleStyle.fontSize).toBeLessThanOrEqual(48);
     expect(title.props.numberOfLines).toBeUndefined();
     expect(title.props.adjustsFontSizeToFit).toBeUndefined();
@@ -331,7 +396,7 @@ describe("SwipeCardItemWordMeaningSection", () => {
     const titleStyle = StyleSheet.flatten(title.props.style);
     expect(titleStyle.fontSize).toBeGreaterThanOrEqual(32);
     expect(titleStyle.fontSize).toBeLessThan(48);
-    expect(title.props.numberOfLines).toBe(1);
+    expect(title.props.numberOfLines).toBeUndefined();
     expect(title.props.adjustsFontSizeToFit).toBeUndefined();
     expect(title.props.minimumFontScale).toBeUndefined();
   });

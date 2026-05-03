@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Animated, Platform, Text, View } from "react-native";
 import PagerView from "react-native-pager-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import { CollocationFlipCard } from "./index";
 import { styles } from "./EnglishCollocationCardStyle";
@@ -21,6 +22,7 @@ interface Props {
   isStudyCompleted?: boolean;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
   onMaskChange?: (enabled: boolean) => void;
 }
 
@@ -39,6 +41,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
   isStudyCompleted = false,
   isPreviewMode = false,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
   onMaskChange,
 }) => {
   const { t } = useTranslation();
@@ -286,6 +289,7 @@ export const CollocationSwipeable: React.FC<Props> = ({
                   onFirstFlipToBack={() => handleCardFirstFlip(index)}
                   isActive={activeIndex === index}
                   isReviewMode={isReviewMode}
+                  reviewMaskTarget={reviewMaskTarget}
                   onMaskChange={onMaskChange}
                 />
               ) : (

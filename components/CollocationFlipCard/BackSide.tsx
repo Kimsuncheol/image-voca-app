@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 import { getBackgroundColors } from "../../constants/backgroundColors";
+import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
 import ExampleSection from "./ExampleSection";
 import ExplanationSection from "./ExplanationSection";
 import { CollocationData } from "./types";
@@ -15,6 +16,7 @@ interface BackSideProps {
   initialSection?: "explanation" | "example" | "translation";
   onFlip?: () => void;
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
   onMaskChange?: (enabled: boolean) => void;
 }
 
@@ -25,6 +27,7 @@ export default React.memo(function BackSide({
   initialSection = "explanation",
   onFlip,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
   onMaskChange,
 }: BackSideProps) {
   const bgColors = getBackgroundColors(isDark);
@@ -99,6 +102,7 @@ export default React.memo(function BackSide({
           onToggle={handleToggleExplanation}
           isDark={isDark}
           isReviewMode={isReviewMode}
+          reviewMaskTarget={reviewMaskTarget}
         />
 
         <ExampleSection
@@ -109,6 +113,7 @@ export default React.memo(function BackSide({
           isDark={isDark}
           maxHeight={exampleMaxHeight}
           isReviewMode={isReviewMode}
+          reviewMaskTarget={reviewMaskTarget}
           onMaskChange={onMaskChange}
         />
       </View>

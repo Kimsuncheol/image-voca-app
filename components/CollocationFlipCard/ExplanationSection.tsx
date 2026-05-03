@@ -3,7 +3,11 @@ import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import Collapsible from "react-native-collapsible";
 import { getFontColors } from "../../constants/fontColors";
-import { getReviewTapeTextStyle } from "../../src/utils/reviewMasking";
+import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
+import {
+  getReviewTapeTextStyle,
+  shouldMaskReviewContent,
+} from "../../src/utils/reviewMasking";
 import { styles } from "./EnglishCollocationCardStyle";
 
 interface ExplanationSectionProps {
@@ -12,6 +16,7 @@ interface ExplanationSectionProps {
   onToggle: () => void;
   isDark: boolean;
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
 }
 
 export default React.memo(function ExplanationSection({
@@ -20,8 +25,14 @@ export default React.memo(function ExplanationSection({
   onToggle,
   isDark,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
 }: ExplanationSectionProps) {
   const fontColors = getFontColors(isDark);
+  const maskPronunciation = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "pronunciation",
+  );
 
   return (
     <View>
@@ -53,7 +64,7 @@ export default React.memo(function ExplanationSection({
           <Text
             style={[
               styles.explanationValue,
-              isReviewMode
+              maskPronunciation
                 ? getReviewTapeTextStyle(isDark)
                 : { color: fontColors.learningCardPrimary },
             ]}

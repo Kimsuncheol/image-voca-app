@@ -10,9 +10,11 @@ import {
 import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
 import { useStudySpeech } from "../../../src/hooks/useStudyMode";
+import type { ReviewMaskTarget } from "../../../src/services/speechPreferences";
 import type { KanjiWord } from "../../../src/types/vocabulary";
 import {
   getReviewTapeTextStyle,
+  shouldMaskReviewContent,
   stripReviewMaskDelimiters,
 } from "../../../src/utils/reviewMasking";
 import {
@@ -47,6 +49,7 @@ export interface FaceSideProps {
   isPreviewMode?: boolean;
   /** Whether the card should hide review targets under tape masks */
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
   /** Callback triggered when the mask visibility is changed */
   onMaskChange?: (enabled: boolean) => void;
   /** Callback triggered to flip the card horizontally to the back */
@@ -85,6 +88,7 @@ export function FaceSide({
   onSavedWordChange,
   isPreviewMode = false,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
   onMaskChange = () => {},
   onFlip,
   language = "en",
@@ -92,6 +96,19 @@ export function FaceSide({
   const { handleSpeech } = useStudySpeech();
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
+  const maskWord = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "word",
+  );
+  const maskMeaning = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "meaning",
+  );
+  const maskReading =
+    shouldMaskReviewContent(isReviewMode, reviewMaskTarget, "pronunciation") ||
+    maskMeaning;
 
   const handleSpeakItem = React.useCallback(
     (text: string) => {
@@ -149,7 +166,7 @@ export function FaceSide({
                   color: fontColors.learningCardPrimary,
                   fontSize: dynamicFontSize,
                 },
-                isReviewMode ? getReviewTapeTextStyle(isDark) : undefined,
+                maskWord ? getReviewTapeTextStyle(isDark) : undefined,
               ]}
               numberOfLines={1}
               adjustsFontSizeToFit
@@ -195,10 +212,12 @@ export function FaceSide({
                       <Text
                         style={[
                           styles.faceListItem,
-                          {
-                            color: fontColors.learningCardMuted,
-                            fontSize: FontSizes.body,
-                          },
+                          maskMeaning
+                            ? getReviewTapeTextStyle(isDark)
+                            : {
+                                color: fontColors.learningCardMuted,
+                                fontSize: FontSizes.body,
+                              },
                         ]}
                       >
                         {m.localizedText}
@@ -214,7 +233,9 @@ export function FaceSide({
                         <Text
                           style={[
                             styles.faceListItem,
-                            { color: fontColors.learningCardSecondary },
+                            maskMeaning
+                              ? getReviewTapeTextStyle(isDark)
+                              : { color: fontColors.learningCardSecondary },
                           ]}
                         >
                           {m.baseText}
@@ -255,7 +276,7 @@ export function FaceSide({
                       <Text
                         style={[
                           styles.faceListItem,
-                          isReviewMode
+                          maskReading
                             ? getReviewTapeTextStyle(isDark)
                             : {
                                 color: fontColors.learningCardMuted,
@@ -277,7 +298,7 @@ export function FaceSide({
                         <Text
                           style={[
                             styles.faceListItem,
-                            isReviewMode
+                            maskReading
                               ? getReviewTapeTextStyle(isDark)
                               : { color: fontColors.learningCardSecondary },
                           ]}

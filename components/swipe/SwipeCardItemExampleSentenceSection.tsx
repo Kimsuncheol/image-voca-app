@@ -13,10 +13,12 @@ import {
 import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useStudySpeech } from "../../src/hooks/useStudyMode";
+import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
 import { stripKanaParens } from "../../src/utils/japaneseText";
 import {
   getReviewTapeTextStyle,
   parseReviewMaskSegments,
+  shouldMaskReviewContent,
   stripReviewMaskDelimiters,
 } from "../../src/utils/reviewMasking";
 import { formatSynonyms } from "../../src/utils/synonyms";
@@ -30,6 +32,7 @@ interface SwipeCardItemExampleSentenceSectionProps {
   isDark: boolean;
   isActive?: boolean;
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
 }
 
 export function SwipeCardItemExampleSentenceSection({
@@ -41,6 +44,7 @@ export function SwipeCardItemExampleSentenceSection({
   isDark,
   isActive = true,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
 }: SwipeCardItemExampleSentenceSectionProps) {
   const { t } = useTranslation();
   const fontColors = getFontColors(isDark);
@@ -63,6 +67,16 @@ export function SwipeCardItemExampleSentenceSection({
     : [];
   const formattedSynonyms =
     courseId === "TOEFL_IELTS" ? formatSynonyms(synonyms) : undefined;
+  const maskPronunciation = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "pronunciation",
+  );
+  const maskExample = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "example",
+  );
 
   const handleSpeak = React.useCallback(
     async (text: string) => {
@@ -81,7 +95,7 @@ export function SwipeCardItemExampleSentenceSection({
           {`${t("notifications.labels.pronunciation", {
             defaultValue: "Pronunciation",
           })}: `}
-          <Text style={isReviewMode ? getReviewTapeTextStyle(isDark) : undefined}>
+          <Text style={maskPronunciation ? getReviewTapeTextStyle(isDark) : undefined}>
             {pronunciation}
           </Text>
         </Text>
@@ -113,7 +127,7 @@ export function SwipeCardItemExampleSentenceSection({
                     <Text
                       key={`${index}-${segmentIndex}`}
                       style={
-                        isReviewMode && segment.masked
+                        maskExample && segment.masked
                           ? getReviewTapeTextStyle(isDark)
                           : undefined
                       }

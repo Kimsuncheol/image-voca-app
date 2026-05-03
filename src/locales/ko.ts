@@ -98,6 +98,13 @@ const ko = {
       slow: "느림",
       normal: "보통",
       fast: "빠름",
+      autoVocabularySpeech: "단어 자동 읽기",
+      reviewMaskTarget: "복습 가리기 대상",
+      maskTargets: {
+        "word-pronunciation": "단어 + 발음",
+        meaning: "뜻",
+        all: "전체",
+      },
       saveFailed:
         "발음 속도는 지금 바로 적용되었지만 이 기기에는 저장하지 못했습니다.",
     },

@@ -7,6 +7,7 @@ import { SpeechSection } from "../components/settings/SpeechSection";
 import {
   __resetSpeechPreferencesForTests,
   getSpeechSpeedPreferences,
+  getVocabularySpeechPreferences,
   setSpeechSpeedPreference,
 } from "../src/services/speechPreferences";
 
@@ -40,6 +41,11 @@ const translations: Record<string, string> = {
   "settings.speech.slow": "Slow",
   "settings.speech.normal": "Normal",
   "settings.speech.fast": "Fast",
+  "settings.speech.autoVocabularySpeech": "Automatic vocabulary speech",
+  "settings.speech.reviewMaskTarget": "Review mask target",
+  "settings.speech.maskTargets.word-pronunciation": "Word + pronunciation",
+  "settings.speech.maskTargets.meaning": "Meaning",
+  "settings.speech.maskTargets.all": "All",
   "settings.speech.saveFailed":
     "Speech speed changed for now, but could not be saved on this device.",
   "common.error": "Error",
@@ -253,5 +259,57 @@ describe("SpeechSection", () => {
     setItemSpy.mockRestore();
     alertSpy.mockRestore();
     warnSpy.mockRestore();
+  });
+
+  it("shows vocabulary auto speech enabled by default and toggles it off", async () => {
+    const screen = render(<SpeechSection styles={styles} isDark={false} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Automatic vocabulary speech")).toBeTruthy();
+    });
+
+    const autoSpeechSwitch = screen.getByRole("switch");
+    expect(autoSpeechSwitch.props.accessibilityState).toEqual({
+      checked: true,
+      disabled: false,
+    });
+
+    fireEvent.press(autoSpeechSwitch);
+
+    await waitFor(() => {
+      expect(screen.getByRole("switch").props.accessibilityState).toEqual({
+        checked: false,
+        disabled: false,
+      });
+    });
+    await expect(getVocabularySpeechPreferences()).resolves.toEqual({
+      autoSpeakVocabulary: false,
+      reviewMaskTarget: "word-pronunciation",
+    });
+  });
+
+  it("selects the review mask target from the segmented options", async () => {
+    const screen = render(<SpeechSection styles={styles} isDark={false} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Review mask target")).toBeTruthy();
+      expect(
+        screen.getByTestId("review-mask-target-word-pronunciation").props
+          .accessibilityState,
+      ).toEqual({ selected: true });
+    });
+
+    fireEvent.press(screen.getByTestId("review-mask-target-meaning"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId("review-mask-target-meaning").props
+          .accessibilityState,
+      ).toEqual({ selected: true });
+    });
+    await expect(getVocabularySpeechPreferences()).resolves.toEqual({
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: "meaning",
+    });
   });
 });

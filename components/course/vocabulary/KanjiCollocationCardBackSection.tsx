@@ -8,10 +8,12 @@ import {
 } from "react-native";
 import { getFontColors } from "../../../constants/fontColors";
 import { useStudySpeech } from "../../../src/hooks/useStudyMode";
+import type { ReviewMaskTarget } from "../../../src/services/speechPreferences";
 import type { KanjiNestedListGroup } from "../../../src/types/vocabulary";
 import {
   getReviewTapeTextStyle,
   parseReviewMaskSegments,
+  shouldMaskReviewContent,
   stripReviewMaskDelimiters,
 } from "../../../src/utils/reviewMasking";
 import { styles } from "./KanjiCollocationCardStyles";
@@ -40,6 +42,7 @@ interface BackSectionProps {
   showFurigana: boolean;
   /** Whether example target spans should be hidden under tape masks */
   isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
   /** Callback triggered to flip the card horizontally back to the front face */
   onFlip: () => void;
 }
@@ -60,10 +63,27 @@ export function BackSection({
   isDark,
   isActive,
   isReviewMode = false,
+  reviewMaskTarget = "word-pronunciation",
   onFlip,
 }: BackSectionProps) {
   const { handleSpeech } = useStudySpeech();
   const fontColors = getFontColors(isDark);
+  const isReadingSection = title.toLowerCase() === "reading";
+  const maskMeaning = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "meaning",
+  );
+  const maskReading =
+    isReadingSection &&
+    (shouldMaskReviewContent(isReviewMode, reviewMaskTarget, "pronunciation") ||
+      maskMeaning);
+  const maskValue = isReadingSection ? maskReading : maskMeaning;
+  const maskExample = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "example",
+  );
 
   const entries = values
     .map((value, index) => ({
@@ -113,7 +133,7 @@ export function BackSection({
               suppressHighlighting
               style={[
                 styles.backGroupLabel,
-                title.toLowerCase() === "reading" && isReviewMode
+                maskValue
                   ? getReviewTapeTextStyle(isDark)
                   : { color: fontColors.learningCardPrimary },
               ]}
@@ -159,7 +179,7 @@ export function BackSection({
                               <Text
                                 key={`${title}-${i}-${j}-${segmentIndex}`}
                                 style={
-                                  isReviewMode && segment.masked
+                                  maskExample && segment.masked
                                     ? getReviewTapeTextStyle(isDark)
                                     : undefined
                                 }
@@ -184,7 +204,7 @@ export function BackSection({
                       testID={`kanji-collocation-${title.toLowerCase()}-hurigana-${i}-${j}`}
                       style={[
                         styles.backFurigana,
-                        title.toLowerCase() === "reading" && isReviewMode
+                        maskReading
                           ? getReviewTapeTextStyle(isDark)
                           : hasHurigana
                             ? { color: fontColors.learningCardMuted }
