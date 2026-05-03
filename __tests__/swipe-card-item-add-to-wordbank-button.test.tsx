@@ -45,7 +45,6 @@ jest.mock("@expo/vector-icons", () => {
     </Text>
   );
   return {
-    FontAwesome: Icon,
     Ionicons: Icon,
   };
 });
@@ -125,7 +124,7 @@ describe("SwipeCardItemAddToWordBankButton", () => {
     await waitFor(() => {
       expect(mockRecordWordLearned).toHaveBeenCalledWith("user-1");
       expect(mockOnSavedWordChange).toHaveBeenCalledWith("1", true);
-      expect(screen.getByText("sticky-note")).toBeTruthy();
+      expect(screen.getByText("bookmark")).toBeTruthy();
     });
 
     expect(transaction.set).toHaveBeenCalledWith(
@@ -336,7 +335,7 @@ describe("SwipeCardItemAddToWordBankButton", () => {
 
     await waitFor(() => {
       expect(mockOnSavedWordChange).toHaveBeenCalledWith("1", false);
-      expect(screen.getByText("sticky-note-o")).toBeTruthy();
+      expect(screen.getByText("bookmark-outline")).toBeTruthy();
     });
 
     expect(mockRecordWordLearned).not.toHaveBeenCalled();
@@ -392,7 +391,7 @@ describe("SwipeCardItemAddToWordBankButton", () => {
       backgroundColor: "transparent",
       borderRadius: 10,
     });
-    expect(getByText("sticky-note-o")).toBeTruthy();
+    expect(getByText("bookmark-outline")).toBeTruthy();
     expect(getByTestId("swipe-card-add-to-wordbank-icon").props.color).toBe(
       "#007AFF",
     );
@@ -411,6 +410,6 @@ describe("SwipeCardItemAddToWordBankButton", () => {
       backgroundColor: "transparent",
       borderRadius: 10,
     });
-    expect(getByText("sticky-note")).toBeTruthy();
+    expect(getByText("bookmark")).toBeTruthy();
   });
 });

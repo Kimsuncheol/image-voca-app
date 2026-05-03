@@ -41,9 +41,6 @@ jest.mock("@expo/vector-icons", () => {
   const { Text } = require("react-native");
 
   return {
-    FontAwesome: ({ name, testID }: { name: string; testID?: string }) => (
-      <Text testID={testID}>{name}</Text>
-    ),
     Ionicons: ({ name, testID }: { name: string; testID?: string }) => (
       <Text testID={testID}>{name}</Text>
     ),
@@ -111,12 +108,12 @@ describe("Collocation FaceSide word bank toggle", () => {
 
     const screen = render(buildFaceSide());
 
-    fireEvent.press(screen.getByText("sticky-note-o"));
+    fireEvent.press(screen.getByText("bookmark-outline"));
 
     await waitFor(() => {
       expect(mockRecordWordLearned).toHaveBeenCalledWith("user-1");
       expect(mockOnSavedStateChange).toHaveBeenCalledWith("1", true);
-      expect(screen.getByText("sticky-note")).toBeTruthy();
+      expect(screen.getByText("bookmark")).toBeTruthy();
     });
 
     expect(Alert.alert).not.toHaveBeenCalledWith(
@@ -136,11 +133,11 @@ describe("Collocation FaceSide word bank toggle", () => {
 
     const screen = render(buildFaceSide(true));
 
-    fireEvent.press(screen.getByText("sticky-note"));
+    fireEvent.press(screen.getByText("bookmark"));
 
     await waitFor(() => {
       expect(mockOnSavedStateChange).toHaveBeenCalledWith("1", false);
-      expect(screen.getByText("sticky-note-o")).toBeTruthy();
+      expect(screen.getByText("bookmark-outline")).toBeTruthy();
     });
 
     expect(mockRecordWordLearned).not.toHaveBeenCalled();
