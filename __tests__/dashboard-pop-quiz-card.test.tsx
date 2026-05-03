@@ -15,7 +15,10 @@ jest.mock("react-i18next", () => ({
     i18n: { language: "en" },
     t: (key: string, values?: Record<string, unknown>) => {
       if (key === "dashboard.popQuiz.unavailable.missingData") {
-        return `missing day ${String(values?.day)}`;
+        return `missing ${String(values?.course)} day ${String(values?.day)}`;
+      }
+      if (typeof values?.defaultValue === "string") {
+        return values.defaultValue;
       }
       if (!values) return key;
       return Object.entries(values).reduce(
@@ -443,7 +446,7 @@ describe("DashboardPopQuizCard", () => {
     await waitFor(() => {
       expect(screen.getByText("dashboard.popQuiz.unavailable.title")).toBeTruthy();
     });
-    expect(screen.getByText("missing day 2")).toBeTruthy();
+    expect(screen.getByText("missing TOEIC day 2")).toBeTruthy();
   });
 
   it("loads the prefetched next day after completing all pairs", async () => {
@@ -506,7 +509,7 @@ describe("DashboardPopQuizCard", () => {
 
     expect(screen.queryByTestId("pop-quiz-item-d2-q16")).toBeNull();
     expect(screen.getByText("dashboard.popQuiz.unavailable.title")).toBeTruthy();
-    expect(screen.getByText("missing day 3")).toBeTruthy();
+    expect(screen.getByText("missing TOEIC day 3")).toBeTruthy();
   });
 
   it("uses answer ids rather than display text and completes after correct pairs", async () => {

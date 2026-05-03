@@ -170,7 +170,7 @@ const ja = {
         missingCourse: "先にコースを開くと、適切なクイズを読み込めます。",
         missingLevel: "日本語のポップクイズにはJLPTレベルを選択してください。",
         missingConfig: "このビルドではポップクイズ保存先が設定されていません。",
-        missingData: "{{day}}日目のポップクイズはまだ生成されていません。",
+        missingData: "{{course}} {{day}}日目のポップクイズはまだ生成されていません。",
         malformed: "このポップクイズデータはまだプレイできません。",
         generic: "別のコースまたは日をお試しください。",
       },

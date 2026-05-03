@@ -226,7 +226,14 @@ export function DashboardPopQuizCard() {
   const dayNumber = getFirstIncompleteDay(
     selectedCourse ? courseProgress[selectedCourse] : undefined,
   );
-  const courseColor = findRuntimeCourse(selectedCourse)?.color ?? BackgroundColors.light.accentBlue;
+  const selectedRuntimeCourse = findRuntimeCourse(selectedCourse);
+  const courseColor = selectedRuntimeCourse?.color ?? BackgroundColors.light.accentBlue;
+  const selectedCourseLabel =
+    selectedRuntimeCourse
+      ? t(selectedRuntimeCourse.titleKey, {
+          defaultValue: selectedRuntimeCourse.title,
+        })
+      : selectedCourse;
 
   const answerByItemId = useMemo(() => {
     const entries = game?.answer_key.map((answer): [string, string] => [
@@ -507,6 +514,7 @@ export function DashboardPopQuizCard() {
           </ThemedText>
           <ThemedText style={styles.stateText}>
             {t(getUnavailableKey(unavailableReason), {
+              course: selectedCourseLabel,
               day: activeDayNumber,
             })}
           </ThemedText>

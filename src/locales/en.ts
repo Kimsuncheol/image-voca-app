@@ -174,7 +174,7 @@ const en = {
         missingCourse: "Open a course first so we can pick the right quiz.",
         missingLevel: "Choose a JLPT level first to load Japanese pop quizzes.",
         missingConfig: "Pop quiz storage is not configured for this build.",
-        missingData: "No pop quiz has been generated for Day {{day}} yet.",
+        missingData: "No pop quiz has been generated for {{course}} Day {{day}} yet.",
         malformed: "This pop quiz data is not playable yet.",
         generic: "Please try another course or day.",
       },

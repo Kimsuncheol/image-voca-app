@@ -173,7 +173,7 @@ const ko = {
         missingCourse: "먼저 코스를 열면 알맞은 퀴즈를 불러올 수 있습니다.",
         missingLevel: "일본어 팝 퀴즈를 불러오려면 JLPT 레벨을 선택하세요.",
         missingConfig: "이 빌드에는 팝 퀴즈 저장소가 설정되어 있지 않습니다.",
-        missingData: "아직 {{day}}일차의 팝 퀴즈가 생성되지 않았습니다.",
+        missingData: "아직 {{course}} {{day}}일차의 팝 퀴즈가 생성되지 않았습니다.",
         malformed: "이 팝 퀴즈 데이터는 아직 플레이할 수 없습니다.",
         generic: "다른 코스나 일차를 시도해 주세요.",
       },
