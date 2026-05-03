@@ -18,7 +18,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { TopInstallNativeAd } from "../../../components/ads/TopInstallNativeAd";
+import { TopBannerAd } from "../../../components/ads/TopBannerAd";
 import { AppSplashScreen } from "../../../components/common/AppSplashScreen";
 import { DayGrid, EmptyDayView } from "../../../components/course";
 import { ThemedText } from "../../../components/themed-text";
@@ -333,7 +333,7 @@ export default function DayPickerScreen() {
           headerTintColor: isDark ? "#fff" : "#000",
         }}
       />
-      <TopInstallNativeAd />
+      <TopBannerAd includeTopInset={false} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

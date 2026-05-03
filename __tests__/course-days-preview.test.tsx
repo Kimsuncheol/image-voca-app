@@ -50,7 +50,16 @@ jest.mock("react-native-safe-area-context", () => {
 });
 
 jest.mock("../components/ads/TopInstallNativeAd", () => ({
-  TopInstallNativeAd: () => null,
+  TopInstallNativeAd: () => {
+    throw new Error("TopInstallNativeAd should not render on DaysScreen");
+  },
+}));
+
+jest.mock("../components/ads/TopBannerAd", () => ({
+  TopBannerAd: ({ includeTopInset }: { includeTopInset?: boolean }) => {
+    const { Text } = require("react-native");
+    return <Text>TopBannerAd:{String(includeTopInset)}</Text>;
+  },
 }));
 
 jest.mock("../components/common/AppSplashScreen", () => ({
@@ -144,6 +153,14 @@ describe("DayPickerScreen study modes", () => {
 
     expect(screen.queryByText("Learning")).toBeNull();
     expect(screen.queryByText("Review")).toBeNull();
+  });
+
+  it("renders the top banner ad without a top inset", async () => {
+    const screen = render(<DayPickerScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("TopBannerAd:false")).toBeTruthy();
+    });
   });
 
   it("keeps progress UI visible and routes days without mode", async () => {
