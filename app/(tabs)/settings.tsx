@@ -351,14 +351,14 @@ export default function SettingsScreen() {
         */}
         <LearningLanguageSection styles={styles} isDark={isDark} />
 
-        <SpeechSection styles={styles} isDark={isDark} />
-
         <LanguageSection
           styles={styles}
           isDark={isDark}
           currentMode={languageMode}
           t={t}
         />
+
+        <SpeechSection styles={styles} isDark={isDark} />
 
         {/* ================================================================
             SIGN OUT SECTION

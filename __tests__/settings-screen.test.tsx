@@ -138,7 +138,15 @@ jest.mock("../components/settings/LanguageSection", () => ({
 }));
 
 jest.mock("../components/settings/LearningLanguageSection", () => ({
-  LearningLanguageSection: () => null,
+  LearningLanguageSection: () => {
+    const ReactNative = require("react-native");
+
+    return (
+      <ReactNative.View testID="settings-learning-language-section">
+        <ReactNative.Text>The language you wish to learn</ReactNative.Text>
+      </ReactNative.View>
+    );
+  },
 }));
 
 jest.mock("../components/settings/NotificationsSection", () => ({
@@ -220,6 +228,38 @@ describe("SettingsScreen", () => {
     fireEvent.press(screen.getByTestId("settings-speech-speed-row"));
 
     expect(mockRouterPush).toHaveBeenCalledWith("/settings-speech-speed");
+  });
+
+  it("orders learning language, display language, then speech and mask", () => {
+    const screen = render(<SettingsScreen />);
+    const root = screen.toJSON();
+    const orderedTestIds: string[] = [];
+
+    const collectTestIds = (node: any) => {
+      if (!node || typeof node !== "object") return;
+      if (node.props?.testID) {
+        orderedTestIds.push(node.props.testID);
+      }
+      const children = Array.isArray(node.children)
+        ? node.children
+        : node.children
+          ? [node.children]
+          : [];
+
+      children.forEach(collectTestIds);
+    };
+
+    collectTestIds(root);
+
+    const learningIndex = orderedTestIds.indexOf(
+      "settings-learning-language-section",
+    );
+    const languageIndex = orderedTestIds.indexOf("settings-language-row");
+    const speechIndex = orderedTestIds.indexOf("settings-speech-speed-row");
+
+    expect(learningIndex).toBeGreaterThanOrEqual(0);
+    expect(languageIndex).toBeGreaterThan(learningIndex);
+    expect(speechIndex).toBeGreaterThan(languageIndex);
   });
 
   it("does not render the target score study section", () => {
