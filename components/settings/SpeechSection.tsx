@@ -1,3 +1,4 @@
+import { FontSizes } from "@/constants/fontSizes";
 import { FontWeights } from "@/constants/fontWeights";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
@@ -5,7 +6,6 @@ import { useTranslation } from "react-i18next";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useSpeechPreferences } from "../../src/hooks/useSpeechPreferences";
-import { FontSizes } from "@/constants/fontSizes";
 import {
   ReviewMaskTarget,
   SpeechPreferenceLanguage,
@@ -31,10 +31,6 @@ export function SpeechSection({ styles, isDark }: SpeechSectionProps) {
   const speechLanguage: SpeechPreferenceLanguage =
     learningLanguage === "ja" ? "ja" : "en";
   const selectedPreset = getPreset(speechLanguage);
-  const speedLabelKey =
-    speechLanguage === "ja"
-      ? "settings.speech.japaneseSpeed"
-      : "settings.speech.englishSpeed";
   const maskTargetOptions: ReviewMaskTarget[] = [
     "word-pronunciation",
     "meaning",
@@ -83,7 +79,7 @@ export function SpeechSection({ styles, isDark }: SpeechSectionProps) {
               style={styles.optionText}
               numberOfLines={2}
             >
-              {t(speedLabelKey)}
+              {t("settings.speech.speed")}
             </Text>
           </View>
 
@@ -107,6 +103,7 @@ export function SpeechSection({ styles, isDark }: SpeechSectionProps) {
             </Text>
           </TouchableOpacity>
         </View>
+        <View testID="speech-section-separator" style={styles.separator} />
         <View style={[styles.option, localStyles.option]}>
           <View style={styles.optionLeft}>
             <Ionicons
@@ -127,9 +124,13 @@ export function SpeechSection({ styles, isDark }: SpeechSectionProps) {
             onValueChange={(enabled) => {
               void handleAutoSpeakChange(enabled);
             }}
-            trackColor={{ false: "#767577", true: isDark ? "#0a84ff" : "#007AFF" }}
+            trackColor={{
+              false: "#767577",
+              true: isDark ? "#0a84ff" : "#007AFF",
+            }}
           />
         </View>
+        <View testID="speech-section-separator" style={styles.separator} />
         <View style={[styles.option, localStyles.maskTargetOption]}>
           <View style={styles.optionLeft}>
             <Ionicons
@@ -147,53 +148,52 @@ export function SpeechSection({ styles, isDark }: SpeechSectionProps) {
           </View>
           <View
             testID="review-mask-target-selector"
-            style={[
-              localStyles.segmentedControl,
-              {
-                backgroundColor: isDark ? "#1f2937" : "#f2f2f7",
-                borderColor: isDark ? "#374151" : "#d1d1d6",
-              },
-            ]}
+            style={localStyles.maskTargetList}
           >
-            {maskTargetOptions.map((target) => {
+            {maskTargetOptions.map((target, index) => {
               const isSelected =
                 vocabularyPreferences.reviewMaskTarget === target;
+              const selectedColor = isDark ? "#0a84ff" : "#007AFF";
+              const unselectedColor = isDark ? "#e5e7eb" : "#1f2937";
 
               return (
-                <TouchableOpacity
-                  key={target}
-                  testID={`review-mask-target-${target}`}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isSelected }}
-                  activeOpacity={0.78}
-                  onPress={() => {
-                    void handleMaskTargetChange(target);
-                  }}
-                  style={[
-                    localStyles.segmentButton,
-                    isSelected && {
-                      backgroundColor: isDark ? "#0a84ff" : "#007AFF",
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      localStyles.segmentText,
-                      {
-                        color: isSelected
-                          ? "#fff"
-                          : isDark
-                            ? "#e5e7eb"
-                            : "#1f2937",
-                      },
-                    ]}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.78}
+                <React.Fragment key={target}>
+                  <TouchableOpacity
+                    testID={`review-mask-target-${target}`}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
+                    activeOpacity={0.78}
+                    onPress={() => {
+                      void handleMaskTargetChange(target);
+                    }}
+                    style={localStyles.maskTargetTextOption}
                   >
-                    {t(`settings.speech.maskTargets.${target}`)}
-                  </Text>
-                </TouchableOpacity>
+                    <Text
+                      style={[
+                        localStyles.maskTargetText,
+                        { color: isSelected ? selectedColor : unselectedColor },
+                      ]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.86}
+                    >
+                      {t(`settings.speech.maskTargets.${target}`)}
+                    </Text>
+                  </TouchableOpacity>
+                  {index < maskTargetOptions.length - 1 && (
+                    <View
+                      testID="review-mask-target-option-divider"
+                      style={[
+                        localStyles.maskTargetOptionDivider,
+                        {
+                          backgroundColor: isDark
+                            ? "rgba(255,255,255,0.14)"
+                            : "#d1d1d6",
+                        },
+                      ]}
+                    />
+                  )}
+                </React.Fragment>
               );
             })}
           </View>
@@ -227,25 +227,23 @@ const localStyles = StyleSheet.create({
     fontSize: FontSizes.label,
     fontWeight: FontWeights.bold,
   },
-  segmentedControl: {
-    flexDirection: "row",
+  maskTargetList: {
+    flexDirection: "column",
     alignSelf: "stretch",
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 2,
-    gap: 2,
+    paddingLeft: 32,
   },
-  segmentButton: {
-    flex: 1,
-    minHeight: 34,
-    borderRadius: 6,
-    alignItems: "center",
+  maskTargetTextOption: {
+    alignSelf: "flex-start",
+    minHeight: 28,
     justifyContent: "center",
-    paddingHorizontal: 6,
   },
-  segmentText: {
-    fontSize: FontSizes.caption,
-    fontWeight: FontWeights.bold,
-    textAlign: "center",
+  maskTargetText: {
+    fontSize: FontSizes.bodyLg,
+    fontWeight: FontWeights.medium,
+  },
+  maskTargetOptionDivider: {
+    alignSelf: "stretch",
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 8,
   },
 });

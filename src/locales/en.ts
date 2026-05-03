@@ -93,13 +93,14 @@ const en = {
       wishToLearn: "The language you wish to learn",
     },
     speech: {
-      title: "Pronunciation Speed",
+      title: "Speech",
+      speed: "Speech speed",
       englishSpeed: "English pronunciation speed",
       japaneseSpeed: "Japanese pronunciation speed",
       slow: "Slow",
       normal: "Normal",
       fast: "Fast",
-      autoVocabularySpeech: "Automatic vocabulary speech",
+      autoVocabularySpeech: "Auto speech",
       reviewMaskTarget: "Review mask target",
       maskTargets: {
         "word-pronunciation": "Word + pronunciation",

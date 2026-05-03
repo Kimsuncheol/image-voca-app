@@ -92,13 +92,14 @@ const ko = {
       wishToLearn: "학습하고 싶은 언어",
     },
     speech: {
-      title: "발음 속도",
+      title: "음성",
+      speed: "말하기 속도",
       englishSpeed: "영어 발음 속도",
       japaneseSpeed: "일본어 발음 속도",
       slow: "느림",
       normal: "보통",
       fast: "빠름",
-      autoVocabularySpeech: "단어 자동 읽기",
+      autoVocabularySpeech: "자동 읽기",
       reviewMaskTarget: "복습 가리기 대상",
       maskTargets: {
         "word-pronunciation": "단어 + 발음",
