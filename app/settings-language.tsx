@@ -114,7 +114,10 @@ export default function SettingsLanguageScreen() {
         }}
       />
       <TopBannerAd includeTopInset={false} />
-      <ScrollView style={styles.scrollView}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t("settings.language.title")}</Text>
           <View style={styles.card}>

@@ -51,7 +51,10 @@ export default function SettingsReviewMaskTargetScreen() {
         }}
       />
       <TopBannerAd includeTopInset={false} />
-      <ScrollView style={styles.scrollView}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
             {t("settings.speech.reviewMaskTarget")}

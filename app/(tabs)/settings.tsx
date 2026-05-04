@@ -286,7 +286,7 @@ export default function SettingsScreen() {
   return (
     <View style={styles.container}>
       <TopBannerAd includeTopInset={false} />
-      <ScrollView style={{ flex: 1 }}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         {/* ================================================================
             SCREEN HEADER CONFIGURATION
             ================================================================

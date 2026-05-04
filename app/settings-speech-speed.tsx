@@ -54,7 +54,10 @@ export default function SettingsSpeechSpeedScreen() {
         }}
       />
       <TopBannerAd includeTopInset={false} />
-      <ScrollView style={styles.scrollView}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t("settings.speech.speed")}</Text>
           <View style={styles.card}>
