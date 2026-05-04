@@ -88,8 +88,16 @@ const en = {
       title: "Language",
       systemDefault: "System Default",
       english: "English",
+      englishUnitedStates: "English (United States)",
+      englishUnitedKingdom: "English (United Kingdom)",
       korean: "Korean",
       japanese: "Japanese",
+      spanish: "Spanish",
+      french: "French",
+      russian: "Russian",
+      german: "German",
+      italian: "Italian",
+      hindi: "Hindi",
       learningLanguage: "Learning language",
       wishToLearn: "The language you wish to learn",
     },
@@ -494,6 +502,19 @@ const en = {
       resetFailed: "Failed to reset password. Please try again.",
     },
   },
+  studyMode: {
+    speech: {
+      volumeMutedTitle: "Volume is Muted",
+      volumeMutedMessage:
+        "Your device volume is set to 0. Please increase the volume to hear the speech.",
+      lowVolumeMessage:
+        "Device volume is low ({{percentage}}%). You may not hear the speech clearly.",
+      silentModeTitle: "Silent Mode is On",
+      silentModeMessage:
+        "Your device is in silent mode. Please turn off the silent switch to hear the speech.",
+      playAnyway: "Play Anyway",
+    },
+  },
   profile: {
     title: "Profile",
     userFallback: "User",
@@ -651,7 +672,7 @@ const en = {
     },
     offlineSpeech: {
       title: "No Internet Connection",
-      message: "Connect to the internet to play audio.",
+      message: "Connect to the internet to play speech.",
     },
     quiz: {
       title: "Kana Quiz",

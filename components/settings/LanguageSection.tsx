@@ -24,9 +24,16 @@ export function LanguageSection({
     label: string;
   }[] = [
     { mode: "system", label: t("settings.language.systemDefault") },
-    { mode: "en", label: t("settings.language.english") },
+    { mode: "en-US", label: t("settings.language.englishUnitedStates") },
+    { mode: "en-GB", label: t("settings.language.englishUnitedKingdom") },
     { mode: "ko", label: t("settings.language.korean") },
     { mode: "ja", label: t("settings.language.japanese") },
+    { mode: "es", label: t("settings.language.spanish") },
+    { mode: "fr", label: t("settings.language.french") },
+    { mode: "ru", label: t("settings.language.russian") },
+    { mode: "de", label: t("settings.language.german") },
+    { mode: "it", label: t("settings.language.italian") },
+    { mode: "hi", label: t("settings.language.hindi") },
   ];
   const currentLabel =
     options.find((option) => option.mode === currentMode)?.label ??

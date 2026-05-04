@@ -84,8 +84,16 @@ const ja = {
       title: "言語",
       systemDefault: "システム既定",
       english: "英語",
+      englishUnitedStates: "英語 (アメリカ)",
+      englishUnitedKingdom: "英語 (イギリス)",
       korean: "韓国語",
       japanese: "日本語",
+      spanish: "スペイン語",
+      french: "フランス語",
+      russian: "ロシア語",
+      german: "ドイツ語",
+      italian: "イタリア語",
+      hindi: "ヒンディー語",
       learningLanguage: "学習言語",
       wishToLearn: "学習したい言語",
     },
@@ -484,6 +492,19 @@ const ja = {
       resetFailed: "パスワードのリセットに失敗しました。再試行してください。",
     },
   },
+  studyMode: {
+    speech: {
+      volumeMutedTitle: "音量がミュートされています",
+      volumeMutedMessage:
+        "端末の音量が0に設定されています。音声を聞くには音量を上げてください。",
+      lowVolumeMessage:
+        "端末の音量が低くなっています（{{percentage}}%）。音声がはっきり聞こえない場合があります。",
+      silentModeTitle: "サイレントモードがオンです",
+      silentModeMessage:
+        "端末がサイレントモードです。音声を聞くにはサイレントスイッチをオフにしてください。",
+      playAnyway: "それでも再生",
+    },
+  },
   profile: {
     title: "プロフィール",
     userFallback: "ユーザー",
@@ -633,7 +654,7 @@ const ja = {
     },
     offlineSpeech: {
       title: "インターネット接続なし",
-      message: "音声を再生するにはインターネット接続が必要です。",
+      message: "音声を再生するにはインターネットに接続してください。",
     },
     quiz: {
       title: "かなクイズ",

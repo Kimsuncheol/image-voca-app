@@ -38,8 +38,16 @@ jest.mock("react-i18next", () => ({
         "settings.language.title": "Language",
         "settings.language.systemDefault": "System Default",
         "settings.language.english": "English",
+        "settings.language.englishUnitedStates": "English (United States)",
+        "settings.language.englishUnitedKingdom": "English (United Kingdom)",
         "settings.language.korean": "Korean",
         "settings.language.japanese": "Japanese",
+        "settings.language.spanish": "Spanish",
+        "settings.language.french": "French",
+        "settings.language.russian": "Russian",
+        "settings.language.german": "German",
+        "settings.language.italian": "Italian",
+        "settings.language.hindi": "Hindi",
       })[key] ?? key,
   }),
 }));
@@ -93,9 +101,16 @@ describe("SettingsLanguageScreen", () => {
 
     expect(screen.getByTestId("top-banner-ad").props.children).toBe("false");
     expect(screen.getByText("System Default")).toBeTruthy();
-    expect(screen.getByText("English")).toBeTruthy();
+    expect(screen.getByText("English (United States)")).toBeTruthy();
+    expect(screen.getByText("English (United Kingdom)")).toBeTruthy();
     expect(screen.getByText("Korean")).toBeTruthy();
     expect(screen.getByText("Japanese")).toBeTruthy();
+    expect(screen.getByText("Spanish")).toBeTruthy();
+    expect(screen.getByText("French")).toBeTruthy();
+    expect(screen.getByText("Russian")).toBeTruthy();
+    expect(screen.getByText("German")).toBeTruthy();
+    expect(screen.getByText("Italian")).toBeTruthy();
+    expect(screen.getByText("Hindi")).toBeTruthy();
     expect(screen.getByTestId("settings-language-check-system")).toBeTruthy();
 
     const containerStyle = StyleSheet.flatten(
@@ -111,11 +126,25 @@ describe("SettingsLanguageScreen", () => {
     mockGetStudyReminderEnabledPreference.mockResolvedValue(true);
     const screen = render(<SettingsLanguageScreen />);
 
-    fireEvent.press(screen.getByTestId("settings-language-option-ko"));
+    fireEvent.press(screen.getByTestId("settings-language-option-en-GB"));
 
     await waitFor(() => {
-      expect(mockSetLanguageMode).toHaveBeenCalledWith("ko");
+      expect(mockSetLanguageMode).toHaveBeenCalledWith("en-GB");
     });
     expect(mockScheduleDailyNotifications).toHaveBeenCalled();
+  });
+
+  it("shows the selected checkmark for US English", () => {
+    mockLanguageMode = "en-US";
+    const screen = render(<SettingsLanguageScreen />);
+
+    expect(screen.getByTestId("settings-language-check-en-US")).toBeTruthy();
+  });
+
+  it("shows the selected checkmark for UK English", () => {
+    mockLanguageMode = "en-GB";
+    const screen = render(<SettingsLanguageScreen />);
+
+    expect(screen.getByTestId("settings-language-check-en-GB")).toBeTruthy();
   });
 });

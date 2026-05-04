@@ -87,8 +87,16 @@ const ko = {
       title: "언어",
       systemDefault: "시스템 기본값",
       english: "영어",
+      englishUnitedStates: "영어 (미국)",
+      englishUnitedKingdom: "영어 (영국)",
       korean: "한국어",
       japanese: "일본어",
+      spanish: "스페인어",
+      french: "프랑스어",
+      russian: "러시아어",
+      german: "독일어",
+      italian: "이탈리아어",
+      hindi: "힌디어",
       learningLanguage: "학습 언어",
       wishToLearn: "학습하고 싶은 언어",
     },
@@ -489,6 +497,19 @@ const ko = {
       resetFailed: "비밀번호 재설정에 실패했습니다. 다시 시도하세요.",
     },
   },
+  studyMode: {
+    speech: {
+      volumeMutedTitle: "음량이 음소거되어 있습니다",
+      volumeMutedMessage:
+        "기기 음량이 0으로 설정되어 있습니다. 음성을 들으려면 음량을 높여 주세요.",
+      lowVolumeMessage:
+        "기기 음량이 낮습니다({{percentage}}%). 음성이 또렷하게 들리지 않을 수 있습니다.",
+      silentModeTitle: "무음 모드가 켜져 있습니다",
+      silentModeMessage:
+        "기기가 무음 모드입니다. 음성을 들으려면 무음 스위치를 꺼 주세요.",
+      playAnyway: "그래도 재생",
+    },
+  },
   profile: {
     title: "프로필",
     userFallback: "사용자",
@@ -640,7 +661,7 @@ const ko = {
     },
     offlineSpeech: {
       title: "인터넷 연결 없음",
-      message: "오디오를 재생하려면 인터넷에 연결해 주세요.",
+      message: "음성을 재생하려면 인터넷에 연결해 주세요.",
     },
     quiz: {
       title: "가나 퀴즈",

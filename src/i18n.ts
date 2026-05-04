@@ -2,14 +2,21 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Locale } from "expo-localization";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+import de from "./locales/de";
 import en from "./locales/en";
+import es from "./locales/es";
+import fr from "./locales/fr";
+import hi from "./locales/hi";
+import it from "./locales/it";
 import ja from "./locales/ja";
 import ko from "./locales/ko";
+import ru from "./locales/ru";
 import {
   LEGACY_LANGUAGE_STORAGE_KEY,
   SUPPORTED_LANGUAGES,
-  isLanguageMode,
   isSupportedLanguage,
+  normalizeLanguageMode,
+  normalizeSupportedLanguage,
   resolveSystemLanguage,
   useLanguageSettingsStore,
   type LanguageMode,
@@ -21,15 +28,22 @@ export { SUPPORTED_LANGUAGES };
 export type { LanguageMode, SupportedLanguage };
 
 const resources = {
-  en: { translation: en },
+  "en-US": { translation: en },
+  "en-GB": { translation: en },
   ko: { translation: ko },
   ja: { translation: ja },
+  es: { translation: es },
+  fr: { translation: fr },
+  ru: { translation: ru },
+  de: { translation: de },
+  it: { translation: it },
+  hi: { translation: hi },
 };
 
 i18n.use(initReactI18next).init({
   resources,
   lng: resolveSystemLanguage(),
-  fallbackLng: "en",
+  fallbackLng: "en-US",
   compatibilityJSON: "v4",
   interpolation: {
     escapeValue: false,
@@ -50,7 +64,7 @@ export const hydrateLanguage = async () => {
 };
 
 export const setLanguageMode = async (mode: LanguageMode) => {
-  const nextMode = isLanguageMode(mode) ? mode : "system";
+  const nextMode = normalizeLanguageMode(mode) ?? "system";
   const snapshot = await useLanguageSettingsStore.getState().setMode(nextMode);
 
   if (nextMode === "system") {
@@ -62,8 +76,12 @@ export const setLanguageMode = async (mode: LanguageMode) => {
   await i18n.changeLanguage(snapshot.effectiveLanguage);
 };
 
-export const setLanguage = async (language: SupportedLanguage) => {
-  const nextLanguage = isSupportedLanguage(language) ? language : "en";
+export const setLanguage = async (language: SupportedLanguage | "en") => {
+  const normalizedLanguage = normalizeSupportedLanguage(language);
+  const nextLanguage =
+    normalizedLanguage && isSupportedLanguage(normalizedLanguage)
+      ? normalizedLanguage
+      : "en-US";
   await setLanguageMode(nextLanguage);
 };
 
@@ -89,8 +107,7 @@ export const getCurrentLanguage = async (): Promise<SupportedLanguage> => {
     await hydrateLanguage();
   }
 
-  const activeLanguage = i18n.language?.split("-")[0] as SupportedLanguage;
-  return isSupportedLanguage(activeLanguage) ? activeLanguage : "en";
+  return normalizeSupportedLanguage(i18n.language) ?? "en-US";
 };
 
 export default i18n;

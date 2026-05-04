@@ -40,8 +40,13 @@ export default function SettingsLanguageScreen() {
       icon: "phone-portrait-outline",
     },
     {
-      mode: "en",
-      label: t("settings.language.english"),
+      mode: "en-US",
+      label: t("settings.language.englishUnitedStates"),
+      icon: "language-outline",
+    },
+    {
+      mode: "en-GB",
+      label: t("settings.language.englishUnitedKingdom"),
       icon: "language-outline",
     },
     {
@@ -52,6 +57,36 @@ export default function SettingsLanguageScreen() {
     {
       mode: "ja",
       label: t("settings.language.japanese"),
+      icon: "language-outline",
+    },
+    {
+      mode: "es",
+      label: t("settings.language.spanish"),
+      icon: "language-outline",
+    },
+    {
+      mode: "fr",
+      label: t("settings.language.french"),
+      icon: "language-outline",
+    },
+    {
+      mode: "ru",
+      label: t("settings.language.russian"),
+      icon: "language-outline",
+    },
+    {
+      mode: "de",
+      label: t("settings.language.german"),
+      icon: "language-outline",
+    },
+    {
+      mode: "it",
+      label: t("settings.language.italian"),
+      icon: "language-outline",
+    },
+    {
+      mode: "hi",
+      label: t("settings.language.hindi"),
       icon: "language-outline",
     },
   ];

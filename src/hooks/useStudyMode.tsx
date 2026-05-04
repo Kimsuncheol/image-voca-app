@@ -10,13 +10,13 @@ import type {
 } from "expo-navigation-bar";
 import React from "react";
 import {
-  Alert,
   Platform,
   StyleSheet,
   Text,
   ToastAndroid,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import type { SpeechOptions } from "../services/speechService";
 import { useSpeech } from "./useSpeech";
 
@@ -119,6 +119,7 @@ const getCurrentVolume = async () => {
 };
 
 function useSmartStudySpeech(): StudyModeReturn {
+  const { t } = useTranslation();
   const { speak } = useSpeech();
   const [lowVolumeHint, setLowVolumeHint] = React.useState<string | null>(null);
   const lowVolumeHintTimeoutRef = React.useRef<ReturnType<
@@ -135,11 +136,7 @@ function useSmartStudySpeech(): StudyModeReturn {
 
   React.useEffect(() => clearLowVolumeHint, [clearLowVolumeHint]);
 
-  const showLowVolumeFeedback = React.useCallback((volume: number) => {
-    const message = `Device volume is low (${Math.round(
-      volume * 100,
-    )}%). You may not hear the audio clearly.`;
-
+  const showSpeechToast = React.useCallback((message: string) => {
     if (Platform.OS === "android") {
       ToastAndroid.show(message, ToastAndroid.SHORT);
       return;
@@ -155,6 +152,20 @@ function useSmartStudySpeech(): StudyModeReturn {
     }, LOW_VOLUME_HINT_DURATION_MS);
   }, []);
 
+  const showLowVolumeFeedback = React.useCallback(
+    (volume: number) => {
+      const percentage = Math.round(volume * 100);
+      const message = t("studyMode.speech.lowVolumeMessage", {
+        percentage,
+        defaultValue:
+          "Device volume is low ({{percentage}}%). You may not hear the speech clearly.",
+      });
+
+      showSpeechToast(message);
+    },
+    [showSpeechToast, t],
+  );
+
   const handleSpeech = React.useCallback(
     async (
       text: string,
@@ -168,9 +179,11 @@ function useSmartStudySpeech(): StudyModeReturn {
 
       const volume = await getCurrentVolume();
       if (volume === 0) {
-        Alert.alert(
-          "Volume is Muted",
-          "Your device volume is set to 0. Please increase the volume to hear the audio.",
+        showSpeechToast(
+          t("studyMode.speech.volumeMutedMessage", {
+            defaultValue:
+              "Your device volume is set to 0. Please increase the volume to hear the speech.",
+          }),
         );
         return;
       }
@@ -184,7 +197,7 @@ function useSmartStudySpeech(): StudyModeReturn {
         language: getSpeechLanguageCode(languageType),
       });
     },
-    [showLowVolumeFeedback, speak],
+    [showLowVolumeFeedback, showSpeechToast, speak, t],
   );
 
   return React.useMemo(

@@ -6,7 +6,18 @@ import { create } from "zustand";
 export const LEGACY_LANGUAGE_STORAGE_KEY = "user_language";
 export const LANGUAGE_SETTINGS_STORAGE_KEY = "@languageSettings:v1";
 
-export const SUPPORTED_LANGUAGES = ["en", "ko", "ja"] as const;
+export const SUPPORTED_LANGUAGES = [
+  "en-US",
+  "en-GB",
+  "ko",
+  "ja",
+  "es",
+  "fr",
+  "ru",
+  "de",
+  "it",
+  "hi",
+] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 export type LanguageMode = "system" | SupportedLanguage;
@@ -48,9 +59,21 @@ export const isLanguageMode = (value: unknown): value is LanguageMode =>
 
 const getDeviceLocales = () => Localization.getLocales?.() ?? [];
 
-const normalizeLanguageCode = (value: unknown): SupportedLanguage | null => {
+export const normalizeSupportedLanguage = (
+  value: unknown,
+  regionCode?: unknown,
+): SupportedLanguage | null => {
   if (typeof value !== "string") return null;
-  const baseLanguage = value.toLowerCase().split("-")[0];
+  const normalized = value.trim().replace(/_/g, "-").toLowerCase();
+  const [baseLanguage, localeRegion] = normalized.split("-");
+
+  if (baseLanguage === "en") {
+    const region =
+      localeRegion?.toUpperCase() ??
+      (typeof regionCode === "string" ? regionCode.toUpperCase() : null);
+    return region === "GB" ? "en-GB" : "en-US";
+  }
+
   return isSupportedLanguage(baseLanguage) ? baseLanguage : null;
 };
 
@@ -59,9 +82,9 @@ export const resolveSystemLanguage = (
 ): SupportedLanguage => {
   const primaryLocale = locales[0];
   return (
-    normalizeLanguageCode(primaryLocale?.languageCode) ??
-    normalizeLanguageCode(primaryLocale?.languageTag) ??
-    "en"
+    normalizeSupportedLanguage(primaryLocale?.languageTag, primaryLocale?.regionCode) ??
+    normalizeSupportedLanguage(primaryLocale?.languageCode, primaryLocale?.regionCode) ??
+    "en-US"
   );
 };
 
@@ -94,8 +117,13 @@ export const buildLanguageSettingsSnapshot = (
   };
 };
 
+export const normalizeLanguageMode = (value: unknown): LanguageMode | null => {
+  if (value === "system") return "system";
+  return normalizeSupportedLanguage(value);
+};
+
 const normalizeStoredMode = (value: unknown): LanguageMode | null =>
-  isLanguageMode(value) ? value : null;
+  normalizeLanguageMode(value);
 
 const readStoredMode = async (): Promise<LanguageMode> => {
   const [rawSettings, legacyLanguage] = await Promise.all([

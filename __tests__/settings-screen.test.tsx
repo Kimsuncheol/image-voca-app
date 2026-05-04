@@ -48,7 +48,16 @@ jest.mock("react-i18next", () => ({
         "settings.language.title": "Language",
         "settings.language.systemDefault": "System Default",
         "settings.language.english": "English",
+        "settings.language.englishUnitedStates": "English (United States)",
+        "settings.language.englishUnitedKingdom": "English (United Kingdom)",
+        "settings.language.korean": "Korean",
         "settings.language.japanese": "Japanese",
+        "settings.language.spanish": "Spanish",
+        "settings.language.french": "French",
+        "settings.language.russian": "Russian",
+        "settings.language.german": "German",
+        "settings.language.italian": "Italian",
+        "settings.language.hindi": "Hindi",
         "settings.speech.title": "Speech & Mask",
         "settings.speech.speed": "Speech speed",
         "settings.speech.normal": "Normal",
@@ -122,7 +131,7 @@ jest.mock("../src/stores/languageSettingsStore", () => ({
   useLanguageSettingsStore: (selector: any) =>
     selector({
       mode: "system",
-      effectiveLanguage: "en",
+      effectiveLanguage: "en-US",
     }),
 }));
 

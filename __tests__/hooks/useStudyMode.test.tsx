@@ -24,6 +24,30 @@ jest.mock("../../src/hooks/useSpeech", () => ({
   }),
 }));
 
+jest.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (
+      key: string,
+      options?: {
+        defaultValue?: string;
+        percentage?: number;
+      },
+    ) => {
+      const translations: Record<string, string> = {
+        "studyMode.speech.volumeMutedMessage":
+          "Your device volume is set to 0. Please increase the volume to hear the speech.",
+        "studyMode.speech.lowVolumeMessage":
+          "Device volume is low ({{percentage}}%). You may not hear the speech clearly.",
+      };
+
+      return (translations[key] ?? options?.defaultValue ?? key).replace(
+        "{{percentage}}",
+        String(options?.percentage ?? ""),
+      );
+    },
+  }),
+}));
+
 function setPlatform(os: "android" | "ios") {
   Object.defineProperty(Platform, "OS", {
     configurable: true,
@@ -118,18 +142,40 @@ describe("useStudyMode", () => {
     });
   });
 
-  it("shows an alert and skips speech when device volume is muted", async () => {
+  it("shows an Android toast and skips speech when device volume is muted", async () => {
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+    const toastSpy = jest.spyOn(ToastAndroid, "show").mockImplementation();
     getVolumeMock.mockResolvedValue({ volume: 0 });
     const screen = render(<StudyModeHarness />);
 
     fireEvent.press(screen.getByTestId("speak"));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith(
-        "Volume is Muted",
-        expect.stringContaining("increase the volume"),
+      expect(toastSpy).toHaveBeenCalledWith(
+        expect.stringContaining("hear the speech"),
+        ToastAndroid.SHORT,
       );
+      expect(alertSpy).not.toHaveBeenCalled();
+      expect(mockSpeak).not.toHaveBeenCalled();
+    });
+
+    alertSpy.mockRestore();
+    toastSpy.mockRestore();
+  });
+
+  it("shows an iOS toast-style hint and skips speech when device volume is muted", async () => {
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+    setPlatform("ios");
+    getVolumeMock.mockResolvedValue({ volume: 0 });
+    const screen = render(<StudyModeHarness />);
+
+    fireEvent.press(screen.getByTestId("speak"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("volume-hint").props.children).toContain(
+        "hear the speech",
+      );
+      expect(alertSpy).not.toHaveBeenCalled();
       expect(mockSpeak).not.toHaveBeenCalled();
     });
 
@@ -145,7 +191,7 @@ describe("useStudyMode", () => {
 
     await waitFor(() => {
       expect(toastSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Device volume is low"),
+        expect.stringContaining("speech clearly"),
         ToastAndroid.SHORT,
       );
       expect(mockSpeak).toHaveBeenCalledWith(
@@ -166,7 +212,7 @@ describe("useStudyMode", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("volume-hint").props.children).toContain(
-        "Device volume is low",
+        "speech clearly",
       );
       expect(mockSpeak).toHaveBeenCalledWith(
         "日本語",

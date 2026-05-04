@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import {
   getStudyLanguageTypeFromSpeechLanguage,
   useStudySpeech,
@@ -25,6 +26,7 @@ export const SpeakerButton: React.FC<SpeakerButtonProps> = ({
   isDark,
   speakOptions,
 }) => {
+  const { t } = useTranslation();
   const { stop, pause, resume, isSpeaking, isPaused } = useSpeech();
   const { handleSpeech: speakWithStudyMode } = useStudySpeech();
   const {
@@ -51,11 +53,18 @@ export const SpeakerButton: React.FC<SpeakerButtonProps> = ({
       if (isMuted && Platform.OS === "ios") {
         // Show alert when silent switch is on
         Alert.alert(
-          "Silent Mode is On",
-          "Your device is in silent mode. Please turn off the silent switch to hear the audio.",
+          t("studyMode.speech.silentModeTitle", {
+            defaultValue: "Silent Mode is On",
+          }),
+          t("studyMode.speech.silentModeMessage", {
+            defaultValue:
+              "Your device is in silent mode. Please turn off the silent switch to hear the speech.",
+          }),
           [
             {
-              text: "Play Anyway",
+              text: t("studyMode.speech.playAnyway", {
+                defaultValue: "Play Anyway",
+              }),
               onPress: async () => {
                 // User wants to play anyway (they might adjust volume during playback)
                 await speakWithStudyMode(
@@ -67,7 +76,9 @@ export const SpeakerButton: React.FC<SpeakerButtonProps> = ({
               },
             },
             {
-              text: "Cancel",
+              text: t("common.cancel", {
+                defaultValue: "Cancel",
+              }),
               style: "cancel",
             },
           ]
@@ -91,6 +102,7 @@ export const SpeakerButton: React.FC<SpeakerButtonProps> = ({
     stop,
     pause,
     resume,
+    t,
   ]);
 
   // Cleanup: stop speech when component unmounts

@@ -44,8 +44,8 @@ describe("language settings store", () => {
     await AsyncStorage.clear();
     useLanguageSettingsStore.setState({
       mode: "system",
-      systemLanguage: "en",
-      effectiveLanguage: "en",
+      systemLanguage: "en-US",
+      effectiveLanguage: "en-US",
       nationality: {
         isKorean: false,
         regionCode: null,
@@ -54,7 +54,7 @@ describe("language settings store", () => {
       },
       _initialized: false,
     });
-    await i18n.changeLanguage("en");
+    await i18n.changeLanguage("en-US");
   });
 
   it("identifies Korean nationality from region even when language is English", () => {
@@ -71,11 +71,41 @@ describe("language settings store", () => {
   });
 
   it("resolves supported system languages and falls back to English", () => {
+    expect(resolveSystemLanguage([makeLocale("en-US", "en", "US")])).toBe(
+      "en-US",
+    );
+    expect(resolveSystemLanguage([makeLocale("en-GB", "en", "GB")])).toBe(
+      "en-GB",
+    );
+    expect(resolveSystemLanguage([makeLocale("en-AU", "en", "AU")])).toBe(
+      "en-US",
+    );
+    expect(resolveSystemLanguage([makeLocale("en", "en", null)])).toBe(
+      "en-US",
+    );
     expect(resolveSystemLanguage([makeLocale("ja-JP", "ja", "JP")])).toBe(
       "ja",
     );
     expect(resolveSystemLanguage([makeLocale("fr-FR", "fr", "FR")])).toBe(
-      "en",
+      "fr",
+    );
+    expect(resolveSystemLanguage([makeLocale("es-ES", "es", "ES")])).toBe(
+      "es",
+    );
+    expect(resolveSystemLanguage([makeLocale("ru-RU", "ru", "RU")])).toBe(
+      "ru",
+    );
+    expect(resolveSystemLanguage([makeLocale("de-DE", "de", "DE")])).toBe(
+      "de",
+    );
+    expect(resolveSystemLanguage([makeLocale("it-IT", "it", "IT")])).toBe(
+      "it",
+    );
+    expect(resolveSystemLanguage([makeLocale("hi-IN", "hi", "IN")])).toBe(
+      "hi",
+    );
+    expect(resolveSystemLanguage([makeLocale("pt-BR", "pt", "BR")])).toBe(
+      "en-US",
     );
   });
 
@@ -92,7 +122,7 @@ describe("language settings store", () => {
 
     const state = useLanguageSettingsStore.getState();
     expect(state.mode).toBe("system");
-    expect(state.effectiveLanguage).toBe("en");
+    expect(state.effectiveLanguage).toBe("en-US");
     expect(await AsyncStorage.getItem(LANGUAGE_SETTINGS_STORAGE_KEY)).toContain(
       '"mode":"system"',
     );
@@ -107,6 +137,17 @@ describe("language settings store", () => {
     expect(state.mode).toBe("ko");
     expect(state.effectiveLanguage).toBe("ko");
     expect(i18n.language).toBe("ko");
+  });
+
+  it("migrates legacy English storage to US English", async () => {
+    await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, "en");
+
+    await hydrateLanguage();
+
+    const state = useLanguageSettingsStore.getState();
+    expect(state.mode).toBe("en-US");
+    expect(state.effectiveLanguage).toBe("en-US");
+    expect(i18n.language).toBe("en-US");
   });
 
   it("ignores system locale changes while manually locked", async () => {
