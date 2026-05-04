@@ -788,7 +788,7 @@ function VocabularyScreenContent() {
    */
   const handleDays = () => {
     resetMaskToDefault();
-    router.push({
+    router.dismissTo({
       pathname: "/course/[courseId]/days",
       params: { courseId },
     });

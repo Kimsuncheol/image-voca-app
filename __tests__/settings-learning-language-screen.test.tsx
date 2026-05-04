@@ -85,6 +85,9 @@ describe("SettingsLearningLanguageScreen", () => {
     );
     expect(screen.getByText("English")).toBeTruthy();
     expect(screen.getByText("Japanese")).toBeTruthy();
+    expect(screen.getByText("🇺🇸")).toBeTruthy();
+    expect(screen.getByText("🇯🇵")).toBeTruthy();
+    expect(screen.queryByTestId("icon-globe-outline")).toBeNull();
     expect(screen.queryByText("The language you wish to learn")).toBeNull();
     expect(screen.getByTestId("settings-learning-language-check-en")).toBeTruthy();
 

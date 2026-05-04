@@ -111,6 +111,18 @@ describe("SettingsLanguageScreen", () => {
     expect(screen.getByText("German")).toBeTruthy();
     expect(screen.getByText("Italian")).toBeTruthy();
     expect(screen.getByText("Hindi")).toBeTruthy();
+    expect(screen.getByText("🇺🇸")).toBeTruthy();
+    expect(screen.getByText("🇬🇧")).toBeTruthy();
+    expect(screen.getByText("🇰🇷")).toBeTruthy();
+    expect(screen.getByText("🇯🇵")).toBeTruthy();
+    expect(screen.getByText("🇪🇸")).toBeTruthy();
+    expect(screen.getByText("🇫🇷")).toBeTruthy();
+    expect(screen.getByText("🇷🇺")).toBeTruthy();
+    expect(screen.getByText("🇩🇪")).toBeTruthy();
+    expect(screen.getByText("🇮🇹")).toBeTruthy();
+    expect(screen.getByText("🇮🇳")).toBeTruthy();
+    expect(screen.getByTestId("icon-phone-portrait-outline")).toBeTruthy();
+    expect(screen.queryByTestId("icon-language-outline")).toBeNull();
     expect(screen.getByTestId("settings-language-check-system")).toBeTruthy();
 
     const containerStyle = StyleSheet.flatten(

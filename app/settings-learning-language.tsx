@@ -32,6 +32,10 @@ export default function SettingsLearningLanguageScreen() {
     en: "English",
     ja: "Japanese",
   };
+  const flags: Record<LearningLanguage, string> = {
+    en: "🇺🇸",
+    ja: "🇯🇵",
+  };
 
   const getLabel = (language: LearningLanguage) =>
     t(`settings.language.${language === "ja" ? "japanese" : "english"}`, {
@@ -66,11 +70,7 @@ export default function SettingsLearningLanguageScreen() {
                     }}
                   >
                     <View style={styles.optionLeft}>
-                      <Ionicons
-                        name="globe-outline"
-                        size={24}
-                        color={isDark ? "#fff" : "#333"}
-                      />
+                      <Text style={styles.flagText}>{flags[language]}</Text>
                       <Text style={styles.optionText}>{getLabel(language)}</Text>
                     </View>
                     {isSelected && (
@@ -143,6 +143,13 @@ const getStyles = (isDark: boolean) => {
       color: fontColors.screenTitle,
       fontSize: FontSizes.subhead,
       marginLeft: 8,
+    },
+    flagText: {
+      width: 24,
+      height: 24,
+      fontSize: 24,
+      lineHeight: 24,
+      textAlign: "center",
     },
     separator: {
       height: StyleSheet.hairlineWidth,

@@ -29,11 +29,13 @@ export default function SettingsLanguageScreen() {
   const mode = useLanguageSettingsStore((state) => state.mode);
   const styles = getStyles(isDark);
 
-  const options: {
+  const options: ({
     mode: LanguageMode;
     label: string;
-    icon: keyof typeof Ionicons.glyphMap;
-  }[] = [
+  } & (
+    | { icon: keyof typeof Ionicons.glyphMap; flag?: never }
+    | { flag: string; icon?: never }
+  ))[] = [
     {
       mode: "system",
       label: t("settings.language.systemDefault"),
@@ -42,52 +44,52 @@ export default function SettingsLanguageScreen() {
     {
       mode: "en-US",
       label: t("settings.language.englishUnitedStates"),
-      icon: "language-outline",
+      flag: "🇺🇸",
     },
     {
       mode: "en-GB",
       label: t("settings.language.englishUnitedKingdom"),
-      icon: "language-outline",
+      flag: "🇬🇧",
     },
     {
       mode: "ko",
       label: t("settings.language.korean"),
-      icon: "language-outline",
+      flag: "🇰🇷",
     },
     {
       mode: "ja",
       label: t("settings.language.japanese"),
-      icon: "language-outline",
+      flag: "🇯🇵",
     },
     {
       mode: "es",
       label: t("settings.language.spanish"),
-      icon: "language-outline",
+      flag: "🇪🇸",
     },
     {
       mode: "fr",
       label: t("settings.language.french"),
-      icon: "language-outline",
+      flag: "🇫🇷",
     },
     {
       mode: "ru",
       label: t("settings.language.russian"),
-      icon: "language-outline",
+      flag: "🇷🇺",
     },
     {
       mode: "de",
       label: t("settings.language.german"),
-      icon: "language-outline",
+      flag: "🇩🇪",
     },
     {
       mode: "it",
       label: t("settings.language.italian"),
-      icon: "language-outline",
+      flag: "🇮🇹",
     },
     {
       mode: "hi",
       label: t("settings.language.hindi"),
-      icon: "language-outline",
+      flag: "🇮🇳",
     },
   ];
 
@@ -127,11 +129,15 @@ export default function SettingsLanguageScreen() {
                   }}
                 >
                   <View style={styles.optionLeft}>
-                    <Ionicons
-                      name={option.icon}
-                      size={24}
-                      color={isDark ? "#fff" : "#333"}
-                    />
+                    {option.flag ? (
+                      <Text style={styles.flagText}>{option.flag}</Text>
+                    ) : (
+                      <Ionicons
+                        name={option.icon}
+                        size={24}
+                        color={isDark ? "#fff" : "#333"}
+                      />
+                    )}
                     <Text style={styles.optionText}>{option.label}</Text>
                   </View>
                   {mode === option.mode && (
@@ -203,6 +209,13 @@ const getStyles = (isDark: boolean) => {
       color: fontColors.screenTitle,
       fontSize: FontSizes.subhead,
       marginLeft: 8,
+    },
+    flagText: {
+      width: 24,
+      height: 24,
+      fontSize: 24,
+      lineHeight: 24,
+      textAlign: "center",
     },
     separator: {
       height: StyleSheet.hairlineWidth,
