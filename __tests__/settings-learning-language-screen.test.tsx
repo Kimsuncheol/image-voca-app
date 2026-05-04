@@ -55,6 +55,19 @@ jest.mock("../components/ads/TopBannerAd", () => {
   };
 });
 
+jest.mock("react-native-safe-area-context", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+
+  return {
+    SafeAreaView: ({ children, edges, style, testID }: any) => (
+      <View edges={edges} style={style} testID={testID}>
+        {children}
+      </View>
+    ),
+  };
+});
+
 jest.mock("../src/context/LearningLanguageContext", () => ({
   useLearningLanguage: () => ({
     learningLanguage: mockLearningLanguage,
@@ -98,6 +111,19 @@ describe("SettingsLearningLanguageScreen", () => {
       mockStackScreen.mock.calls[0][0].options.headerStyle,
     );
     expect(headerStyle.backgroundColor).toBe(containerStyle.backgroundColor);
+  });
+
+  it("uses bottom safe area for the learning-language list", () => {
+    const screen = render(<SettingsLearningLanguageScreen />);
+
+    expect(
+      screen.getByTestId("settings-learning-language-screen").props.edges,
+    ).toEqual(["bottom"]);
+    const scrollContentStyle = StyleSheet.flatten(
+      screen.getByTestId("settings-learning-language-scroll").props
+        .contentContainerStyle,
+    );
+    expect(scrollContentStyle.flexGrow).toBe(1);
   });
 
   it("persists the selected learning language", async () => {

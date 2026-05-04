@@ -63,6 +63,19 @@ jest.mock("../components/ads/TopBannerAd", () => {
   };
 });
 
+jest.mock("react-native-safe-area-context", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+
+  return {
+    SafeAreaView: ({ children, edges, style, testID }: any) => (
+      <View edges={edges} style={style} testID={testID}>
+        {children}
+      </View>
+    ),
+  };
+});
+
 jest.mock("../src/context/ThemeContext", () => ({
   useTheme: () => ({
     isDark: false,
@@ -132,6 +145,19 @@ describe("SettingsLanguageScreen", () => {
       mockStackScreen.mock.calls[0][0].options.headerStyle,
     );
     expect(headerStyle.backgroundColor).toBe(containerStyle.backgroundColor);
+  });
+
+  it("keeps the final language options above the system navigation bar", () => {
+    const screen = render(<SettingsLanguageScreen />);
+
+    expect(screen.getByTestId("settings-language-screen").props.edges).toEqual([
+      "bottom",
+    ]);
+    const scrollContentStyle = StyleSheet.flatten(
+      screen.getByTestId("settings-language-scroll").props
+        .contentContainerStyle,
+    );
+    expect(scrollContentStyle.flexGrow).toBe(1);
   });
 
   it("persists the selected display language", async () => {

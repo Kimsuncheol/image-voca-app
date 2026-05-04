@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { TopBannerAd } from "../components/ads/TopBannerAd";
 import { getBackgroundColors } from "../constants/backgroundColors";
@@ -105,7 +106,11 @@ export default function SettingsLanguageScreen() {
   };
 
   return (
-    <View style={styles.container} testID="settings-language-screen">
+    <SafeAreaView
+      edges={["bottom"]}
+      style={styles.container}
+      testID="settings-language-screen"
+    >
       <Stack.Screen
         options={{
           title: t("settings.language.title"),
@@ -115,7 +120,9 @@ export default function SettingsLanguageScreen() {
       />
       <TopBannerAd includeTopInset={false} />
       <ScrollView
+        testID="settings-language-scroll"
         style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.section}>
@@ -157,7 +164,7 @@ export default function SettingsLanguageScreen() {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -179,6 +186,9 @@ const getStyles = (isDark: boolean) => {
     },
     scrollView: {
       flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
     },
     section: {
       marginTop: 16,
