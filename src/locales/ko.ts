@@ -503,8 +503,7 @@ const ko = {
       volumeMutedTitle: "음량이 음소거되어 있습니다",
       volumeMutedMessage:
         "음량이 꺼져 있어요. 음량을 올려 주세요.",
-      lowVolumeMessage:
-        "기기 음량이 낮습니다({{percentage}}%). 음성이 또렷하게 들리지 않을 수 있습니다.",
+      lowVolumeMessage: "음량이 낮아요({{percentage}}%). 음성이 작을 수 있어요.",
       silentModeTitle: "무음 모드가 켜져 있습니다",
       silentModeMessage: "무음 모드가 켜져 있어요. 해제해 주세요.",
       playAnyway: "그래도 재생",

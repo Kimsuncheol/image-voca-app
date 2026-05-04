@@ -53,8 +53,7 @@ const es: typeof en = {
       volumeMutedTitle: "El volumen está silenciado",
       volumeMutedMessage:
         "El volumen del dispositivo está en 0. Sube el volumen para escuchar la voz.",
-      lowVolumeMessage:
-        "El volumen del dispositivo es bajo ({{percentage}}%). Puede que no escuches la voz con claridad.",
+      lowVolumeMessage: "Volumen bajo ({{percentage}}%). La voz puede sonar baja.",
       silentModeTitle: "El modo silencioso está activado",
       silentModeMessage: "Modo silencioso activado. Desactívalo para escuchar la voz.",
       playAnyway: "Reproducir de todos modos",

@@ -53,8 +53,7 @@ const hi: typeof en = {
       volumeMutedTitle: "वॉल्यूम म्यूट है",
       volumeMutedMessage:
         "आपके डिवाइस का वॉल्यूम 0 पर सेट है। वाणी सुनने के लिए वॉल्यूम बढ़ाएं।",
-      lowVolumeMessage:
-        "डिवाइस का वॉल्यूम कम है ({{percentage}}%). हो सकता है कि वाणी साफ़ न सुनाई दे.",
+      lowVolumeMessage: "वॉल्यूम कम है ({{percentage}}%). वाणी धीमी हो सकती है.",
       silentModeTitle: "साइलेंट मोड चालू है",
       silentModeMessage: "साइलेंट मोड चालू है। वाणी सुनने के लिए इसे बंद करें।",
       playAnyway: "फिर भी चलाएं",

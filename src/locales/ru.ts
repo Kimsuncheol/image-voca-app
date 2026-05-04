@@ -53,8 +53,7 @@ const ru: typeof en = {
       volumeMutedTitle: "Звук отключен",
       volumeMutedMessage:
         "Громкость устройства установлена на 0. Увеличьте громкость, чтобы услышать речь.",
-      lowVolumeMessage:
-        "Громкость устройства низкая ({{percentage}}%). Речь может быть слышна нечетко.",
+      lowVolumeMessage: "Низкая громкость ({{percentage}}%). Речь может быть тихой.",
       silentModeTitle: "Включен беззвучный режим",
       silentModeMessage: "Беззвучный режим включен. Отключите его, чтобы слышать речь.",
       playAnyway: "Все равно воспроизвести",

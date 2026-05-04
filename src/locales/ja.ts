@@ -498,8 +498,7 @@ const ja = {
       volumeMutedTitle: "音量がミュートされています",
       volumeMutedMessage:
         "音量がミュートです。音量を上げてください。",
-      lowVolumeMessage:
-        "端末の音量が低くなっています（{{percentage}}%）。音声がはっきり聞こえない場合があります。",
+      lowVolumeMessage: "音量が低いです（{{percentage}}%）。音声が小さい場合があります。",
       silentModeTitle: "サイレントモードがオンです",
       silentModeMessage: "サイレントモードです。解除してください。",
       playAnyway: "それでも再生",

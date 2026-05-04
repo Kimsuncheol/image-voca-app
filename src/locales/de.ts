@@ -53,8 +53,7 @@ const de: typeof en = {
       volumeMutedTitle: "Lautstärke ist stummgeschaltet",
       volumeMutedMessage:
         "Die Gerätelautstärke ist auf 0 eingestellt. Erhöhe die Lautstärke, um die Sprache zu hören.",
-      lowVolumeMessage:
-        "Die Gerätelautstärke ist niedrig ({{percentage}}%). Du hörst die Sprache möglicherweise nicht deutlich.",
+      lowVolumeMessage: "Niedrige Lautstärke ({{percentage}}%). Sprache kann leise sein.",
       silentModeTitle: "Stummmodus ist aktiviert",
       silentModeMessage: "Stummmodus ist an. Schalte ihn aus, um Sprache zu hören.",
       playAnyway: "Trotzdem abspielen",

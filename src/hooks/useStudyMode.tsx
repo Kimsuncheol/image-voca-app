@@ -159,8 +159,7 @@ function useSmartStudySpeech(): StudyModeReturn {
       const percentage = Math.round(volume * 100);
       const message = t("studyMode.speech.lowVolumeMessage", {
         percentage,
-        defaultValue:
-          "Device volume is low ({{percentage}}%). You may not hear the speech clearly.",
+        defaultValue: "Low volume ({{percentage}}%). Speech may be quiet.",
       });
 
       showSpeechToast(message);
