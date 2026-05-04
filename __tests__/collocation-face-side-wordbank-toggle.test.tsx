@@ -185,7 +185,10 @@ describe("Collocation FaceSide word bank toggle", () => {
 
     expect(screen.getByTestId("collocation-face-mask-toggle-button")).toBeTruthy();
     expect(screen.getByText("Mask")).toBeTruthy();
-    expect(renderedTree.indexOf("mock_synonym_1")).toBeLessThan(
+    expect(renderedTree).not.toContain("mock_synonym_1");
+    expect(renderedTree).not.toContain("mock_synonym_2");
+    expect(screen.queryByTestId("collocation-face-synonyms-section")).toBeNull();
+    expect(renderedTree.indexOf("make a decision")).toBeLessThan(
       renderedTree.indexOf("collocation-face-mask-toggle"),
     );
 
@@ -198,6 +201,64 @@ describe("Collocation FaceSide word bank toggle", () => {
     expect(stopPropagation).toHaveBeenCalledTimes(1);
     expect(onMaskChange).toHaveBeenCalledWith(true);
     expect(onFlip).not.toHaveBeenCalled();
+  });
+
+  it("renders real collocation synonyms when provided", () => {
+    const screen = render(
+      <FaceSide
+        data={{
+          collocation: "make a decision",
+          meaning: "결정을 내리다",
+          explanation: "",
+          example: "She made a decision quickly.",
+          translation: "그녀는 빨리 결정을 내렸다.",
+          imageUrl: "https://cdn.example.com/collocation.png",
+          synonyms: ["decide", " choose ", "", "resolve"],
+        }}
+        isDark={false}
+      />,
+    );
+
+    expect(screen.getByTestId("collocation-face-synonyms-section")).toBeTruthy();
+    expect(screen.getByTestId("collocation-face-synonyms").props.children).toBe(
+      "decide, choose, resolve",
+    );
+  });
+
+  it("masks collocation synonyms when configured", () => {
+    const screen = render(
+      <FaceSide
+        data={{
+          collocation: "make a decision",
+          meaning: "결정을 내리다",
+          explanation: "",
+          example: "She made a decision quickly.",
+          translation: "그녀는 빨리 결정을 내렸다.",
+          imageUrl: "https://cdn.example.com/collocation.png",
+          synonyms: ["decide", "choose"],
+        }}
+        isDark={false}
+        isReviewMode
+        reviewMaskTarget="synonym"
+      />,
+    );
+
+    expect(
+      StyleSheet.flatten(screen.getByText("make a decision").props.style),
+    ).not.toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(
+      StyleSheet.flatten(screen.getByTestId("collocation-face-synonyms").props.style),
+    ).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
   });
 
   it("masks collocation meaning instead of word when configured", () => {

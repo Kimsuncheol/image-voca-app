@@ -23,6 +23,7 @@ import type { ReviewMaskTarget } from "../src/services/speechPreferences";
 const REVIEW_MASK_OPTIONS: ReviewMaskTarget[] = [
   "word-pronunciation",
   "meaning",
+  "synonym",
   "all",
 ];
 

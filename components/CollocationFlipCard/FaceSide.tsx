@@ -126,6 +126,11 @@ export default React.memo(function FaceSide({
     reviewMaskTarget,
     "meaning",
   );
+  const maskSynonym = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "synonym",
+  );
 
   React.useEffect(() => {
     if (!data.imageUrl) onImageLoad?.();
@@ -147,6 +152,10 @@ export default React.memo(function FaceSide({
   );
   const isDeleteMode = wordBankConfig?.isDeleteMode === true;
   const isSelected = wordBankConfig?.isSelected === true;
+  const formattedSynonyms = React.useMemo(
+    () => formatSynonyms(data.synonyms),
+    [data.synonyms],
+  );
 
   // Calculate dynamic font size based on collocation text length
   const dynamicFontSize = React.useMemo(() => {
@@ -388,22 +397,31 @@ export default React.memo(function FaceSide({
           </View>
 
           {/* Section: Synonyms */}
-          <View style={styles.faceSynonymsContainer}>
-            <SynonymChip
-              backgroundColor={bgColors.learningCardChip}
-              borderColor={fontColors.learningCardDividerMuted}
-              color={fontColors.learningCardChipText}
-            />
-            <Text
-              style={[
-                styles.faceSynonymsText,
-                { color: fontColors.learningCardMuted, flex: 1 }
-              ]}
-              numberOfLines={2}
+          {formattedSynonyms ? (
+            <View
+              testID="collocation-face-synonyms-section"
+              style={styles.faceSynonymsContainer}
             >
-              {formatSynonyms(data.synonyms?.length ? data.synonyms : ["mock_synonym_1", "mock_synonym_2"])}
-            </Text>
-          </View>
+              <SynonymChip
+                backgroundColor={bgColors.learningCardChip}
+                borderColor={fontColors.learningCardDividerMuted}
+                color={fontColors.learningCardChipText}
+              />
+              <Text
+                testID="collocation-face-synonyms"
+                style={[
+                  styles.faceSynonymsText,
+                  maskSynonym
+                    ? getReviewTapeTextStyle(isDark)
+                    : { color: fontColors.learningCardMuted },
+                  { flex: 1 },
+                ]}
+                numberOfLines={2}
+              >
+                {formattedSynonyms}
+              </Text>
+            </View>
+          ) : null}
 
           <View style={styles.faceMaskToggleRow}>
             <MaskVisibilityToggle

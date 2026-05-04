@@ -77,6 +77,11 @@ export function SwipeCardItemExampleSentenceSection({
     reviewMaskTarget,
     "example",
   );
+  const maskSynonym = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "synonym",
+  );
 
   const handleSpeak = React.useCallback(
     async (text: string) => {
@@ -170,7 +175,9 @@ export function SwipeCardItemExampleSentenceSection({
               testID="swipe-card-synonyms"
               style={[
                 styles.cardSynonyms,
-                { color: fontColors.learningCardSecondary },
+                maskSynonym
+                  ? getReviewTapeTextStyle(isDark)
+                  : { color: fontColors.learningCardSecondary },
               ]}
               numberOfLines={2}
             >

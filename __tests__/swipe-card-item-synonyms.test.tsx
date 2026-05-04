@@ -175,4 +175,29 @@ describe("SwipeCardItem synonyms", () => {
       }),
     );
   });
+
+  it("masks TOEFL synonyms when synonym masking is selected", () => {
+    const { getByTestId, getByText } = render(
+      <SwipeCardItem
+        item={buildCard()}
+        isReviewMode
+        reviewMaskTarget="synonym"
+      />,
+    );
+
+    expect(
+      StyleSheet.flatten(getByText("/əˈbæn.dən/").props.style),
+    ).not.toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(StyleSheet.flatten(getByTestId("swipe-card-synonyms").props.style)).toEqual(
+      expect.objectContaining({
+        color: "transparent",
+        backgroundColor: "transparent",
+      }),
+    );
+  });
 });

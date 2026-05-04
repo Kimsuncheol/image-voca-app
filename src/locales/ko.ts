@@ -113,6 +113,7 @@ const ko = {
       maskTargets: {
         "word-pronunciation": "단어",
         meaning: "뜻",
+        synonym: "동의어",
         all: "전체",
       },
       saveFailed:

@@ -2,7 +2,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type SpeechPreferenceLanguage = "en" | "ja";
 export type SpeechSpeedPreset = "slow" | "normal" | "fast";
-export type ReviewMaskTarget = "word-pronunciation" | "meaning" | "all";
+export type ReviewMaskTarget =
+  | "word-pronunciation"
+  | "meaning"
+  | "synonym"
+  | "all";
 
 export interface SpeechSpeedPreferences {
   en: SpeechSpeedPreset;
@@ -76,7 +80,10 @@ const isSpeechSpeedPreset = (value: unknown): value is SpeechSpeedPreset =>
 export const isReviewMaskTarget = (
   value: unknown,
 ): value is ReviewMaskTarget =>
-  value === "word-pronunciation" || value === "meaning" || value === "all";
+  value === "word-pronunciation" ||
+  value === "meaning" ||
+  value === "synonym" ||
+  value === "all";
 
 export const getDefaultSpeechSpeedPreset = (
   _language: SpeechPreferenceLanguage,

@@ -110,6 +110,7 @@ const ja = {
       maskTargets: {
         "word-pronunciation": "単語",
         meaning: "意味",
+        synonym: "類義語",
         all: "すべて",
       },
       saveFailed:

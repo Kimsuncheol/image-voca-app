@@ -54,7 +54,15 @@ describe("reviewMasking", () => {
     ).toBe(false);
     expect(shouldMaskReviewContent(true, "meaning", "meaning")).toBe(true);
     expect(shouldMaskReviewContent(true, "meaning", "word")).toBe(false);
+    expect(shouldMaskReviewContent(true, "synonym", "synonym")).toBe(true);
+    expect(shouldMaskReviewContent(true, "synonym", "word")).toBe(false);
+    expect(shouldMaskReviewContent(true, "synonym", "pronunciation")).toBe(
+      false,
+    );
+    expect(shouldMaskReviewContent(true, "synonym", "example")).toBe(false);
+    expect(shouldMaskReviewContent(true, "synonym", "meaning")).toBe(false);
     expect(shouldMaskReviewContent(true, "all", "meaning")).toBe(true);
+    expect(shouldMaskReviewContent(true, "all", "synonym")).toBe(true);
     expect(shouldMaskReviewContent(false, "all", "meaning")).toBe(false);
   });
 });

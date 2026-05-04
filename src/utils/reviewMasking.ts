@@ -10,7 +10,8 @@ export type ReviewMaskField =
   | "word"
   | "pronunciation"
   | "meaning"
-  | "example";
+  | "example"
+  | "synonym";
 
 const MASK_START = "[[[";
 const MASK_END = "]]]";
@@ -77,6 +78,10 @@ export function shouldMaskReviewContent(
 
   if (reviewMaskTarget === "meaning") {
     return field === "meaning";
+  }
+
+  if (reviewMaskTarget === "synonym") {
+    return field === "synonym";
   }
 
   return (

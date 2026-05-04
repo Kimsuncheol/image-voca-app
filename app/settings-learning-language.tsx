@@ -52,7 +52,10 @@ export default function SettingsLearningLanguageScreen() {
         }}
       />
       <TopBannerAd includeTopInset={false} />
-      <ScrollView style={styles.scrollView}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{title}</Text>
           <View style={styles.card}>

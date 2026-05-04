@@ -307,6 +307,18 @@ describe("speechPreferences", () => {
     });
   });
 
+  it("accepts synonym as a vocabulary speech mask target", () => {
+    expect(
+      normalizeVocabularySpeechPreferences({
+        autoSpeakVocabulary: true,
+        reviewMaskTarget: "synonym",
+      }),
+    ).toEqual({
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: "synonym",
+    });
+  });
+
   it("updates vocabulary auto speech and mask target independently", async () => {
     await expect(setAutoSpeakVocabularyPreference(false)).resolves.toEqual({
       preferences: {
@@ -335,7 +347,7 @@ describe("speechPreferences", () => {
       exists: () => true,
       data: () => ({
         autoSpeakVocabulary: false,
-        reviewMaskTarget: "meaning",
+        reviewMaskTarget: "synonym",
       }),
     });
 
@@ -343,7 +355,7 @@ describe("speechPreferences", () => {
       hydrateVocabularySpeechPreferencesForUser("user-1"),
     ).resolves.toEqual({
       autoSpeakVocabulary: false,
-      reviewMaskTarget: "meaning",
+      reviewMaskTarget: "synonym",
     });
 
     expect(mockDoc).toHaveBeenCalledWith(
@@ -355,7 +367,7 @@ describe("speechPreferences", () => {
     );
     expect(await getVocabularySpeechPreferences()).toEqual({
       autoSpeakVocabulary: false,
-      reviewMaskTarget: "meaning",
+      reviewMaskTarget: "synonym",
     });
   });
 
@@ -385,11 +397,11 @@ describe("speechPreferences", () => {
     );
 
     await expect(
-      setReviewMaskTargetPreferenceForUser("user-1", "all"),
+      setReviewMaskTargetPreferenceForUser("user-1", "synonym"),
     ).resolves.toEqual({
       preferences: {
         autoSpeakVocabulary: false,
-        reviewMaskTarget: "all",
+        reviewMaskTarget: "synonym",
       },
       persistedLocally: true,
     });
@@ -399,11 +411,11 @@ describe("speechPreferences", () => {
     const listener = jest.fn();
     const unsubscribe = subscribeToVocabularySpeechPreferences(listener);
 
-    await setReviewMaskTargetPreference("meaning");
+    await setReviewMaskTargetPreference("synonym");
 
     expect(listener).toHaveBeenCalledWith({
       autoSpeakVocabulary: true,
-      reviewMaskTarget: "meaning",
+      reviewMaskTarget: "synonym",
     });
 
     unsubscribe();

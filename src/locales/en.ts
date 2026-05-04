@@ -114,6 +114,7 @@ const en = {
       maskTargets: {
         "word-pronunciation": "Word",
         meaning: "Meaning",
+        synonym: "Synonym",
         all: "All",
       },
       saveFailed:

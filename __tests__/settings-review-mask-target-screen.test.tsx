@@ -37,6 +37,7 @@ jest.mock("react-i18next", () => ({
         "settings.speech.reviewMaskTarget": "Mask target",
         "settings.speech.maskTargets.word-pronunciation": "Word",
         "settings.speech.maskTargets.meaning": "Meaning",
+        "settings.speech.maskTargets.synonym": "Synonym",
         "settings.speech.maskTargets.all": "All",
         "settings.speech.saveFailed": "Could not save.",
         "common.error": "Error",
@@ -84,6 +85,7 @@ describe("SettingsReviewMaskTargetScreen", () => {
     expect(screen.getByTestId("top-banner-ad").props.children).toBe("false");
     expect(screen.getByText("Word")).toBeTruthy();
     expect(screen.getByText("Meaning")).toBeTruthy();
+    expect(screen.getByText("Synonym")).toBeTruthy();
     expect(screen.getByText("All")).toBeTruthy();
     expect(
       screen.getByTestId(
@@ -125,6 +127,18 @@ describe("SettingsReviewMaskTargetScreen", () => {
 
     await waitFor(() => {
       expect(mockSetReviewMaskTarget).toHaveBeenCalledWith("meaning");
+    });
+  });
+
+  it("persists Synonym as the synonym target", async () => {
+    const screen = render(<SettingsReviewMaskTargetScreen />);
+
+    fireEvent.press(
+      screen.getByTestId("settings-review-mask-target-option-synonym"),
+    );
+
+    await waitFor(() => {
+      expect(mockSetReviewMaskTarget).toHaveBeenCalledWith("synonym");
     });
   });
 });

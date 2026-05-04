@@ -50,6 +50,7 @@ const translations: Record<string, string> = {
   "settings.speech.reviewMaskTarget": "Mask target",
   "settings.speech.maskTargets.word-pronunciation": "Word",
   "settings.speech.maskTargets.meaning": "Meaning",
+  "settings.speech.maskTargets.synonym": "Synonym",
   "settings.speech.maskTargets.all": "All",
   "settings.speech.saveFailed":
     "Speech speed changed for now, but could not be saved on this device.",
