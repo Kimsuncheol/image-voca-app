@@ -35,7 +35,7 @@ jest.mock("react-i18next", () => ({
     ) => {
       const translations: Record<string, string> = {
         "studyMode.speech.volumeMutedMessage":
-          "Your device volume is set to 0. Please increase the volume to hear the speech.",
+          "Volume is muted. Turn it up to hear speech.",
         "studyMode.speech.lowVolumeMessage":
           "Device volume is low ({{percentage}}%). You may not hear the speech clearly.",
       };
@@ -152,7 +152,7 @@ describe("useStudyMode", () => {
 
     await waitFor(() => {
       expect(toastSpy).toHaveBeenCalledWith(
-        expect.stringContaining("hear the speech"),
+        "Volume is muted. Turn it up to hear speech.",
         ToastAndroid.SHORT,
       );
       expect(alertSpy).not.toHaveBeenCalled();
@@ -173,7 +173,7 @@ describe("useStudyMode", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("volume-hint").props.children).toContain(
-        "hear the speech",
+        "Volume is muted. Turn it up to hear speech.",
       );
       expect(alertSpy).not.toHaveBeenCalled();
       expect(mockSpeak).not.toHaveBeenCalled();

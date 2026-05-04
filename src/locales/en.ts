@@ -507,12 +507,11 @@ const en = {
     speech: {
       volumeMutedTitle: "Volume is Muted",
       volumeMutedMessage:
-        "Your device volume is set to 0. Please increase the volume to hear the speech.",
+        "Volume is muted. Turn it up to hear speech.",
       lowVolumeMessage:
         "Device volume is low ({{percentage}}%). You may not hear the speech clearly.",
       silentModeTitle: "Silent Mode is On",
-      silentModeMessage:
-        "Your device is in silent mode. Please turn off the silent switch to hear the speech.",
+      silentModeMessage: "Silent mode is on. Turn it off for speech.",
       playAnyway: "Play Anyway",
     },
   },

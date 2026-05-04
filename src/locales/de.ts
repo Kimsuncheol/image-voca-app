@@ -56,8 +56,7 @@ const de: typeof en = {
       lowVolumeMessage:
         "Die Gerätelautstärke ist niedrig ({{percentage}}%). Du hörst die Sprache möglicherweise nicht deutlich.",
       silentModeTitle: "Stummmodus ist aktiviert",
-      silentModeMessage:
-        "Dein Gerät ist im Stummmodus. Deaktiviere den Stummschalter, um die Sprache zu hören.",
+      silentModeMessage: "Stummmodus ist an. Schalte ihn aus, um Sprache zu hören.",
       playAnyway: "Trotzdem abspielen",
     },
   },

@@ -497,12 +497,11 @@ const ja = {
     speech: {
       volumeMutedTitle: "音量がミュートされています",
       volumeMutedMessage:
-        "端末の音量が0に設定されています。音声を聞くには音量を上げてください。",
+        "音量がミュートです。音量を上げてください。",
       lowVolumeMessage:
         "端末の音量が低くなっています（{{percentage}}%）。音声がはっきり聞こえない場合があります。",
       silentModeTitle: "サイレントモードがオンです",
-      silentModeMessage:
-        "端末がサイレントモードです。音声を聞くにはサイレントスイッチをオフにしてください。",
+      silentModeMessage: "サイレントモードです。解除してください。",
       playAnyway: "それでも再生",
     },
   },

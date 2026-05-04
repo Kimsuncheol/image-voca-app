@@ -3,12 +3,13 @@ import {
   activateKeepAwakeAsync,
   deactivateKeepAwake,
 } from "expo-keep-awake";
-import * as NavigationBar from "expo-navigation-bar";
 import type {
   NavigationBarBehavior,
   NavigationBarVisibility,
 } from "expo-navigation-bar";
+import * as NavigationBar from "expo-navigation-bar";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Platform,
   StyleSheet,
@@ -16,7 +17,6 @@ import {
   ToastAndroid,
   View,
 } from "react-native";
-import { useTranslation } from "react-i18next";
 import type { SpeechOptions } from "../services/speechService";
 import { useSpeech } from "./useSpeech";
 
@@ -139,6 +139,8 @@ function useSmartStudySpeech(): StudyModeReturn {
   const showSpeechToast = React.useCallback((message: string) => {
     if (Platform.OS === "android") {
       ToastAndroid.show(message, ToastAndroid.SHORT);
+      ToastAndroid.showWithGravity(message, ToastAndroid.SHORT, ToastAndroid.CENTER);
+      ToastAndroid.showWithGravityAndOffset(message, ToastAndroid.SHORT, ToastAndroid.BOTTOM, 0, 100);
       return;
     }
 
@@ -182,7 +184,7 @@ function useSmartStudySpeech(): StudyModeReturn {
         showSpeechToast(
           t("studyMode.speech.volumeMutedMessage", {
             defaultValue:
-              "Your device volume is set to 0. Please increase the volume to hear the speech.",
+              "Volume is muted. Turn it up to hear speech.",
           }),
         );
         return;

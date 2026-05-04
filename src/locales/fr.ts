@@ -56,8 +56,7 @@ const fr: typeof en = {
       lowVolumeMessage:
         "Le volume de l'appareil est faible ({{percentage}}%). Vous risquez de ne pas entendre clairement la voix.",
       silentModeTitle: "Le mode silencieux est activé",
-      silentModeMessage:
-        "Votre appareil est en mode silencieux. Désactivez le commutateur silencieux pour entendre la voix.",
+      silentModeMessage: "Mode silencieux activé. Désactivez-le pour entendre la voix.",
       playAnyway: "Lire quand même",
     },
   },

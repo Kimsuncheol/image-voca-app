@@ -56,8 +56,7 @@ const hi: typeof en = {
       lowVolumeMessage:
         "डिवाइस का वॉल्यूम कम है ({{percentage}}%). हो सकता है कि वाणी साफ़ न सुनाई दे.",
       silentModeTitle: "साइलेंट मोड चालू है",
-      silentModeMessage:
-        "आपका डिवाइस साइलेंट मोड में है। वाणी सुनने के लिए साइलेंट स्विच बंद करें।",
+      silentModeMessage: "साइलेंट मोड चालू है। वाणी सुनने के लिए इसे बंद करें।",
       playAnyway: "फिर भी चलाएं",
     },
   },

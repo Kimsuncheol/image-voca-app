@@ -56,8 +56,7 @@ const it: typeof en = {
       lowVolumeMessage:
         "Il volume del dispositivo è basso ({{percentage}}%). Potresti non sentire chiaramente la voce.",
       silentModeTitle: "La modalità silenziosa è attiva",
-      silentModeMessage:
-        "Il dispositivo è in modalità silenziosa. Disattiva l'interruttore silenzioso per ascoltare la voce.",
+      silentModeMessage: "Modalità silenziosa attiva. Disattivala per ascoltare la voce.",
       playAnyway: "Riproduci comunque",
     },
   },
