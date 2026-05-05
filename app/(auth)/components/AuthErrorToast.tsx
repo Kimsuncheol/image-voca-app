@@ -18,11 +18,13 @@ const TOAST_ANIMATION_MS = 160;
 interface AuthErrorToastProps {
   message?: string | null;
   onClose?: () => void;
+  floating?: boolean;
 }
 
 export const AuthErrorToast: React.FC<AuthErrorToastProps> = ({
   message,
   onClose,
+  floating = false,
 }) => {
   const { isDark } = useTheme();
   const styles = getStyles(isDark);
@@ -77,7 +79,7 @@ export const AuthErrorToast: React.FC<AuthErrorToastProps> = ({
 
   return (
     <Animated.View
-      style={[styles.toast, animatedStyle]}
+      style={[styles.toast, floating && styles.floatingToast, animatedStyle]}
       accessibilityRole="alert"
     >
       <Ionicons
@@ -116,6 +118,21 @@ const getStyles = (isDark: boolean) => {
       borderWidth: 1,
       backgroundColor: bg.accentRedDeep,
       borderColor: fontColors.errorBannerBorder,
+    },
+    floatingToast: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 20,
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 8,
+      },
+      shadowOpacity: 0.14,
+      shadowRadius: 16,
+      elevation: 8,
     },
     icon: {
       marginRight: 8,

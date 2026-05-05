@@ -1,6 +1,5 @@
 // --- Imports ---
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { FirebaseError } from "firebase/app";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -165,19 +164,14 @@ export default function LoginScreen() {
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"
     >
-      {/* --- Section: Header --- */}
-      <View style={styles.headerContainer}>
-        <Image
-          source={require("../../assets/images/icon.png")}
-          style={styles.logo}
-          contentFit="contain"
-        />
-      </View>
-
       {/* --- Section: Login Form --- */}
       <View style={styles.cardContainer}>
         <View style={styles.formContainer}>
-          <AuthErrorToast message={authError} onClose={clearLoginError} />
+          <AuthErrorToast
+            message={authError}
+            onClose={clearLoginError}
+            floating
+          />
 
           <FormInput
             icon="mail-outline"
@@ -265,22 +259,14 @@ const getStyles = (isDark: boolean) => {
       justifyContent: "center",
       paddingTop: 60,
     },
-    headerContainer: {
-      marginBottom: 40,
-      alignItems: "center",
-    },
-    logo: {
-      width: 80,
-      height: 80,
-      marginBottom: 24,
-      borderRadius: 20,
-    },
     cardContainer: {
       padding: 24,
       backgroundColor: "transparent",
     },
     formContainer: {
       marginBottom: 24,
+      position: "relative",
+      paddingTop: 48,
     },
     optionsContainer: {
       flexDirection: "column",
