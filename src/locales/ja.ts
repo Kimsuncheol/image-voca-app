@@ -410,6 +410,10 @@ const ja = {
       invalidEmail: "有効なメールアドレスを入力してください",
     },
     login: {
+      steps: {
+        email: "メール",
+        password: "パスワード",
+      },
       emailPlaceholder: "メール",
       passwordPlaceholder: "パスワード",
       rememberMe: "ログイン状態を保持",
@@ -422,6 +426,11 @@ const ja = {
       signUp: "新規登録",
     },
     register: {
+      steps: {
+        account: "アカウント",
+        security: "セキュリティ",
+        preferences: "設定",
+      },
       title: "アカウント作成",
       subtitle: "始めるには登録してください",
       avatarLabel: "プロフィール写真を追加（任意）",

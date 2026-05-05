@@ -148,6 +148,32 @@ describe("VerifyEmailScreen", () => {
     });
   });
 
+  it("dismisses verification errors from the toast", async () => {
+    mockRefreshAuthUser.mockResolvedValueOnce(undefined);
+    const screen = render(<VerifyEmailScreen />);
+
+    fireEvent.press(screen.getByText("I verified my email"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "This email is still unverified. Open the link in your inbox and try again.",
+        ),
+      ).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByLabelText("Close"));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(
+          "This email is still unverified. Open the link in your inbox and try again.",
+        ),
+      ).toBeNull();
+    });
+    expect(mockClearAuthError).toHaveBeenCalled();
+  });
+
   it("signs out and returns to login when using another account", async () => {
     const screen = render(<VerifyEmailScreen />);
 

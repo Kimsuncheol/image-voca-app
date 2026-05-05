@@ -260,6 +260,43 @@ describe("PasswordResetFlow", () => {
     });
   });
 
+  it("dismisses password reset errors from the toast", async () => {
+    mockSearchParams = { mode: "resetPassword", oobCode: "test-code" };
+
+    const { getByLabelText, getByPlaceholderText, getByText, queryByText } =
+      render(
+        <PasswordResetFlow
+          variant="forgot"
+          initialEmail=""
+          emailEditable={true}
+          redirectAfterSuccess="/(auth)/login"
+        />,
+      );
+
+    await waitFor(() => {
+      expect(mockVerifyPasswordResetCode).toHaveBeenCalled();
+    });
+    await flushMicrotasks();
+    await flushMicrotasks();
+
+    fireEvent.changeText(getByPlaceholderText("New Password"), "Password1!");
+    fireEvent.changeText(
+      getByPlaceholderText("Confirm New Password"),
+      "Password2!",
+    );
+    fireEvent.press(getByText("Reset Password"));
+
+    await waitFor(() => {
+      expect(getByText("Passwords do not match.")).toBeTruthy();
+    });
+
+    fireEvent.press(getByLabelText("Close"));
+
+    await waitFor(() => {
+      expect(queryByText("Passwords do not match.")).toBeNull();
+    });
+  });
+
   it("blocks reset when password constraints are not met", async () => {
     mockSearchParams = { mode: "resetPassword", oobCode: "test-code" };
 

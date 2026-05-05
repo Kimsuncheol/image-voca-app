@@ -5,14 +5,13 @@ import { sendEmailVerification, signOut } from "firebase/auth";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FontSizes } from "@/constants/fontSizes";
+import { StyleSheet, Text, View } from "react-native";
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { ErrorBanner, LinkButton, PrimaryButton } from "./components";
+  AuthErrorToast,
+  AuthKeyboardScreen,
+  LinkButton,
+  PrimaryButton,
+} from "./components";
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext";
@@ -122,83 +121,82 @@ export default function VerifyEmailScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.content}>
-          <View style={styles.iconContainer}>
-            <Ionicons
-              name="mail-unread-outline"
-              size={80}
-              color={fontColors.iconBlue}
-            />
-          </View>
+    <AuthKeyboardScreen
+      containerStyle={styles.container}
+      contentContainerStyle={styles.scrollContent}
+    >
+      <View style={styles.content}>
+        <View style={styles.iconContainer}>
+          <Ionicons
+            name="mail-unread-outline"
+            size={80}
+            color={fontColors.iconBlue}
+          />
+        </View>
 
-          <Text style={styles.title}>{t("auth.verifyEmail.title")}</Text>
-          <Text style={styles.subtitle}>{t("auth.verifyEmail.subtitle")}</Text>
+        <Text style={styles.title}>{t("auth.verifyEmail.title")}</Text>
+        <Text style={styles.subtitle}>{t("auth.verifyEmail.subtitle")}</Text>
 
-          <View style={styles.emailCard}>
-            <Text style={styles.emailLabel}>{t("auth.verifyEmail.emailLabel")}</Text>
-            <Text style={styles.emailValue}>{user?.email ?? t("auth.verifyEmail.emailMissing")}</Text>
-          </View>
+        <View style={styles.emailCard}>
+          <Text style={styles.emailLabel}>{t("auth.verifyEmail.emailLabel")}</Text>
+          <Text style={styles.emailValue}>
+            {user?.email ?? t("auth.verifyEmail.emailMissing")}
+          </Text>
+        </View>
 
-          <View style={styles.alertContainer}>
-            <ErrorBanner
-              title={t("auth.errors.loginTitle")}
-              message={authError || localError}
-              onClose={() => {
-                clearAuthError();
-                setLocalError("");
-              }}
-            />
+        <View style={styles.alertContainer}>
+          <AuthErrorToast
+            message={authError || localError}
+            onClose={() => {
+              clearAuthError();
+              setLocalError("");
+            }}
+          />
 
-            {successMessage ? (
-              <View style={styles.successBanner}>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={20}
-                  color={fontColors.iconGreenSuccess}
-                  style={styles.successIcon}
-                />
-                <Text style={styles.successText}>{successMessage}</Text>
-              </View>
-            ) : null}
-          </View>
+          {successMessage ? (
+            <View style={styles.successBanner}>
+              <Ionicons
+                name="checkmark-circle"
+                size={20}
+                color={fontColors.iconGreenSuccess}
+                style={styles.successIcon}
+              />
+              <Text style={styles.successText}>{successMessage}</Text>
+            </View>
+          ) : null}
+        </View>
 
-          <View style={styles.buttonGroup}>
+        <View style={styles.buttonGroup}>
+          <PrimaryButton
+            title={t("auth.verifyEmail.verifiedAction")}
+            onPress={handleRefreshVerification}
+            loading={refreshing}
+            loadingTitle={t("auth.verifyEmail.checking")}
+          />
+
+          <View style={styles.secondaryActions}>
             <PrimaryButton
-              title={t("auth.verifyEmail.verifiedAction")}
-              onPress={handleRefreshVerification}
-              loading={refreshing}
-              loadingTitle={t("auth.verifyEmail.checking")}
+              title={
+                cooldownSeconds > 0
+                  ? t("auth.verifyEmail.resendCooldown", { seconds: cooldownSeconds })
+                  : t("auth.verifyEmail.resendAction")
+              }
+              onPress={handleResendVerification}
+              loading={resending}
+              loadingTitle={t("auth.verifyEmail.resending")}
+              disabled={cooldownSeconds > 0}
             />
+          </View>
 
-            <View style={styles.secondaryActions}>
-              <PrimaryButton
-                title={
-                  cooldownSeconds > 0
-                    ? t("auth.verifyEmail.resendCooldown", { seconds: cooldownSeconds })
-                    : t("auth.verifyEmail.resendAction")
-                }
-                onPress={handleResendVerification}
-                loading={resending}
-                loadingTitle={t("auth.verifyEmail.resending")}
-                disabled={cooldownSeconds > 0}
-              />
-            </View>
-
-            <View style={styles.footerAction}>
-              <LinkButton
-                text={t("auth.verifyEmail.useAnotherAccount")}
-                onPress={handleUseAnotherAccount}
-              />
-            </View>
+          <View style={styles.footerAction}>
+            <LinkButton
+              text={t("auth.verifyEmail.useAnotherAccount")}
+              onPress={handleUseAnotherAccount}
+            />
           </View>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </AuthKeyboardScreen>
   );
 }
 

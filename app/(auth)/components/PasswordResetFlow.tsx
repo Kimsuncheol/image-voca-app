@@ -13,20 +13,13 @@ import {
 } from "firebase/auth";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet, Text, View } from "react-native";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { auth } from "../../../src/services/firebase";
-import { ErrorBanner } from "./ErrorBanner";
+import { AuthErrorToast } from "./AuthErrorToast";
+import { AuthKeyboardScreen } from "./AuthKeyboardScreen";
 import { FormInput } from "./FormInput";
 import { LinkButton } from "./LinkButton";
 import { PasswordHints } from "./PasswordHints";
@@ -274,130 +267,126 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
   const showResetForm = !!verifiedCode;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.keyboardView}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={styles.headerContainer}>
-            <Text style={styles.title}>
-              {showResetForm
-                ? t("auth.passwordReset.newPasswordTitle")
-                : variant === "forgot"
-                  ? t("auth.passwordReset.forgotTitle")
-                  : t("auth.passwordReset.resetTitle")}
-            </Text>
-            <Text style={styles.subtitle}>
-              {showResetForm
-                ? t("auth.passwordReset.newPasswordSubtitle")
-                : variant === "forgot"
-                  ? t("auth.passwordReset.forgotSubtitle")
-                  : t("auth.passwordReset.resetSubtitle")}
-            </Text>
+    <AuthKeyboardScreen
+      containerStyle={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.headerContainer}>
+        <Text style={styles.title}>
+          {showResetForm
+            ? t("auth.passwordReset.newPasswordTitle")
+            : variant === "forgot"
+              ? t("auth.passwordReset.forgotTitle")
+              : t("auth.passwordReset.resetTitle")}
+        </Text>
+        <Text style={styles.subtitle}>
+          {showResetForm
+            ? t("auth.passwordReset.newPasswordSubtitle")
+            : variant === "forgot"
+              ? t("auth.passwordReset.forgotSubtitle")
+              : t("auth.passwordReset.resetSubtitle")}
+        </Text>
+      </View>
+
+      <View style={styles.formContainer}>
+        <AuthErrorToast
+          message={generalError}
+          onClose={() => setGeneralError("")}
+        />
+        {!!successMessage && (
+          <View style={styles.successBanner}>
+            <Text style={styles.successText}>{successMessage}</Text>
           </View>
+        )}
 
-          <View style={styles.formContainer}>
-            <ErrorBanner message={generalError} />
-            {!!successMessage && (
-              <View style={styles.successBanner}>
-                <Text style={styles.successText}>{successMessage}</Text>
-              </View>
-            )}
+        {isVerifyingCode && (
+          <Text style={styles.infoText}>
+            {t("auth.passwordReset.verifyingCode")}
+          </Text>
+        )}
 
-            {isVerifyingCode && (
-              <Text style={styles.infoText}>
-                {t("auth.passwordReset.verifyingCode")}
-              </Text>
-            )}
+        {!showResetForm && (
+          <>
+            <FormInput
+              icon="mail-outline"
+              placeholder={t("auth.passwordReset.emailPlaceholder")}
+              value={email}
+              onChangeText={setEmail}
+              editable={emailEditable}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              showValidation={true}
+              isTouched={email.length > 0}
+              isValid={isValidEmail}
+              errorMessage={t("auth.passwordReset.emailInvalid")}
+            />
 
-            {!showResetForm && (
-              <>
-                <FormInput
-                  icon="mail-outline"
-                  placeholder={t("auth.passwordReset.emailPlaceholder")}
-                  value={email}
-                  onChangeText={setEmail}
-                  editable={emailEditable}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  showValidation={true}
-                  isTouched={email.length > 0}
-                  isValid={isValidEmail}
-                  errorMessage={t("auth.passwordReset.emailInvalid")}
-                />
+            <PrimaryButton
+              title={t("auth.passwordReset.sendEmail")}
+              loading={isSendingEmail}
+              loadingTitle={t("auth.passwordReset.sendingEmail")}
+              onPress={handleSendVerificationEmail}
+            />
 
-                <PrimaryButton
-                  title={t("auth.passwordReset.sendEmail")}
-                  loading={isSendingEmail}
-                  loadingTitle={t("auth.passwordReset.sendingEmail")}
+            {emailSent && (
+              <View style={styles.helperContainer}>
+                <Text style={styles.helperText}>
+                  {t("auth.passwordReset.checkInbox")}
+                </Text>
+                <LinkButton
+                  text={t("auth.passwordReset.resendEmail")}
                   onPress={handleSendVerificationEmail}
                 />
-
-                {emailSent && (
-                  <View style={styles.helperContainer}>
-                    <Text style={styles.helperText}>
-                      {t("auth.passwordReset.checkInbox")}
-                    </Text>
-                    <LinkButton
-                      text={t("auth.passwordReset.resendEmail")}
-                      onPress={handleSendVerificationEmail}
-                    />
-                  </View>
-                )}
-              </>
+              </View>
             )}
+          </>
+        )}
 
-            {showResetForm && (
-              <>
-                <PasswordInput
-                  placeholder={t("auth.passwordReset.passwordPlaceholder")}
-                  value={password}
-                  onChangeText={setPassword}
-                />
+        {showResetForm && (
+          <>
+            <PasswordInput
+              placeholder={t("auth.passwordReset.passwordPlaceholder")}
+              value={password}
+              onChangeText={setPassword}
+            />
 
-                <PasswordStrengthMeter
-                  password={password}
-                  hasMinLength={hasMinLength}
-                  hasNumber={hasNumber}
-                  hasSpecial={hasSpecial}
-                />
+            <PasswordStrengthMeter
+              password={password}
+              hasMinLength={hasMinLength}
+              hasNumber={hasNumber}
+              hasSpecial={hasSpecial}
+            />
 
-                <PasswordInput
-                  placeholder={t("auth.passwordReset.confirmPasswordPlaceholder")}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                />
+            <PasswordInput
+              placeholder={t("auth.passwordReset.confirmPasswordPlaceholder")}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
 
-                <PasswordHints
-                  hasMinLength={hasMinLength}
-                  hasNumber={hasNumber}
-                  hasSpecial={hasSpecial}
-                  passwordsMatch={passwordsMatch}
-                  hints={{
-                    length: t("auth.passwordReset.passwordHint.length"),
-                    number: t("auth.passwordReset.passwordHint.number"),
-                    special: t("auth.passwordReset.passwordHint.special"),
-                    match: t("auth.passwordReset.passwordHint.match"),
-                  }}
-                />
+            <PasswordHints
+              hasMinLength={hasMinLength}
+              hasNumber={hasNumber}
+              hasSpecial={hasSpecial}
+              passwordsMatch={passwordsMatch}
+              hints={{
+                length: t("auth.passwordReset.passwordHint.length"),
+                number: t("auth.passwordReset.passwordHint.number"),
+                special: t("auth.passwordReset.passwordHint.special"),
+                match: t("auth.passwordReset.passwordHint.match"),
+              }}
+            />
 
-                <PrimaryButton
-                  title={t("auth.passwordReset.submit")}
-                  loading={isResettingPassword}
-                  loadingTitle={t("auth.passwordReset.submitting")}
-                  onPress={handleResetPassword}
-                />
-              </>
-            )}
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            <PrimaryButton
+              title={t("auth.passwordReset.submit")}
+              loading={isResettingPassword}
+              loadingTitle={t("auth.passwordReset.submitting")}
+              onPress={handleResetPassword}
+            />
+          </>
+        )}
+      </View>
+    </AuthKeyboardScreen>
   );
 };
 
@@ -409,9 +398,6 @@ const getStyles = (isDark: boolean) => {
     container: {
       flex: 1,
       backgroundColor: bg.screen,
-    },
-    keyboardView: {
-      flex: 1,
     },
     scrollContent: {
       flexGrow: 1,

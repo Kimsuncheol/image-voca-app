@@ -415,6 +415,10 @@ const ko = {
       invalidEmail: "유효한 이메일 주소를 입력하세요",
     },
     login: {
+      steps: {
+        email: "이메일",
+        password: "비밀번호",
+      },
       emailPlaceholder: "이메일",
       passwordPlaceholder: "비밀번호",
       rememberMe: "로그인 상태 유지",
@@ -427,6 +431,11 @@ const ko = {
       signUp: "회원가입",
     },
     register: {
+      steps: {
+        account: "계정",
+        security: "보안",
+        preferences: "설정",
+      },
       title: "계정 만들기",
       subtitle: "시작하려면 회원가입하세요",
       avatarLabel: "프로필 사진 추가(선택)",

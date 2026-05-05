@@ -419,6 +419,10 @@ const en = {
       invalidEmail: "Please enter a valid email address",
     },
     login: {
+      steps: {
+        email: "Email",
+        password: "Password",
+      },
       emailPlaceholder: "Email",
       passwordPlaceholder: "Password",
       rememberMe: "Keep me logged in",
@@ -431,6 +435,11 @@ const en = {
       signUp: "Sign Up",
     },
     register: {
+      steps: {
+        account: "Account",
+        security: "Security",
+        preferences: "Preferences",
+      },
       title: "Create Account",
       subtitle: "Sign up to get started",
       avatarLabel: "Add Profile Photo (Optional)",

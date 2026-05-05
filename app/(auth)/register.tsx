@@ -1,7 +1,6 @@
 import { FontWeights } from "@/constants/fontWeights";
 import { LineHeights } from "@/constants/lineHeights";
 import { FontSizes } from "@/constants/fontSizes";
-import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import {
@@ -12,15 +11,10 @@ import {
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext";
@@ -28,28 +22,29 @@ import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
 import { auth } from "../../src/services/firebase";
 import { ensureUserProfileDocument } from "../../src/services/userProfileService";
-import { LearningLanguage } from "../../src/types/vocabulary";
 import {
-  AvatarPicker,
-  ErrorBanner,
+  AuthErrorToast,
+  AuthKeyboardScreen,
+  AuthStepIndicator,
+  AuthStepTransition,
   FooterLink,
-  FormInput,
-  PasswordHints,
-  PasswordInput,
-  PasswordStrengthMeter,
-  PrimaryButton,
+  RegisterAccountStep,
+  RegisterPreferencesStep,
+  RegisterSecurityStep,
 } from "./components";
+
+type RegisterStep = "account" | "security" | "preferences";
 
 export default function RegisterScreen() {
   const { isDark } = useTheme();
   const styles = getStyles(isDark);
-  const fontColors = getFontColors(isDark);
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState<RegisterStep>("account");
   // const [requestAdmin, setRequestAdmin] = useState(false);
 
   // ---------------------------------------------------------------------------
@@ -293,185 +288,180 @@ export default function RegisterScreen() {
     setIsValidEmail(false);
   };
 
+  const registerSteps: { key: RegisterStep; label: string }[] = [
+    { key: "account", label: t("auth.register.steps.account") },
+    { key: "security", label: t("auth.register.steps.security") },
+    { key: "preferences", label: t("auth.register.steps.preferences") },
+  ];
+
+  const goToPreviousStep = () => {
+    clearError();
+    if (currentStep === "security") {
+      setCurrentStep("account");
+    } else if (currentStep === "preferences") {
+      setCurrentStep("security");
+    }
+  };
+
+  const handleAccountNext = () => {
+    clearError();
+    clearAuthError();
+    if (!displayName || !email) {
+      setErrors((prev) => ({
+        ...prev,
+        general: t("auth.errors.missingFields"),
+      }));
+      return;
+    }
+    if (!isValidEmail) {
+      setErrors((prev) => ({
+        ...prev,
+        general:
+          t("auth.errors.invalidEmail") || "Please enter a valid email address",
+      }));
+      setEmailTouched(true);
+      return;
+    }
+    setCurrentStep("security");
+  };
+
+  const handleSecurityNext = () => {
+    clearError();
+    clearAuthError();
+    if (!password || !confirmPassword) {
+      setErrors((prev) => ({
+        ...prev,
+        general: t("auth.errors.missingFields"),
+      }));
+      return;
+    }
+    if (!hasMinLength || !hasNumber || !hasSpecial) {
+      setErrors((prev) => ({
+        ...prev,
+        general: t("auth.errors.passwordRequirements"),
+      }));
+      return;
+    }
+    if (!passwordsMatch) {
+      setErrors((prev) => ({
+        ...prev,
+        general: t("auth.errors.passwordMismatch"),
+      }));
+      return;
+    }
+    setCurrentStep("preferences");
+  };
+
   // ===========================================================================
   // JSX RENDER
   // ===========================================================================
   return (
-    // -------------------------------------------------------------------------
-    // SAFE AREA VIEW - Handles device notches and safe areas
-    // -------------------------------------------------------------------------
-    <SafeAreaView style={styles.container}>
-      {/* -----------------------------------------------------------------------
-          KEYBOARD AVOIDING VIEW - Adjusts content when keyboard appears
-          - iOS uses "padding" behavior to shift content up
-          - Android uses undefined (default behavior)
-      ----------------------------------------------------------------------- */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.keyboardView}
-      >
-        {/* ---------------------------------------------------------------------
-            SCROLL VIEW - Makes form scrollable for small screens
-            - Hides vertical scroll indicator for cleaner UI
-            - Centers content vertically
-        --------------------------------------------------------------------- */}
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* ===================================================================
-              HEADER SECTION - Title and Subtitle
-              =================================================================== */}
-          <View style={styles.headerContainer}>
-            <Text style={styles.title}>{t("auth.register.title")}</Text>
-            <Text style={styles.subtitle}>{t("auth.register.subtitle")}</Text>
-          </View>
+    <AuthKeyboardScreen
+      containerStyle={styles.container}
+      contentContainerStyle={styles.scrollContent}
+    >
+      {/* ===================================================================
+          HEADER SECTION - Title and Subtitle
+          =================================================================== */}
+      <View style={styles.headerContainer}>
+        <Text style={styles.title}>{t("auth.register.title")}</Text>
+        <Text style={styles.subtitle}>{t("auth.register.subtitle")}</Text>
+      </View>
 
-          {/* ===================================================================
-              GENERAL ERROR BANNER
-              =================================================================== */}
-          <ErrorBanner message={errors.general} />
+      <AuthErrorToast
+        message={errors.general}
+        onClose={() => clearError("general")}
+      />
 
-          {/* ===================================================================
-              FORM CONTAINER - All form inputs and buttons
-              =================================================================== */}
-          <View style={styles.formContainer}>
-            {/* -----------------------------------------------------------------
-                AVATAR PICKER SECTION
-            ----------------------------------------------------------------- */}
-            <AvatarPicker
+      {/* ===================================================================
+      FORM CONTAINER - All form inputs and buttons
+          =================================================================== */}
+      <View style={styles.formContainer}>
+        <AuthStepIndicator
+          steps={registerSteps}
+          currentStep={currentStep}
+          itemMinWidth={76}
+          gap={14}
+        />
+
+        <AuthStepTransition stepKey={currentStep}>
+          {currentStep === "account" && (
+            <RegisterAccountStep
               avatarUri={avatarUri}
-              onPress={pickImage}
-              label={t("auth.register.avatarLabel")}
-              errorMessage={errors.permission}
+              displayName={displayName}
+              email={email}
+              isValidEmail={isValidEmail}
+              emailTouched={emailTouched}
+              permissionError={errors.permission}
+              labels={{
+                avatar: t("auth.register.avatarLabel"),
+                fullNamePlaceholder: t("auth.register.fullNamePlaceholder"),
+                emailPlaceholder: t("auth.register.emailPlaceholder"),
+                invalidEmail:
+                  t("auth.errors.invalidEmail") ||
+                  "Please enter a valid email address",
+                next: t("common.next"),
+              }}
+              onPickImage={pickImage}
+              onDisplayNameChange={setDisplayName}
+              onDisplayNameClear={handleClearDisplayName}
+              onEmailChange={setEmail}
+              onEmailClear={handleClearEmail}
+              onEmailBlur={() => setEmailTouched(true)}
+              onNext={handleAccountNext}
             />
-            {/* -----------------------------------------------------------------
-                DISPLAY NAME INPUT
-            ----------------------------------------------------------------- */}
-            <FormInput
-              icon="person-outline"
-              placeholder={t("auth.register.fullNamePlaceholder")}
-              value={displayName}
-              onChangeText={setDisplayName}
-              clearable
-              onClear={handleClearDisplayName}
-              autoCapitalize="words"
-            />
+          )}
 
-            {/* -----------------------------------------------------------------
-                EMAIL INPUT
-            ----------------------------------------------------------------- */}
-            <FormInput
-              icon="mail-outline"
-              placeholder={t("auth.register.emailPlaceholder")}
-              value={email}
-              onChangeText={setEmail}
-              clearable
-              onClear={handleClearEmail}
-              onBlur={() => setEmailTouched(true)}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              showValidation={true}
-              isValid={isValidEmail}
-              isTouched={emailTouched}
-              errorMessage={
-                t("auth.errors.invalidEmail") ||
-                "Please enter a valid email address"
-              }
-            />
-
-            {/* -----------------------------------------------------------------
-                PASSWORD INPUT
-            ----------------------------------------------------------------- */}
-            <PasswordInput
-              placeholder={t("auth.register.passwordPlaceholder")}
-              value={password}
-              onChangeText={setPassword}
-            />
-
-            {/* -----------------------------------------------------------------
-                PASSWORD STRENGTH METER
-            ----------------------------------------------------------------- */}
-            <PasswordStrengthMeter
+          {currentStep === "security" && (
+            <RegisterSecurityStep
               password={password}
-              hasMinLength={hasMinLength}
-              hasNumber={hasNumber}
-              hasSpecial={hasSpecial}
-            />
-
-            {/* -----------------------------------------------------------------
-                CONFIRM PASSWORD INPUT
-            ----------------------------------------------------------------- */}
-            <PasswordInput
-              placeholder={t("auth.register.confirmPasswordPlaceholder")}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-            />
-
-            {/* -----------------------------------------------------------------
-                PASSWORD VALIDATION HINTS SECTION
-            ----------------------------------------------------------------- */}
-            <PasswordHints
+              confirmPassword={confirmPassword}
               hasMinLength={hasMinLength}
               hasNumber={hasNumber}
               hasSpecial={hasSpecial}
               passwordsMatch={passwordsMatch}
-              hints={{
-                length: t("auth.register.passwordHint.length"),
-                number: t("auth.register.passwordHint.number"),
-                special: t("auth.register.passwordHint.special"),
-                match: t("auth.register.passwordHint.match"),
+              labels={{
+                passwordPlaceholder: t("auth.register.passwordPlaceholder"),
+                confirmPasswordPlaceholder: t(
+                  "auth.register.confirmPasswordPlaceholder",
+                ),
+                back: t("common.back"),
+                next: t("common.next"),
+                hints: {
+                  length: t("auth.register.passwordHint.length"),
+                  number: t("auth.register.passwordHint.number"),
+                  special: t("auth.register.passwordHint.special"),
+                  match: t("auth.register.passwordHint.match"),
+                },
               }}
+              onPasswordChange={setPassword}
+              onConfirmPasswordChange={setConfirmPassword}
+              onBack={goToPreviousStep}
+              onNext={handleSecurityNext}
             />
+          )}
 
-            {/* -----------------------------------------------------------------
-                LEARNING LANGUAGE SECTION
-            ----------------------------------------------------------------- */}
-            <View style={styles.learningSection}>
-              <Text style={styles.learningSectionLabel}>
-                {t("settings.language.wishToLearn")}
-              </Text>
-              <View style={styles.learningOptionsCard}>
-                {(
-                  [
-                    { lang: "en", label: "English" },
-                    { lang: "ja", label: "Japanese" },
-                  ] as const satisfies { lang: LearningLanguage; label: string }[]
-                ).map(({ lang, label }, index) => (
-                  <React.Fragment key={lang}>
-                    {index > 0 && (
-                      <View style={styles.learningOptionSeparator} />
-                    )}
-                    <TouchableOpacity
-                      style={styles.learningOption}
-                      onPress={() => void setLearningLanguage(lang)}
-                      activeOpacity={0.7}
-                    >
-                      <View style={styles.learningOptionLeft}>
-                        <Ionicons
-                          name="globe-outline"
-                          size={22}
-                          color={fontColors.screenBodyStrong}
-                        />
-                        <Text style={styles.learningOptionText}>{label}</Text>
-                      </View>
-                      {learningLanguage === lang && (
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={22}
-                          color="#007AFF"
-                        />
-                      )}
-                    </TouchableOpacity>
-                  </React.Fragment>
-                ))}
-              </View>
-            </View>
+          {currentStep === "preferences" && (
+            <RegisterPreferencesStep
+              learningLanguage={learningLanguage}
+              loading={loading}
+              labels={{
+                wishToLearn: t("settings.language.wishToLearn"),
+                back: t("common.back"),
+                register: t("auth.register.register"),
+                creatingAccount: t("auth.register.creatingAccount"),
+              }}
+              onLearningLanguageChange={(lang) => void setLearningLanguage(lang)}
+              onBack={goToPreviousStep}
+              onRegister={handleRegister}
+            />
+          )}
+        </AuthStepTransition>
 
-            {/* -----------------------------------------------------------------
-                ADMIN TOGGLE BUTTON (Development/Testing)
-            ----------------------------------------------------------------- */}
-            {/* <TouchableOpacity
+        {/* -----------------------------------------------------------------
+            ADMIN TOGGLE BUTTON (Development/Testing)
+        ----------------------------------------------------------------- */}
+        {/* <TouchableOpacity
               style={[
                 styles.adminToggleButton,
                 requestAdmin && styles.adminToggleButtonActive,
@@ -488,28 +478,17 @@ export default function RegisterScreen() {
               </Text>
             </TouchableOpacity> */}
 
-            {/* -----------------------------------------------------------------
-                REGISTER BUTTON
-            ----------------------------------------------------------------- */}
-            <PrimaryButton
-              title={t("auth.register.register")}
-              onPress={handleRegister}
-              loading={loading}
-              loadingTitle={t("auth.register.creatingAccount")}
-            />
-          </View>
+      </View>
 
-          {/* ===================================================================
-              FOOTER SECTION
-              =================================================================== */}
-          <FooterLink
-            text={t("auth.register.hasAccount")}
-            linkText={t("auth.register.signIn")}
-            href="/(auth)/login"
-          />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      {/* ===================================================================
+          FOOTER SECTION
+          =================================================================== */}
+      <FooterLink
+        text={t("auth.register.hasAccount")}
+        linkText={t("auth.register.signIn")}
+        href="/(auth)/login"
+      />
+    </AuthKeyboardScreen>
   );
 }
 
@@ -534,11 +513,6 @@ const getStyles = (isDark: boolean) => {
     container: {
       flex: 1,
       backgroundColor: bg.screen,
-    },
-
-    /** Keyboard avoiding view wrapper */
-    keyboardView: {
-      flex: 1,
     },
 
     /** Scroll view content container - Centers content with padding */
@@ -817,48 +791,5 @@ const getStyles = (isDark: boolean) => {
       color: fontColors.link,
     },
 
-    // -------------------------------------------------------------------------
-    // LEARNING LANGUAGE STYLES
-    // -------------------------------------------------------------------------
-    learningSection: {
-      marginBottom: 16,
-    },
-    learningSectionLabel: {
-      fontSize: FontSizes.label,
-      fontWeight: FontWeights.semiBold,
-      color: fontColors.sectionMeta,
-      marginBottom: 8,
-      marginLeft: 4,
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
-    },
-    learningOptionsCard: {
-      backgroundColor: bg.cardElevated,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: fontColors.inputBorder,
-      overflow: "hidden",
-    },
-    learningOption: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-    },
-    learningOptionLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 10,
-    },
-    learningOptionText: {
-      fontSize: FontSizes.bodyLg,
-      color: fontColors.body,
-    },
-    learningOptionSeparator: {
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: bg.subtleGray,
-      marginLeft: 48,
-    },
   });
 };

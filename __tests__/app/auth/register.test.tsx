@@ -29,6 +29,9 @@ const translations: Record<string, string> = {
     "Permission to access camera roll is required!",
   "auth.register.title": "Create Account",
   "auth.register.subtitle": "Sign up to get started",
+  "auth.register.steps.account": "Account",
+  "auth.register.steps.security": "Security",
+  "auth.register.steps.preferences": "Preferences",
   "auth.register.avatarLabel": "Add Profile Photo (Optional)",
   "auth.register.fullNamePlaceholder": "Full Name",
   "auth.register.emailPlaceholder": "Email",
@@ -44,6 +47,8 @@ const translations: Record<string, string> = {
   "auth.register.signIn": "Sign In",
   "auth.verifyEmail.sendFailed":
     "Failed to send verification email. Try again from this screen.",
+  "common.back": "Back",
+  "common.next": "Next",
 };
 
 // ---------------------------------------------------------------------------
@@ -145,12 +150,14 @@ function fillForm(
 
   // Trigger email blur so isValidEmail state is set
   fireEvent(utils.getByPlaceholderText("Email"), "blur");
+  fireEvent.press(utils.getByText("Next"));
 
   fireEvent.changeText(utils.getByPlaceholderText("Password"), password);
   fireEvent.changeText(
     utils.getByPlaceholderText("Confirm Password"),
     confirmPassword,
   );
+  fireEvent.press(utils.getByText("Next"));
 }
 
 // ---------------------------------------------------------------------------
@@ -176,9 +183,47 @@ describe("RegisterScreen", () => {
 
   it("shows missing-fields error when form is empty", () => {
     const utils = render(<RegisterScreen />);
-    fireEvent.press(utils.getByText("Register"));
+    fireEvent.press(utils.getByText("Next"));
     expect(utils.getByText("Please fill in all fields.")).toBeTruthy();
     expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
+  });
+
+  it("dismisses the register error toast", async () => {
+    const utils = render(<RegisterScreen />);
+
+    fireEvent.press(utils.getByText("Next"));
+    expect(utils.getByText("Please fill in all fields.")).toBeTruthy();
+
+    fireEvent.press(utils.getByLabelText("Close"));
+
+    await waitFor(() => {
+      expect(utils.queryByText("Please fill in all fields.")).toBeNull();
+    });
+  });
+
+  it("shows the account step first and advances through valid steps", () => {
+    const utils = render(<RegisterScreen />);
+
+    expect(utils.getByPlaceholderText("Full Name")).toBeTruthy();
+    expect(utils.queryByPlaceholderText("Password")).toBeNull();
+
+    fireEvent.changeText(utils.getByPlaceholderText("Full Name"), "Test User");
+    fireEvent.changeText(utils.getByPlaceholderText("Email"), "test@example.com");
+    fireEvent(utils.getByPlaceholderText("Email"), "blur");
+    fireEvent.press(utils.getByText("Next"));
+
+    expect(utils.getByPlaceholderText("Password")).toBeTruthy();
+    expect(utils.queryByPlaceholderText("Full Name")).toBeNull();
+
+    fireEvent.changeText(utils.getByPlaceholderText("Password"), VALID_PASSWORD);
+    fireEvent.changeText(
+      utils.getByPlaceholderText("Confirm Password"),
+      VALID_PASSWORD,
+    );
+    fireEvent.press(utils.getByText("Next"));
+
+    expect(utils.getByText("English")).toBeTruthy();
+    expect(utils.getByText("Register")).toBeTruthy();
   });
 
   it("does not show Google sign-in on the register screen", () => {
@@ -214,8 +259,13 @@ describe("RegisterScreen", () => {
 
   it("shows password requirements error when password is too weak", () => {
     const utils = render(<RegisterScreen />);
-    fillForm(utils, { password: "short", confirmPassword: "short" });
-    fireEvent.press(utils.getByText("Register"));
+    fireEvent.changeText(utils.getByPlaceholderText("Full Name"), "Test User");
+    fireEvent.changeText(utils.getByPlaceholderText("Email"), "test@example.com");
+    fireEvent(utils.getByPlaceholderText("Email"), "blur");
+    fireEvent.press(utils.getByText("Next"));
+    fireEvent.changeText(utils.getByPlaceholderText("Password"), "short");
+    fireEvent.changeText(utils.getByPlaceholderText("Confirm Password"), "short");
+    fireEvent.press(utils.getByText("Next"));
     expect(
       utils.getByText("Please meet all password requirements."),
     ).toBeTruthy();
@@ -224,8 +274,16 @@ describe("RegisterScreen", () => {
 
   it("shows password mismatch error when passwords do not match", () => {
     const utils = render(<RegisterScreen />);
-    fillForm(utils, { confirmPassword: "DifferentPass1!" });
-    fireEvent.press(utils.getByText("Register"));
+    fireEvent.changeText(utils.getByPlaceholderText("Full Name"), "Test User");
+    fireEvent.changeText(utils.getByPlaceholderText("Email"), "test@example.com");
+    fireEvent(utils.getByPlaceholderText("Email"), "blur");
+    fireEvent.press(utils.getByText("Next"));
+    fireEvent.changeText(utils.getByPlaceholderText("Password"), VALID_PASSWORD);
+    fireEvent.changeText(
+      utils.getByPlaceholderText("Confirm Password"),
+      "DifferentPass1!",
+    );
+    fireEvent.press(utils.getByText("Next"));
     expect(utils.getByText("Passwords do not match.")).toBeTruthy();
     expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
   });

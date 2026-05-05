@@ -106,6 +106,15 @@ describe("LoginScreen", () => {
     });
   });
 
+  it("shows email and password fields on the initial screen", () => {
+    const { getByPlaceholderText, getByText } = render(<LoginScreen />);
+
+    expect(getByPlaceholderText("Email")).toBeTruthy();
+    expect(getByPlaceholderText("Password")).toBeTruthy();
+    expect(getByText("Sign In")).toBeTruthy();
+    expect(getByText("Sign in with Google")).toBeTruthy();
+  });
+
   it("navigates to forgot-password when forgot password link is pressed", () => {
     const { getByText } = render(<LoginScreen />);
 
@@ -140,7 +149,7 @@ describe("LoginScreen", () => {
     expect(getByPlaceholderText("Password").props.value).toBe("");
   });
 
-  it("dismisses the login error toast", () => {
+  it("dismisses the login error toast", async () => {
     const { getByLabelText, getByText, queryByText } = render(<LoginScreen />);
 
     fireEvent.press(getByText("Sign In"));
@@ -149,7 +158,9 @@ describe("LoginScreen", () => {
 
     fireEvent.press(getByLabelText("Close"));
 
-    expect(queryByText("Please enter both email and password.")).toBeNull();
+    await waitFor(() => {
+      expect(queryByText("Please enter both email and password.")).toBeNull();
+    });
   });
 
   it("shows too many requests message for auth/too-many-requests", async () => {

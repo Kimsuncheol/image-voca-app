@@ -6,24 +6,15 @@ import { FirebaseError } from "firebase/app";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet, View } from "react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import { getBackgroundColors } from "../../constants/backgroundColors";
-import { getFontColors } from "../../constants/fontColors";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
 import { auth } from "../../src/services/firebase";
 import {
+  AuthErrorToast,
+  AuthKeyboardScreen,
   Divider,
   FooterLink,
   FormInput,
@@ -42,7 +33,6 @@ export default function LoginScreen() {
   // --- State & Hooks ---
   const { isDark } = useTheme(); // Theme context for dark/light mode
   const styles = getStyles(isDark); // Generate styles based on theme
-  const fontColors = getFontColors(isDark);
 
   // Form State
   const [email, setEmail] = useState("");
@@ -170,128 +160,93 @@ export default function LoginScreen() {
 
   // --- Render ---
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Handle keyboard behavior to prevent inputs from being hidden */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.keyboardView}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* --- Section: Header --- */}
-          <View style={styles.headerContainer}>
-            <Image
-              source={require("../../assets/images/icon.png")}
-              style={styles.logo}
-              contentFit="contain"
-            />
-          </View>
+    <AuthKeyboardScreen
+      containerStyle={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      keyboardShouldPersistTaps="handled"
+    >
+      {/* --- Section: Header --- */}
+      <View style={styles.headerContainer}>
+        <Image
+          source={require("../../assets/images/icon.png")}
+          style={styles.logo}
+          contentFit="contain"
+        />
+      </View>
 
-          {/* --- Section: Login Form --- */}
-          <View style={styles.cardContainer}>
-            <View style={styles.formContainer}>
-              {authError && (
-                <View style={styles.errorToast} accessibilityRole="alert">
-                  <Ionicons
-                    name="alert-circle"
-                    size={18}
-                    color={fontColors.iconError}
-                    style={styles.errorToastIcon}
-                  />
-                  <Text style={styles.errorToastText}>{authError}</Text>
-                  <TouchableOpacity
-                    accessibilityLabel="Close"
-                    onPress={clearLoginError}
-                    style={styles.errorToastClose}
-                  >
-                    <Ionicons
-                      name="close"
-                      size={18}
-                      color={fontColors.iconError}
-                    />
-                  </TouchableOpacity>
-                </View>
-              )}
+      {/* --- Section: Login Form --- */}
+      <View style={styles.cardContainer}>
+        <View style={styles.formContainer}>
+          <AuthErrorToast message={authError} onClose={clearLoginError} />
 
-              {/* Feature: Email Input */}
-              <FormInput
-                icon="mail-outline"
-                placeholder={t("auth.login.emailPlaceholder")}
-                value={email}
-                onChangeText={(value) => {
-                  clearLoginError();
-                  setEmail(value);
-                }}
-                clearable
-                onClear={() => {
-                  clearLoginError();
-                  setEmail("");
-                }}
-                autoCapitalize="none"
-                keyboardType="email-address"
-              />
+          <FormInput
+            icon="mail-outline"
+            placeholder={t("auth.login.emailPlaceholder")}
+            value={email}
+            onChangeText={(value) => {
+              clearLoginError();
+              setEmail(value);
+            }}
+            clearable
+            onClear={() => {
+              clearLoginError();
+              setEmail("");
+            }}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
 
-              {/* Feature: Password Input with Visibility Toggle */}
-              <PasswordInput
-                placeholder={t("auth.login.passwordPlaceholder")}
-                value={password}
-                onChangeText={(value) => {
-                  clearLoginError();
-                  setPassword(value);
-                }}
-              />
+          <PasswordInput
+            placeholder={t("auth.login.passwordPlaceholder")}
+            value={password}
+            onChangeText={(value) => {
+              clearLoginError();
+              setPassword(value);
+            }}
+          />
 
-              {/* Feature: Options Row (Remember Me & Forgot Password) */}
-              <View style={styles.optionsContainer}>
-                <View style={styles.rememberMeContainer}>
-                  <RememberMeCheckbox
-                    checked={rememberMe}
-                    onToggle={() => setRememberMe(!rememberMe)}
-                    label={t("auth.login.rememberMe")}
-                  />
-                </View>
-                <View style={styles.forgotPasswordContainer}>
-                  <LinkButton
-                    text={t("auth.login.forgotPassword")}
-                    onPress={() => router.push("/(auth)/forgot-password")}
-                  />
-                </View>
-              </View>
-
-              {/* Feature: Sign In Button */}
-              <PrimaryButton
-                title={t("auth.login.signIn")}
-                onPress={handleLogin}
-                loading={loading}
-                loadingTitle={t("auth.login.signingIn")}
-              />
-
-              {/* --- Section: Divider --- */}
-              <Divider text={t("common.or")} />
-
-              {/* Feature: Google Sign In Button */}
-              <GoogleButton
-                title={t("auth.login.googleSignIn")}
-                onPress={handleGoogleLogin}
-                loading={googleLoading}
-                loadingTitle={t("auth.login.googleSigningIn")}
+          <View style={styles.optionsContainer}>
+            <View style={styles.rememberMeContainer}>
+              <RememberMeCheckbox
+                checked={rememberMe}
+                onToggle={() => setRememberMe(!rememberMe)}
+                label={t("auth.login.rememberMe")}
               />
             </View>
-
-            {/* --- Section: Footer (Register Link) --- */}
-            {/* Redirects user to Registration screen if they don't have an account */}
-            <FooterLink
-              text={t("auth.login.noAccount")}
-              linkText={t("auth.login.signUp")}
-              href="/(auth)/register"
-            />
+            <View style={styles.forgotPasswordContainer}>
+              <LinkButton
+                text={t("auth.login.forgotPassword")}
+                onPress={() => router.push("/(auth)/forgot-password")}
+              />
+            </View>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+          <PrimaryButton
+            title={t("auth.login.signIn")}
+            onPress={handleLogin}
+            loading={loading}
+            loadingTitle={t("auth.login.signingIn")}
+          />
+
+          <Divider text={t("common.or")} />
+
+          <GoogleButton
+            title={t("auth.login.googleSignIn")}
+            onPress={handleGoogleLogin}
+            loading={googleLoading}
+            loadingTitle={t("auth.login.googleSigningIn")}
+          />
+        </View>
+
+        {/* --- Section: Footer (Register Link) --- */}
+        {/* Redirects user to Registration screen if they don't have an account */}
+        <FooterLink
+          text={t("auth.login.noAccount")}
+          linkText={t("auth.login.signUp")}
+          href="/(auth)/register"
+        />
+      </View>
+    </AuthKeyboardScreen>
   );
 }
 
@@ -299,14 +254,10 @@ export default function LoginScreen() {
 // Generates styles based on the current theme (isDark)
 const getStyles = (isDark: boolean) => {
   const bg = getBackgroundColors(isDark);
-  const fontColors = getFontColors(isDark);
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: bg.input,
-    },
-    keyboardView: {
-      flex: 1,
     },
     scrollContent: {
       flexGrow: 1,
@@ -330,30 +281,6 @@ const getStyles = (isDark: boolean) => {
     },
     formContainer: {
       marginBottom: 24,
-    },
-    errorToast: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: 10,
-      paddingHorizontal: 12,
-      marginBottom: 16,
-      borderRadius: 12,
-      borderWidth: 1,
-      backgroundColor: bg.accentRedDeep,
-      borderColor: fontColors.errorBannerBorder,
-    },
-    errorToastIcon: {
-      marginRight: 8,
-    },
-    errorToastText: {
-      flex: 1,
-      color: fontColors.authErrorMessage,
-      fontSize: 14,
-    },
-    errorToastClose: {
-      alignItems: "center",
-      justifyContent: "center",
-      marginLeft: 8,
     },
     optionsContainer: {
       flexDirection: "column",
