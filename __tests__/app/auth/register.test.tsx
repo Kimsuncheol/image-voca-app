@@ -192,6 +192,30 @@ describe("RegisterScreen", () => {
     expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
   });
 
+  it("clears full name and email with the field clear buttons", () => {
+    const utils = render(<RegisterScreen />);
+
+    expect(utils.queryByLabelText("Clear Full Name")).toBeNull();
+    expect(utils.queryByLabelText("Clear Email")).toBeNull();
+
+    fireEvent.changeText(utils.getByPlaceholderText("Full Name"), "Test User");
+    fireEvent.changeText(utils.getByPlaceholderText("Email"), "bad-email");
+    fireEvent(utils.getByPlaceholderText("Email"), "blur");
+
+    expect(utils.getByLabelText("Clear Full Name")).toBeTruthy();
+    expect(utils.getByLabelText("Clear Email")).toBeTruthy();
+    expect(utils.getByText("Please enter a valid email address")).toBeTruthy();
+
+    fireEvent.press(utils.getByLabelText("Clear Full Name"));
+    fireEvent.press(utils.getByLabelText("Clear Email"));
+
+    expect(utils.getByPlaceholderText("Full Name").props.value).toBe("");
+    expect(utils.getByPlaceholderText("Email").props.value).toBe("");
+    expect(utils.queryByLabelText("Clear Full Name")).toBeNull();
+    expect(utils.queryByLabelText("Clear Email")).toBeNull();
+    expect(utils.queryByText("Please enter a valid email address")).toBeNull();
+  });
+
   it("shows password requirements error when password is too weak", () => {
     const utils = render(<RegisterScreen />);
     fillForm(utils, { password: "short", confirmPassword: "short" });

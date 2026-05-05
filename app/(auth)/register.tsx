@@ -291,6 +291,16 @@ export default function RegisterScreen() {
     promptAsync();
   };
 
+  const handleClearDisplayName = () => {
+    setDisplayName("");
+  };
+
+  const handleClearEmail = () => {
+    setEmail("");
+    setEmailTouched(false);
+    setIsValidEmail(false);
+  };
+
   // ===========================================================================
   // JSX RENDER
   // ===========================================================================
@@ -351,6 +361,8 @@ export default function RegisterScreen() {
               placeholder={t("auth.register.fullNamePlaceholder")}
               value={displayName}
               onChangeText={setDisplayName}
+              clearable
+              onClear={handleClearDisplayName}
               autoCapitalize="words"
             />
 
@@ -362,6 +374,8 @@ export default function RegisterScreen() {
               placeholder={t("auth.register.emailPlaceholder")}
               value={email}
               onChangeText={setEmail}
+              clearable
+              onClear={handleClearEmail}
               onBlur={() => setEmailTouched(true)}
               autoCapitalize="none"
               keyboardType="email-address"

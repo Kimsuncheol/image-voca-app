@@ -136,6 +136,7 @@ describe("LoginScreen", () => {
     await waitFor(() => {
       expect(getByText("Invalid email or password.")).toBeTruthy();
     });
+    expect(getByPlaceholderText("Password").props.value).toBe("");
   });
 
   it("shows too many requests message for auth/too-many-requests", async () => {
@@ -185,8 +186,26 @@ describe("LoginScreen", () => {
     });
 
     expect(mockReplace).not.toHaveBeenCalled();
+    expect(getByPlaceholderText("Password").props.value).toBe("password123!");
     expect(queryByText("Login Error")).toBeNull();
     expect(queryByText("Unable to sign in. Please try again.")).toBeNull();
+  });
+
+  it("shows the email clear button only when email has text and clears the email", () => {
+    const { getByLabelText, getByPlaceholderText, queryByLabelText } = render(
+      <LoginScreen />,
+    );
+
+    expect(queryByLabelText("Clear Email")).toBeNull();
+
+    fireEvent.changeText(getByPlaceholderText("Email"), "test@example.com");
+
+    expect(getByLabelText("Clear Email")).toBeTruthy();
+
+    fireEvent.press(getByLabelText("Clear Email"));
+
+    expect(getByPlaceholderText("Email").props.value).toBe("");
+    expect(queryByLabelText("Clear Email")).toBeNull();
   });
 
   it("shows a device limit message passed through auth context", () => {

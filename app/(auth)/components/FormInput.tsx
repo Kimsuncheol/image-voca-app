@@ -11,7 +11,14 @@
  */
 
 import React from "react";
-import { View, TextInput, Text, StyleSheet, TextInputProps } from "react-native";
+import {
+  View,
+  TextInput,
+  Text,
+  StyleSheet,
+  TextInputProps,
+  TouchableOpacity,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
@@ -30,6 +37,8 @@ interface FormInputProps extends TextInputProps {
   showValidation?: boolean;
   isValid?: boolean;
   isTouched?: boolean;
+  clearable?: boolean;
+  onClear?: () => void;
 }
 
 // =============================================================================
@@ -44,6 +53,8 @@ export const FormInput: React.FC<FormInputProps> = ({
   showValidation = false,
   isValid = false,
   isTouched = false,
+  clearable = false,
+  onClear,
   ...rest
 }) => {
   const { isDark } = useTheme();
@@ -73,13 +84,30 @@ export const FormInput: React.FC<FormInputProps> = ({
           placeholderTextColor={fontColors.placeholder}
           {...rest}
         />
-        {showValidation && isTouched && value && (
-          <Ionicons
-            name={isValid ? "checkmark-circle" : "alert-circle"}
-            size={20}
-            color={isValid ? "#28A745" : "#DC3545"}
-          />
-        )}
+        <View style={styles.trailingActions}>
+          {showValidation && isTouched && value && (
+            <Ionicons
+              name={isValid ? "checkmark-circle" : "alert-circle"}
+              size={20}
+              color={isValid ? "#28A745" : "#DC3545"}
+            />
+          )}
+          {clearable && value && onClear && (
+            <TouchableOpacity
+              accessibilityLabel={`Clear ${placeholder}`}
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={onClear}
+              style={styles.clearButton}
+            >
+              <Ionicons
+                name="close-circle"
+                size={20}
+                color={fontColors.supporting}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
       {errorMessage && isTouched && !isValid && value && (
         <Text style={styles.errorText}>{errorMessage}</Text>
@@ -122,6 +150,15 @@ const getStyles = (isDark: boolean) => {
       flex: 1,
       fontSize: FontSizes.bodyLg,
       color: fontColors.body,
+    },
+    trailingActions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    clearButton: {
+      alignItems: "center",
+      justifyContent: "center",
     },
     errorText: {
       color: fontColors.error,

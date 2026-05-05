@@ -142,6 +142,7 @@ export default function LoginScreen() {
       clearAuthError();
     } catch (error) {
       setAuthError(getLoginAuthErrorMessage(error));
+      setPassword("");
     } finally {
       setLoading(false);
     }
@@ -154,6 +155,13 @@ export default function LoginScreen() {
     setAuthError(null);
     clearAuthError();
     promptAsync();
+  };
+
+  const clearLoginError = () => {
+    if (authError) {
+      setAuthError(null);
+    }
+    clearAuthError();
   };
 
   // --- Render ---
@@ -194,11 +202,13 @@ export default function LoginScreen() {
                 placeholder={t("auth.login.emailPlaceholder")}
                 value={email}
                 onChangeText={(value) => {
-                  if (authError) {
-                    setAuthError(null);
-                    clearAuthError();
-                  }
+                  clearLoginError();
                   setEmail(value);
+                }}
+                clearable
+                onClear={() => {
+                  clearLoginError();
+                  setEmail("");
                 }}
                 autoCapitalize="none"
                 keyboardType="email-address"
@@ -209,10 +219,7 @@ export default function LoginScreen() {
                 placeholder={t("auth.login.passwordPlaceholder")}
                 value={password}
                 onChangeText={(value) => {
-                  if (authError) {
-                    setAuthError(null);
-                    clearAuthError();
-                  }
+                  clearLoginError();
                   setPassword(value);
                 }}
               />
