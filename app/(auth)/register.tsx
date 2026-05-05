@@ -26,17 +26,14 @@ import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
-import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
 import { auth } from "../../src/services/firebase";
 import { ensureUserProfileDocument } from "../../src/services/userProfileService";
 import { LearningLanguage } from "../../src/types/vocabulary";
 import {
   AvatarPicker,
-  Divider,
   ErrorBanner,
   FooterLink,
   FormInput,
-  GoogleButton,
   PasswordHints,
   PasswordInput,
   PasswordStrengthMeter,
@@ -54,7 +51,6 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   // const [requestAdmin, setRequestAdmin] = useState(false);
-  const { promptAsync, loading: googleLoading } = useGoogleAuth();
 
   // ---------------------------------------------------------------------------
   // ERROR STATE - Inline validation error messages
@@ -287,10 +283,6 @@ export default function RegisterScreen() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    promptAsync();
-  };
-
   const handleClearDisplayName = () => {
     setDisplayName("");
   };
@@ -505,21 +497,6 @@ export default function RegisterScreen() {
               loading={loading}
               loadingTitle={t("auth.register.creatingAccount")}
             />
-
-            {/* -----------------------------------------------------------------
-                DIVIDER
-            ----------------------------------------------------------------- */}
-            <Divider text={t("common.or")} />
-
-            {/* -----------------------------------------------------------------
-                GOOGLE SIGN-IN BUTTON
-            ----------------------------------------------------------------- */}
-            <GoogleButton
-              title={t("auth.register.googleSignIn")}
-              onPress={handleGoogleLogin}
-              loading={googleLoading}
-              loadingTitle={t("auth.register.googleSigningIn")}
-            />
           </View>
 
           {/* ===================================================================
@@ -700,59 +677,6 @@ const getStyles = (isDark: boolean) => {
       color: fontColors.inverse,
       fontSize: FontSizes.bodyLg,
       fontWeight: FontWeights.bold,
-    },
-
-    // -------------------------------------------------------------------------
-    // DIVIDER STYLES - "OR" section between registration methods
-    // -------------------------------------------------------------------------
-
-    /** Divider container - Horizontal layout with centered text */
-    dividerContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginVertical: 24,
-    },
-
-    /** Divider line - Thin line on either side of "OR" text */
-    divider: {
-      flex: 1,
-      height: 1,
-      backgroundColor: bg.subtleGray,
-    },
-
-    /** Divider text - "OR" text between divider lines */
-    dividerText: {
-      marginHorizontal: 16,
-      color: fontColors.tertiary,
-      fontWeight: FontWeights.semiBold,
-    },
-
-    // -------------------------------------------------------------------------
-    // GOOGLE BUTTON STYLES - Google OAuth sign-in button
-    // -------------------------------------------------------------------------
-
-    /** Google sign-in button - Outlined style with theme-aware colors */
-    googleButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: bg.card,
-      borderWidth: 1,
-      borderColor: fontColors.inputBorder,
-      paddingVertical: 16,
-      borderRadius: 12,
-    },
-
-    /** Google icon spacing */
-    googleIcon: {
-      marginRight: 12,
-    },
-
-    /** Google button text - Theme-aware text color */
-    googleButtonText: {
-      color: fontColors.body,
-      fontSize: FontSizes.bodyLg,
-      fontWeight: FontWeights.semiBold,
     },
 
     // -------------------------------------------------------------------------

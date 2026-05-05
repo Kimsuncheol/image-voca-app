@@ -82,7 +82,7 @@ const getStyles = (isDark: boolean) => {
       borderColor: fontColors.inputBorder,
       borderRadius: 12,
       paddingHorizontal: 16,
-      paddingVertical: 14,
+      paddingVertical: 10,
       marginBottom: 16,
       backgroundColor: bg.cardElevated,
     },

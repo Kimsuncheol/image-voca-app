@@ -14,7 +14,6 @@ import { ensureUserProfileDocument } from "../../../src/services/userProfileServ
 // ---------------------------------------------------------------------------
 
 const mockReplace = jest.fn();
-const mockPromptAsync = jest.fn();
 const mockSetAuthError = jest.fn();
 const mockClearAuthError = jest.fn();
 
@@ -41,13 +40,10 @@ const translations: Record<string, string> = {
   "auth.register.passwordHint.match": "Passwords match",
   "auth.register.creatingAccount": "Creating Account...",
   "auth.register.register": "Register",
-  "auth.register.googleSignIn": "Sign in with Google",
-  "auth.register.googleSigningIn": "Signing in...",
   "auth.register.hasAccount": "Already have an account? ",
   "auth.register.signIn": "Sign In",
   "auth.verifyEmail.sendFailed":
     "Failed to send verification email. Try again from this screen.",
-  "common.or": "OR",
 };
 
 // ---------------------------------------------------------------------------
@@ -106,13 +102,6 @@ jest.mock("../../../src/context/AuthContext", () => ({
   useAuth: () => ({
     setAuthError: mockSetAuthError,
     clearAuthError: mockClearAuthError,
-  }),
-}));
-
-jest.mock("../../../src/hooks/useGoogleAuth", () => ({
-  useGoogleAuth: () => ({
-    promptAsync: mockPromptAsync,
-    loading: false,
   }),
 }));
 
@@ -190,6 +179,13 @@ describe("RegisterScreen", () => {
     fireEvent.press(utils.getByText("Register"));
     expect(utils.getByText("Please fill in all fields.")).toBeTruthy();
     expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
+  });
+
+  it("does not show Google sign-in on the register screen", () => {
+    const utils = render(<RegisterScreen />);
+
+    expect(utils.queryByText("Sign in with Google")).toBeNull();
+    expect(utils.queryByText("OR")).toBeNull();
   });
 
   it("clears full name and email with the field clear buttons", () => {

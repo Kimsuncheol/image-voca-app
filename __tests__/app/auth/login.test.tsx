@@ -136,7 +136,20 @@ describe("LoginScreen", () => {
     await waitFor(() => {
       expect(getByText("Invalid email or password.")).toBeTruthy();
     });
+    expect(() => getByText("Login Error")).toThrow();
     expect(getByPlaceholderText("Password").props.value).toBe("");
+  });
+
+  it("dismisses the login error toast", () => {
+    const { getByLabelText, getByText, queryByText } = render(<LoginScreen />);
+
+    fireEvent.press(getByText("Sign In"));
+
+    expect(getByText("Please enter both email and password.")).toBeTruthy();
+
+    fireEvent.press(getByLabelText("Close"));
+
+    expect(queryByText("Please enter both email and password.")).toBeNull();
   });
 
   it("shows too many requests message for auth/too-many-requests", async () => {

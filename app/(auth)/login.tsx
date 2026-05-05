@@ -11,17 +11,20 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  Text,
+  TouchableOpacity,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../src/context/AuthContext";
 import { getBackgroundColors } from "../../constants/backgroundColors";
+import { getFontColors } from "../../constants/fontColors";
 import { useTheme } from "../../src/context/ThemeContext";
 import { useGoogleAuth } from "../../src/hooks/useGoogleAuth";
 import { auth } from "../../src/services/firebase";
 import {
   Divider,
-  ErrorBanner,
   FooterLink,
   FormInput,
   GoogleButton,
@@ -39,6 +42,7 @@ export default function LoginScreen() {
   // --- State & Hooks ---
   const { isDark } = useTheme(); // Theme context for dark/light mode
   const styles = getStyles(isDark); // Generate styles based on theme
+  const fontColors = getFontColors(isDark);
 
   // Form State
   const [email, setEmail] = useState("");
@@ -189,12 +193,28 @@ export default function LoginScreen() {
           {/* --- Section: Login Form --- */}
           <View style={styles.cardContainer}>
             <View style={styles.formContainer}>
-              {/* Authentication Error Alert */}
-              <ErrorBanner
-                title={t("auth.errors.loginTitle")}
-                message={authError || ""}
-                onClose={clearAuthError}
-              />
+              {authError && (
+                <View style={styles.errorToast} accessibilityRole="alert">
+                  <Ionicons
+                    name="alert-circle"
+                    size={18}
+                    color={fontColors.iconError}
+                    style={styles.errorToastIcon}
+                  />
+                  <Text style={styles.errorToastText}>{authError}</Text>
+                  <TouchableOpacity
+                    accessibilityLabel="Close"
+                    onPress={clearLoginError}
+                    style={styles.errorToastClose}
+                  >
+                    <Ionicons
+                      name="close"
+                      size={18}
+                      color={fontColors.iconError}
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
 
               {/* Feature: Email Input */}
               <FormInput
@@ -279,6 +299,7 @@ export default function LoginScreen() {
 // Generates styles based on the current theme (isDark)
 const getStyles = (isDark: boolean) => {
   const bg = getBackgroundColors(isDark);
+  const fontColors = getFontColors(isDark);
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -304,17 +325,35 @@ const getStyles = (isDark: boolean) => {
       borderRadius: 20,
     },
     cardContainer: {
-      backgroundColor: bg.card,
-      borderRadius: 24,
       padding: 24,
-      shadowColor: isDark ? "#000000" : "#000000",
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: isDark ? 0.3 : 0.08,
-      shadowRadius: 24,
-      elevation: 5,
+      backgroundColor: "transparent",
     },
     formContainer: {
       marginBottom: 24,
+    },
+    errorToast: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      marginBottom: 16,
+      borderRadius: 12,
+      borderWidth: 1,
+      backgroundColor: bg.accentRedDeep,
+      borderColor: fontColors.errorBannerBorder,
+    },
+    errorToastIcon: {
+      marginRight: 8,
+    },
+    errorToastText: {
+      flex: 1,
+      color: fontColors.authErrorMessage,
+      fontSize: 14,
+    },
+    errorToastClose: {
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: 8,
     },
     optionsContainer: {
       flexDirection: "column",
