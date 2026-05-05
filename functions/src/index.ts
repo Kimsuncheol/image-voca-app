@@ -2,6 +2,7 @@ import { getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { defineSecret } from "firebase-functions/params";
+import { auth as authV1 } from "firebase-functions/v1";
 import { onRequest } from "firebase-functions/v2/https";
 
 const tossSecretKey = defineSecret("TOSS_SECRET_KEY");
@@ -236,3 +237,16 @@ export const confirmTossPayment = onRequest(
     }
   },
 );
+
+export const cleanupUserDataOnAuthDelete = authV1
+  .user()
+  .onDelete(async (user) => {
+    const db = getFirestore();
+    const userRef = db.collection("users").doc(user.uid);
+
+    await db.recursiveDelete(userRef);
+
+    console.log("Deleted Firestore user data after account opt-out:", {
+      uid: user.uid,
+    });
+  });
