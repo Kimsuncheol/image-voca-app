@@ -6,15 +6,8 @@ import {
   requestMediaLibraryPermissionsAsync,
 } from "expo-image-picker";
 import { useNavigation, useRouter } from "expo-router";
+import { updateProfile } from "firebase/auth";
 import {
-  deleteUser,
-  EmailAuthProvider,
-  reauthenticateWithCredential,
-  updateProfile,
-} from "firebase/auth";
-import { deleteDoc, doc } from "firebase/firestore";
-import {
-  deleteObject,
   getDownloadURL,
   ref,
   uploadBytes,
@@ -29,7 +22,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -39,15 +31,13 @@ import { AccountInfoSection } from "../components/profile/AccountInfoSection";
 import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
-import { deleteUserDeviceRegistrations } from "../src/services/deviceRegistrationService";
-import { auth, db, storage } from "../src/services/firebase";
+import { auth, storage } from "../src/services/firebase";
 import { useSubscriptionStore } from "../src/stores";
 import { getDeviceCountryDisplayName } from "../src/utils/deviceCountry";
 
 export default function ProfileScreen() {
   const { isDark } = useTheme();
   const styles = getStyles(isDark);
-  const fontColors = getFontColors(isDark);
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState<string | null>(null);
@@ -60,10 +50,6 @@ export default function ProfileScreen() {
   const router = useRouter();
   const role = useSubscriptionStore((state) => state.role);
   const country = getDeviceCountryDisplayName();
-
-  // State for re-authentication
-  const [password, setPassword] = useState("");
-  const [showPasswordInput, setShowPasswordInput] = useState(false);
 
   // Refresh subscription when profile screen loads to ensure role is up-to-date
   useEffect(() => {
@@ -184,88 +170,13 @@ export default function ProfileScreen() {
     }
   };
 
-  const cleanupUserData = async (userId: string) => {
-    console.log("🧹 Starting cleanup for user:", userId);
-
-    try {
-      // Step 1: Delete profile image from Storage if it exists
-      console.log("📸 Step 1: Attempting to delete profile image...");
-      try {
-        const profileImageRef = ref(storage, `profile_images/${userId}`);
-        await deleteObject(profileImageRef);
-        console.log("✅ Profile image deleted from Storage");
-      } catch (storageError: any) {
-        // Ignore if image doesn't exist
-        if (storageError.code === "storage/object-not-found") {
-          console.log("ℹ️ No profile image found in Storage (this is ok)");
-        } else {
-          console.warn("⚠️ Error deleting profile image:", storageError);
-        }
-      }
-
-      // Step 2: Delete registered device documents before removing the user.
-      console.log("📱 Step 2: Attempting to delete registered devices...");
-      await deleteUserDeviceRegistrations(userId);
-      console.log("✅ Registered device documents deleted from Firestore");
-
-      // Step 3: Delete user document from Firestore
-      console.log("📄 Step 3: Attempting to delete Firestore document...");
-      await deleteDoc(doc(db, "users", userId));
-      console.log("✅ User document deleted from Firestore");
-
-      console.log("🎉 Cleanup completed successfully for user:", userId);
-    } catch (error: any) {
-      console.error("❌ Error cleaning up user data:", error);
-      throw error;
-    }
-  };
-
   const handleDeleteAccount = async () => {
     if (!user) return;
-
-    // Show confirmation first, then always require password re-authentication
-    Alert.alert(t("profile.delete.title"), t("profile.delete.message"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("profile.delete.confirm"),
-        style: "destructive",
-        onPress: () => setShowPasswordInput(true),
-      },
-    ]);
+    router.push("/delete-account-before-you-leave");
   };
 
   const handleResetPassword = () => {
     router.push("/(auth)/reset-password");
-  };
-
-  const handleReauthAndDelete = async () => {
-    if (!password || !user || !user.email) {
-      Alert.alert(t("common.error"), t("profile.delete.passwordRequired"));
-      return;
-    }
-    console.log("🔐 Starting re-authentication and deletion process...");
-    setLoading(true);
-    try {
-      console.log("🔑 Step 1: Re-authenticating user...");
-      const credential = EmailAuthProvider.credential(user.email, password);
-      await reauthenticateWithCredential(user, credential);
-      console.log("✅ Re-authentication successful");
-
-      // Clean up Firestore and Storage data first
-      console.log("🔄 Step 2: Cleaning up user data...");
-      await cleanupUserData(user.uid);
-
-      // Then delete the Firebase Auth user
-      console.log("🔄 Step 3: Deleting Firebase Auth user...");
-      await deleteUser(user);
-      console.log("✅ Firebase Auth user deleted successfully");
-      console.log("🚪 Account deletion complete, redirecting to login...");
-    } catch (error: any) {
-      console.error("❌ Re-authentication or deletion failed:", error);
-      setLoading(false);
-      Alert.alert(t("common.error"), t("profile.delete.failed"));
-      console.error(error);
-    }
   };
 
   return (
@@ -329,40 +240,6 @@ export default function ProfileScreen() {
             t={t}
           />
 
-          {showPasswordInput && (
-            <View style={styles.reauthContainer}>
-              <Text style={styles.reauthTitle}>
-                {t("profile.delete.confirmPassword")}
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t("profile.delete.passwordPlaceholder")}
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-                placeholderTextColor={fontColors.placeholder}
-              />
-              <View style={styles.reauthButtons}>
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={() => setShowPasswordInput(false)}
-                >
-                  <Text style={styles.cancelButtonText}>
-                    {t("common.cancel")}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.confirmButton}
-                  onPress={handleReauthAndDelete}
-                  disabled={loading}
-                >
-                  <Text style={styles.confirmButtonText}>
-                    {t("profile.delete.confirmButton")}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -505,60 +382,6 @@ const getStyles = (isDark: boolean) => {
       fontSize: FontSizes.bodyLg,
       color: fontColors.dangerAction,
       fontWeight: FontWeights.semiBold,
-    },
-    reauthContainer: {
-      position: "absolute",
-      top: "30%",
-      left: 20,
-      right: 20,
-      backgroundColor: bg.card,
-      padding: 24,
-      borderRadius: 16,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 10,
-      elevation: 10,
-    },
-    reauthTitle: {
-      fontSize: FontSizes.titleMd,
-      fontWeight: FontWeights.bold,
-      color: fontColors.screenTitle,
-      marginBottom: 16,
-      textAlign: "center",
-    },
-    input: {
-      backgroundColor: bg.tabInactive,
-      padding: 12,
-      borderRadius: 12,
-      color: fontColors.screenTitle,
-      marginBottom: 20,
-    },
-    reauthButtons: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-    },
-    cancelButton: {
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-      borderRadius: 12,
-      backgroundColor: bg.separator,
-    },
-    cancelButtonText: {
-      fontSize: FontSizes.bodyLg,
-      fontWeight: FontWeights.semiBold,
-      color: fontColors.screenTitle,
-    },
-    confirmButton: {
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-      borderRadius: 12,
-      backgroundColor: bg.accentRed,
-    },
-    confirmButtonText: {
-      fontSize: FontSizes.bodyLg,
-      fontWeight: FontWeights.semiBold,
-      color: fontColors.buttonOnAccent,
     },
     goalInputContainer: {
       flexDirection: "row",

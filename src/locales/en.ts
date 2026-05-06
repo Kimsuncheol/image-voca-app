@@ -559,6 +559,24 @@ const en = {
       confirmPassword: "Confirm Password",
       passwordPlaceholder: "Password",
     },
+    deleteFlow: {
+      beforeTitle: "Before you leave",
+      beforeHeading: "Before you leave",
+      beforeBody:
+        "Deleting your account is permanent. Please review what will be removed before continuing.",
+      removalTitle: "This will remove",
+      removal: {
+        profile: "Your profile and account details",
+        devices: "Registered devices for this account",
+        progress: "Saved app data connected to your user profile",
+      },
+      continue: "Continue",
+      confirmTitle: "Confirm password",
+      goodbyeTitle: "We're sorry to see you go",
+      goodbyeBody:
+        "Your account has been deleted. You can sign in again later with a new account.",
+      signIn: "Sign In",
+    },
     resetPassword: {
       title: "Reset Password",
     },

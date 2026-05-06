@@ -109,6 +109,8 @@ export function RootLayoutNav() {
     const isPasswordResetRoute =
       inAuthGroup && segments[1] === "reset-password";
     const isVerifyEmailRoute = inAuthGroup && segments[1] === "verify-email";
+    const isAccountDeletedRoute =
+      inAuthGroup && segments[1] === "account-deleted";
 
     if (authStatus === "signed_out") {
       if (!inAuthGroup || isVerifyEmailRoute) {
@@ -124,7 +126,12 @@ export function RootLayoutNav() {
       return;
     }
 
-    if (authStatus === "signed_in" && inAuthGroup && !isPasswordResetRoute) {
+    if (
+      authStatus === "signed_in" &&
+      inAuthGroup &&
+      !isPasswordResetRoute &&
+      !isAccountDeletedRoute
+    ) {
       router.replace("/(tabs)");
     } else if (!user && !inAuthGroup) {
       // Redirect to the login page if they are not logged in.
@@ -153,6 +160,22 @@ export function RootLayoutNav() {
                 title: t("profile.title"),
                 headerStyle: {backgroundColor: bgColors.screen}
                }}
+            />
+            <Stack.Screen
+              name="delete-account-before-you-leave"
+              options={{
+                title: t("profile.deleteFlow.beforeTitle"),
+                headerShown: false,
+                headerStyle: { backgroundColor: bgColors.screenAlt },
+              }}
+            />
+            <Stack.Screen
+              name="delete-account-confirm-password"
+              options={{
+                title: t("profile.deleteFlow.confirmTitle"),
+                headerShown: false,
+                headerStyle: { backgroundColor: bgColors.screenAlt },
+              }}
             />
             <Stack.Screen
               name="manage-devices"

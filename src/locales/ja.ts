@@ -545,6 +545,24 @@ const ja = {
       confirmPassword: "パスワード確認",
       passwordPlaceholder: "パスワード",
     },
+    deleteFlow: {
+      beforeTitle: "退会前の確認",
+      beforeHeading: "退会前にご確認ください",
+      beforeBody:
+        "アカウント削除は元に戻せません。続行する前に削除される内容をご確認ください。",
+      removalTitle: "削除されるもの",
+      removal: {
+        profile: "プロフィールとアカウント情報",
+        devices: "このアカウントに登録された端末",
+        progress: "ユーザープロフィールに紐づく保存データ",
+      },
+      continue: "続行",
+      confirmTitle: "パスワード確認",
+      goodbyeTitle: "ご利用ありがとうございました",
+      goodbyeBody:
+        "アカウントは削除されました。後で新しいアカウントで再開できます。",
+      signIn: "サインイン",
+    },
     resetPassword: {
       title: "パスワードリセット",
     },

@@ -550,6 +550,24 @@ const ko = {
       confirmPassword: "비밀번호 확인",
       passwordPlaceholder: "비밀번호",
     },
+    deleteFlow: {
+      beforeTitle: "떠나기 전에",
+      beforeHeading: "떠나기 전에 확인해주세요",
+      beforeBody:
+        "계정 삭제는 되돌릴 수 없습니다. 계속하기 전에 삭제되는 항목을 확인해주세요.",
+      removalTitle: "삭제되는 항목",
+      removal: {
+        profile: "프로필 및 계정 정보",
+        devices: "이 계정에 등록된 기기",
+        progress: "사용자 프로필에 연결된 저장 데이터",
+      },
+      continue: "계속",
+      confirmTitle: "비밀번호 확인",
+      goodbyeTitle: "떠나신다니 아쉽습니다",
+      goodbyeBody:
+        "계정이 삭제되었습니다. 나중에 새 계정으로 다시 시작할 수 있습니다.",
+      signIn: "로그인",
+    },
     resetPassword: {
       title: "비밀번호 재설정",
     },
