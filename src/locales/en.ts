@@ -492,6 +492,8 @@ const en = {
       resendEmail: "Resend Email",
       checkInbox: "Open the verification email link to continue.",
       verifyingCode: "Verifying email link...",
+      invalidLinkToast:
+        "This password reset link is invalid or expired. Please request a new one.",
       verifyFailed:
         "This verification link is invalid or expired. Request a new email.",
       sendFailed: "Failed to send verification email. Please try again.",
@@ -506,9 +508,12 @@ const en = {
         special: "Contains a special character",
         match: "Passwords match",
       },
+      minLengthValidation: "Password must be at least 8 characters.",
+      mismatchValidation: "Passwords must match.",
       submit: "Reset Password",
       submitting: "Resetting password...",
       resetSuccess: "Password reset successful. Please sign in again.",
+      successToast: "Password successfully changed. You can now log in.",
       resetFailed: "Failed to reset password. Please try again.",
     },
   },

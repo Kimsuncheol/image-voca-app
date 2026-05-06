@@ -19,12 +19,14 @@ interface AuthErrorToastProps {
   message?: string | null;
   onClose?: () => void;
   floating?: boolean;
+  variant?: "error" | "success";
 }
 
 export const AuthErrorToast: React.FC<AuthErrorToastProps> = ({
   message,
   onClose,
   floating = false,
+  variant = "error",
 }) => {
   const { isDark } = useTheme();
   const styles = getStyles(isDark);
@@ -79,16 +81,28 @@ export const AuthErrorToast: React.FC<AuthErrorToastProps> = ({
 
   return (
     <Animated.View
-      style={[styles.toast, floating && styles.floatingToast, animatedStyle]}
+      style={[
+        styles.toast,
+        variant === "success" ? styles.successToast : styles.errorToast,
+        floating && styles.floatingToast,
+        animatedStyle,
+      ]}
       accessibilityRole="alert"
     >
       <Ionicons
-        name="alert-circle"
+        name={variant === "success" ? "checkmark-circle" : "alert-circle"}
         size={18}
-        color={fontColors.iconError}
+        color={variant === "success" ? fontColors.successText : fontColors.iconError}
         style={styles.icon}
       />
-      <Text style={styles.message}>{message}</Text>
+      <Text
+        style={[
+          styles.message,
+          variant === "success" ? styles.successMessage : styles.errorMessage,
+        ]}
+      >
+        {message}
+      </Text>
       {onClose && (
         <TouchableOpacity
           accessibilityLabel="Close"
@@ -96,7 +110,11 @@ export const AuthErrorToast: React.FC<AuthErrorToastProps> = ({
           onPress={() => animateOut(onClose)}
           style={styles.close}
         >
-          <Ionicons name="close" size={18} color={fontColors.iconError} />
+          <Ionicons
+            name="close"
+            size={18}
+            color={variant === "success" ? fontColors.successText : fontColors.iconError}
+          />
         </TouchableOpacity>
       )}
     </Animated.View>
@@ -110,14 +128,20 @@ const getStyles = (isDark: boolean) => {
   return StyleSheet.create({
     toast: {
       flexDirection: "row",
-      alignItems: "center",
+      alignItems: "flex-start",
       paddingVertical: 10,
       paddingHorizontal: 12,
       marginBottom: 16,
       borderRadius: 12,
       borderWidth: 1,
+    },
+    errorToast: {
       backgroundColor: bg.accentRedDeep,
       borderColor: fontColors.errorBannerBorder,
+    },
+    successToast: {
+      backgroundColor: bg.accentGreenDeep,
+      borderColor: fontColors.successBorderAlt,
     },
     floatingToast: {
       position: "absolute",
@@ -139,8 +163,14 @@ const getStyles = (isDark: boolean) => {
     },
     message: {
       flex: 1,
-      color: fontColors.authErrorMessage,
       fontSize: FontSizes.label,
+      lineHeight: FontSizes.label * 1.35,
+    },
+    errorMessage: {
+      color: fontColors.authErrorMessage,
+    },
+    successMessage: {
+      color: fontColors.passwordResetSuccessText,
     },
     close: {
       alignItems: "center",

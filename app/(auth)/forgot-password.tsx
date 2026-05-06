@@ -1,5 +1,5 @@
 import React from "react";
-import PasswordResetFlow from "./components/PasswordResetFlow";
+import { PasswordResetFlow } from "./components/PasswordResetFlow";
 
 export default function ForgotPasswordScreen() {
   return (

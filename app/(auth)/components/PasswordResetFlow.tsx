@@ -1,30 +1,28 @@
 import { FontWeights } from "@/constants/fontWeights";
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { FirebaseError } from "firebase/app";
 import { FontSizes } from "@/constants/fontSizes";
 import {
   ActionCodeSettings,
   confirmPasswordReset,
   sendPasswordResetEmail,
-  signOut,
   verifyPasswordResetCode,
 } from "firebase/auth";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
-import { getFontColors } from "../../../constants/fontColors";
+import { FontColors, getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { usePasswordResetDeepLink } from "../../../src/hooks/usePasswordResetDeepLink";
 import { auth } from "../../../src/services/firebase";
 import { AuthErrorToast } from "./AuthErrorToast";
 import { AuthKeyboardScreen } from "./AuthKeyboardScreen";
 import { FormInput } from "./FormInput";
 import { LinkButton } from "./LinkButton";
-import { PasswordHints } from "./PasswordHints";
 import { PasswordInput } from "./PasswordInput";
-import { PasswordStrengthMeter } from "./PasswordStrengthMeter";
 import { PrimaryButton } from "./PrimaryButton";
 
 type PasswordResetVariant = "forgot" | "reset";
@@ -57,44 +55,6 @@ const shouldRetryWithoutActionCodeSettings = (code?: string) =>
   code === "auth/missing-continue-uri" ||
   code === "auth/argument-error";
 
-const parsePasswordResetParams = (params: Record<string, string | string[] | undefined>) => {
-  const readParam = (value?: string | string[]) => {
-    if (Array.isArray(value)) return value[0];
-    return value;
-  };
-
-  const directMode = readParam(params.mode);
-  const directCode = readParam(params.oobCode);
-  if (directCode) {
-    return {
-      mode: directMode,
-      oobCode: directCode,
-    };
-  }
-
-  const nestedLink = readParam(params.link) || readParam(params.url);
-  if (!nestedLink) {
-    return {
-      mode: directMode,
-      oobCode: undefined,
-    };
-  }
-
-  try {
-    const decodedLink = decodeURIComponent(nestedLink);
-    const parsedLink = new URL(decodedLink);
-    return {
-      mode: parsedLink.searchParams.get("mode") || directMode,
-      oobCode: parsedLink.searchParams.get("oobCode") || undefined,
-    };
-  } catch {
-    return {
-      mode: directMode,
-      oobCode: undefined,
-    };
-  }
-};
-
 export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
   variant,
   initialEmail = "",
@@ -102,10 +62,11 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
   redirectAfterSuccess,
 }) => {
   const router = useRouter();
-  const params = useLocalSearchParams();
+  const deepLink = usePasswordResetDeepLink();
   const { t } = useTranslation();
   const { isDark } = useTheme();
-  const styles = getStyles(isDark);
+  const isDeepLinkReset = variant === "reset";
+  const styles = getStyles(isDark, isDeepLinkReset);
 
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
@@ -118,7 +79,17 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [verifiedCode, setVerifiedCode] = useState<string | null>(null);
   const isMountedRef = useRef(true);
-  useEffect(() => () => { isMountedRef.current = false; }, []);
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    },
+    [],
+  );
 
   const isValidEmail = useMemo(() => {
     if (!email) return false;
@@ -126,23 +97,32 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
   }, [email]);
 
   const hasMinLength = password.length >= 8;
-  const hasNumber = /\d/.test(password);
-  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
   const passwordsMatch = password === confirmPassword && password !== "";
+  const canSubmitReset = hasMinLength && passwordsMatch && !!verifiedCode && !isResettingPassword;
 
-  const extractedParams = useMemo(
-    () => parsePasswordResetParams(params as Record<string, string | string[] | undefined>),
-    [params],
-  );
+  const scheduleLoginRedirect = useCallback((delayMs: number) => {
+    if (redirectTimerRef.current) {
+      clearTimeout(redirectTimerRef.current);
+    }
+
+    redirectTimerRef.current = setTimeout(() => {
+      if (isMountedRef.current) {
+        router.replace(redirectAfterSuccess);
+      }
+    }, delayMs);
+  }, [redirectAfterSuccess, router]);
 
   useEffect(() => {
-    const oobCode = extractedParams.oobCode;
-    if (!oobCode) {
+    if (!isDeepLinkReset) {
       return;
     }
 
-    if (extractedParams.mode !== "resetPassword") {
-      setGeneralError(t("auth.passwordReset.verifyFailed"));
+    const oobCode = deepLink.oobCode;
+    if (!oobCode || deepLink.mode !== "resetPassword") {
+      setVerifiedCode(null);
+      setIsVerifyingCode(false);
+      setGeneralError(t("auth.passwordReset.invalidLinkToast"));
+      scheduleLoginRedirect(1600);
       return;
     }
 
@@ -160,7 +140,8 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
       } catch {
         if (!isMounted) return;
         setVerifiedCode(null);
-        setGeneralError(t("auth.passwordReset.verifyFailed"));
+        setGeneralError(t("auth.passwordReset.invalidLinkToast"));
+        scheduleLoginRedirect(1600);
       } finally {
         if (isMounted) {
           setIsVerifyingCode(false);
@@ -173,7 +154,7 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [extractedParams.mode, extractedParams.oobCode, t]);
+  }, [deepLink.mode, deepLink.oobCode, isDeepLinkReset, scheduleLoginRedirect, t]);
 
   const handleSendVerificationEmail = async () => {
     setGeneralError("");
@@ -239,32 +220,33 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
       return;
     }
 
-    if (!hasMinLength || !hasNumber || !hasSpecial) {
-      setGeneralError(t("auth.errors.passwordRequirements"));
+    if (!hasMinLength) {
+      setGeneralError(t("auth.passwordReset.minLengthValidation"));
       return;
     }
 
     if (!passwordsMatch) {
-      setGeneralError(t("auth.errors.passwordMismatch"));
+      setGeneralError(t("auth.passwordReset.mismatchValidation"));
       return;
     }
 
     setIsResettingPassword(true);
     try {
       await confirmPasswordReset(auth, verifiedCode, password);
-      await signOut(auth);
-      setSuccessMessage(t("auth.passwordReset.resetSuccess"));
-      if (isMountedRef.current) {
-        router.replace(redirectAfterSuccess);
-      }
+      setSuccessMessage(t("auth.passwordReset.successToast"));
+      scheduleLoginRedirect(2000);
     } catch {
       setGeneralError(t("auth.passwordReset.resetFailed"));
     } finally {
-      setIsResettingPassword(false);
+      if (isMountedRef.current) {
+        setIsResettingPassword(false);
+      }
     }
   };
 
   const showResetForm = !!verifiedCode;
+  const showForgotEmailForm = variant === "forgot";
+  const showHeader = showForgotEmailForm || showResetForm;
 
   return (
     <AuthKeyboardScreen
@@ -272,33 +254,33 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.headerContainer}>
-        <Text style={styles.title}>
-          {showResetForm
-            ? t("auth.passwordReset.newPasswordTitle")
-            : variant === "forgot"
-              ? t("auth.passwordReset.forgotTitle")
-              : t("auth.passwordReset.resetTitle")}
-        </Text>
-        <Text style={styles.subtitle}>
-          {showResetForm
-            ? t("auth.passwordReset.newPasswordSubtitle")
-            : variant === "forgot"
-              ? t("auth.passwordReset.forgotSubtitle")
-              : t("auth.passwordReset.resetSubtitle")}
-        </Text>
-      </View>
+      {showHeader && (
+        <View style={styles.headerContainer}>
+          <Text style={styles.title}>
+            {showResetForm
+              ? t("auth.passwordReset.newPasswordTitle")
+              : t("auth.passwordReset.forgotTitle")}
+          </Text>
+          <Text style={styles.subtitle}>
+            {showResetForm
+              ? t("auth.passwordReset.newPasswordSubtitle")
+              : t("auth.passwordReset.forgotSubtitle")}
+          </Text>
+        </View>
+      )}
 
       <View style={styles.formContainer}>
         <AuthErrorToast
           message={generalError}
           onClose={() => setGeneralError("")}
+          floating={isDeepLinkReset}
         />
-        {!!successMessage && (
-          <View style={styles.successBanner}>
-            <Text style={styles.successText}>{successMessage}</Text>
-          </View>
-        )}
+        <AuthErrorToast
+          message={successMessage}
+          onClose={() => setSuccessMessage("")}
+          floating={isDeepLinkReset}
+          variant="success"
+        />
 
         {isVerifyingCode && (
           <Text style={styles.infoText}>
@@ -306,7 +288,7 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
           </Text>
         )}
 
-        {!showResetForm && (
+        {showForgotEmailForm && (
           <>
             <FormInput
               icon="mail-outline"
@@ -351,37 +333,27 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
               onChangeText={setPassword}
             />
 
-            <PasswordStrengthMeter
-              password={password}
-              hasMinLength={hasMinLength}
-              hasNumber={hasNumber}
-              hasSpecial={hasSpecial}
-            />
-
             <PasswordInput
               placeholder={t("auth.passwordReset.confirmPasswordPlaceholder")}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
             />
 
-            <PasswordHints
-              hasMinLength={hasMinLength}
-              hasNumber={hasNumber}
-              hasSpecial={hasSpecial}
-              passwordsMatch={passwordsMatch}
-              hints={{
-                length: t("auth.passwordReset.passwordHint.length"),
-                number: t("auth.passwordReset.passwordHint.number"),
-                special: t("auth.passwordReset.passwordHint.special"),
-                match: t("auth.passwordReset.passwordHint.match"),
-              }}
-            />
+            <View style={styles.validationContainer}>
+              <Text style={[styles.validationText, hasMinLength && styles.validationTextValid]}>
+                {t("auth.passwordReset.minLengthValidation")}
+              </Text>
+              <Text style={[styles.validationText, passwordsMatch && styles.validationTextValid]}>
+                {t("auth.passwordReset.mismatchValidation")}
+              </Text>
+            </View>
 
             <PrimaryButton
               title={t("auth.passwordReset.submit")}
               loading={isResettingPassword}
               loadingTitle={t("auth.passwordReset.submitting")}
               onPress={handleResetPassword}
+              disabled={!canSubmitReset}
             />
           </>
         )}
@@ -390,14 +362,15 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
   );
 };
 
-const getStyles = (isDark: boolean) => {
-  const fontColors = getFontColors(isDark);
-  const bg = getBackgroundColors(isDark);
+const getStyles = (isDark: boolean, forceBlackBackground: boolean) => {
+  const effectiveIsDark = forceBlackBackground || isDark;
+  const fontColors = getFontColors(effectiveIsDark);
+  const bg = getBackgroundColors(effectiveIsDark);
 
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: bg.screen,
+      backgroundColor: forceBlackBackground ? "#000000" : bg.screen,
     },
     scrollContent: {
       flexGrow: 1,
@@ -423,25 +396,23 @@ const getStyles = (isDark: boolean) => {
     formContainer: {
       marginBottom: 24,
     },
-    successBanner: {
-      backgroundColor: bg.accentGreenDeep,
-      borderColor: fontColors.successBorderAlt,
-      borderWidth: 1,
-      borderRadius: 12,
-      paddingVertical: 12,
-      paddingHorizontal: 14,
-      marginBottom: 16,
-    },
-    successText: {
-      color: fontColors.passwordResetSuccessText,
-      fontSize: FontSizes.label,
-      fontWeight: FontWeights.semiBold,
-    },
     infoText: {
       color: fontColors.supporting,
       fontSize: FontSizes.body,
       marginBottom: 12,
       textAlign: "center",
+    },
+    validationContainer: {
+      gap: 6,
+      marginBottom: 24,
+      paddingHorizontal: 4,
+    },
+    validationText: {
+      color: fontColors.body,
+      fontSize: FontSizes.caption,
+    },
+    validationTextValid: {
+      color: FontColors.dark.successText,
     },
     helperContainer: {
       marginTop: 16,

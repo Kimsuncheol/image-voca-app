@@ -487,6 +487,8 @@ const ko = {
       resendEmail: "이메일 다시 보내기",
       checkInbox: "계속하려면 이메일의 인증 링크를 열어주세요.",
       verifyingCode: "이메일 링크 확인 중...",
+      invalidLinkToast:
+        "비밀번호 재설정 링크가 유효하지 않거나 만료되었습니다. 새 링크를 요청하세요.",
       verifyFailed:
         "인증 링크가 유효하지 않거나 만료되었습니다. 이메일을 다시 요청하세요.",
       sendFailed: "인증 이메일 전송에 실패했습니다. 다시 시도하세요.",
@@ -501,9 +503,12 @@ const ko = {
         special: "특수문자 포함",
         match: "비밀번호 일치",
       },
+      minLengthValidation: "비밀번호는 8자 이상이어야 합니다.",
+      mismatchValidation: "비밀번호가 일치해야 합니다.",
       submit: "비밀번호 재설정",
       submitting: "비밀번호 재설정 중...",
       resetSuccess: "비밀번호가 재설정되었습니다. 다시 로그인해주세요.",
+      successToast: "비밀번호가 성공적으로 변경되었습니다. 이제 로그인할 수 있습니다.",
       resetFailed: "비밀번호 재설정에 실패했습니다. 다시 시도하세요.",
     },
   },
