@@ -1,7 +1,13 @@
 import React from "react";
+import { StyleSheet, Text } from "react-native";
+import { FontSizes } from "@/constants/fontSizes";
+import { getFontColors } from "../../../constants/fontColors";
+import { useTheme } from "../../../src/context/ThemeContext";
 import { AvatarPicker } from "./AvatarPicker";
 import { FormInput } from "./FormInput";
 import { PrimaryButton } from "./PrimaryButton";
+
+type EmailAvailabilityStatus = "idle" | "checking" | "available" | "taken" | "error";
 
 interface RegisterAccountStepProps {
   avatarUri: string | null;
@@ -9,7 +15,10 @@ interface RegisterAccountStepProps {
   email: string;
   isValidEmail: boolean;
   emailTouched: boolean;
+  emailAvailabilityStatus: EmailAvailabilityStatus;
+  emailAvailabilityMessage: string;
   permissionError: string;
+  canContinue: boolean;
   labels: {
     avatar: string;
     fullNamePlaceholder: string;
@@ -32,7 +41,10 @@ export const RegisterAccountStep: React.FC<RegisterAccountStepProps> = ({
   email,
   isValidEmail,
   emailTouched,
+  emailAvailabilityStatus,
+  emailAvailabilityMessage,
   permissionError,
+  canContinue,
   labels,
   onPickImage,
   onDisplayNameChange,
@@ -42,6 +54,16 @@ export const RegisterAccountStep: React.FC<RegisterAccountStepProps> = ({
   onEmailBlur,
   onNext,
 }) => {
+  const { isDark } = useTheme();
+  const styles = getStyles(isDark);
+  const emailAvailabilityMessageStyle = [
+    styles.emailAvailabilityMessage,
+    emailAvailabilityStatus === "available" && styles.emailAvailableMessage,
+    (emailAvailabilityStatus === "taken" ||
+      emailAvailabilityStatus === "error") &&
+      styles.emailUnavailableMessage,
+  ];
+
   return (
     <>
       <AvatarPicker
@@ -75,7 +97,36 @@ export const RegisterAccountStep: React.FC<RegisterAccountStepProps> = ({
         isTouched={emailTouched}
         errorMessage={labels.invalidEmail}
       />
-      <PrimaryButton title={labels.next} onPress={onNext} />
+      {!!emailAvailabilityMessage && (
+        <Text style={emailAvailabilityMessageStyle}>
+          {emailAvailabilityMessage}
+        </Text>
+      )}
+      <PrimaryButton
+        title={labels.next}
+        onPress={onNext}
+        disabled={!canContinue}
+      />
     </>
   );
+};
+
+const getStyles = (isDark: boolean) => {
+  const fontColors = getFontColors(isDark);
+
+  return StyleSheet.create({
+    emailAvailabilityMessage: {
+      color: fontColors.supporting,
+      fontSize: FontSizes.caption,
+      marginTop: -12,
+      marginBottom: 12,
+      paddingHorizontal: 4,
+    },
+    emailAvailableMessage: {
+      color: fontColors.success,
+    },
+    emailUnavailableMessage: {
+      color: fontColors.error,
+    },
+  });
 };

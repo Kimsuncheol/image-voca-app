@@ -8,6 +8,13 @@ import {
   sendEmailVerification,
   updateProfile,
 } from "firebase/auth";
+import {
+  collection,
+  getDocs,
+  limit,
+  query,
+  where,
+} from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -20,8 +27,9 @@ import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useTheme } from "../../src/context/ThemeContext";
-import { auth } from "../../src/services/firebase";
+import { auth, db } from "../../src/services/firebase";
 import { ensureUserProfileDocument } from "../../src/services/userProfileService";
+import { LearningLanguage } from "../../src/types/vocabulary";
 import {
   AuthErrorToast,
   AuthKeyboardScreen,
@@ -34,6 +42,9 @@ import {
 } from "./components";
 
 type RegisterStep = "account" | "security" | "preferences";
+type EmailAvailabilityStatus = "idle" | "checking" | "available" | "taken" | "error";
+
+const EMAIL_AVAILABILITY_DEBOUNCE_MS = 450;
 
 export default function RegisterScreen() {
   const { isDark } = useTheme();
@@ -45,6 +56,10 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState<RegisterStep>("account");
+  const [selectedLearningLanguage, setSelectedLearningLanguage] =
+    useState<LearningLanguage | null>(null);
+  const [emailAvailabilityStatus, setEmailAvailabilityStatus] =
+    useState<EmailAvailabilityStatus>("idle");
   // const [requestAdmin, setRequestAdmin] = useState(false);
 
   // ---------------------------------------------------------------------------
@@ -64,7 +79,7 @@ export default function RegisterScreen() {
   // Email validation state
   const [isValidEmail, setIsValidEmail] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
-  const { learningLanguage, setLearningLanguage } = useLearningLanguage();
+  const { setLearningLanguage } = useLearningLanguage();
   const { clearAuthError, setAuthError } = useAuth();
 
   const router = useRouter();
@@ -91,11 +106,58 @@ export default function RegisterScreen() {
   useEffect(() => {
     if (email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      setIsValidEmail(emailRegex.test(email));
+      setIsValidEmail(emailRegex.test(email.trim()));
     } else {
       setIsValidEmail(false);
     }
   }, [email]);
+
+  useEffect(() => {
+    const trimmedDisplayName = displayName.trim();
+    const trimmedEmail = email.trim();
+
+    if (!trimmedDisplayName || !trimmedEmail || !isValidEmail) {
+      setEmailAvailabilityStatus("idle");
+      return;
+    }
+
+    setEmailAvailabilityStatus("checking");
+
+    let isActive = true;
+    const timeoutId = setTimeout(() => {
+      const checkEmailAvailability = async () => {
+        const lowerEmail = trimmedEmail.toLowerCase();
+        const emailCandidates = Array.from(
+          new Set([trimmedEmail, lowerEmail]),
+        );
+
+        try {
+          const snapshot = await getDocs(
+            query(
+              collection(db, "users"),
+              where("email", "in", emailCandidates),
+              limit(1),
+            ),
+          );
+
+          if (!isActive) return;
+          setEmailAvailabilityStatus(snapshot.empty ? "available" : "taken");
+        } catch (error) {
+          console.warn("Failed to check email availability", error);
+          if (isActive) {
+            setEmailAvailabilityStatus("error");
+          }
+        }
+      };
+
+      void checkEmailAvailability();
+    }, EMAIL_AVAILABILITY_DEBOUNCE_MS);
+
+    return () => {
+      isActive = false;
+      clearTimeout(timeoutId);
+    };
+  }, [displayName, email, isValidEmail]);
 
   // ===========================================================================
   // PASSWORD VALIDATION EFFECT
@@ -173,10 +235,27 @@ export default function RegisterScreen() {
     clearAuthError();
 
     // --- Step 1: Validate required fields ---
-    if (!displayName || !email || !password || !confirmPassword) {
+    const trimmedDisplayName = displayName.trim();
+    const trimmedEmail = email.trim();
+
+    if (!trimmedDisplayName || !trimmedEmail || !password || !confirmPassword) {
       setErrors((prev) => ({
         ...prev,
         general: t("auth.errors.missingFields"),
+      }));
+      return;
+    }
+
+    if (emailAvailabilityStatus !== "available") {
+      setErrors((prev) => ({
+        ...prev,
+        general:
+          emailAvailabilityStatus === "taken"
+            ? t("auth.errors.emailAlreadyInUse")
+            : t("auth.register.emailAvailability.error", {
+                defaultValue:
+                  "Unable to confirm this email is available. Please try again.",
+              }),
       }));
       return;
     }
@@ -211,10 +290,12 @@ export default function RegisterScreen() {
     }
 
     // --- Step 5: Validate learning language selection ---
-    if (!learningLanguage) {
+    if (!selectedLearningLanguage) {
       setErrors((prev) => ({
         ...prev,
-        general: "Please select at least one language to learn.",
+        general: t("auth.register.selectLearningLanguage", {
+          defaultValue: "Please select at least one language to learn.",
+        }),
       }));
       return;
     }
@@ -225,22 +306,22 @@ export default function RegisterScreen() {
       // Create Firebase Authentication account
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        email,
+        trimmedEmail,
         password,
       );
 
       // Update the user's profile with display name and avatar
       await updateProfile(userCredential.user, {
-        displayName: displayName,
+        displayName: trimmedDisplayName,
         photoURL: avatarUri || null,
       });
 
       // Ensure the Firestore user profile exists with app defaults.
       await ensureUserProfileDocument(userCredential.user, {
-        displayName,
-        email,
+        displayName: trimmedDisplayName,
+        email: trimmedEmail,
         photoURL: avatarUri || null,
-        learningLanguage,
+        learningLanguage: selectedLearningLanguage,
         recentCourseByLanguage: {},
       });
 
@@ -286,6 +367,12 @@ export default function RegisterScreen() {
     setEmail("");
     setEmailTouched(false);
     setIsValidEmail(false);
+    setEmailAvailabilityStatus("idle");
+  };
+
+  const handleLearningLanguageChange = (lang: LearningLanguage) => {
+    setSelectedLearningLanguage(lang);
+    void setLearningLanguage(lang);
   };
 
   const registerSteps: { key: RegisterStep; label: string }[] = [
@@ -306,7 +393,7 @@ export default function RegisterScreen() {
   const handleAccountNext = () => {
     clearError();
     clearAuthError();
-    if (!displayName || !email) {
+    if (!displayName.trim() || !email.trim()) {
       setErrors((prev) => ({
         ...prev,
         general: t("auth.errors.missingFields"),
@@ -320,6 +407,19 @@ export default function RegisterScreen() {
           t("auth.errors.invalidEmail") || "Please enter a valid email address",
       }));
       setEmailTouched(true);
+      return;
+    }
+    if (emailAvailabilityStatus !== "available") {
+      setErrors((prev) => ({
+        ...prev,
+        general:
+          emailAvailabilityStatus === "taken"
+            ? t("auth.errors.emailAlreadyInUse")
+            : t("auth.register.emailAvailability.error", {
+                defaultValue:
+                  "Unable to confirm this email is available. Please try again.",
+              }),
+      }));
       return;
     }
     setCurrentStep("security");
@@ -350,6 +450,45 @@ export default function RegisterScreen() {
       return;
     }
     setCurrentStep("preferences");
+  };
+
+  const canContinueAccount =
+    !!displayName.trim() &&
+    !!email.trim() &&
+    isValidEmail &&
+    emailAvailabilityStatus === "available";
+  const canContinueSecurity =
+    !!password &&
+    !!confirmPassword &&
+    hasMinLength &&
+    hasNumber &&
+    hasSpecial &&
+    passwordsMatch;
+
+  const getEmailAvailabilityMessage = () => {
+    if (!email.trim() || !isValidEmail || !displayName.trim()) return "";
+
+    if (emailAvailabilityStatus === "checking") {
+      return t("auth.register.emailAvailability.checking", {
+        defaultValue: "Checking email availability...",
+      });
+    }
+    if (emailAvailabilityStatus === "available") {
+      return t("auth.register.emailAvailability.available", {
+        defaultValue: "This email is available.",
+      });
+    }
+    if (emailAvailabilityStatus === "taken") {
+      return t("auth.errors.emailAlreadyInUse");
+    }
+    if (emailAvailabilityStatus === "error") {
+      return t("auth.register.emailAvailability.error", {
+        defaultValue:
+          "Unable to confirm this email is available. Please try again.",
+      });
+    }
+
+    return "";
   };
 
   // ===========================================================================
@@ -392,7 +531,10 @@ export default function RegisterScreen() {
               email={email}
               isValidEmail={isValidEmail}
               emailTouched={emailTouched}
+              emailAvailabilityStatus={emailAvailabilityStatus}
+              emailAvailabilityMessage={getEmailAvailabilityMessage()}
               permissionError={errors.permission}
+              canContinue={canContinueAccount}
               labels={{
                 avatar: t("auth.register.avatarLabel"),
                 fullNamePlaceholder: t("auth.register.fullNamePlaceholder"),
@@ -420,6 +562,7 @@ export default function RegisterScreen() {
               hasNumber={hasNumber}
               hasSpecial={hasSpecial}
               passwordsMatch={passwordsMatch}
+              canContinue={canContinueSecurity}
               labels={{
                 passwordPlaceholder: t("auth.register.passwordPlaceholder"),
                 confirmPasswordPlaceholder: t(
@@ -443,7 +586,7 @@ export default function RegisterScreen() {
 
           {currentStep === "preferences" && (
             <RegisterPreferencesStep
-              learningLanguage={learningLanguage}
+              learningLanguage={selectedLearningLanguage}
               loading={loading}
               labels={{
                 wishToLearn: t("settings.language.wishToLearn"),
@@ -451,7 +594,7 @@ export default function RegisterScreen() {
                 register: t("auth.register.register"),
                 creatingAccount: t("auth.register.creatingAccount"),
               }}
-              onLearningLanguageChange={(lang) => void setLearningLanguage(lang)}
+              onLearningLanguageChange={handleLearningLanguageChange}
               onBack={goToPreviousStep}
               onRegister={handleRegister}
             />

@@ -17,6 +17,7 @@ interface RegisterSecurityStepProps {
   hasNumber: boolean;
   hasSpecial: boolean;
   passwordsMatch: boolean;
+  canContinue: boolean;
   labels: {
     passwordPlaceholder: string;
     confirmPasswordPlaceholder: string;
@@ -42,6 +43,7 @@ export const RegisterSecurityStep: React.FC<RegisterSecurityStepProps> = ({
   hasNumber,
   hasSpecial,
   passwordsMatch,
+  canContinue,
   labels,
   onPasswordChange,
   onConfirmPasswordChange,
@@ -84,7 +86,11 @@ export const RegisterSecurityStep: React.FC<RegisterSecurityStepProps> = ({
           <Text style={styles.secondaryButtonText}>{labels.back}</Text>
         </TouchableOpacity>
         <View style={styles.primaryAction}>
-          <PrimaryButton title={labels.next} onPress={onNext} />
+          <PrimaryButton
+            title={labels.next}
+            onPress={onNext}
+            disabled={!canContinue}
+          />
         </View>
       </View>
     </>

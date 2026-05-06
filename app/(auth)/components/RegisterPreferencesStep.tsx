@@ -10,7 +10,7 @@ import { LearningLanguage } from "../../../src/types/vocabulary";
 import { PrimaryButton } from "./PrimaryButton";
 
 interface RegisterPreferencesStepProps {
-  learningLanguage: LearningLanguage;
+  learningLanguage: LearningLanguage | null;
   loading: boolean;
   labels: {
     wishToLearn: string;
@@ -83,6 +83,7 @@ export const RegisterPreferencesStep: React.FC<RegisterPreferencesStepProps> = (
             onPress={onRegister}
             loading={loading}
             loadingTitle={labels.creatingAccount}
+            disabled={!learningLanguage}
           />
         </View>
       </View>
@@ -107,18 +108,11 @@ const getStyles = (isDark: boolean) => {
       textTransform: "uppercase",
       letterSpacing: 0.5,
     },
-    learningOptionsCard: {
-      backgroundColor: bg.cardElevated,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: fontColors.inputBorder,
-      overflow: "hidden",
-    },
+    learningOptionsCard: {},
     learningOption: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingHorizontal: 16,
       paddingVertical: 14,
     },
     learningOptionLeft: {
@@ -133,7 +127,6 @@ const getStyles = (isDark: boolean) => {
     learningOptionSeparator: {
       height: StyleSheet.hairlineWidth,
       backgroundColor: bg.subtleGray,
-      marginLeft: 48,
     },
     stepActions: {
       flexDirection: "row",

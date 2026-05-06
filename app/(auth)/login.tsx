@@ -251,7 +251,7 @@ const getStyles = (isDark: boolean) => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: bg.input,
+      backgroundColor: isDark ? "#000000" : bg.input,
     },
     scrollContent: {
       flexGrow: 1,
