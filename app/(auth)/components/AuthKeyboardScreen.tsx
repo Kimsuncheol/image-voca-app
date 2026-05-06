@@ -5,9 +5,12 @@ import {
   ScrollView,
   ScrollViewProps,
   StyleProp,
+  StyleSheet,
   ViewStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const KEYBOARD_EXTRA_SCROLL_PADDING = 32;
 
 interface AuthKeyboardScreenProps {
   children: React.ReactNode;
@@ -20,16 +23,21 @@ export const AuthKeyboardScreen: React.FC<AuthKeyboardScreenProps> = ({
   children,
   containerStyle,
   contentContainerStyle,
-  keyboardShouldPersistTaps,
+  keyboardShouldPersistTaps = "handled",
 }) => {
   return (
     <SafeAreaView style={containerStyle}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
       >
         <ScrollView
-          contentContainerStyle={contentContainerStyle}
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+          contentContainerStyle={[
+            contentContainerStyle,
+            styles.keyboardScrollPadding,
+          ]}
+          contentInsetAdjustmentBehavior="automatic"
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps={keyboardShouldPersistTaps}
         >
@@ -39,3 +47,12 @@ export const AuthKeyboardScreen: React.FC<AuthKeyboardScreenProps> = ({
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  keyboardScrollPadding: {
+    paddingBottom: KEYBOARD_EXTRA_SCROLL_PADDING,
+  },
+});
