@@ -131,13 +131,6 @@ export default React.memo(function ExampleSection({
           EXAMPLE
         </Text>
         <View style={styles.exampleHeaderActions}>
-          <MaskVisibilityToggle
-            isDark={isDark}
-            isMaskEnabled={isReviewMode}
-            onMaskChange={onMaskChange}
-            testID="collocation-example-mask-toggle"
-            stopPropagation
-          />
           <Ionicons
             name={isOpen ? "chevron-up" : "chevron-forward"}
             size={24}
@@ -148,6 +141,15 @@ export default React.memo(function ExampleSection({
 
       <Collapsible collapsed={!isOpen}>
         <View style={styles.backSectionContent}>
+          <View style={styles.exampleContentMaskToggleRow}>
+            <MaskVisibilityToggle
+              isDark={isDark}
+              isMaskEnabled={isReviewMode}
+              onMaskChange={onMaskChange}
+              testID="collocation-example-mask-toggle"
+              stopPropagation
+            />
+          </View>
           {example ? (
             <View style={styles.exampleRow}>
               <View style={styles.exampleContent}>

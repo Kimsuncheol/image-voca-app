@@ -25,6 +25,7 @@ interface InlineMeaningWithChipsProps {
   containerStyle?: StyleProp<ViewStyle>;
   lineStyle?: StyleProp<ViewStyle>;
   chipStyle?: StyleProp<ViewStyle>;
+  chipTextStyle?: StyleProp<TextStyle>;
   testID?: string;
   forceInline?: boolean;
   splitPosSegmentsIntoRows?: boolean;
@@ -40,6 +41,7 @@ export function InlineMeaningWithChips({
   containerStyle,
   lineStyle,
   chipStyle,
+  chipTextStyle,
   testID,
   forceInline = false,
   splitPosSegmentsIntoRows = false,
@@ -87,6 +89,7 @@ export function InlineMeaningWithChips({
               textStyle,
               prefixStyle,
               chipStyle,
+              chipTextStyle,
               testID,
             )}
           </View>
@@ -104,6 +107,7 @@ export function InlineMeaningWithChips({
               textStyle,
               prefixStyle,
               chipStyle,
+              chipTextStyle,
               testID,
             )}
           </View>
@@ -120,6 +124,7 @@ export function InlineMeaningWithChips({
               textStyle,
               prefixStyle,
               chipStyle,
+              chipTextStyle,
             )}
           </View>
         ),
@@ -136,6 +141,7 @@ function renderPrefixColumnLine(
   textStyle?: StyleProp<TextStyle>,
   prefixStyle?: StyleProp<TextStyle>,
   chipStyle?: StyleProp<ViewStyle>,
+  chipTextStyle?: StyleProp<TextStyle>,
   testID?: string,
 ) {
   return (
@@ -170,6 +176,7 @@ function renderPrefixColumnLine(
               posTextColor,
               textStyle,
               chipStyle,
+              chipTextStyle,
             )}
           </React.Fragment>
         ))}
@@ -219,6 +226,7 @@ function renderInlineLine(
   textStyle?: StyleProp<TextStyle>,
   prefixStyle?: StyleProp<TextStyle>,
   chipStyle?: StyleProp<ViewStyle>,
+  chipTextStyle?: StyleProp<TextStyle>,
 ) {
   return (
     <>
@@ -237,7 +245,14 @@ function renderInlineLine(
       ) : null}
       {line.segments.map((segment, segmentIndex) => (
         <React.Fragment key={`inline-segment-${segmentIndex}`}>
-          {renderSegment(segment, textColor, posTextColor, textStyle, chipStyle)}
+          {renderSegment(
+            segment,
+            textColor,
+            posTextColor,
+            textStyle,
+            chipStyle,
+            chipTextStyle,
+          )}
         </React.Fragment>
       ))}
     </>
@@ -252,6 +267,7 @@ function renderColumnLine(
   textStyle?: StyleProp<TextStyle>,
   prefixStyle?: StyleProp<TextStyle>,
   chipStyle?: StyleProp<ViewStyle>,
+  chipTextStyle?: StyleProp<TextStyle>,
   testID?: string,
 ) {
   const posIndex = line.segments.findIndex((segment) => segment.type === "pos");
@@ -274,6 +290,7 @@ function renderColumnLine(
               posTextColor,
               textStyle,
               chipStyle,
+              chipTextStyle,
             )
           : null}
       </View>
@@ -302,6 +319,7 @@ function renderColumnLine(
               posTextColor,
               textStyle,
               chipStyle,
+              chipTextStyle,
             )}
           </React.Fragment>
         ))}
@@ -316,11 +334,12 @@ function renderSegment(
   posTextColor: string,
   textStyle?: StyleProp<TextStyle>,
   chipStyle?: StyleProp<ViewStyle>,
+  chipTextStyle?: StyleProp<TextStyle>,
 ) {
   if (segment.type === "pos") {
     return (
       <View style={[styles.chip, chipStyle]}>
-        <Text style={[styles.chipLabel, { color: posTextColor }]}>
+        <Text style={[styles.chipLabel, { color: posTextColor }, chipTextStyle]}>
           {segment.value}
         </Text>
       </View>

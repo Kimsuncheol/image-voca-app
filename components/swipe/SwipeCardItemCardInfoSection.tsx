@@ -63,7 +63,6 @@ export function SwipeCardItemCardInfoSection({
           word={word}
           pronunciation={pronunciation}
           localizedPronunciation={localizedPronunciation}
-
           meaning={meaning}
           example={example}
           translation={translation}

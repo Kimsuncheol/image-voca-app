@@ -221,6 +221,7 @@ export function SwipeCardItemWordMeaningSection({
           ]}
           containerStyle={styles.inlineMeaning}
           chipStyle={styles.inlineChip}
+          chipTextStyle={maskMeaning ? getReviewTapeTextStyle(isDark) : undefined}
           testID="inline-meaning"
           splitPosSegmentsIntoRows
         />

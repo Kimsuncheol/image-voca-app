@@ -295,6 +295,12 @@ export const styles = StyleSheet.create({
     flex: 1,
     minHeight: 0,
   },
+  exampleContentMaskToggleRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    marginBottom: 12,
+  },
   exampleScroll: {
     flexGrow: 0,
   },

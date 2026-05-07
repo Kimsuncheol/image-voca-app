@@ -144,6 +144,7 @@ function LabeledMeaningRow({
         ]}
         containerStyle={styles.inlineMeaning}
         chipStyle={styles.inlineChip}
+        chipTextStyle={isMasked ? getReviewTapeTextStyle(isDark) : undefined}
         testID={`${testID}-content`}
         forceInline
       />
