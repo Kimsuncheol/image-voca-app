@@ -286,7 +286,11 @@ export default function SettingsScreen() {
   return (
     <View style={styles.container}>
       <TopBannerAd includeTopInset={false} />
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* ================================================================
             SCREEN HEADER CONFIGURATION
             ================================================================
@@ -396,6 +400,8 @@ const getStyles = (isDark: boolean) => {
     container: {
       flex: 1,
       backgroundColor: bg.screenAlt,
+    },
+    scrollContent: {
       paddingHorizontal: 16,
     },
 
