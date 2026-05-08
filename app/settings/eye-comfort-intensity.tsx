@@ -1,16 +1,12 @@
 import { FontSizes } from "@/constants/fontSizes";
 import { FontWeights } from "@/constants/fontWeights";
+import Slider from "@react-native-community/slider";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-  LayoutChangeEvent,
-  PanResponder,
-  Pressable,
   ScrollView,
-  GestureResponderEvent,
-  GestureResponderHandlers,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -42,97 +38,12 @@ function CustomIntensitySlider({
   styles,
   onChange,
 }: CustomIntensitySliderProps) {
-  const trackRef = React.useRef<View>(null);
-  const trackMetricsRef = React.useRef({ x: 0, width: 0 });
   const normalizedValue = Math.min(100, Math.max(0, Math.round(value)));
-  const fillPercent = `${normalizedValue}%`;
   const inactiveColor = isDark
     ? "rgba(255, 255, 255, 0.12)"
     : "rgba(17, 24, 39, 0.12)";
   const activeColor = "#FF9500";
-  const thumbColor = isDark ? "#FFD1A3" : "#C75B00";
-
-  const updateFromTrackOffset = React.useCallback(
-    (offsetX: number, measuredWidth = trackMetricsRef.current.width) => {
-      if (measuredWidth <= 0) {
-        return;
-      }
-
-      const clampedOffset = Math.min(measuredWidth, Math.max(0, offsetX));
-      const nextValue = (clampedOffset / measuredWidth) * 100;
-      onChange(nextValue);
-    },
-    [onChange],
-  );
-
-  const measureTrack = React.useCallback(
-    (callback?: (metrics: { x: number; width: number }) => void) => {
-      trackRef.current?.measureInWindow?.((x, _y, width) => {
-        if (width > 0) {
-          trackMetricsRef.current = { x, width };
-          callback?.({ x, width });
-        }
-      });
-    },
-    [],
-  );
-
-  const updateFromAbsoluteX = React.useCallback(
-    (absoluteX: number) => {
-      const metrics = trackMetricsRef.current;
-
-      if (metrics.width <= 0) {
-        measureTrack((nextMetrics) => {
-          updateFromTrackOffset(absoluteX - nextMetrics.x, nextMetrics.width);
-        });
-        return;
-      }
-
-      updateFromTrackOffset(absoluteX - metrics.x, metrics.width);
-    },
-    [measureTrack, updateFromTrackOffset],
-  );
-
-  const handleTrackLayout = (event: LayoutChangeEvent) => {
-    const width = event.nativeEvent.layout.width;
-    trackMetricsRef.current = {
-      ...trackMetricsRef.current,
-      width,
-    };
-    measureTrack();
-  };
-
-  const handleTrackPress = (event: GestureResponderEvent) => {
-    updateFromTrackOffset(event.nativeEvent.locationX);
-  };
-
-  const panResponder = React.useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: () => true,
-        onPanResponderGrant: (event, gestureState) => {
-          measureTrack();
-          const absoluteX =
-            event.nativeEvent.pageX ?? gestureState.x0 ?? 0;
-          updateFromAbsoluteX(absoluteX);
-        },
-        onPanResponderMove: (_event, gestureState) => {
-          updateFromAbsoluteX(gestureState.moveX);
-        },
-      }),
-    [measureTrack, updateFromAbsoluteX],
-  );
-  const testThumbHandlers = React.useMemo(
-    () =>
-      process.env.NODE_ENV === "test"
-        ? {
-            testOnly_onThumbGrant: updateFromAbsoluteX,
-            testOnly_onThumbMove: updateFromAbsoluteX,
-          }
-        : undefined,
-    [updateFromAbsoluteX],
-  );
+  const thumbColor = isDark ? "#f2f2f7" : "#fff";
 
   return (
     <View style={styles.sliderContainer} testID="eye-comfort-custom-slider">
@@ -155,47 +66,18 @@ function CustomIntensitySlider({
           {normalizedValue}%
         </Text>
       </View>
-      <Pressable
-        ref={trackRef}
-        testID="eye-comfort-custom-slider-track"
-        accessibilityRole="adjustable"
-        accessibilityValue={{
-          min: 0,
-          max: 100,
-          now: normalizedValue,
-        }}
-        onLayout={handleTrackLayout}
-        onPress={handleTrackPress}
-        style={styles.sliderTrack}
-      >
-        <View
-          style={[
-            styles.sliderInactiveFill,
-            { backgroundColor: inactiveColor },
-          ]}
-        />
-        <View
-          style={[
-            styles.sliderFill,
-            { width: fillPercent, backgroundColor: activeColor },
-          ]}
-        />
-        <View
-          testID="eye-comfort-custom-slider-thumb"
-          {...(panResponder.panHandlers as GestureResponderHandlers)}
-          {...testThumbHandlers}
-          style={[
-            styles.sliderThumb,
-            {
-              left: fillPercent,
-              backgroundColor: thumbColor,
-              borderColor: isDark
-                ? "rgba(255, 255, 255, 0.3)"
-                : "rgba(0, 0, 0, 0.12)",
-            },
-          ]}
-        />
-      </Pressable>
+      <Slider
+        testID="eye-comfort-custom-slider-control"
+        minimumValue={0}
+        maximumValue={100}
+        step={1}
+        value={normalizedValue}
+        minimumTrackTintColor={activeColor}
+        maximumTrackTintColor={inactiveColor}
+        thumbTintColor={thumbColor}
+        onValueChange={onChange}
+        style={styles.slider}
+      />
     </View>
   );
 }
@@ -366,32 +248,8 @@ const getStyles = (isDark: boolean) => {
       fontWeight: FontWeights.semiBold,
       fontVariant: ["tabular-nums"],
     },
-    sliderTrack: {
-      height: 32,
-      borderRadius: 16,
-      justifyContent: "center",
-      overflow: "visible",
-    },
-    sliderInactiveFill: {
-      height: 12,
-      borderRadius: 6,
-      position: "absolute",
-      left: 0,
-      right: 0,
-    },
-    sliderFill: {
-      height: 12,
-      borderRadius: 6,
-      position: "absolute",
-      left: 0,
-    },
-    sliderThumb: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
-      borderWidth: StyleSheet.hairlineWidth,
-      position: "absolute",
-      marginLeft: -14,
+    slider: {
+      transform: [{ scaleY: 1.0 }],
     },
   });
 };

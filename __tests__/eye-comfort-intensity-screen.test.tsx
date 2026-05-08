@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { act, fireEvent, render } from "@testing-library/react-native";
+import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
 import { StyleSheet } from "react-native";
 
@@ -120,16 +120,18 @@ describe("EyeComfortIntensityScreen", () => {
     );
     expect(screen.getByTestId("eye-comfort-custom-slider")).toBeTruthy();
 
-    fireEvent(
-      screen.getByTestId("eye-comfort-custom-slider-track"),
-      "layout",
-      {
-        nativeEvent: { layout: { width: 100 } },
-      },
+    const slider = screen.getByTestId("eye-comfort-custom-slider-control");
+
+    expect(slider.props.minimumValue).toBe(0);
+    expect(slider.props.maximumValue).toBe(100);
+    expect(slider.props.step).toBe(1);
+    expect(StyleSheet.flatten(slider.props.style)).toEqual(
+      expect.objectContaining({
+        transform: [{ scaleY: 1.0 }],
+      }),
     );
-    fireEvent.press(screen.getByTestId("eye-comfort-custom-slider-track"), {
-      nativeEvent: { locationX: 80 },
-    });
+
+    fireEvent(slider, "valueChange", 80);
 
     expect(useReadingDisplayStore.getState()).toEqual(
       expect.objectContaining({
@@ -139,59 +141,6 @@ describe("EyeComfortIntensityScreen", () => {
     expect(
       screen.getByTestId("eye-comfort-custom-slider-value").props.children,
     ).toEqual([80, "%"]);
-  });
-
-  it("drags the thumb using absolute track coordinates without snapping to zero", () => {
-    const screen = render(<EyeComfortIntensityScreen />);
-
-    fireEvent.press(screen.getByTestId("eye-comfort-intensity-option-custom"));
-    fireEvent(
-      screen.getByTestId("eye-comfort-custom-slider-track"),
-      "layout",
-      {
-        nativeEvent: { layout: { width: 100 } },
-      },
-    );
-
-    const thumb = screen.getByTestId("eye-comfort-custom-slider-thumb");
-    act(() => {
-      thumb.props.testOnly_onThumbGrant(50);
-      thumb.props.testOnly_onThumbMove(80);
-    });
-
-    expect(useReadingDisplayStore.getState()).toEqual(
-      expect.objectContaining({
-        eyeComfortIntensity: 0.248,
-      }),
-    );
-  });
-
-  it("clamps thumb drags before and after the track", () => {
-    const screen = render(<EyeComfortIntensityScreen />);
-
-    fireEvent.press(screen.getByTestId("eye-comfort-intensity-option-custom"));
-    fireEvent(
-      screen.getByTestId("eye-comfort-custom-slider-track"),
-      "layout",
-      {
-        nativeEvent: { layout: { width: 100 } },
-      },
-    );
-
-    const thumb = screen.getByTestId("eye-comfort-custom-slider-thumb");
-    act(() => {
-      thumb.props.testOnly_onThumbMove(-30);
-    });
-    expect(useReadingDisplayStore.getState().eyeComfortIntensity).toBe(
-      0.04,
-    );
-
-    act(() => {
-      thumb.props.testOnly_onThumbMove(130);
-    });
-    expect(useReadingDisplayStore.getState().eyeComfortIntensity).toBe(
-      0.3,
-    );
   });
 
   it("matches header and screen background in light mode", () => {

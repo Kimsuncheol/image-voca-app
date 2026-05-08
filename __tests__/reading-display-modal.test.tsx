@@ -168,30 +168,35 @@ describe("ReadingDisplayModal", () => {
   });
 
   it("updates eye comfort intensity immediately", () => {
-    useReadingDisplayStore.setState({ eyeComfortEnabled: true });
+    useReadingDisplayStore.setState({
+      appBrightness: 0.55,
+      eyeComfortEnabled: true,
+      eyeComfortIntensity: 0.17,
+    });
     const screen = render(<ReadingDisplayModal />);
+    const intensitySlider = screen.getByTestId(
+      "reading-display-eye-comfort-intensity-slider",
+    );
+
+    expect(intensitySlider.props.minimumValue).toBe(0);
+    expect(intensitySlider.props.maximumValue).toBe(100);
+    expect(intensitySlider.props.step).toBe(1);
+    expect(screen.getByText("50%")).toBeTruthy();
 
     expect(
-      StyleSheet.flatten(
-        screen.getByTestId("reading-display-eye-comfort-intensity-slider")
-          .props.style,
-      ),
+      StyleSheet.flatten(intensitySlider.props.style),
     ).toEqual(
       expect.objectContaining({
-        transform: [{ scaleY: 1.6 }],
+        transform: [{ scaleY: 1.0 }],
       }),
     );
 
-    fireEvent(
-      screen.getByTestId("reading-display-eye-comfort-intensity-slider"),
-      "valueChange",
-      0.18,
-    );
+    fireEvent(intensitySlider, "valueChange", 80);
 
     expect(useReadingDisplayStore.getState().eyeComfortIntensity).toBe(
-      0.18,
+      0.248,
     );
-    expect(screen.getByText("18%")).toBeTruthy();
+    expect(screen.getByText("80%")).toBeTruthy();
   });
 
   it("disables brightness slider in system mode and enables it in app mode", () => {
@@ -203,7 +208,7 @@ describe("ReadingDisplayModal", () => {
       ),
     ).toEqual(
       expect.objectContaining({
-        transform: [{ scaleY: 1.6 }],
+        transform: [{ scaleY: 1.0 }],
       }),
     );
     expect(

@@ -20,11 +20,10 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ToggleSwitch } from "../../../components/common/ToggleSwitch";
 import { useTheme } from "../../context/ThemeContext";
+import { useEyeComfort } from "../../hooks/useEyeComfort";
 import {
   MAX_APP_BRIGHTNESS,
-  MAX_EYE_COMFORT_INTENSITY,
   MIN_APP_BRIGHTNESS,
-  MIN_EYE_COMFORT_INTENSITY,
   useReadingDisplayStore,
 } from "../../stores/readingDisplayStore";
 
@@ -50,9 +49,6 @@ export function ReadingDisplayModal() {
   const eyeComfortEnabled = useReadingDisplayStore(
     (state) => state.eyeComfortEnabled,
   );
-  const eyeComfortIntensity = useReadingDisplayStore(
-    (state) => state.eyeComfortIntensity,
-  );
   const isInitialized = useReadingDisplayStore(
     (state) => state._initialized,
   );
@@ -69,9 +65,7 @@ export function ReadingDisplayModal() {
   const setEyeComfortEnabled = useReadingDisplayStore(
     (state) => state.setEyeComfortEnabled,
   );
-  const setEyeComfortIntensity = useReadingDisplayStore(
-    (state) => state.setEyeComfortIntensity,
-  );
+  const { customIntensity, setCustomIntensity } = useEyeComfort();
   const isAppBrightness = brightnessMode === "app";
   const sliderMinimumTrackTint = isDark ? "#0a84ff" : "#007AFF";
   const sliderMaximumTrackTint = isDark
@@ -81,7 +75,7 @@ export function ReadingDisplayModal() {
     ? "rgba(255,255,255,0.2)"
     : "rgba(17,24,39,0.18)";
   const thumbTintColor = isDark ? "#f2f2f7" : "#fff";
-  const intensityPercent = Math.round(eyeComfortIntensity * 100);
+  const intensityPercent = Math.round(customIntensity);
 
   useEffect(() => {
     if (!isInitialized) {
@@ -284,10 +278,10 @@ export function ReadingDisplayModal() {
             <View style={!eyeComfortEnabled && styles.disabledRow}>
               <Slider
                 testID="reading-display-eye-comfort-intensity-slider"
-                minimumValue={MIN_EYE_COMFORT_INTENSITY}
-                maximumValue={MAX_EYE_COMFORT_INTENSITY}
-                step={0.01}
-                value={eyeComfortIntensity}
+                minimumValue={0}
+                maximumValue={100}
+                step={1}
+                value={customIntensity}
                 disabled={!eyeComfortEnabled}
                 minimumTrackTintColor={
                   eyeComfortEnabled ? "#FF9500" : disabledTint
@@ -296,7 +290,7 @@ export function ReadingDisplayModal() {
                   eyeComfortEnabled ? sliderMaximumTrackTint : disabledTint
                 }
                 thumbTintColor={thumbTintColor}
-                onValueChange={setEyeComfortIntensity}
+                onValueChange={setCustomIntensity}
                 style={styles.slider}
               />
             </View>
