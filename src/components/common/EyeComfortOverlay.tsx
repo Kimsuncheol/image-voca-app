@@ -1,12 +1,17 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
-import { useEyeComfort } from "../../hooks/useEyeComfort";
-import { getEyeComfortOverlayColor } from "../../utils/eyeComfortColors";
+import { useReadingDisplayStore } from "../../stores/readingDisplayStore";
+import { getEyeComfortOverlayColorFromIntensity } from "../../utils/eyeComfortColors";
 
 export function EyeComfortOverlay() {
   const { isDark } = useTheme();
-  const { isEnabled, level, customIntensity } = useEyeComfort();
+  const isEnabled = useReadingDisplayStore(
+    (state) => state.eyeComfortEnabled,
+  );
+  const intensity = useReadingDisplayStore(
+    (state) => state.eyeComfortIntensity,
+  );
 
   if (!isEnabled) {
     return null;
@@ -19,10 +24,9 @@ export function EyeComfortOverlay() {
       style={[
         styles.overlay,
         {
-          backgroundColor: getEyeComfortOverlayColor({
+          backgroundColor: getEyeComfortOverlayColorFromIntensity({
             isDark,
-            level,
-            customIntensity,
+            intensity,
           }),
         },
       ]}

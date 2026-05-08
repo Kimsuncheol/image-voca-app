@@ -25,9 +25,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Contexts & Service
-import { useAuth } from "../../../src/context/AuthContext";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
+import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
+import { useSpeechPreferences } from "../../../src/hooks/useSpeechPreferences";
 import { upsertVocabularyDayStudyHistory } from "../../../src/services/dailyStudyHistory";
 import { db } from "../../../src/services/firebase";
 import {
@@ -42,7 +43,6 @@ import {
   isVocabularyCacheFresh,
 } from "../../../src/services/vocabularyPrefetch";
 import { useUserStatsStore } from "../../../src/stores";
-import { useSpeechPreferences } from "../../../src/hooks/useSpeechPreferences";
 import {
   CourseType,
   CourseVocabularyCard,
@@ -851,8 +851,8 @@ function VocabularyScreenContent() {
           headerRight: hasCards() && !isFinished
             ? () => (
                 <View style={styles.headerRight}>
-                  <EyeComfortHeaderButton />
                   <DayBadge day={dayNumber} />
+                  <EyeComfortHeaderButton />
                 </View>
               )
             : undefined,
@@ -941,6 +941,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    marginRight: 4,
   },
   previewFinishContainer: {
     flex: 1,

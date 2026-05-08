@@ -2,9 +2,9 @@ import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
 import SettingsScreen from "../app/(tabs)/settings";
 import {
-  __resetEyeComfortStoreForTests,
-  useEyeComfortStore,
-} from "../src/stores/eyeComfortStore";
+  __resetReadingDisplayStoreForTests,
+  useReadingDisplayStore,
+} from "../src/stores/readingDisplayStore";
 
 const mockFetchSubscription = jest.fn();
 const mockLoadDashboardSettings = jest.fn();
@@ -217,8 +217,8 @@ jest.mock("../components/settings/DashboardSection", () => ({
 describe("SettingsScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    __resetEyeComfortStoreForTests();
-    useEyeComfortStore.setState({ _initialized: true });
+    __resetReadingDisplayStoreForTests();
+    useReadingDisplayStore.setState({ _initialized: true });
     mockConfigureNotifications.mockResolvedValue({ granted: true });
     mockIsPermissionGranted.mockReturnValue(true);
   });
@@ -287,9 +287,9 @@ describe("SettingsScreen", () => {
   });
 
   it("shows and opens the eye comfort intensity row when enabled", () => {
-    useEyeComfortStore.setState({
-      isEnabled: true,
-      level: "medium",
+    useReadingDisplayStore.setState({
+      eyeComfortEnabled: true,
+      eyeComfortIntensity: 0.14,
       _initialized: true,
     });
     const screen = render(<SettingsScreen />);
@@ -306,10 +306,9 @@ describe("SettingsScreen", () => {
   });
 
   it("shows customize as the current eye comfort intensity", () => {
-    useEyeComfortStore.setState({
-      isEnabled: true,
-      level: "custom",
-      customIntensity: 80,
+    useReadingDisplayStore.setState({
+      eyeComfortEnabled: true,
+      eyeComfortIntensity: 0.25,
       _initialized: true,
     });
     const screen = render(<SettingsScreen />);

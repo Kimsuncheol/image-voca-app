@@ -5,9 +5,9 @@ import { StyleSheet } from "react-native";
 
 import EyeComfortIntensityScreen from "../app/settings/eye-comfort-intensity";
 import {
-  __resetEyeComfortStoreForTests,
-  useEyeComfortStore,
-} from "../src/stores/eyeComfortStore";
+  __resetReadingDisplayStoreForTests,
+  useReadingDisplayStore,
+} from "../src/stores/readingDisplayStore";
 
 const mockStackScreen = jest.fn();
 let mockIsDark = false;
@@ -72,11 +72,10 @@ describe("EyeComfortIntensityScreen", () => {
     await AsyncStorage.clear();
     jest.clearAllMocks();
     mockIsDark = false;
-    __resetEyeComfortStoreForTests();
-    useEyeComfortStore.setState({
-      isEnabled: true,
-      level: "medium",
-      customIntensity: 50,
+    __resetReadingDisplayStoreForTests();
+    useReadingDisplayStore.setState({
+      eyeComfortEnabled: true,
+      eyeComfortIntensity: 0.14,
       _initialized: true,
     });
   });
@@ -104,7 +103,9 @@ describe("EyeComfortIntensityScreen", () => {
 
     fireEvent.press(screen.getByTestId("eye-comfort-intensity-option-high"));
 
-    expect(useEyeComfortStore.getState().level).toBe("high");
+    expect(useReadingDisplayStore.getState().eyeComfortIntensity).toBe(
+      0.22,
+    );
     expect(screen.getByTestId("eye-comfort-intensity-check-high")).toBeTruthy();
     expect(screen.queryByTestId("eye-comfort-custom-slider")).toBeNull();
   });
@@ -114,7 +115,9 @@ describe("EyeComfortIntensityScreen", () => {
 
     fireEvent.press(screen.getByTestId("eye-comfort-intensity-option-custom"));
 
-    expect(useEyeComfortStore.getState().level).toBe("custom");
+    expect(useReadingDisplayStore.getState().eyeComfortIntensity).toBe(
+      0.17,
+    );
     expect(screen.getByTestId("eye-comfort-custom-slider")).toBeTruthy();
 
     fireEvent(
@@ -128,10 +131,9 @@ describe("EyeComfortIntensityScreen", () => {
       nativeEvent: { locationX: 80 },
     });
 
-    expect(useEyeComfortStore.getState()).toEqual(
+    expect(useReadingDisplayStore.getState()).toEqual(
       expect.objectContaining({
-        level: "custom",
-        customIntensity: 80,
+        eyeComfortIntensity: 0.248,
       }),
     );
     expect(
@@ -157,10 +159,9 @@ describe("EyeComfortIntensityScreen", () => {
       thumb.props.testOnly_onThumbMove(80);
     });
 
-    expect(useEyeComfortStore.getState()).toEqual(
+    expect(useReadingDisplayStore.getState()).toEqual(
       expect.objectContaining({
-        level: "custom",
-        customIntensity: 80,
+        eyeComfortIntensity: 0.248,
       }),
     );
   });
@@ -181,12 +182,16 @@ describe("EyeComfortIntensityScreen", () => {
     act(() => {
       thumb.props.testOnly_onThumbMove(-30);
     });
-    expect(useEyeComfortStore.getState().customIntensity).toBe(0);
+    expect(useReadingDisplayStore.getState().eyeComfortIntensity).toBe(
+      0.04,
+    );
 
     act(() => {
       thumb.props.testOnly_onThumbMove(130);
     });
-    expect(useEyeComfortStore.getState().customIntensity).toBe(100);
+    expect(useReadingDisplayStore.getState().eyeComfortIntensity).toBe(
+      0.3,
+    );
   });
 
   it("matches header and screen background in light mode", () => {

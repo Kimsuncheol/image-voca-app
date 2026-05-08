@@ -1,4 +1,7 @@
-import { getEyeComfortOverlayColor } from "../src/utils/eyeComfortColors";
+import {
+  getEyeComfortOverlayColor,
+  getEyeComfortOverlayColorFromIntensity,
+} from "../src/utils/eyeComfortColors";
 
 describe("eye comfort colors", () => {
   it("returns light-mode overlay opacity by level", () => {
@@ -71,5 +74,20 @@ describe("eye comfort colors", () => {
         customIntensity: 100,
       }),
     ).toBe("rgba(255, 150, 80, 0.16)");
+  });
+
+  it("returns continuous overlay opacity from reading display intensity", () => {
+    expect(
+      getEyeComfortOverlayColorFromIntensity({
+        isDark: false,
+        intensity: 0.18,
+      }),
+    ).toBe("rgba(255, 160, 60, 0.18)");
+    expect(
+      getEyeComfortOverlayColorFromIntensity({
+        isDark: true,
+        intensity: 0.3,
+      }),
+    ).toBe("rgba(255, 150, 80, 0.30)");
   });
 });

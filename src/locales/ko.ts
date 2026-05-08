@@ -146,6 +146,17 @@ const ko = {
       },
     },
   },
+  readingDisplay: {
+    title: "읽기 화면",
+    headerButtonLabel: "읽기 화면 설정",
+    brightness: "읽기 밝기",
+    brightnessModes: {
+      system: "시스템",
+      app: "앱",
+    },
+    eyeComfort: "눈 편안 모드",
+    intensity: "강도",
+  },
   notifications: {
     collocation: {
       title: "오늘의 연어",

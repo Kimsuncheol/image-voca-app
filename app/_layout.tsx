@@ -21,6 +21,7 @@ import { AppSplashScreen } from "../components/common/AppSplashScreen";
 import { NetworkErrorOverlay } from "../components/common/NetworkErrorOverlay";
 import { useColorScheme } from "../hooks/use-color-scheme";
 import { EyeComfortOverlay } from "../src/components/common/EyeComfortOverlay";
+import { ReadingDisplayModal } from "../src/components/common/ReadingDisplayModal";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import {
   LearningLanguageProvider,
@@ -271,6 +272,7 @@ export function RootLayoutNav() {
             />
 
           </Stack>
+          <ReadingDisplayModal />
           <EyeComfortOverlay />
           <StatusBar style={isDark ? "light" : "dark"} />
         </NavigationThemeProvider>

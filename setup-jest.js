@@ -130,6 +130,18 @@ jest.mock("expo-brightness", () => ({
   restoreSystemBrightnessAsync: jest.fn(async () => undefined),
 }));
 
+jest.mock("@react-native-community/slider", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+
+  const Slider = (props) => React.createElement(View, props);
+
+  return {
+    __esModule: true,
+    default: Slider,
+  };
+});
+
 jest.mock("expo-sensors", () => {
   const lightSensorState = {
     listeners: [],

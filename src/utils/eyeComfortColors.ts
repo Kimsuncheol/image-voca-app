@@ -49,6 +49,8 @@ export const normalizeEyeComfortCustomIntensity = (value: unknown) => {
 };
 
 const formatOpacity = (value: number) => value.toFixed(2);
+const getWarmColor = (isDark: boolean) =>
+  isDark ? "255, 150, 80" : "255, 160, 60";
 
 export const getEyeComfortOverlayColor = ({
   isDark,
@@ -69,7 +71,15 @@ export const getEyeComfortOverlayColor = ({
     normalizeEyeComfortCustomIntensity(customIntensity);
   const { min, max } = EYE_COMFORT_CUSTOM_OPACITY_RANGE[theme];
   const opacity = min + (max - min) * (normalizedIntensity / 100);
-  const color = isDark ? "255, 150, 80" : "255, 160, 60";
+  const color = getWarmColor(isDark);
 
   return `rgba(${color}, ${formatOpacity(opacity)})`;
 };
+
+export const getEyeComfortOverlayColorFromIntensity = ({
+  isDark,
+  intensity,
+}: {
+  isDark: boolean;
+  intensity: number;
+}) => `rgba(${getWarmColor(isDark)}, ${formatOpacity(intensity)})`;

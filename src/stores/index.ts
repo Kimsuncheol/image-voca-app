@@ -4,6 +4,11 @@ export { useDashboardSettingsStore } from "./dashboardSettingsStore";
 export type { DashboardElement } from "./dashboardSettingsStore";
 export { useEyeComfortStore } from "./eyeComfortStore";
 export type { EyeComfortSnapshot } from "./eyeComfortStore";
+export { useReadingDisplayStore } from "./readingDisplayStore";
+export type {
+  BrightnessMode,
+  ReadingDisplayState,
+} from "./readingDisplayStore";
 export {
   getIsKoreanNationality,
   getRecommendedStudyPack,

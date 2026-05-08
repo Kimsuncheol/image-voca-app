@@ -2,9 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
 import {
-  __resetEyeComfortStoreForTests,
-  useEyeComfortStore,
-} from "../src/stores/eyeComfortStore";
+  __resetReadingDisplayStoreForTests,
+  useReadingDisplayStore,
+} from "../src/stores/readingDisplayStore";
 import { EyeComfortHeaderButton } from "../src/components/common/EyeComfortHeaderButton";
 
 jest.mock("../src/context/ThemeContext", () => ({
@@ -23,39 +23,31 @@ jest.mock("react-i18next", () => ({
 describe("EyeComfortHeaderButton", () => {
   beforeEach(async () => {
     await AsyncStorage.clear();
-    __resetEyeComfortStoreForTests();
-    useEyeComfortStore.setState({ _initialized: true });
+    __resetReadingDisplayStoreForTests();
+    useReadingDisplayStore.setState({ _initialized: true });
   });
 
-  it("indicates inactive state and toggles eye comfort on immediately", () => {
+  it("renders an Aa button and opens the reading display modal", () => {
     const screen = render(<EyeComfortHeaderButton />);
     const button = screen.getByTestId("eye-comfort-header-button");
 
-    expect(button.props.accessibilityState).toEqual({ selected: false });
+    expect(screen.getByText("Aa")).toBeTruthy();
 
     fireEvent.press(button);
 
-    expect(useEyeComfortStore.getState().isEnabled).toBe(true);
-    expect(
-      screen.getByTestId("eye-comfort-header-button").props
-        .accessibilityState,
-    ).toEqual({ selected: true });
+    expect(useReadingDisplayStore.getState().isDisplayModalOpen).toBe(
+      true,
+    );
   });
 
-  it("indicates active state and toggles eye comfort off immediately", () => {
-    useEyeComfortStore.setState({ isEnabled: true, level: "medium" });
-
+  it("does not toggle eye comfort directly", () => {
     const screen = render(<EyeComfortHeaderButton />);
     const button = screen.getByTestId("eye-comfort-header-button");
 
-    expect(button.props.accessibilityState).toEqual({ selected: true });
+    expect(useReadingDisplayStore.getState().eyeComfortEnabled).toBe(false);
 
     fireEvent.press(button);
 
-    expect(useEyeComfortStore.getState().isEnabled).toBe(false);
-    expect(
-      screen.getByTestId("eye-comfort-header-button").props
-        .accessibilityState,
-    ).toEqual({ selected: false });
+    expect(useReadingDisplayStore.getState().eyeComfortEnabled).toBe(false);
   });
 });

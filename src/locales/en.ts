@@ -147,6 +147,17 @@ const en = {
       },
     },
   },
+  readingDisplay: {
+    title: "Reading display",
+    headerButtonLabel: "Reading display settings",
+    brightness: "Reading brightness",
+    brightnessModes: {
+      system: "System",
+      app: "App",
+    },
+    eyeComfort: "Eye comfort mode",
+    intensity: "Intensity",
+  },
   notifications: {
     collocation: {
       title: "Collocation of the Day",
