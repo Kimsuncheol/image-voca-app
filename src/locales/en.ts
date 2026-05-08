@@ -67,6 +67,21 @@ const en = {
       dark: "Dark",
       system: "System",
     },
+    eyeComfort: {
+      title: "Eye Comfort",
+      toggleLabel: "Eye comfort mode",
+      description:
+        "Adds a gentle warm tint to reduce blue light while studying.",
+      intensity: "Intensity",
+      intensityTitle: "Eye Comfort Intensity",
+      customIntensity: "Custom intensity",
+      levels: {
+        low: "Low",
+        medium: "Medium",
+        high: "High",
+        custom: "Customize",
+      },
+    },
     notifications: {
       title: "Notifications",
       studyReminder: "Study Reminder",

@@ -9,6 +9,7 @@ const mockFlushWordStats = jest.fn();
 const mockUpdateCourseDayProgress = jest.fn();
 const mockFetchCourseProgress = jest.fn();
 const mockPush = jest.fn();
+const mockDismissTo = jest.fn();
 const mockNavigationDispatch = jest.fn();
 const mockNavigationAddListener = jest.fn();
 const mockStackScreen: jest.Mock = jest.fn(() => null);
@@ -82,6 +83,7 @@ jest.mock("expo-router", () => ({
   }),
   useRouter: () => ({
     push: mockPush,
+    dismissTo: mockDismissTo,
   }),
   useNavigation: () => ({
     addListener: mockNavigationAddListener,
@@ -352,6 +354,15 @@ describe("VocabularyScreen deck state", () => {
     await Promise.resolve();
 
     expect(screen.getByText("Vocabulary Deck")).toBeTruthy();
+  });
+
+  it("renders the eye comfort header button alongside the day badge", async () => {
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("eye-comfort-header-button")).toBeTruthy();
+      expect(screen.getByText("Day 1")).toBeTruthy();
+    });
   });
 
   it("automatically speaks the first vocabulary word when learning starts", async () => {
@@ -916,7 +927,7 @@ describe("VocabularyScreen deck state", () => {
 
     fireEvent.press(screen.getByText("Finish Button"));
 
-    expect(mockPush).toHaveBeenCalledWith({
+    expect(mockDismissTo).toHaveBeenCalledWith({
       pathname: "/course/[courseId]/days",
       params: { courseId: "TOEIC" },
     });
@@ -1063,7 +1074,7 @@ describe("VocabularyScreen deck state", () => {
 
     fireEvent.press(screen.getByText("Finish Button"));
 
-    expect(mockPush).toHaveBeenCalledWith({
+    expect(mockDismissTo).toHaveBeenCalledWith({
       pathname: "/course/[courseId]/days",
       params: { courseId: "TOEIC" },
     });

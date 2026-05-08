@@ -2,6 +2,8 @@ export { useSubscriptionStore } from "./subscriptionStore";
 export type { UserRole } from "../types/userRole";
 export { useDashboardSettingsStore } from "./dashboardSettingsStore";
 export type { DashboardElement } from "./dashboardSettingsStore";
+export { useEyeComfortStore } from "./eyeComfortStore";
+export type { EyeComfortSnapshot } from "./eyeComfortStore";
 export {
   getIsKoreanNationality,
   getRecommendedStudyPack,

@@ -61,6 +61,7 @@ import { StreakMilestoneModal } from "../../../components/common/StreakMilestone
 import { VocabularyEmptyState } from "../../../components/course/vocabulary/VocabularyEmptyState";
 import { VocabularyFinishView } from "../../../components/course/vocabulary/VocabularyFinishView";
 import { VocabularySwipeDeck } from "../../../components/course/vocabulary/VocabularySwipeDeck";
+import { EyeComfortHeaderButton } from "../../../src/components/common/EyeComfortHeaderButton";
 
 const { width } = Dimensions.get("window");
 
@@ -850,6 +851,7 @@ function VocabularyScreenContent() {
           headerRight: hasCards() && !isFinished
             ? () => (
                 <View style={styles.headerRight}>
+                  <EyeComfortHeaderButton />
                   <DayBadge day={dayNumber} />
                 </View>
               )

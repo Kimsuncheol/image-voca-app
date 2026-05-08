@@ -20,6 +20,7 @@ import {
 import { AppSplashScreen } from "../components/common/AppSplashScreen";
 import { NetworkErrorOverlay } from "../components/common/NetworkErrorOverlay";
 import { useColorScheme } from "../hooks/use-color-scheme";
+import { EyeComfortOverlay } from "../src/components/common/EyeComfortOverlay";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import {
   LearningLanguageProvider,
@@ -213,6 +214,15 @@ export function RootLayoutNav() {
               }}
             />
             <Stack.Screen
+              name="settings/eye-comfort-intensity"
+              options={{
+                title: t("settings.eyeComfort.intensityTitle", {
+                  defaultValue: "Eye Comfort Intensity",
+                }),
+                headerStyle: { backgroundColor: bgColors.screenAlt },
+              }}
+            />
+            <Stack.Screen
               name="calendar"
               options={{ 
                 title: t("calendar.title"),
@@ -261,6 +271,7 @@ export function RootLayoutNav() {
             />
 
           </Stack>
+          <EyeComfortOverlay />
           <StatusBar style={isDark ? "light" : "dark"} />
         </NavigationThemeProvider>
       </PaperProvider>

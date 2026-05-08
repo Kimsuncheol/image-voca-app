@@ -39,6 +39,7 @@ import { NotificationsSection } from "../../components/settings/NotificationsSec
 import { SettingsHeader } from "../../components/settings/SettingsHeader"; // Header component
 import { SignOutSection } from "../../components/settings/SignOutSection"; // Sign out button
 import { SpeechSection } from "../../components/settings/SpeechSection"; // Pronunciation speed settings
+import { EyeComfortSettingsSection } from "../../src/components/settings/EyeComfortSettingsSection";
 
 // ============================================================================
 // CONTEXT & STATE MANAGEMENT
@@ -331,6 +332,8 @@ export default function SettingsScreen() {
           setTheme={setTheme}
           t={t}
         />
+
+        <EyeComfortSettingsSection styles={styles} isDark={isDark} t={t} />
 
 {/* ================================================================
             NOTIFICATIONS SECTION

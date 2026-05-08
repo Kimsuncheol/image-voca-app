@@ -4,7 +4,11 @@ import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../themed-text";
 import { FontSizes } from "@/constants/fontSizes";
 
-export function WordBankHeader() {
+interface WordBankHeaderProps {
+  rightAction?: React.ReactNode;
+}
+
+export function WordBankHeader({ rightAction }: WordBankHeaderProps) {
   const { t } = useTranslation();
 
   return (
@@ -13,16 +17,25 @@ export function WordBankHeader() {
         <ThemedText type="title">{t("wordBank.title")}</ThemedText>
         <ThemedText style={styles.subtitle}>{t("wordBank.subtitle")}</ThemedText>
       </View>
+      {rightAction ? <View style={styles.rightAction}>{rightAction}</View> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   header: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
     marginBottom: 24,
   },
   textContainer: {
     flex: 1,
+  },
+  rightAction: {
+    flexShrink: 0,
+    paddingTop: 2,
   },
   subtitle: {
     fontSize: FontSizes.bodyLg,

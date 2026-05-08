@@ -66,6 +66,21 @@ const ko = {
       dark: "다크",
       system: "시스템",
     },
+    eyeComfort: {
+      title: "눈 편안 모드",
+      toggleLabel: "눈 편안 모드",
+      description:
+        "학습 중 블루라이트를 줄이도록 화면에 부드러운 따뜻한 색감을 더합니다.",
+      intensity: "강도",
+      intensityTitle: "눈 편안 모드 강도",
+      customIntensity: "사용자 지정 강도",
+      levels: {
+        low: "낮음",
+        medium: "보통",
+        high: "높음",
+        custom: "사용자 지정",
+      },
+    },
     notifications: {
       title: "알림",
       studyReminder: "학습 알림",

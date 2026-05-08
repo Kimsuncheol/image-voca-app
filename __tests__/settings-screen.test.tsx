@@ -1,6 +1,10 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
 import SettingsScreen from "../app/(tabs)/settings";
+import {
+  __resetEyeComfortStoreForTests,
+  useEyeComfortStore,
+} from "../src/stores/eyeComfortStore";
 
 const mockFetchSubscription = jest.fn();
 const mockLoadDashboardSettings = jest.fn();
@@ -64,6 +68,13 @@ jest.mock("react-i18next", () => ({
         "settings.speech.autoVocabularySpeech": "Auto speech",
         "settings.speech.reviewMaskTarget": "Mask target",
         "settings.speech.maskTargets.word-pronunciation": "Word",
+        "settings.eyeComfort.title": "Eye Comfort",
+        "settings.eyeComfort.toggleLabel": "Eye comfort mode",
+        "settings.eyeComfort.description":
+          "Adds a gentle warm tint to reduce blue light while studying",
+        "settings.eyeComfort.intensity": "Intensity",
+        "settings.eyeComfort.levels.medium": "Medium",
+        "settings.eyeComfort.levels.custom": "Customize",
       })[key] ??
       options?.defaultValue ??
       key,
@@ -206,6 +217,8 @@ jest.mock("../components/settings/DashboardSection", () => ({
 describe("SettingsScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetEyeComfortStoreForTests();
+    useEyeComfortStore.setState({ _initialized: true });
     mockConfigureNotifications.mockResolvedValue({ granted: true });
     mockIsPermissionGranted.mockReturnValue(true);
   });
@@ -258,6 +271,51 @@ describe("SettingsScreen", () => {
     fireEvent.press(screen.getByTestId("settings-speech-speed-row"));
 
     expect(mockRouterPush).toHaveBeenCalledWith("/settings-speech-speed");
+  });
+
+  it("renders eye comfort summary and hides intensity while disabled", () => {
+    const screen = render(<SettingsScreen />);
+
+    expect(screen.getByText("Eye Comfort")).toBeTruthy();
+    expect(screen.getByText("Eye comfort mode")).toBeTruthy();
+    expect(screen.getByText(
+      "Adds a gentle warm tint to reduce blue light while studying",
+    )).toBeTruthy();
+    expect(screen.getByTestId("icon-eye-outline")).toBeTruthy();
+    expect(screen.getByTestId("eye-comfort-description")).toBeTruthy();
+    expect(screen.queryByTestId("eye-comfort-intensity-row")).toBeNull();
+  });
+
+  it("shows and opens the eye comfort intensity row when enabled", () => {
+    useEyeComfortStore.setState({
+      isEnabled: true,
+      level: "medium",
+      _initialized: true,
+    });
+    const screen = render(<SettingsScreen />);
+
+    expect(screen.getByTestId("eye-comfort-intensity-row")).toBeTruthy();
+    expect(screen.getByText("Intensity")).toBeTruthy();
+    expect(screen.getByText("Medium")).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("eye-comfort-intensity-row"));
+
+    expect(mockRouterPush).toHaveBeenCalledWith(
+      "/settings/eye-comfort-intensity",
+    );
+  });
+
+  it("shows customize as the current eye comfort intensity", () => {
+    useEyeComfortStore.setState({
+      isEnabled: true,
+      level: "custom",
+      customIntensity: 80,
+      _initialized: true,
+    });
+    const screen = render(<SettingsScreen />);
+
+    expect(screen.getByTestId("eye-comfort-intensity-row")).toBeTruthy();
+    expect(screen.getByText("Customize")).toBeTruthy();
   });
 
   it("orders learning language, display language, then speech and mask", () => {
