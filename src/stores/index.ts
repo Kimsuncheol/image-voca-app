@@ -19,6 +19,8 @@ export type {
   NationalitySnapshot,
   SupportedLanguage,
 } from "./languageSettingsStore";
+export { useJapaneseContentLanguageStore } from "./japaneseContentLanguageStore";
+export type { JapaneseContentLanguageMode } from "./japaneseContentLanguageStore";
 export { useUserStatsStore } from "./userStatsStore";
 export type {
     CourseProgress, DailyStats, DayProgress, UserStats

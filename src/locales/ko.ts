@@ -157,6 +157,13 @@ const ko = {
     eyeComfort: "눈 편안 모드",
     intensity: "강도",
   },
+  languageModal: {
+    title: "언어",
+    headerButtonLabel: "언어 옵션",
+    learnJapaneseInKorean: "한국어로 일본어 배우기",
+    learnJapaneseInKoreanSubtitle:
+      "일본어 코스의 뜻을 한국어로 표시합니다.",
+  },
   notifications: {
     collocation: {
       title: "오늘의 연어",

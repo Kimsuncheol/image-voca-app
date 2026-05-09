@@ -5,6 +5,10 @@ import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { JlptVocabularyCard } from "../components/course/vocabulary/JlptVocabularyCard";
 import { VocabularyCard } from "../src/types/vocabulary";
+import {
+  __resetJapaneseContentLanguageStoreForTests,
+  useJapaneseContentLanguageStore,
+} from "../src/stores/japaneseContentLanguageStore";
 
 let mockLanguage = "en";
 const mockSpeak = jest.fn();
@@ -106,6 +110,8 @@ function buildCard(overrides: Partial<VocabularyCard> = {}): VocabularyCard {
 describe("JlptVocabularyCard", () => {
   beforeEach(() => {
     mockLanguage = "en";
+    __resetJapaneseContentLanguageStoreForTests();
+    useJapaneseContentLanguageStore.setState({ _initialized: true });
     mockSpeak.mockClear();
     mockSpeak.mockResolvedValue(undefined);
   });
@@ -166,6 +172,23 @@ describe("JlptVocabularyCard", () => {
       <JlptVocabularyCard item={buildCard()} initialIsSaved={true} day={1} />,
     );
 
+    expect(getByText("사이, 동안")).toBeTruthy();
+    expect(getByText("역과 호텔 사이")).toBeTruthy();
+    expect(queryByText("interval; space; between")).toBeNull();
+    expect(queryByText("between the station and the hotel")).toBeNull();
+  });
+
+  it("renders Korean content without changing English UI language", () => {
+    useJapaneseContentLanguageStore.setState({
+      mode: "ko",
+      _initialized: true,
+    });
+
+    const { getByText, queryByText } = render(
+      <JlptVocabularyCard item={buildCard()} initialIsSaved={true} day={1} />,
+    );
+
+    expect(mockLanguage).toBe("en");
     expect(getByText("사이, 동안")).toBeTruthy();
     expect(getByText("역과 호텔 사이")).toBeTruthy();
     expect(queryByText("interval; space; between")).toBeNull();
@@ -290,7 +313,7 @@ describe("JlptVocabularyCard", () => {
       StyleSheet.flatten(getByTestId("jlpt-card-pronunciation").props.style),
     ).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
@@ -307,7 +330,7 @@ describe("JlptVocabularyCard", () => {
 
     expect(StyleSheet.flatten(getByText("間").props.style)).not.toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
@@ -315,7 +338,7 @@ describe("JlptVocabularyCard", () => {
       StyleSheet.flatten(getByTestId("jlpt-card-pronunciation").props.style),
     ).not.toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
@@ -324,7 +347,7 @@ describe("JlptVocabularyCard", () => {
       StyleSheet.flatten(getByText("interval; space; between").props.style),
     ).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );

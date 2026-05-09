@@ -15,6 +15,7 @@ import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useCardSpeechCleanup } from "../../../src/hooks/useCardSpeechCleanup";
+import { useJapaneseContentLanguage } from "../../../src/hooks/useJapaneseContentLanguage";
 import { useStudySpeech } from "../../../src/hooks/useStudyMode";
 import type { ReviewMaskTarget } from "../../../src/services/speechPreferences";
 import { VocabularyCard } from "../../../src/types/vocabulary";
@@ -299,6 +300,10 @@ export function JlptVocabularyCard({
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
   const { i18n } = useTranslation();
+  const contentLanguage = useJapaneseContentLanguage(
+    item.course,
+    i18n.language,
+  );
   const { handleSpeech } = useStudySpeech();
   useCardSpeechCleanup(isActive);
   const maskWord = shouldMaskReviewContent(
@@ -317,8 +322,8 @@ export function JlptVocabularyCard({
     "meaning",
   );
   const resolved = React.useMemo(
-    () => resolveVocabularyContent(item, i18n.language),
-    [i18n.language, item],
+    () => resolveVocabularyContent(item, contentLanguage),
+    [contentLanguage, item],
   );
   const displayWord = toDisplayValue(stripReviewMaskDelimiters(item.word));
   const pronunciation = React.useMemo(() => {

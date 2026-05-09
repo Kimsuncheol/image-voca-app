@@ -17,12 +17,11 @@ import { TopBannerAd } from "../components/ads/TopBannerAd";
 import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
-import { setLanguageMode, type LanguageMode } from "../src/i18n";
 import { useLanguageSettingsStore } from "../src/stores/languageSettingsStore";
 import {
-  getStudyReminderEnabledPreference,
-  scheduleDailyNotifications,
-} from "../src/utils/notifications";
+  changeLanguageModeWithSideEffects,
+  getLanguageModeOptions,
+} from "../src/utils/languageModeOptions";
 
 export default function SettingsLanguageScreen() {
   const { t } = useTranslation();
@@ -30,76 +29,13 @@ export default function SettingsLanguageScreen() {
   const mode = useLanguageSettingsStore((state) => state.mode);
   const styles = getStyles(isDark);
 
-  const options: ({
-    mode: LanguageMode;
-    label: string;
-  } & (
-    | { icon: keyof typeof Ionicons.glyphMap; flag?: never }
-    | { flag: string; icon?: never }
-  ))[] = [
-    {
-      mode: "system",
-      label: t("settings.language.systemDefault"),
-      icon: "phone-portrait-outline",
-    },
-    {
-      mode: "en-US",
-      label: t("settings.language.englishUnitedStates"),
-      flag: "🇺🇸",
-    },
-    {
-      mode: "en-GB",
-      label: t("settings.language.englishUnitedKingdom"),
-      flag: "🇬🇧",
-    },
-    {
-      mode: "ko",
-      label: t("settings.language.korean"),
-      flag: "🇰🇷",
-    },
-    {
-      mode: "ja",
-      label: t("settings.language.japanese"),
-      flag: "🇯🇵",
-    },
-    {
-      mode: "es",
-      label: t("settings.language.spanish"),
-      flag: "🇪🇸",
-    },
-    {
-      mode: "fr",
-      label: t("settings.language.french"),
-      flag: "🇫🇷",
-    },
-    {
-      mode: "ru",
-      label: t("settings.language.russian"),
-      flag: "🇷🇺",
-    },
-    {
-      mode: "de",
-      label: t("settings.language.german"),
-      flag: "🇩🇪",
-    },
-    {
-      mode: "it",
-      label: t("settings.language.italian"),
-      flag: "🇮🇹",
-    },
-    {
-      mode: "hi",
-      label: t("settings.language.hindi"),
-      flag: "🇮🇳",
-    },
-  ];
+  const options = getLanguageModeOptions(t);
 
-  const handleChangeLanguageMode = async (nextMode: LanguageMode) => {
+  const handleChangeLanguageMode = async (
+    nextMode: (typeof options)[number]["mode"],
+  ) => {
     try {
-      await setLanguageMode(nextMode);
-      if (await getStudyReminderEnabledPreference()) {
-        await scheduleDailyNotifications();
-      }
+      await changeLanguageModeWithSideEffects(nextMode);
     } catch (error) {
       console.warn("Failed to change language", error);
     }

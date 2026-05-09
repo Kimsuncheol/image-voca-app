@@ -31,6 +31,7 @@ import { useAuth } from "../../../src/context/AuthContext";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useAndroidImmersiveStudyMode } from "../../../src/hooks/useAndroidImmersiveStudyMode";
+import { useJapaneseContentLanguage } from "../../../src/hooks/useJapaneseContentLanguage";
 import {
   type QuizTypeId,
   resolveRuntimeQuizType,
@@ -100,6 +101,7 @@ export default function QuizPlayScreen() {
   }>();
   const requestedQuizType = sanitizeRequestedQuizType(courseId, quizType);
   const course = findRuntimeCourse(courseId);
+  const contentLanguage = useJapaneseContentLanguage(courseId, i18n.language);
   const dayNumber = parseInt(day || "1", 10);
   const showJlptPronunciationDetails = isJlptLevelCourseId(courseId);
 
@@ -187,7 +189,7 @@ export default function QuizPlayScreen() {
           day,
           quizType,
           requestedQuizType,
-          language: i18n.language,
+          language: contentLanguage,
         });
       }
       setLoading(true);
@@ -215,7 +217,7 @@ export default function QuizPlayScreen() {
             courseId as CourseType,
             dayNumber,
             requestedQuizType,
-            i18n.language,
+            contentLanguage,
           );
 
           if (cancelled) {
@@ -239,10 +241,10 @@ export default function QuizPlayScreen() {
         );
         const fetchedVocab: QuizVocabData[] = fetchedCards.map((card) => {
           if (isKanjiWord(card)) {
-            return mapKanjiWordToQuizData(card, i18n.language);
+            return mapKanjiWordToQuizData(card, contentLanguage);
           }
 
-          const resolved = resolveQuizVocabulary(card, i18n.language);
+          const resolved = resolveQuizVocabulary(card, contentLanguage);
           return {
             word: resolved.word,
             meaning: resolved.meaning,
@@ -336,7 +338,7 @@ export default function QuizPlayScreen() {
     courseId,
     day,
     dayNumber,
-    i18n.language,
+    contentLanguage,
     quizType,
     requestedQuizType,
     resetIncorrectCount,

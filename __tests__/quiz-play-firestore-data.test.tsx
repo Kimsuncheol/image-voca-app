@@ -2,6 +2,10 @@ import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { Alert } from "react-native";
 import React from "react";
 import QuizPlayScreen from "../app/course/[courseId]/quiz-play";
+import {
+  __resetJapaneseContentLanguageStoreForTests,
+  useJapaneseContentLanguageStore,
+} from "../src/stores/japaneseContentLanguageStore";
 
 const mockBack = jest.fn();
 const mockFetchCourseQuizData = jest.fn();
@@ -229,6 +233,8 @@ describe("QuizPlayScreen Firestore quiz data", () => {
       day: "5",
       quizType: "matching",
     };
+    __resetJapaneseContentLanguageStoreForTests();
+    useJapaneseContentLanguageStore.setState({ _initialized: true });
   });
 
   afterEach(() => {
@@ -271,6 +277,43 @@ describe("QuizPlayScreen Firestore quiz data", () => {
     );
     expect(getLatestStackScreenOptions()).toEqual(
       expect.objectContaining({ headerShown: false }),
+    );
+  });
+
+  it("uses Korean Japanese-content preference for JLPT quiz data without changing UI language", async () => {
+    mockParams = {
+      courseId: "JLPT_N5",
+      day: "1",
+      quizType: "matching",
+    };
+    useJapaneseContentLanguageStore.setState({
+      mode: "ko",
+      _initialized: true,
+    });
+    mockFetchCourseQuizData.mockResolvedValue({
+      questions: [
+        {
+          id: "i1",
+          word: "間",
+          meaning: "사이",
+          matchChoiceText: "사이",
+          correctAnswer: "사이",
+        },
+      ],
+      matchingChoices: ["사이"],
+    });
+
+    const screen = render(<QuizPlayScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("word:間")).toBeTruthy();
+    });
+
+    expect(mockFetchCourseQuizData).toHaveBeenCalledWith(
+      "JLPT_N5",
+      1,
+      "matching",
+      "ko",
     );
   });
 

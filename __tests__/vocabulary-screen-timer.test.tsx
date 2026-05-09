@@ -18,6 +18,20 @@ const mockGetResumeProgress: jest.Mock = jest.fn(async () => null);
 const mockSaveResumeProgress: jest.Mock = jest.fn(async () => null);
 const mockClearResumeProgress: jest.Mock = jest.fn(async () => undefined);
 const mockUpdateDoc: jest.Mock = jest.fn(async () => undefined);
+const mockLanguageHeaderButton = jest.fn(
+  ({
+    showJapaneseKoreanOption,
+  }: {
+    showJapaneseKoreanOption?: boolean;
+  }) => {
+    const { Text } = require("react-native");
+    return (
+      <Text testID="language-header-button">
+        {showJapaneseKoreanOption ? "japanese-korean" : "language"}
+      </Text>
+    );
+  },
+);
 let mockUser: { uid: string } | null = null;
 let mockCourseProgress: Record<string, Record<number, { completed?: boolean }>> =
   {};
@@ -238,6 +252,11 @@ jest.mock("../components/common/StreakMilestoneModal", () => ({
   StreakMilestoneModal: () => null,
 }));
 
+jest.mock("../src/components/common/LanguageHeaderButton", () => ({
+  LanguageHeaderButton: (props: { showJapaneseKoreanOption?: boolean }) =>
+    mockLanguageHeaderButton(props),
+}));
+
 jest.mock("../components/course/vocabulary/VocabularyEmptyState", () => ({
   VocabularyEmptyState: () => {
     const { Text } = require("react-native");
@@ -356,12 +375,88 @@ describe("VocabularyScreen deck state", () => {
     expect(screen.getByText("Vocabulary Deck")).toBeTruthy();
   });
 
-  it("renders the eye comfort header button alongside the day badge", async () => {
+  it("renders the language button between the day badge and eye comfort button", async () => {
     const screen = render(<VocabularyScreen />);
 
     await waitFor(() => {
       expect(screen.getByTestId("eye-comfort-header-button")).toBeTruthy();
+      expect(screen.getByTestId("language-header-button")).toBeTruthy();
       expect(screen.getByText("Day 1")).toBeTruthy();
+    });
+
+    const headerChildren = React.Children.toArray(
+      screen.getByTestId("vocabulary-header-right").props.children,
+    );
+
+    expect(headerChildren).toHaveLength(3);
+    expect(
+      (headerChildren[1] as React.ReactElement).props
+        .showJapaneseKoreanOption,
+    ).toBe(false);
+    expect(mockLanguageHeaderButton).toHaveBeenCalledWith({
+      showJapaneseKoreanOption: false,
+    });
+  });
+
+  it("enables the Japanese Korean shortcut for JLPT vocabulary headers", async () => {
+    mockCourseId = "JLPT_N5";
+    mockCards = [
+      {
+        id: "jlpt-1",
+        word: "間",
+        meaning: "interval",
+        pronunciation: "あいだ",
+        example: "駅とホテルの間",
+        course: "JLPT_N5",
+      },
+    ];
+
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("language-header-button").props.children)
+        .toBe("japanese-korean");
+    });
+    expect(mockLanguageHeaderButton).toHaveBeenCalledWith({
+      showJapaneseKoreanOption: true,
+    });
+  });
+
+  it("enables the Japanese Korean shortcut for Kanji vocabulary headers", async () => {
+    mockCourseId = "KANJI";
+    mockCards = [
+      {
+        id: "kanji-1",
+        kanji: "語",
+        meaning: ["word"],
+        meaningKorean: ["단어"],
+        meaningKoreanRomanize: ["dan-eo"],
+        meaningExample: [{ items: [] }],
+        meaningExampleHurigana: [{ items: [] }],
+        meaningEnglishTranslation: [{ items: [] }],
+        meaningKoreanTranslation: [{ items: [] }],
+        reading: ["ご"],
+        readingKorean: ["고"],
+        readingKoreanRomanize: ["go"],
+        readingExample: [{ items: [] }],
+        readingExampleHurigana: [{ items: [] }],
+        readingEnglishTranslation: [{ items: [] }],
+        readingKoreanTranslation: [{ items: [] }],
+        example: [],
+        exampleEnglishTranslation: [],
+        exampleKoreanTranslation: [],
+        exampleHurigana: [],
+      },
+    ];
+
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("language-header-button").props.children)
+        .toBe("japanese-korean");
+    });
+    expect(mockLanguageHeaderButton).toHaveBeenCalledWith({
+      showJapaneseKoreanOption: true,
     });
   });
 

@@ -29,6 +29,7 @@ import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useSpeechPreferences } from "../../../src/hooks/useSpeechPreferences";
+import { useJapaneseContentLanguage } from "../../../src/hooks/useJapaneseContentLanguage";
 import { upsertVocabularyDayStudyHistory } from "../../../src/services/dailyStudyHistory";
 import { db } from "../../../src/services/firebase";
 import {
@@ -62,6 +63,7 @@ import { VocabularyEmptyState } from "../../../components/course/vocabulary/Voca
 import { VocabularyFinishView } from "../../../components/course/vocabulary/VocabularyFinishView";
 import { VocabularySwipeDeck } from "../../../components/course/vocabulary/VocabularySwipeDeck";
 import { EyeComfortHeaderButton } from "../../../src/components/common/EyeComfortHeaderButton";
+import { LanguageHeaderButton } from "../../../src/components/common/LanguageHeaderButton";
 
 const { width } = Dimensions.get("window");
 
@@ -109,10 +111,15 @@ function VocabularyScreenContent() {
     day: string;
     preview?: string;
   }>();
+  const typedCourseId = courseId as CourseType;
   const router = useRouter();
   const navigation = useNavigation();
   const { t, i18n } = useTranslation();
   const currentLanguage = i18n?.language ?? "en";
+  const contentLanguage = useJapaneseContentLanguage(
+    typedCourseId,
+    currentLanguage,
+  );
   const { handleSpeech } = useStudySpeech();
   const { vocabularyPreferences, isLoading: speechPreferencesLoading } =
     useSpeechPreferences();
@@ -157,7 +164,6 @@ function VocabularyScreenContent() {
   const [splashVisible, setSplashVisible] = useState(true);
 
   const dayNumber = parseInt(day || "1", 10);
-  const typedCourseId = courseId as CourseType;
   const isPreviewMode = preview === "1";
   const [isMaskEnabled, setIsMaskEnabled] = useState(false);
   const isProgressDisabled = isPreviewMode;
@@ -199,7 +205,7 @@ function VocabularyScreenContent() {
         return;
       }
 
-      const resolved = resolveVocabularyContent(item, currentLanguage);
+      const resolved = resolveVocabularyContent(item, contentLanguage);
       const isJapaneseVocabulary = isJlptLevelCourseId(typedCourseId);
 
       if (isJapaneseVocabulary) {
@@ -218,7 +224,7 @@ function VocabularyScreenContent() {
         { language: "en-US" },
       );
     },
-    [currentLanguage, handleSpeech, typedCourseId],
+    [contentLanguage, handleSpeech, typedCourseId],
   );
 
   useEffect(() => {
@@ -850,8 +856,16 @@ function VocabularyScreenContent() {
             : "",
           headerRight: hasCards() && !isFinished
             ? () => (
-                <View style={styles.headerRight}>
+                <View
+                  testID="vocabulary-header-right"
+                  style={styles.headerRight}
+                >
                   <DayBadge day={dayNumber} />
+                  <LanguageHeaderButton
+                    showJapaneseKoreanOption={
+                      courseId === "KANJI" || isJlptLevelCourseId(courseId)
+                    }
+                  />
                   <EyeComfortHeaderButton />
                 </View>
               )

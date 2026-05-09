@@ -4,6 +4,10 @@ import { StyleSheet, Text } from "react-native";
 import { KanjiCollocationCard } from "../components/course/vocabulary/KanjiCollocationCard";
 import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
+import {
+  __resetJapaneseContentLanguageStoreForTests,
+  useJapaneseContentLanguageStore,
+} from "../src/stores/japaneseContentLanguageStore";
 import type { KanjiWord } from "../src/types/vocabulary";
 
 let mockLanguage = "en";
@@ -120,6 +124,8 @@ const firstTextNodeOf = (node: {
 describe("KanjiCollocationCard", () => {
   beforeEach(() => {
     mockLanguage = "en";
+    __resetJapaneseContentLanguageStoreForTests();
+    useJapaneseContentLanguageStore.setState({ _initialized: true });
     mockSpeak.mockClear();
     mockStopCardSpeech.mockClear();
   });
@@ -175,13 +181,13 @@ describe("KanjiCollocationCard", () => {
 
     expect(StyleSheet.flatten(readingTexts[0].props.style)).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
     expect(StyleSheet.flatten(readingTexts[1].props.style)).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
@@ -198,7 +204,7 @@ describe("KanjiCollocationCard", () => {
 
     expect(StyleSheet.flatten(screen.getByText("語").props.style)).not.toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
@@ -212,13 +218,13 @@ describe("KanjiCollocationCard", () => {
 
     expect(StyleSheet.flatten(meaningTexts[0].props.style)).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
     expect(StyleSheet.flatten(readingTexts[0].props.style)).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
@@ -235,7 +241,7 @@ describe("KanjiCollocationCard", () => {
 
     expect(StyleSheet.flatten(screen.getByText("語").props.style)).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
@@ -247,7 +253,7 @@ describe("KanjiCollocationCard", () => {
       ),
     ).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
@@ -561,6 +567,25 @@ describe("KanjiCollocationCard", () => {
     expect(queryByText("Learn words.")).toBeNull();
   });
 
+  it("uses Korean translations without changing English UI language", () => {
+    useJapaneseContentLanguageStore.setState({
+      mode: "ko",
+      _initialized: true,
+    });
+
+    const screen = render(<KanjiCollocationCard item={buildKanjiWord()} />);
+    flipToBack(screen);
+    const { getByText, queryByText } = screen;
+
+    expect(mockLanguage).toBe("en");
+    expect(getByText("숙어")).toBeTruthy();
+    expect(getByText("일본어")).toBeTruthy();
+    expect(getByText("단어를 배우다.")).toBeTruthy();
+    expect(queryByText("compound word")).toBeNull();
+    expect(queryByText("Japanese language")).toBeNull();
+    expect(queryByText("Learn words.")).toBeNull();
+  });
+
   it("does not crash when grouped arrays are shorter than value arrays", () => {
     const screen = render(
       <KanjiCollocationCard
@@ -690,7 +715,7 @@ describe("KanjiCollocationCard", () => {
       flattenStyleOf(screen.getByTestId("kanji-collocation-reading-value-row-0").findByType(Text)),
     ).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
@@ -698,7 +723,7 @@ describe("KanjiCollocationCard", () => {
       flattenStyleOf(screen.getByTestId("kanji-collocation-reading-hurigana-0-0")),
     ).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );

@@ -158,6 +158,13 @@ const en = {
     eyeComfort: "Eye comfort mode",
     intensity: "Intensity",
   },
+  languageModal: {
+    title: "Language",
+    headerButtonLabel: "Language options",
+    learnJapaneseInKorean: "Learn Japanese in Korean",
+    learnJapaneseInKoreanSubtitle:
+      "Show Japanese course meanings in Korean.",
+  },
   notifications: {
     collocation: {
       title: "Collocation of the Day",
