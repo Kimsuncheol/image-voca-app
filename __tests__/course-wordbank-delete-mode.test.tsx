@@ -24,6 +24,7 @@ const mockSetLoading = jest.fn();
 const mockSetSplashMounted = jest.fn();
 const mockSetSelectedFilter = jest.fn();
 const mockSetSearchQuery = jest.fn();
+let mockCourse = "TOEIC";
 
 jest.mock("expo-router", () => ({
   Stack: {
@@ -31,7 +32,7 @@ jest.mock("expo-router", () => ({
   },
   useFocusEffect: jest.fn(),
   useLocalSearchParams: () => ({
-    course: "TOEIC",
+    course: mockCourse,
   }),
 }));
 
@@ -187,6 +188,7 @@ function mockScreenState(words: typeof initialWords) {
 describe("CourseWordBankScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCourse = "TOEIC";
     __resetWordBankMaskStoreForTests();
     jest.spyOn(Alert, "alert").mockImplementation(() => {});
     jest.spyOn(console, "error").mockImplementation(() => {});
@@ -208,12 +210,28 @@ describe("CourseWordBankScreen", () => {
   });
 
   it("passes header mask state and selected target into saved word cards", () => {
-    useWordBankMaskStore.getState().setMaskEnabled(true);
+    useWordBankMaskStore.getState().setMaskEnabled("TOEIC", true);
     mockScreenState(initialWords);
 
     const screen = render(<CourseWordBankScreen />);
 
     expect(screen.getAllByText("review:on:example")).toHaveLength(2);
+  });
+
+  it("uses mask state only for the current course", () => {
+    useWordBankMaskStore.getState().setMaskEnabled("TOEIC", true);
+    useWordBankMaskStore.getState().setMaskEnabled("CSAT", false);
+    mockCourse = "CSAT";
+    mockScreenState(
+      initialWords.map((word) => ({
+        ...word,
+        course: "CSAT",
+      })),
+    );
+
+    const screen = render(<CourseWordBankScreen />);
+
+    expect(screen.getAllByText("review:off:example")).toHaveLength(2);
   });
 
   it("deletes a word through the screen-level list row", async () => {

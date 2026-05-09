@@ -56,7 +56,9 @@ export default function CourseWordBankScreen() {
   const { course } = useLocalSearchParams<{ course: CourseType }>(); // Course ID from URL
   const { t } = useTranslation(); // Translation function for i18n
   const { vocabularyPreferences } = useSpeechPreferences();
-  const isReviewMode = useWordBankMaskStore((state) => state.isMaskEnabled);
+  const isReviewMode = useWordBankMaskStore((state) =>
+    course ? state.isMaskEnabled(course) : false,
+  );
 
   // === State Management ===
 

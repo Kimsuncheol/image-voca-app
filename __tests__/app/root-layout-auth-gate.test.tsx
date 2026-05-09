@@ -211,15 +211,43 @@ describe("RootLayoutNav auth gating", () => {
       loading: false,
       authStatus: "signed_in",
     });
+    mockGlobalSearchParams = { course: "TOEIC" };
     (useSegments as jest.Mock).mockReturnValue(["courses"]);
 
     const screen = render(<RootLayoutNav />);
 
-    expect(useWordBankMaskStore.getState().isMaskEnabled).toBe(false);
+    expect(useWordBankMaskStore.getState().isMaskEnabled("TOEIC")).toBe(false);
     fireEvent.press(screen.getByTestId("courses-mask-header-button"));
-    expect(useWordBankMaskStore.getState().isMaskEnabled).toBe(true);
+    expect(useWordBankMaskStore.getState().isMaskEnabled("TOEIC")).toBe(true);
     fireEvent.press(screen.getByTestId("courses-mask-header-button"));
-    expect(useWordBankMaskStore.getState().isMaskEnabled).toBe(false);
+    expect(useWordBankMaskStore.getState().isMaskEnabled("TOEIC")).toBe(false);
+  });
+
+  it("keeps Word Bank mask state isolated per course", () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1" },
+      loading: false,
+      authStatus: "signed_in",
+    });
+    (useSegments as jest.Mock).mockReturnValue(["courses", "[course]"]);
+
+    mockGlobalSearchParams = { course: "TOEIC" };
+    const toeicScreen = render(<RootLayoutNav />);
+
+    fireEvent.press(toeicScreen.getByTestId("courses-mask-header-button"));
+    expect(useWordBankMaskStore.getState().isMaskEnabled("TOEIC")).toBe(true);
+    expect(useWordBankMaskStore.getState().isMaskEnabled("CSAT")).toBe(false);
+
+    toeicScreen.unmount();
+    mockStackScreens.length = 0;
+    mockGlobalSearchParams = { course: "CSAT" };
+    const csatScreen = render(<RootLayoutNav />);
+
+    expect(useWordBankMaskStore.getState().isMaskEnabled("CSAT")).toBe(false);
+    fireEvent.press(csatScreen.getByTestId("courses-mask-header-button"));
+
+    expect(useWordBankMaskStore.getState().isMaskEnabled("CSAT")).toBe(true);
+    expect(useWordBankMaskStore.getState().isMaskEnabled("TOEIC")).toBe(true);
   });
 
   it("hides the courses mask trigger for Kanji saved words when target is synonym", () => {

@@ -100,7 +100,7 @@ function CoursesHeaderActions() {
 
   return (
     <View style={styles.coursesHeaderActions}>
-      <MaskHeaderButton hidden={hideMaskButton} />
+      <MaskHeaderButton courseId={course} hidden={hideMaskButton} />
       <LanguageHeaderButton showJapaneseKoreanOption />
       <EyeComfortHeaderButton />
     </View>

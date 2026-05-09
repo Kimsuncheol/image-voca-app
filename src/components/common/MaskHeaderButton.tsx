@@ -5,18 +5,25 @@ import { Pressable, StyleSheet, Text } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
 import { useWordBankMaskStore } from "../../stores/wordBankMaskStore";
 
+const ROOT_COURSES_MASK_KEY = "__courses_root__";
+
 interface MaskHeaderButtonProps {
+  courseId?: string;
   hidden?: boolean;
   testID?: string;
 }
 
 export function MaskHeaderButton({
+  courseId,
   hidden = false,
   testID = "courses-mask-header-button",
 }: MaskHeaderButtonProps) {
   const { t } = useTranslation();
   const { isDark } = useTheme();
-  const isMaskEnabled = useWordBankMaskStore((state) => state.isMaskEnabled);
+  const maskKey = courseId ?? ROOT_COURSES_MASK_KEY;
+  const isMaskEnabled = useWordBankMaskStore((state) =>
+    state.isMaskEnabled(maskKey),
+  );
   const toggleMask = useWordBankMaskStore((state) => state.toggleMask);
   const textColor = isDark ? "#f2f2f7" : "#1f2937";
   const label = isMaskEnabled
@@ -32,7 +39,7 @@ export function MaskHeaderButton({
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel={label}
-      onPress={toggleMask}
+      onPress={() => toggleMask(maskKey)}
       style={styles.button}
     >
       <Text style={[styles.text, { color: textColor }]}>{label}</Text>
