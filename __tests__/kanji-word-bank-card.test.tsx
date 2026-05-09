@@ -95,4 +95,27 @@ describe("KanjiWordBankCard", () => {
     expect(screen.getByText("ご")).toBeTruthy();
     expect(screen.getByText("eum")).toBeTruthy();
   });
+
+  it("renders the day badge before the image in the header", () => {
+    const screen = render(
+      <KanjiWordBankCard
+        word={buildSavedKanjiWord({
+          day: 7,
+          imageUrl: "https://cdn.example.com/kanji.jpg",
+        })}
+        isDark={false}
+      />,
+    );
+
+    const headerRight = screen.getByTestId("kanji-word-bank-header-right");
+    const childTestIds = headerRight.props.children
+      .filter(Boolean)
+      .map((child: { props?: { testID?: string } }) => child.props?.testID);
+
+    expect(childTestIds).toEqual([
+      "kanji-word-bank-day-badge",
+      "kanji-word-bank-image-container",
+    ]);
+    expect(screen.getByText("Day 7")).toBeTruthy();
+  });
 });

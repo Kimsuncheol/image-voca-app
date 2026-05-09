@@ -68,7 +68,7 @@ export function KanjiWordBankCard({
         { backgroundColor: bgColors.learningCardSurfaceAlt },
       ]}
     >
-      {/* Header: kanji + image + day badge */}
+      {/* Header: kanji + day badge + image */}
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={handleSpeakKanji} activeOpacity={0.7}>
@@ -79,8 +79,19 @@ export function KanjiWordBankCard({
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.headerRight}>
-          <View style={styles.imageContainer}>
+        <View
+          testID="kanji-word-bank-header-right"
+          style={styles.headerRight}
+        >
+          {word.day !== undefined ? (
+            <View testID="kanji-word-bank-day-badge">
+              <DayBadge day={word.day} />
+            </View>
+          ) : null}
+          <View
+            testID="kanji-word-bank-image-container"
+            style={styles.imageContainer}
+          >
             {word.imageUrl ? (
               <Image
                 source={{ uri: word.imageUrl }}
@@ -93,7 +104,6 @@ export function KanjiWordBankCard({
             )}
 
           </View>
-          {word.day !== undefined && <DayBadge day={word.day} />}
         </View>
       </View>
 
