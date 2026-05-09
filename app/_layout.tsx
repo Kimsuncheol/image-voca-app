@@ -6,7 +6,12 @@ import {
   ThemeProvider as NavigationThemeProvider,
 } from "@react-navigation/native";
 import * as Localization from "expo-localization";
-import { Stack, useRouter, useSegments } from "expo-router";
+import {
+  Stack,
+  useGlobalSearchParams,
+  useRouter,
+  useSegments,
+} from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef, useState } from "react";
@@ -24,6 +29,7 @@ import { useColorScheme } from "../hooks/use-color-scheme";
 import { EyeComfortOverlay } from "../src/components/common/EyeComfortOverlay";
 import { EyeComfortHeaderButton } from "../src/components/common/EyeComfortHeaderButton";
 import { LanguageHeaderButton } from "../src/components/common/LanguageHeaderButton";
+import { MaskHeaderButton } from "../src/components/common/MaskHeaderButton";
 import { ReadingDisplayModal } from "../src/components/common/ReadingDisplayModal";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import {
@@ -38,6 +44,7 @@ import {
 import { useAuthenticatedDeviceRegistration } from "../src/hooks/useAuthenticatedDeviceRegistration";
 import { useDeviceDeletionEnforcement } from "../src/hooks/useDeviceDeletionEnforcement";
 import { useStudyReminderNotifications } from "../src/hooks/useStudyReminderNotifications";
+import { useSpeechPreferences } from "../src/hooks/useSpeechPreferences";
 import { hydrateLanguage, syncLanguageWithSystemLocales } from "../src/i18n";
 import { initializeMobileAds } from "../src/services/mobileAds";
 import {
@@ -77,9 +84,19 @@ function LanguageSettingsSync() {
   return null;
 }
 
+const getParamValue = (value: string | string[] | undefined) =>
+  Array.isArray(value) ? value[0] : value;
+
 function CoursesHeaderActions() {
+  const params = useGlobalSearchParams<{ course?: string | string[] }>();
+  const { vocabularyPreferences } = useSpeechPreferences();
+  const course = getParamValue(params.course);
+  const hideMaskButton =
+    course === "KANJI" && vocabularyPreferences.reviewMaskTarget === "synonym";
+
   return (
     <View style={styles.coursesHeaderActions}>
+      <MaskHeaderButton hidden={hideMaskButton} />
       <LanguageHeaderButton showJapaneseKoreanOption />
       <EyeComfortHeaderButton />
     </View>

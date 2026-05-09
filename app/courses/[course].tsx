@@ -23,8 +23,10 @@ import { useAuth } from "../../src/context/AuthContext";
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useTheme } from "../../src/context/ThemeContext";
+import { useSpeechPreferences } from "../../src/hooks/useSpeechPreferences";
 import { StudyModeProvider } from "../../src/hooks/useStudyMode";
 import { db } from "../../src/services/firebase";
+import { useWordBankMaskStore } from "../../src/stores/wordBankMaskStore";
 import { CourseType, findRuntimeCourse } from "../../src/types/vocabulary";
 
 /**
@@ -53,6 +55,8 @@ export default function CourseWordBankScreen() {
   const { user } = useAuth(); // Current authenticated user
   const { course } = useLocalSearchParams<{ course: CourseType }>(); // Course ID from URL
   const { t } = useTranslation(); // Translation function for i18n
+  const { vocabularyPreferences } = useSpeechPreferences();
+  const isReviewMode = useWordBankMaskStore((state) => state.isMaskEnabled);
 
   // === State Management ===
 
@@ -278,6 +282,8 @@ export default function CourseWordBankScreen() {
                     isDark={isDark}
                     showPronunciation={showPronunciation}
                     expandExampleToContent={expandExampleToContent}
+                    isReviewMode={isReviewMode}
+                    reviewMaskTarget={vocabularyPreferences.reviewMaskTarget}
                   />
                 </SwipeToDeleteRow>
               )}

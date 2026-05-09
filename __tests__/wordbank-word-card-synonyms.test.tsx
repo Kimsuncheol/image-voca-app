@@ -63,13 +63,61 @@ describe("Word bank WordCard synonyms", () => {
     );
 
     expect(getByText("그들은 계획을 포기했다.")).toBeTruthy();
-    expect(getByText("Synonyms:")).toBeTruthy();
+    expect(getByText("Synonyms")).toBeTruthy();
     expect(getByTestId("word-card-synonyms").props.children).toBe(
       "discard, leave, forsake",
     );
     expect(getByTestId("word-card-synonyms")).toHaveStyle({
       fontSize: 15,
-      color: "#2F2F2F",
+      color: "#374151",
+    });
+  });
+
+  it("masks saved word titles when the word target is active", () => {
+    const { getByTestId } = render(
+      <WordCard
+        word={baseWord}
+        isDark={false}
+        isReviewMode
+        reviewMaskTarget="word"
+      />,
+    );
+
+    expect(getByTestId("word-card-title")).toHaveStyle({
+      color: "#ffffff",
+    });
+  });
+
+  it("masks saved examples and translations when the example target is active", () => {
+    const { getByTestId } = render(
+      <WordCard
+        word={baseWord}
+        isDark={false}
+        isReviewMode
+        reviewMaskTarget="example"
+      />,
+    );
+
+    expect(getByTestId("word-card-example")).toHaveStyle({
+      color: "#ffffff",
+    });
+    expect(getByTestId("word-card-translation")).toHaveStyle({
+      color: "#ffffff",
+    });
+  });
+
+  it("masks saved synonyms when the synonym target is active", () => {
+    const { getByTestId } = render(
+      <WordCard
+        word={baseWord}
+        isDark={false}
+        isReviewMode
+        reviewMaskTarget="synonym"
+      />,
+    );
+
+    expect(getByTestId("word-card-synonyms")).toHaveStyle({
+      color: "#ffffff",
     });
   });
 
@@ -84,7 +132,7 @@ describe("Word bank WordCard synonyms", () => {
       />,
     );
 
-    expect(queryByText("Synonyms:")).toBeNull();
+    expect(queryByText("Synonyms")).toBeNull();
     expect(queryByTestId("word-card-synonyms-section")).toBeNull();
   });
 
@@ -145,7 +193,8 @@ describe("Word bank WordCard synonyms", () => {
     const title = getByTestId("word-card-title");
     const titleStyle = StyleSheet.flatten(title.props.style);
     expect(title.props.children).toBe("take A\n[for granted]\n[as given]");
-    expect(titleStyle.fontSize).toBe(22);
+    expect(titleStyle.fontSize).toBeGreaterThanOrEqual(16);
+    expect(titleStyle.fontSize).toBeLessThanOrEqual(22);
     expect(title.props.numberOfLines).toBeUndefined();
     expect(title.props.adjustsFontSizeToFit).toBeUndefined();
     expect(title.props.minimumFontScale).toBeUndefined();
@@ -276,7 +325,7 @@ describe("Word bank WordCard synonyms", () => {
     expect(titleStyle.fontSize).toBeGreaterThanOrEqual(16);
     expect(titleStyle.fontSize).toBeLessThan(22);
     expect(title.props.numberOfLines).toBe(1);
-    expect(title.props.adjustsFontSizeToFit).toBeUndefined();
-    expect(title.props.minimumFontScale).toBeUndefined();
+    expect(title.props.adjustsFontSizeToFit).toBe(true);
+    expect(title.props.minimumFontScale).toBeDefined();
   });
 });

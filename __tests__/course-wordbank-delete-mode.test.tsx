@@ -3,6 +3,10 @@ import { setDoc } from "firebase/firestore";
 import React, * as ReactModule from "react";
 import { Alert } from "react-native";
 import CourseWordBankScreen from "../app/courses/[course]";
+import {
+  __resetWordBankMaskStoreForTests,
+  useWordBankMaskStore,
+} from "../src/stores/wordBankMaskStore";
 
 jest.mock("react", () => {
   const actual = jest.requireActual("react");
@@ -56,6 +60,14 @@ jest.mock("../src/context/AuthContext", () => ({
 jest.mock("../src/context/ThemeContext", () => ({
   useTheme: () => ({
     isDark: false,
+  }),
+}));
+
+jest.mock("../src/hooks/useSpeechPreferences", () => ({
+  useSpeechPreferences: () => ({
+    vocabularyPreferences: {
+      reviewMaskTarget: "example",
+    },
   }),
 }));
 
@@ -119,11 +131,24 @@ jest.mock("../components/course-wordbank", () => ({
 }));
 
 jest.mock("../components/wordbank/WordCard", () => ({
-  WordCard: ({ word }: { word: { word: string } }) => {
+  WordCard: ({
+    word,
+    isReviewMode,
+    reviewMaskTarget,
+  }: {
+    word: { word: string };
+    isReviewMode?: boolean;
+    reviewMaskTarget?: string;
+  }) => {
     const React = require("react");
     const { Text } = require("react-native");
 
-    return <Text>{word.word}</Text>;
+    return (
+      <>
+        <Text>{word.word}</Text>
+        <Text>{`review:${isReviewMode ? "on" : "off"}:${reviewMaskTarget}`}</Text>
+      </>
+    );
   },
 }));
 
@@ -162,6 +187,7 @@ function mockScreenState(words: typeof initialWords) {
 describe("CourseWordBankScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetWordBankMaskStoreForTests();
     jest.spyOn(Alert, "alert").mockImplementation(() => {});
     jest.spyOn(console, "error").mockImplementation(() => {});
   });
@@ -178,6 +204,16 @@ describe("CourseWordBankScreen", () => {
     expect(screen.getByTestId("mock-top-install-native-ad")).toBeTruthy();
     expect(screen.getByText("abandon")).toBeTruthy();
     expect(screen.getByText("retain")).toBeTruthy();
+    expect(screen.getAllByText("review:off:example")).toHaveLength(2);
+  });
+
+  it("passes header mask state and selected target into saved word cards", () => {
+    useWordBankMaskStore.getState().setMaskEnabled(true);
+    mockScreenState(initialWords);
+
+    const screen = render(<CourseWordBankScreen />);
+
+    expect(screen.getAllByText("review:on:example")).toHaveLength(2);
   });
 
   it("deletes a word through the screen-level list row", async () => {

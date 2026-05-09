@@ -6,6 +6,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
+import { useJapaneseContentLanguage } from "../../src/hooks/useJapaneseContentLanguage";
 import { useStudySpeech } from "../../src/hooks/useStudyMode";
 import { FontSizes } from "@/constants/fontSizes";
 import {
@@ -19,25 +20,50 @@ import { GeneralBackSection } from "../course/vocabulary/KanjiCollocationCardGen
 
 import type { SavedWord } from "./WordCard";
 import { LineHeights } from "@/constants/lineHeights";
+import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
+import {
+  getReviewTapeTextStyle,
+  shouldMaskReviewContent,
+} from "../../src/utils/reviewMasking";
 
 interface KanjiWordBankCardProps {
   word: SavedWord;
   isDark: boolean;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
+  isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
 }
 
 export function KanjiWordBankCard({
   word,
   isDark,
   onSavedWordChange,
+  isReviewMode = false,
+  reviewMaskTarget = "word",
 }: KanjiWordBankCardProps) {
   const { handleSpeech } = useStudySpeech();
   useCardSpeechCleanup();
   const { i18n } = useTranslation();
-  const useKorean = i18n.language === "ko";
-  const language = i18n.language;
+  const language = useJapaneseContentLanguage(word.course, i18n.language);
+  const useKorean = language === "ko";
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
+  const maskStyle = getReviewTapeTextStyle(isDark);
+  const maskWord = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "word",
+  );
+  const maskMeaning = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "meaning",
+  );
+  const maskReading = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "reading",
+  );
 
   const [showFurigana, setShowFurigana] = React.useState(false);
 
@@ -48,9 +74,14 @@ export function KanjiWordBankCard({
     ? (word.exampleKoreanTranslation ?? [])
     : (word.exampleEnglishTranslation ?? []);
 
-  const handleSpeakKanji = React.useCallback(() => {
-    void handleSpeech(word.kanji ?? "", "JP");
-  }, [handleSpeech, word.kanji]);
+  const handleSpeakRow = React.useCallback(
+    (text?: string) => {
+      const speechText = text?.trim();
+      if (!speechText) return;
+      void handleSpeech(speechText, "JP");
+    },
+    [handleSpeech],
+  );
   const handleStaticExampleRowPress = React.useCallback(() => {}, []);
 
   const hasGeneralExamples = (word.exampleHurigana?.length ?? 0) > 0 ||
@@ -71,13 +102,15 @@ export function KanjiWordBankCard({
       {/* Header: kanji + day badge + image */}
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={handleSpeakKanji} activeOpacity={0.7}>
-            <Text
-              style={[styles.kanjiText, { color: fontColors.primary }]}
-            >
-              {word.kanji}
-            </Text>
-          </TouchableOpacity>
+          <Text
+            style={[
+              styles.kanjiText,
+              { color: fontColors.primary },
+              maskWord ? maskStyle : undefined,
+            ]}
+          >
+            {word.kanji}
+          </Text>
         </View>
         <View
           testID="kanji-word-bank-header-right"
@@ -117,8 +150,11 @@ export function KanjiWordBankCard({
           </Text>
           <View style={styles.chipRow}>
             {meanings.map((row, i) => (
-              <View
+              <TouchableOpacity
                 key={`m-${i}`}
+                testID={`kanji-word-bank-meaning-row-${i}`}
+                activeOpacity={0.7}
+                onPress={() => handleSpeakRow(row.baseText)}
                 style={{ flexDirection: "row", alignItems: "baseline", gap: 24 }}
               >
                 {row.localizedText ? (
@@ -126,6 +162,7 @@ export function KanjiWordBankCard({
                     style={[
                       styles.chipText,
                       { color: fontColors.subtle, fontSize: FontSizes.body },
+                      maskMeaning ? maskStyle : undefined,
                     ]}
                   >
                     {row.localizedText}
@@ -136,12 +173,13 @@ export function KanjiWordBankCard({
                     style={[
                       styles.chipText,
                       { color: fontColors.secondary },
+                      maskMeaning ? maskStyle : undefined,
                     ]}
                   >
                     {row.baseText}
                   </Text>
                 ) : null}
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         </View>
@@ -157,8 +195,11 @@ export function KanjiWordBankCard({
           </Text>
           <View style={styles.chipRow}>
             {readings.map((row, i) => (
-              <View
+              <TouchableOpacity
                 key={`r-${i}`}
+                testID={`kanji-word-bank-reading-row-${i}`}
+                activeOpacity={0.7}
+                onPress={() => handleSpeakRow(row.baseText)}
                 style={{ flexDirection: "row", alignItems: "baseline", gap: 24 }}
               >
                 {row.localizedText ? (
@@ -166,6 +207,7 @@ export function KanjiWordBankCard({
                     style={[
                       styles.chipText,
                       { color: fontColors.subtle, fontSize: FontSizes.body },
+                      maskReading ? maskStyle : undefined,
                     ]}
                   >
                     {row.localizedText}
@@ -176,12 +218,13 @@ export function KanjiWordBankCard({
                     style={[
                       styles.chipText,
                       { color: fontColors.secondary },
+                      maskReading ? maskStyle : undefined,
                     ]}
                   >
                     {row.baseText}
                   </Text>
                 ) : null}
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         </View>
@@ -227,6 +270,8 @@ export function KanjiWordBankCard({
             isDark={isDark}
             isActive={true}
             showFurigana={showFurigana}
+            isReviewMode={isReviewMode}
+            reviewMaskTarget={reviewMaskTarget}
             onFlip={handleStaticExampleRowPress}
           />
         </View>

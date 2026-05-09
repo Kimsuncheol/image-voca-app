@@ -24,6 +24,11 @@ import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import { WordCardExample } from "./WordCardExample";
 import { WordCardHeader } from "./WordCardHeader";
 import { WordCardMeaning } from "./WordCardMeaning";
+import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
+import {
+  getReviewTapeTextStyle,
+  shouldMaskReviewContent,
+} from "../../src/utils/reviewMasking";
 
 /**
  * SavedWord type definition
@@ -70,6 +75,8 @@ interface WordCardProps {
   showPronunciation?: boolean;
   expandExampleToContent?: boolean;
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
+  isReviewMode?: boolean;
+  reviewMaskTarget?: ReviewMaskTarget;
 }
 
 /**
@@ -84,6 +91,8 @@ export function WordCard(props: WordCardProps) {
         word={props.word}
         isDark={props.isDark}
         onSavedWordChange={props.onSavedWordChange}
+        isReviewMode={props.isReviewMode}
+        reviewMaskTarget={props.reviewMaskTarget}
       />
     );
   }
@@ -95,6 +104,8 @@ function StandardWordCard({
   isDark,
   showPronunciation = true,
   expandExampleToContent = false,
+  isReviewMode = false,
+  reviewMaskTarget = "word",
 }: WordCardProps) {
   const { handleSpeech } = useStudySpeech();
   useCardSpeechCleanup();
@@ -102,6 +113,22 @@ function StandardWordCard({
   const { learningLanguage } = useLearningLanguage();
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
+  const maskWord = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "word",
+  );
+  const maskMeaning = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "meaning",
+  );
+  const maskReading = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "reading",
+  );
+  const maskStyle = getReviewTapeTextStyle(isDark);
 
   const speakLanguage = learningLanguage === "ja" ? "ja-JP" : "en-US";
   const [showKana, setShowKana] = React.useState(false);
@@ -199,6 +226,8 @@ function StandardWordCard({
               showPronunciation ? resolved.sharedPronunciation : undefined
             }
             onSpeak={handleSpeakWord}
+            wordTextStyle={maskWord ? maskStyle : undefined}
+            pronunciationTextStyle={maskReading ? maskStyle : undefined}
           />
           <WordCardMeaning
             meaning={resolved.meaning}
@@ -207,6 +236,7 @@ function StandardWordCard({
             hasPronunciation={
               showPronunciation && Boolean(resolved.sharedPronunciation)
             }
+            textStyleOverride={maskMeaning ? maskStyle : undefined}
           />
         </View>
         {resolved.imageUrl ? (
@@ -243,6 +273,8 @@ function StandardWordCard({
         speakLanguage={speakLanguage}
         expandToContent={expandExampleToContent}
         showKana={showKana}
+        isReviewMode={isReviewMode}
+        reviewMaskTarget={reviewMaskTarget}
       />
 
       {hasFurigana ? (

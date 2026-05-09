@@ -1,11 +1,17 @@
-import { render, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { useRouter, useSegments } from "expo-router";
 import React from "react";
 import { Text as MockText } from "react-native";
 import { RootLayoutNav } from "../../app/_layout";
+import {
+  __resetWordBankMaskStoreForTests,
+  useWordBankMaskStore,
+} from "../../src/stores/wordBankMaskStore";
 
 const mockReplace = jest.fn();
 const mockUseAuth = jest.fn();
+let mockGlobalSearchParams: { course?: string } = {};
+let mockReviewMaskTarget = "word";
 const mockStackScreens: { name?: string; options?: any }[] = [];
 
 jest.mock("expo-router", () => {
@@ -26,6 +32,7 @@ jest.mock("expo-router", () => {
   Stack.Screen.displayName = "MockStackScreen";
   return {
     Stack,
+    useGlobalSearchParams: jest.fn(() => mockGlobalSearchParams),
     useRouter: jest.fn(),
     useSegments: jest.fn(),
   };
@@ -90,6 +97,14 @@ jest.mock("../../src/hooks/useStudyReminderNotifications", () => ({
 
 jest.mock("../../src/hooks/useDeviceDeletionEnforcement", () => ({
   useDeviceDeletionEnforcement: jest.fn(),
+}));
+
+jest.mock("../../src/hooks/useSpeechPreferences", () => ({
+  useSpeechPreferences: () => ({
+    vocabularyPreferences: {
+      reviewMaskTarget: mockReviewMaskTarget,
+    },
+  }),
 }));
 
 jest.mock("../../src/i18n", () => ({
@@ -159,12 +174,15 @@ describe("RootLayoutNav auth gating", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockStackScreens.length = 0;
+    mockGlobalSearchParams = {};
+    mockReviewMaskTarget = "word";
+    __resetWordBankMaskStoreForTests();
     (useRouter as jest.Mock).mockReturnValue({
       replace: mockReplace,
     });
   });
 
-  it("renders language and reading display triggers in the courses native header", () => {
+  it("renders mask, language, and reading display triggers in the courses native header", () => {
     mockUseAuth.mockReturnValue({
       user: { uid: "user-1" },
       loading: false,
@@ -174,6 +192,8 @@ describe("RootLayoutNav auth gating", () => {
 
     const screen = render(<RootLayoutNav />);
 
+    const maskButton = screen.getByTestId("courses-mask-header-button");
+    expect(maskButton).toBeTruthy();
     expect(screen.getByTestId("language-header-button").props.children).toBe(
       "japanese-korean-enabled",
     );
@@ -183,6 +203,70 @@ describe("RootLayoutNav auth gating", () => {
     );
     expect(coursesScreen?.options?.headerRight).toBeTruthy();
     expect(coursesScreen?.options?.headerTintColor).toBe("#000");
+  });
+
+  it("toggles the Word Bank mask state from the courses native header", () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1" },
+      loading: false,
+      authStatus: "signed_in",
+    });
+    (useSegments as jest.Mock).mockReturnValue(["courses"]);
+
+    const screen = render(<RootLayoutNav />);
+
+    expect(useWordBankMaskStore.getState().isMaskEnabled).toBe(false);
+    fireEvent.press(screen.getByTestId("courses-mask-header-button"));
+    expect(useWordBankMaskStore.getState().isMaskEnabled).toBe(true);
+    fireEvent.press(screen.getByTestId("courses-mask-header-button"));
+    expect(useWordBankMaskStore.getState().isMaskEnabled).toBe(false);
+  });
+
+  it("hides the courses mask trigger for Kanji saved words when target is synonym", () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1" },
+      loading: false,
+      authStatus: "signed_in",
+    });
+    mockGlobalSearchParams = { course: "KANJI" };
+    mockReviewMaskTarget = "synonym";
+    (useSegments as jest.Mock).mockReturnValue(["courses", "[course]"]);
+
+    const screen = render(<RootLayoutNav />);
+
+    expect(screen.queryByTestId("courses-mask-header-button")).toBeNull();
+    expect(screen.getByTestId("language-header-button")).toBeTruthy();
+    expect(screen.getByTestId("eye-comfort-header-button")).toBeTruthy();
+  });
+
+  it("keeps the courses mask trigger for Kanji saved words when target is word", () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1" },
+      loading: false,
+      authStatus: "signed_in",
+    });
+    mockGlobalSearchParams = { course: "KANJI" };
+    mockReviewMaskTarget = "word";
+    (useSegments as jest.Mock).mockReturnValue(["courses", "[course]"]);
+
+    const screen = render(<RootLayoutNav />);
+
+    expect(screen.getByTestId("courses-mask-header-button")).toBeTruthy();
+  });
+
+  it("keeps the courses mask trigger for non-Kanji saved words when target is synonym", () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1" },
+      loading: false,
+      authStatus: "signed_in",
+    });
+    mockGlobalSearchParams = { course: "TOEIC" };
+    mockReviewMaskTarget = "synonym";
+    (useSegments as jest.Mock).mockReturnValue(["courses", "[course]"]);
+
+    const screen = render(<RootLayoutNav />);
+
+    expect(screen.getByTestId("courses-mask-header-button")).toBeTruthy();
   });
 
   it("redirects signed-out users away from app routes", async () => {

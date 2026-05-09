@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, type StyleProp, type TextStyle } from "react-native";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { FontSizes } from "@/constants/fontSizes";
 import { LineHeights } from "@/constants/lineHeights";
@@ -9,6 +9,7 @@ interface WordCardMeaningProps {
   courseId?: string;
   isDark: boolean;
   hasPronunciation?: boolean;
+  textStyleOverride?: StyleProp<TextStyle>;
 }
 
 /**
@@ -20,13 +21,15 @@ export function WordCardMeaning({
   courseId,
   isDark,
   hasPronunciation = false,
+  textStyleOverride,
 }: WordCardMeaningProps) {
   return (
     <InlineMeaningWithChips
       meaning={meaning}
       courseId={courseId}
       isDark={isDark}
-      textStyle={styles.meaning}
+      textStyle={[styles.meaning, textStyleOverride]}
+      chipTextStyle={textStyleOverride}
       containerStyle={[
         styles.container,
         hasPronunciation && styles.containerAfterPronunciation,

@@ -1,7 +1,13 @@
-import { render } from "@testing-library/react-native";
+import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
 import { KanjiWordBankCard } from "../components/wordbank/KanjiWordBankCard";
 import type { SavedWord } from "../components/wordbank/WordCard";
+import {
+  __resetJapaneseContentLanguageStoreForTests,
+  useJapaneseContentLanguageStore,
+} from "../src/stores/japaneseContentLanguageStore";
+
+const mockHandleSpeech = jest.fn();
 
 jest.mock("../src/hooks/useCardSpeechCleanup", () => ({
   useCardSpeechCleanup: jest.fn(),
@@ -10,6 +16,12 @@ jest.mock("../src/hooks/useCardSpeechCleanup", () => ({
 jest.mock("../src/hooks/useSpeech", () => ({
   useSpeech: () => ({
     speak: jest.fn(),
+  }),
+}));
+
+jest.mock("../src/hooks/useStudyMode", () => ({
+  useStudySpeech: () => ({
+    handleSpeech: mockHandleSpeech,
   }),
 }));
 
@@ -62,6 +74,12 @@ const buildSavedKanjiWord = (
 });
 
 describe("KanjiWordBankCard", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __resetJapaneseContentLanguageStoreForTests();
+    useJapaneseContentLanguageStore.setState({ _initialized: true });
+  });
+
   it("renders combined meaning and reading rows for saved Kanji words", () => {
     const screen = render(
       <KanjiWordBankCard word={buildSavedKanjiWord()} isDark={false} />,
@@ -117,5 +135,107 @@ describe("KanjiWordBankCard", () => {
       "kanji-word-bank-image-container",
     ]);
     expect(screen.getByText("Day 7")).toBeTruthy();
+  });
+
+  it("masks saved Kanji word text when the word target is active", () => {
+    const screen = render(
+      <KanjiWordBankCard
+        word={buildSavedKanjiWord()}
+        isDark={false}
+        isReviewMode
+        reviewMaskTarget="word"
+      />,
+    );
+
+    expect(screen.getByText("語")).toHaveStyle({
+      color: "#ffffff",
+    });
+  });
+
+  it("masks saved Kanji general examples when the example target is active", () => {
+    const screen = render(
+      <KanjiWordBankCard
+        word={buildSavedKanjiWord()}
+        isDark={false}
+        isReviewMode
+        reviewMaskTarget="example"
+      />,
+    );
+
+    expect(
+      screen.getByTestId("kanji-collocation-example-visible-0"),
+    ).toHaveStyle({
+      color: "#ffffff",
+    });
+  });
+
+  it("masks saved Kanji general examples when the all target is active", () => {
+    const screen = render(
+      <KanjiWordBankCard
+        word={buildSavedKanjiWord()}
+        isDark={false}
+        isReviewMode
+        reviewMaskTarget="all"
+      />,
+    );
+
+    expect(
+      screen.getByTestId("kanji-collocation-example-visible-0"),
+    ).toHaveStyle({
+      color: "#ffffff",
+    });
+  });
+
+  it("does not speak the Kanji glyph when it is pressed", () => {
+    const screen = render(
+      <KanjiWordBankCard word={buildSavedKanjiWord()} isDark={false} />,
+    );
+
+    fireEvent.press(screen.getByText("語"));
+
+    expect(mockHandleSpeech).not.toHaveBeenCalled();
+  });
+
+  it("speaks meaning row base text in Japanese", () => {
+    const screen = render(
+      <KanjiWordBankCard word={buildSavedKanjiWord()} isDark={false} />,
+    );
+
+    fireEvent.press(screen.getByTestId("kanji-word-bank-meaning-row-0"));
+
+    expect(mockHandleSpeech).toHaveBeenCalledWith("word", "JP");
+  });
+
+  it("speaks reading row base text in Japanese", () => {
+    const screen = render(
+      <KanjiWordBankCard word={buildSavedKanjiWord()} isDark={false} />,
+    );
+
+    fireEvent.press(screen.getByTestId("kanji-word-bank-reading-row-0"));
+
+    expect(mockHandleSpeech).toHaveBeenCalledWith("ご", "JP");
+  });
+
+  it("uses English example translations by default when UI language is English", () => {
+    const screen = render(
+      <KanjiWordBankCard word={buildSavedKanjiWord()} isDark={false} />,
+    );
+
+    expect(screen.getByText("Learn words.")).toBeTruthy();
+    expect(screen.queryByText("단어를 배우다.")).toBeNull();
+  });
+
+  it("uses Korean example translations when Japanese-in-Korean content is enabled", () => {
+    useJapaneseContentLanguageStore.setState({
+      mode: "ko",
+      _initialized: true,
+    });
+
+    const screen = render(
+      <KanjiWordBankCard word={buildSavedKanjiWord()} isDark={false} />,
+    );
+
+    expect(screen.getByText("단어를 배우다.")).toBeTruthy();
+    expect(screen.queryByText("Learn words.")).toBeNull();
   });
 });

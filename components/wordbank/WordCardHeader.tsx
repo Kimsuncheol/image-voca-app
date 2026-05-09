@@ -1,5 +1,11 @@
 import React from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  type StyleProp,
+  type TextStyle,
+} from "react-native";
 import {
   formatIdiomTitleForDisplay,
   getIdiomTitleMinimumFontScale,
@@ -19,6 +25,8 @@ interface WordCardHeaderProps {
   pronunciation?: string;
   onSpeak?: () => void;
   onLongPress?: () => void;
+  wordTextStyle?: StyleProp<TextStyle>;
+  pronunciationTextStyle?: StyleProp<TextStyle>;
 }
 
 /**
@@ -32,6 +40,8 @@ export function WordCardHeader({
   pronunciation,
   onSpeak,
   onLongPress,
+  wordTextStyle,
+  pronunciationTextStyle,
 }: WordCardHeaderProps) {
   const wordVariants = React.useMemo(
     () =>
@@ -79,6 +89,7 @@ export function WordCardHeader({
               styles.wordTitle,
               isMultilineWord && styles.wordTitleMultiline,
               { fontSize: titleFontSize, lineHeight: titleLineHeight },
+              wordTextStyle,
             ]}
             numberOfLines={
               isMultilineWord || hasDisplayLineBreak ? undefined : 1
@@ -127,7 +138,9 @@ export function WordCardHeader({
         )}
       </View>
       {pronunciation && (
-        <ThemedText style={styles.pronunciation}>{pronunciation}</ThemedText>
+        <ThemedText style={[styles.pronunciation, pronunciationTextStyle]}>
+          {pronunciation}
+        </ThemedText>
       )}
     </View>
   );
