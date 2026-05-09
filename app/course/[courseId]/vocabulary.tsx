@@ -954,7 +954,7 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 16,
     marginRight: 4,
   },
   previewFinishContainer: {

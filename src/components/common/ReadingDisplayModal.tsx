@@ -99,7 +99,7 @@ export function ReadingDisplayModal() {
           testID="reading-display-modal-panel"
           style={[
             styles.panel,
-            { top: headerHeight - 30 },
+            { top: headerHeight + 10 },
           ]}
           onPress={(event) => event?.stopPropagation?.()}
         >

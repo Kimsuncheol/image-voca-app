@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
+import { StyleSheet } from "react-native";
 import { LanguageHeaderButton } from "../src/components/common/LanguageHeaderButton";
 import { LanguageSelectionModal } from "../src/components/common/LanguageSelectionModal";
 import {
@@ -141,6 +142,29 @@ describe("LanguageSelectionModal", () => {
     expect(screen.getByText("Hindi")).toBeTruthy();
     expect(screen.getByTestId("language-selection-option-system-check"))
       .toBeTruthy();
+  });
+
+  it("caps the floating panel height", () => {
+    const screen = render(
+      <LanguageSelectionModal visible onClose={jest.fn()} />,
+    );
+
+    const panel = screen.getByTestId("language-selection-modal-panel");
+    const panelStyle = StyleSheet.flatten(panel.props.style);
+
+    expect(panelStyle.top).toBe(66);
+    expect(panelStyle.maxHeight).toBe(420);
+  });
+
+  it("does not paint a background behind the scroll content", () => {
+    const screen = render(
+      <LanguageSelectionModal visible onClose={jest.fn()} />,
+    );
+
+    const optionsCard = screen.getByTestId("language-selection-options-card");
+    const cardStyle = StyleSheet.flatten(optionsCard.props.style);
+
+    expect(cardStyle.backgroundColor).toBeUndefined();
   });
 
   it("changes UI language while preserving Japanese Korean content mode", async () => {

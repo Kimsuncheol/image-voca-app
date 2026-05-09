@@ -20,8 +20,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
-import { useLanguageSettingsStore } from "../../stores/languageSettingsStore";
 import { useJapaneseContentLanguageStore } from "../../stores/japaneseContentLanguageStore";
+import { useLanguageSettingsStore } from "../../stores/languageSettingsStore";
 import {
   changeLanguageModeWithSideEffects,
   getLanguageModeOptions,
@@ -104,7 +104,11 @@ export function LanguageSelectionModal({
     getDefaultHeaderHeight(windowDimensions, false, insets.top);
   const options = getLanguageModeOptions(t);
   const panelTop = headerHeight + 10;
-  const panelMaxHeight = Math.max(260, windowDimensions.height - panelTop - 24);
+  const availablePanelHeight = Math.max(
+    220,
+    windowDimensions.height - panelTop - 24,
+  );
+  const panelMaxHeight = Math.min(420, availablePanelHeight);
 
   const handleSelect = async (nextMode: LanguageModeOption["mode"]) => {
     try {
@@ -192,7 +196,7 @@ export function LanguageSelectionModal({
             style={styles.optionList}
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.card}>
+            <View testID="language-selection-options-card" style={styles.card}>
               {options.map((option, index) => (
                 <React.Fragment key={option.mode}>
                   {index > 0 ? <View style={styles.separator} /> : null}
@@ -235,8 +239,8 @@ const getStyles = (isDark: boolean) => {
       borderRadius: 22,
       borderCurve: "continuous",
       backgroundColor: bg.surfaceElevated,
-      padding: 14,
-      gap: 12,
+      padding: 12,
+      gap: 10,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: isDark
         ? "rgba(255,255,255,0.16)"
@@ -261,7 +265,7 @@ const getStyles = (isDark: boolean) => {
       backgroundColor: isDark
         ? "rgba(255,149,0,0.12)"
         : "rgba(255,149,0,0.1)",
-      padding: 14,
+      padding: 12,
     },
     featuredTextBlock: {
       flex: 1,
@@ -281,9 +285,6 @@ const getStyles = (isDark: boolean) => {
       flexGrow: 0,
     },
     card: {
-      backgroundColor: isDark
-        ? "rgba(255,255,255,0.06)"
-        : "rgba(17,24,39,0.04)",
       borderRadius: 14,
       overflow: "hidden",
     },
@@ -291,9 +292,9 @@ const getStyles = (isDark: boolean) => {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      minHeight: 48,
+      minHeight: 42,
       paddingHorizontal: 12,
-      paddingVertical: 10,
+      paddingVertical: 8,
       gap: 12,
     },
     optionLeft: {

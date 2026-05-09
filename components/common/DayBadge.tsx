@@ -26,7 +26,6 @@ const getStyles = (isDark: boolean) => {
       color: fontColors.dayBadge,
       fontWeight: FontWeights.semiBold,
       opacity: 0.6,
-      paddingHorizontal: 8,
       paddingVertical: 2,
       borderRadius: 8,
       overflow: "hidden",

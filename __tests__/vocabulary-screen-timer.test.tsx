@@ -387,8 +387,12 @@ describe("VocabularyScreen deck state", () => {
     const headerChildren = React.Children.toArray(
       screen.getByTestId("vocabulary-header-right").props.children,
     );
+    const headerStyle = StyleSheet.flatten(
+      screen.getByTestId("vocabulary-header-right").props.style,
+    );
 
     expect(headerChildren).toHaveLength(3);
+    expect(headerStyle.gap).toBe(16);
     expect(
       (headerChildren[1] as React.ReactElement).props
         .showJapaneseKoreanOption,
