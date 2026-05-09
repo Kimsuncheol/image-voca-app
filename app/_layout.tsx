@@ -53,6 +53,7 @@ import {
   isVocabularyCacheFresh,
   pruneVocabularyCaches,
 } from "../src/services/vocabularyPrefetch";
+import { useReadingDisplayStore } from "../src/stores/readingDisplayStore";
 import {
   CourseType,
   isCourseAvailableForLanguage,
@@ -114,6 +115,10 @@ function CoursesHeaderActions() {
   );
 }
 
+const isReadingBrightnessRoute = (segments: string[]) =>
+  (segments[0] === "course" && segments[2] === "vocabulary") ||
+  segments[0] === "courses";
+
 export function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { isDark } = useAppTheme();
@@ -122,10 +127,17 @@ export function RootLayoutNav() {
   const router = useRouter();
   const { t } = useTranslation();
   const bgColors = getBackgroundColors(isDark);
+  const setBrightnessScopeActive = useReadingDisplayStore(
+    (state) => state.setBrightnessScopeActive,
+  );
 
   useAuthenticatedDeviceRegistration();
   useDeviceDeletionEnforcement();
   useStudyReminderNotifications();
+
+  useEffect(() => {
+    setBrightnessScopeActive(isReadingBrightnessRoute(segments));
+  }, [segments, setBrightnessScopeActive]);
 
   const paperTheme = isDark
     ? {

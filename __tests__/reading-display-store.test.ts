@@ -120,9 +120,64 @@ describe("reading display store", () => {
     expect(useReadingDisplayStore.getState().eyeComfortIntensity).toBe(0.3);
   });
 
-  it("applies app brightness and restores system brightness mode", async () => {
+  it("does not apply app brightness while brightness scope is inactive", async () => {
     useReadingDisplayStore.getState().setBrightnessMode("app");
 
+    await waitFor(async () => {
+      await expect(
+        AsyncStorage.getItem(READING_DISPLAY_STORAGE_KEY),
+      ).resolves.toContain('"brightnessMode":"app"');
+    });
+    expect(brightnessMock.setBrightnessAsync).not.toHaveBeenCalled();
+  });
+
+  it("applies app brightness when brightness scope becomes active", async () => {
+    useReadingDisplayStore.getState().setBrightnessMode("app");
+    brightnessMock.setBrightnessAsync.mockClear();
+
+    useReadingDisplayStore.getState().setBrightnessScopeActive(true);
+
+    await waitFor(() => {
+      expect(brightnessMock.setBrightnessAsync).toHaveBeenCalledWith(0.8);
+    });
+  });
+
+  it("restores brightness when brightness scope becomes inactive", async () => {
+    useReadingDisplayStore.getState().setBrightnessScopeActive(true);
+    useReadingDisplayStore.getState().setBrightnessMode("app");
+    await waitFor(() => {
+      expect(brightnessMock.setBrightnessAsync).toHaveBeenCalledWith(0.8);
+    });
+    brightnessMock.setBrightnessAsync.mockClear();
+
+    useReadingDisplayStore.getState().setBrightnessScopeActive(false);
+
+    await waitFor(() => {
+      expect(brightnessMock.setBrightnessAsync).toHaveBeenCalledWith(0.6);
+      expect(brightnessMock.restoreSystemBrightnessAsync).toHaveBeenCalled();
+    });
+  });
+
+  it("applies app brightness changes immediately only while scope is active", async () => {
+    useReadingDisplayStore.getState().setBrightnessMode("app");
+    useReadingDisplayStore.getState().setAppBrightness(0.5);
+    expect(brightnessMock.setBrightnessAsync).not.toHaveBeenCalled();
+
+    useReadingDisplayStore.getState().setBrightnessScopeActive(true);
+    await waitFor(() => {
+      expect(brightnessMock.setBrightnessAsync).toHaveBeenCalledWith(0.5);
+    });
+    brightnessMock.setBrightnessAsync.mockClear();
+
+    useReadingDisplayStore.getState().setAppBrightness(0.7);
+    await waitFor(() => {
+      expect(brightnessMock.setBrightnessAsync).toHaveBeenCalledWith(0.7);
+    });
+  });
+
+  it("restores system brightness mode while scope is active", async () => {
+    useReadingDisplayStore.getState().setBrightnessScopeActive(true);
+    useReadingDisplayStore.getState().setBrightnessMode("app");
     await waitFor(() => {
       expect(brightnessMock.setBrightnessAsync).toHaveBeenCalledWith(0.8);
     });

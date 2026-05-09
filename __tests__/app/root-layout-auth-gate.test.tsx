@@ -4,6 +4,10 @@ import React from "react";
 import { Text as MockText } from "react-native";
 import { RootLayoutNav } from "../../app/_layout";
 import {
+  __resetReadingDisplayStoreForTests,
+  useReadingDisplayStore,
+} from "../../src/stores/readingDisplayStore";
+import {
   __resetWordBankMaskStoreForTests,
   useWordBankMaskStore,
 } from "../../src/stores/wordBankMaskStore";
@@ -176,6 +180,7 @@ describe("RootLayoutNav auth gating", () => {
     mockStackScreens.length = 0;
     mockGlobalSearchParams = {};
     mockReviewMaskTarget = "word";
+    __resetReadingDisplayStoreForTests();
     __resetWordBankMaskStoreForTests();
     (useRouter as jest.Mock).mockReturnValue({
       replace: mockReplace,
@@ -222,6 +227,62 @@ describe("RootLayoutNav auth gating", () => {
       (stackScreen) => stackScreen.name === "courses",
     );
     expect(coursesScreen?.options?.headerRight).toBeTruthy();
+  });
+
+  it("activates reading brightness scope on vocabulary study routes", async () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1" },
+      loading: false,
+      authStatus: "signed_in",
+    });
+    (useSegments as jest.Mock).mockReturnValue([
+      "course",
+      "[courseId]",
+      "vocabulary",
+    ]);
+
+    render(<RootLayoutNav />);
+
+    await waitFor(() => {
+      expect(
+        useReadingDisplayStore.getState().isBrightnessScopeActive,
+      ).toBe(true);
+    });
+  });
+
+  it("activates reading brightness scope on Word Bank routes", async () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1" },
+      loading: false,
+      authStatus: "signed_in",
+    });
+    (useSegments as jest.Mock).mockReturnValue(["courses", "[course]"]);
+
+    render(<RootLayoutNav />);
+
+    await waitFor(() => {
+      expect(
+        useReadingDisplayStore.getState().isBrightnessScopeActive,
+      ).toBe(true);
+    });
+  });
+
+  it("deactivates reading brightness scope on non-reading routes", async () => {
+    useReadingDisplayStore.setState({ isBrightnessScopeActive: true });
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1" },
+      loading: false,
+      authStatus: "signed_in",
+    });
+    (useSegments as jest.Mock).mockReturnValue(["settings"]);
+
+    render(<RootLayoutNav />);
+
+    await waitFor(() => {
+      expect(
+        useReadingDisplayStore.getState().isBrightnessScopeActive,
+      ).toBe(false);
+    });
   });
 
   it("toggles the Word Bank mask state from the courses native header", () => {

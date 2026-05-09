@@ -21,6 +21,7 @@ export interface ReadingDisplaySnapshot {
 export interface ReadingDisplayState extends ReadingDisplaySnapshot {
   setBrightnessMode: (mode: BrightnessMode) => void;
   setAppBrightness: (value: number) => void;
+  setBrightnessScopeActive: (isActive: boolean) => void;
   setEyeComfortEnabled: (value: boolean) => void;
   toggleEyeComfort: () => void;
   setEyeComfortIntensity: (value: number) => void;
@@ -31,6 +32,7 @@ export interface ReadingDisplayState extends ReadingDisplaySnapshot {
 
 interface InternalReadingDisplayState extends ReadingDisplayState {
   _initialized: boolean;
+  isBrightnessScopeActive: boolean;
 }
 
 export const DEFAULT_READING_DISPLAY_SNAPSHOT: ReadingDisplaySnapshot = {
@@ -138,8 +140,19 @@ const captureBrightness = async () => {
   }
 };
 
-const applyBrightnessMode = (snapshot: ReadingDisplaySnapshot) => {
-  if (snapshot.brightnessMode === "app") {
+const restoreBrightness = async () => {
+  if (typeof capturedBrightness === "number") {
+    await Brightness.setBrightnessAsync(capturedBrightness);
+  }
+  await Brightness.restoreSystemBrightnessAsync();
+  capturedBrightness = null;
+};
+
+const applyBrightnessMode = (
+  snapshot: ReadingDisplaySnapshot,
+  isBrightnessScopeActive: boolean,
+) => {
+  if (snapshot.brightnessMode === "app" && isBrightnessScopeActive) {
     void captureBrightness().finally(() => {
       void Brightness.setBrightnessAsync(snapshot.appBrightness).catch(
         (error) => {
@@ -150,15 +163,11 @@ const applyBrightnessMode = (snapshot: ReadingDisplaySnapshot) => {
     return;
   }
 
-  const restore = async () => {
-    if (typeof capturedBrightness === "number") {
-      await Brightness.setBrightnessAsync(capturedBrightness);
-    }
-    await Brightness.restoreSystemBrightnessAsync();
-    capturedBrightness = null;
-  };
+  if (!isBrightnessScopeActive && capturedBrightness === null) {
+    return;
+  }
 
-  void restore().catch((error) => {
+  void restoreBrightness().catch((error) => {
     console.warn("Failed to restore system brightness", error);
   });
 };
@@ -166,6 +175,7 @@ const applyBrightnessMode = (snapshot: ReadingDisplaySnapshot) => {
 const applySnapshot = (
   set: (snapshot: Partial<InternalReadingDisplayState>) => void,
   snapshot: ReadingDisplaySnapshot,
+  isBrightnessScopeActive: boolean,
   shouldApplyBrightness = false,
 ) => {
   set(snapshot);
@@ -173,7 +183,7 @@ const applySnapshot = (
     console.warn("Failed to save reading display settings", error);
   });
   if (shouldApplyBrightness) {
-    applyBrightnessMode(snapshot);
+    applyBrightnessMode(snapshot, isBrightnessScopeActive);
   }
 };
 
@@ -181,11 +191,12 @@ export const useReadingDisplayStore = create<InternalReadingDisplayState>(
   (set, get) => ({
     ...DEFAULT_READING_DISPLAY_SNAPSHOT,
     _initialized: false,
+    isBrightnessScopeActive: false,
 
     hydrate: async () => {
       const snapshot = await readStoredReadingDisplay();
       set({ ...snapshot, _initialized: true });
-      applyBrightnessMode(snapshot);
+      applyBrightnessMode(snapshot, get().isBrightnessScopeActive);
       return snapshot;
     },
 
@@ -196,6 +207,7 @@ export const useReadingDisplayStore = create<InternalReadingDisplayState>(
           ...getSnapshot(get),
           brightnessMode: mode,
         },
+        get().isBrightnessScopeActive,
         true,
       );
     },
@@ -207,44 +219,74 @@ export const useReadingDisplayStore = create<InternalReadingDisplayState>(
           ...getSnapshot(get),
           appBrightness: normalizeAppBrightness(value),
         },
+        get().isBrightnessScopeActive,
         get().brightnessMode === "app",
       );
     },
 
+    setBrightnessScopeActive: (isActive) => {
+      if (get().isBrightnessScopeActive === isActive) {
+        return;
+      }
+
+      set({ isBrightnessScopeActive: isActive });
+      applyBrightnessMode(getSnapshot(get), isActive);
+    },
+
     setEyeComfortEnabled: (value) => {
-      applySnapshot(set, {
-        ...getSnapshot(get),
-        eyeComfortEnabled: value,
-      });
+      applySnapshot(
+        set,
+        {
+          ...getSnapshot(get),
+          eyeComfortEnabled: value,
+        },
+        get().isBrightnessScopeActive,
+      );
     },
 
     toggleEyeComfort: () => {
       const snapshot = getSnapshot(get);
-      applySnapshot(set, {
-        ...snapshot,
-        eyeComfortEnabled: !snapshot.eyeComfortEnabled,
-      });
+      applySnapshot(
+        set,
+        {
+          ...snapshot,
+          eyeComfortEnabled: !snapshot.eyeComfortEnabled,
+        },
+        get().isBrightnessScopeActive,
+      );
     },
 
     setEyeComfortIntensity: (value) => {
-      applySnapshot(set, {
-        ...getSnapshot(get),
-        eyeComfortIntensity: normalizeEyeComfortIntensity(value),
-      });
+      applySnapshot(
+        set,
+        {
+          ...getSnapshot(get),
+          eyeComfortIntensity: normalizeEyeComfortIntensity(value),
+        },
+        get().isBrightnessScopeActive,
+      );
     },
 
     openDisplayModal: () => {
-      applySnapshot(set, {
-        ...getSnapshot(get),
-        isDisplayModalOpen: true,
-      });
+      applySnapshot(
+        set,
+        {
+          ...getSnapshot(get),
+          isDisplayModalOpen: true,
+        },
+        get().isBrightnessScopeActive,
+      );
     },
 
     closeDisplayModal: () => {
-      applySnapshot(set, {
-        ...getSnapshot(get),
-        isDisplayModalOpen: false,
-      });
+      applySnapshot(
+        set,
+        {
+          ...getSnapshot(get),
+          isDisplayModalOpen: false,
+        },
+        get().isBrightnessScopeActive,
+      );
     },
   }),
 );
@@ -268,5 +310,6 @@ export const __resetReadingDisplayStoreForTests = () => {
   useReadingDisplayStore.setState({
     ...DEFAULT_READING_DISPLAY_SNAPSHOT,
     _initialized: false,
+    isBrightnessScopeActive: false,
   });
 };
