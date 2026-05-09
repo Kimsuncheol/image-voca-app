@@ -109,6 +109,8 @@ export function FaceSide({
   const maskReading =
     shouldMaskReviewContent(isReviewMode, reviewMaskTarget, "reading") ||
     shouldMaskReviewContent(isReviewMode, reviewMaskTarget, "pronunciation");
+  const shouldShowMaskToggle =
+    reviewMaskTarget !== "example" && reviewMaskTarget !== "synonym";
 
   const handleSpeakItem = React.useCallback(
     (text: string) => {
@@ -313,15 +315,17 @@ export function FaceSide({
             </View>
           )}
         </View>
-        <View style={styles.faceMaskToggleRow}>
-          <MaskVisibilityToggle
-            isDark={isDark}
-            isMaskEnabled={isReviewMode}
-            onMaskChange={onMaskChange}
-            testID="kanji-collocation-face-mask-toggle"
-            stopPropagation
-          />
-        </View>
+        {shouldShowMaskToggle ? (
+          <View style={styles.faceMaskToggleRow}>
+            <MaskVisibilityToggle
+              isDark={isDark}
+              isMaskEnabled={isReviewMode}
+              onMaskChange={onMaskChange}
+              testID="kanji-collocation-face-mask-toggle"
+              stopPropagation
+            />
+          </View>
+        ) : null}
       </View>
     </Pressable>
   );

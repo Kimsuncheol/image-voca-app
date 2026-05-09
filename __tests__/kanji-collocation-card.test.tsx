@@ -220,6 +220,32 @@ describe("KanjiCollocationCard", () => {
     expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
   });
 
+  it.each(["example", "synonym"] as const)(
+    "hides the front mask toggle for the %s target while keeping the back toggle",
+    (reviewMaskTarget) => {
+      const screen = render(
+        <KanjiCollocationCard
+          item={buildKanjiWord()}
+          reviewMaskTarget={reviewMaskTarget}
+        />,
+      );
+
+      expect(screen.getByTestId("kanji-collocation-face-side")).toBeTruthy();
+      expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
+      expect(screen.queryByTestId("kanji-collocation-face-mask-toggle")).toBeNull();
+      expect(
+        screen.queryByTestId("kanji-collocation-face-mask-toggle-button"),
+      ).toBeNull();
+
+      flipToBack(screen);
+
+      expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
+      expect(
+        screen.getByTestId("kanji-collocation-back-mask-toggle-button"),
+      ).toBeTruthy();
+    },
+  );
+
   it("masks only the Kanji word by default in review mode", () => {
     const screen = render(
       <KanjiCollocationCard item={buildKanjiWord()} isReviewMode />,
