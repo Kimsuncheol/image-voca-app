@@ -103,6 +103,7 @@ describe("ExampleSection", () => {
         isDark={false}
         isVisible={true}
         isReviewMode={true}
+        reviewMaskTarget="all"
       />,
     );
 
@@ -110,7 +111,7 @@ describe("ExampleSection", () => {
       StyleSheet.flatten(getByText("make a decision pronunciation").props.style),
     ).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
@@ -346,6 +347,7 @@ describe("ExampleSection", () => {
         onToggle={jest.fn()}
         isDark={false}
         isReviewMode={true}
+        reviewMaskTarget="example"
       />,
     );
     const shown = render(
@@ -361,12 +363,12 @@ describe("ExampleSection", () => {
 
     expect(StyleSheet.flatten(masked.getByText("go").props.style)).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
     expect(StyleSheet.flatten(shown.getByText("go").props.style)).not.toEqual(
-      expect.objectContaining({ color: "transparent" }),
+      expect.objectContaining({ color: "#ffffff" }),
     );
   });
 });

@@ -27,9 +27,13 @@ interface Props {
   onImageLoad?: () => void;
   // Hides review targets under tape masks while preserving layout
   isReviewMode?: boolean;
+  isFaceReviewMode?: boolean;
+  isBackReviewMode?: boolean;
   reviewMaskTarget?: ReviewMaskTarget;
   // Changes whether review targets are masked
   onMaskChange?: (enabled: boolean) => void;
+  onFaceMaskChange?: (enabled: boolean) => void;
+  onBackMaskChange?: (enabled: boolean) => void;
 }
 
 /**
@@ -52,8 +56,12 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
     isActive = true,
     onImageLoad,
     isReviewMode = false,
-    reviewMaskTarget = "word-pronunciation",
+    isFaceReviewMode = isReviewMode,
+    isBackReviewMode = isReviewMode,
+    reviewMaskTarget = "word",
     onMaskChange,
+    onFaceMaskChange = onMaskChange,
+    onBackMaskChange = onMaskChange,
   }) => {
     // ============================================================================
     // State Management
@@ -134,9 +142,9 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
           wordBankConfig={wordBankConfig}
           onFlip={wordBankConfig?.isDeleteMode ? undefined : handleFlipToBack}
           onImageLoad={onImageLoad}
-          isReviewMode={isReviewMode}
+          isReviewMode={isFaceReviewMode}
           reviewMaskTarget={reviewMaskTarget}
-          onMaskChange={onMaskChange}
+          onMaskChange={onFaceMaskChange}
         />
 
         {/* ============================================================ */}
@@ -147,9 +155,9 @@ export const CollocationFlipCard: React.FC<Props> = React.memo(
           isDark={isDark}
           isVisible={isBackVisible}
           onFlip={handleFlipToFront}
-          isReviewMode={isReviewMode}
+          isReviewMode={isBackReviewMode}
           reviewMaskTarget={reviewMaskTarget}
-          onMaskChange={onMaskChange}
+          onMaskChange={onBackMaskChange}
         />
       </FlipCard>
     );

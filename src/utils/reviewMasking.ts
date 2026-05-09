@@ -9,6 +9,7 @@ type ReviewMaskSegment = {
 export type ReviewMaskField =
   | "word"
   | "pronunciation"
+  | "reading"
   | "meaning"
   | "example"
   | "synonym";
@@ -56,7 +57,7 @@ export function stripReviewMaskDelimiters(value?: string): string {
 
 export function getReviewTapeTextStyle(isDark: boolean): TextStyle {
   return {
-    color: isDark ? "transparent" : "#ffffff",
+    color: isDark ? "#000000" : "#ffffff",
     backgroundColor: "transparent",
     borderRadius: 4,
     overflow: "hidden",
@@ -65,26 +66,39 @@ export function getReviewTapeTextStyle(isDark: boolean): TextStyle {
 
 export function shouldMaskReviewContent(
   isReviewMode: boolean,
-  reviewMaskTarget: ReviewMaskTarget = "word-pronunciation",
+  reviewMaskTarget: ReviewMaskTarget = "word",
   field: ReviewMaskField,
 ): boolean {
   if (!isReviewMode) {
     return false;
   }
 
-  if (reviewMaskTarget === "all") {
+  const normalizedTarget =
+    reviewMaskTarget === "word-pronunciation" ? "word" : reviewMaskTarget;
+
+  if (normalizedTarget === "all") {
     return true;
   }
 
-  if (reviewMaskTarget === "meaning") {
+  if (normalizedTarget === "word") {
+    return field === "word";
+  }
+
+  if (normalizedTarget === "meaning") {
     return field === "meaning";
   }
 
-  if (reviewMaskTarget === "synonym") {
+  if (normalizedTarget === "reading") {
+    return field === "reading" || field === "pronunciation";
+  }
+
+  if (normalizedTarget === "example") {
+    return field === "example";
+  }
+
+  if (normalizedTarget === "synonym") {
     return field === "synonym";
   }
 
-  return (
-    field === "word" || field === "pronunciation" || field === "example"
-  );
+  return false;
 }

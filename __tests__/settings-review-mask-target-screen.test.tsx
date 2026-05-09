@@ -7,7 +7,7 @@ import type { ReviewMaskTarget } from "../src/services/speechPreferences";
 
 const mockSetReviewMaskTarget = jest.fn();
 const mockStackScreen = jest.fn();
-let mockReviewMaskTarget: ReviewMaskTarget = "word-pronunciation";
+let mockReviewMaskTarget: ReviewMaskTarget = "word";
 
 jest.mock("@expo/vector-icons", () => {
   const React = require("react");
@@ -35,8 +35,10 @@ jest.mock("react-i18next", () => ({
     t: (key: string) =>
       ({
         "settings.speech.reviewMaskTarget": "Mask target",
-        "settings.speech.maskTargets.word-pronunciation": "Word",
+        "settings.speech.maskTargets.word": "Word",
         "settings.speech.maskTargets.meaning": "Meaning",
+        "settings.speech.maskTargets.reading": "Reading",
+        "settings.speech.maskTargets.example": "Example",
         "settings.speech.maskTargets.synonym": "Synonym",
         "settings.speech.maskTargets.all": "All",
         "settings.speech.saveFailed": "Could not save.",
@@ -75,7 +77,7 @@ jest.mock("../src/hooks/useSpeechPreferences", () => ({
 describe("SettingsReviewMaskTargetScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockReviewMaskTarget = "word-pronunciation";
+    mockReviewMaskTarget = "word";
     mockSetReviewMaskTarget.mockResolvedValue({ persistedLocally: true });
   });
 
@@ -85,13 +87,18 @@ describe("SettingsReviewMaskTargetScreen", () => {
     expect(screen.getByTestId("top-banner-ad").props.children).toBe("false");
     expect(screen.getByText("Word")).toBeTruthy();
     expect(screen.getByText("Meaning")).toBeTruthy();
+    expect(screen.getByText("Reading")).toBeTruthy();
+    expect(screen.getByText("Example")).toBeTruthy();
     expect(screen.getByText("Synonym")).toBeTruthy();
     expect(screen.getByText("All")).toBeTruthy();
     expect(
-      screen.getByTestId(
-        "settings-review-mask-target-check-word-pronunciation",
-      ),
+      screen.getByTestId("settings-review-mask-target-check-word"),
     ).toBeTruthy();
+    expect(
+      screen.queryByTestId(
+        "settings-review-mask-target-option-word-pronunciation",
+      ),
+    ).toBeNull();
 
     const containerStyle = StyleSheet.flatten(
       screen.getByTestId("settings-review-mask-target-screen").props.style,
@@ -102,19 +109,15 @@ describe("SettingsReviewMaskTargetScreen", () => {
     expect(headerStyle.backgroundColor).toBe(containerStyle.backgroundColor);
   });
 
-  it("persists Word as the existing word-pronunciation target", async () => {
+  it("persists Word as the word target", async () => {
     const screen = render(<SettingsReviewMaskTargetScreen />);
 
     fireEvent.press(
-      screen.getByTestId(
-        "settings-review-mask-target-option-word-pronunciation",
-      ),
+      screen.getByTestId("settings-review-mask-target-option-word"),
     );
 
     await waitFor(() => {
-      expect(mockSetReviewMaskTarget).toHaveBeenCalledWith(
-        "word-pronunciation",
-      );
+      expect(mockSetReviewMaskTarget).toHaveBeenCalledWith("word");
     });
   });
 
@@ -127,6 +130,30 @@ describe("SettingsReviewMaskTargetScreen", () => {
 
     await waitFor(() => {
       expect(mockSetReviewMaskTarget).toHaveBeenCalledWith("meaning");
+    });
+  });
+
+  it("persists Reading as the reading target", async () => {
+    const screen = render(<SettingsReviewMaskTargetScreen />);
+
+    fireEvent.press(
+      screen.getByTestId("settings-review-mask-target-option-reading"),
+    );
+
+    await waitFor(() => {
+      expect(mockSetReviewMaskTarget).toHaveBeenCalledWith("reading");
+    });
+  });
+
+  it("persists Example as the example target", async () => {
+    const screen = render(<SettingsReviewMaskTargetScreen />);
+
+    fireEvent.press(
+      screen.getByTestId("settings-review-mask-target-option-example"),
+    );
+
+    await waitFor(() => {
+      expect(mockSetReviewMaskTarget).toHaveBeenCalledWith("example");
     });
   });
 

@@ -18,8 +18,12 @@ interface KanjiCollocationCardProps {
   onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  isFaceReviewMode?: boolean;
+  isBackReviewMode?: boolean;
   reviewMaskTarget?: ReviewMaskTarget;
   onMaskChange?: (enabled: boolean) => void;
+  onFaceMaskChange?: (enabled: boolean) => void;
+  onBackMaskChange?: (enabled: boolean) => void;
 }
 
 export function KanjiCollocationCard({
@@ -30,8 +34,12 @@ export function KanjiCollocationCard({
   onSavedWordChange,
   isPreviewMode = false,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  isFaceReviewMode = isReviewMode,
+  isBackReviewMode = isReviewMode,
+  reviewMaskTarget = "word",
   onMaskChange,
+  onFaceMaskChange = onMaskChange,
+  onBackMaskChange = onMaskChange,
 }: KanjiCollocationCardProps) {
   const { isDark } = useTheme();
   const { i18n } = useTranslation();
@@ -73,9 +81,9 @@ export function KanjiCollocationCard({
         initialIsSaved={initialIsSaved}
         onSavedWordChange={onSavedWordChange}
         isPreviewMode={isPreviewMode}
-        isReviewMode={isReviewMode}
+        isReviewMode={isFaceReviewMode}
         reviewMaskTarget={reviewMaskTarget}
-        onMaskChange={onMaskChange}
+        onMaskChange={onFaceMaskChange}
         onFlip={() => flip(true)}
       />
       <BackSide
@@ -84,9 +92,9 @@ export function KanjiCollocationCard({
         isActive={isActive}
         language={contentLanguage}
         useKorean={contentLanguage === "ko"}
-        isReviewMode={isReviewMode}
+        isReviewMode={isBackReviewMode}
         reviewMaskTarget={reviewMaskTarget}
-        onMaskChange={onMaskChange}
+        onMaskChange={onBackMaskChange}
         onFlip={() => flip(false)}
       />
     </FlipCard>

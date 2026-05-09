@@ -291,7 +291,7 @@ describe("speechPreferences", () => {
   it("loads default vocabulary speech preferences when storage is empty", async () => {
     await expect(getVocabularySpeechPreferences()).resolves.toEqual({
       autoSpeakVocabulary: true,
-      reviewMaskTarget: "word-pronunciation",
+      reviewMaskTarget: "word",
     });
   });
 
@@ -303,7 +303,19 @@ describe("speechPreferences", () => {
       }),
     ).toEqual({
       autoSpeakVocabulary: true,
-      reviewMaskTarget: "word-pronunciation",
+      reviewMaskTarget: "word",
+    });
+  });
+
+  it("normalizes the legacy word-pronunciation mask target to word", () => {
+    expect(
+      normalizeVocabularySpeechPreferences({
+        autoSpeakVocabulary: true,
+        reviewMaskTarget: "word-pronunciation",
+      }),
+    ).toEqual({
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: "word",
     });
   });
 
@@ -319,26 +331,50 @@ describe("speechPreferences", () => {
     });
   });
 
+  it("accepts example as a vocabulary speech mask target", () => {
+    expect(
+      normalizeVocabularySpeechPreferences({
+        autoSpeakVocabulary: true,
+        reviewMaskTarget: "example",
+      }),
+    ).toEqual({
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: "example",
+    });
+  });
+
+  it("accepts reading as a vocabulary speech mask target", () => {
+    expect(
+      normalizeVocabularySpeechPreferences({
+        autoSpeakVocabulary: true,
+        reviewMaskTarget: "reading",
+      }),
+    ).toEqual({
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: "reading",
+    });
+  });
+
   it("updates vocabulary auto speech and mask target independently", async () => {
     await expect(setAutoSpeakVocabularyPreference(false)).resolves.toEqual({
       preferences: {
         autoSpeakVocabulary: false,
-        reviewMaskTarget: "word-pronunciation",
+        reviewMaskTarget: "word",
       },
       persistedLocally: true,
     });
 
-    await expect(setReviewMaskTargetPreference("all")).resolves.toEqual({
+    await expect(setReviewMaskTargetPreference("reading")).resolves.toEqual({
       preferences: {
         autoSpeakVocabulary: false,
-        reviewMaskTarget: "all",
+        reviewMaskTarget: "reading",
       },
       persistedLocally: true,
     });
 
     expect(await getVocabularySpeechPreferences()).toEqual({
       autoSpeakVocabulary: false,
-      reviewMaskTarget: "all",
+      reviewMaskTarget: "reading",
     });
   });
 

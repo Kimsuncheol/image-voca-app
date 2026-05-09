@@ -25,7 +25,7 @@ export default React.memo(function ExplanationSection({
   onToggle,
   isDark,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  reviewMaskTarget = "word",
 }: ExplanationSectionProps) {
   const fontColors = getFontColors(isDark);
   const maskPronunciation = shouldMaskReviewContent(

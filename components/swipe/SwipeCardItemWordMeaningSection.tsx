@@ -53,7 +53,7 @@ export function SwipeCardItemWordMeaningSection({
   onSavedWordChange,
   isPreviewMode = false,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  reviewMaskTarget = "word",
 }: SwipeCardItemWordMeaningSectionProps) {
   const fontColors = getFontColors(isDark);
   useCardSpeechCleanup(isActive);

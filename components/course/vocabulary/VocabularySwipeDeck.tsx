@@ -29,8 +29,12 @@ interface VocabularySwipeDeckProps {
   isStudyCompleted?: boolean;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  isFaceReviewMode?: boolean;
+  isBackReviewMode?: boolean;
   reviewMaskTarget?: ReviewMaskTarget;
   onMaskChange?: (enabled: boolean) => void;
+  onFaceMaskChange?: (enabled: boolean) => void;
+  onBackMaskChange?: (enabled: boolean) => void;
 }
 
 export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
@@ -49,8 +53,12 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
   isStudyCompleted,
   isPreviewMode = false,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  isFaceReviewMode = isReviewMode,
+  isBackReviewMode = isReviewMode,
+  reviewMaskTarget = "word",
   onMaskChange,
+  onFaceMaskChange = onMaskChange,
+  onBackMaskChange = onMaskChange,
 }) => {
   if (courseId === "COLLOCATION") {
     const vocabularyCards = cards.filter(
@@ -70,8 +78,12 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         isStudyCompleted={isStudyCompleted}
         isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
+        isFaceReviewMode={isFaceReviewMode}
+        isBackReviewMode={isBackReviewMode}
         reviewMaskTarget={reviewMaskTarget}
         onMaskChange={onMaskChange}
+        onFaceMaskChange={onFaceMaskChange}
+        onBackMaskChange={onBackMaskChange}
       />
     );
   }
@@ -114,8 +126,12 @@ export const VocabularySwipeDeck: React.FC<VocabularySwipeDeckProps> = ({
         initialIndex={initialIndex}
         isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
+        isFaceReviewMode={isFaceReviewMode}
+        isBackReviewMode={isBackReviewMode}
         reviewMaskTarget={reviewMaskTarget}
         onMaskChange={onMaskChange}
+        onFaceMaskChange={onFaceMaskChange}
+        onBackMaskChange={onBackMaskChange}
       />
     );
   }

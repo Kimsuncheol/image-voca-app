@@ -108,8 +108,11 @@ const ja = {
       autoVocabularySpeech: "自動読み上げ",
       reviewMaskTarget: "マスク対象",
       maskTargets: {
+        word: "単語",
         "word-pronunciation": "単語",
         meaning: "意味",
+        reading: "読み",
+        example: "例文",
         synonym: "類義語",
         all: "すべて",
       },

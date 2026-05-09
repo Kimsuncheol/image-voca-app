@@ -91,7 +91,7 @@ describe("SwipeCardItemWordMeaningSection", () => {
     expect(pronunciationStyle.marginBottom).toBe(12);
   });
 
-  it("masks word and pronunciation by default while leaving meaning visible", () => {
+  it("masks word by default while leaving pronunciation and meaning visible", () => {
     const { getByTestId, getByText } = render(
       <SwipeCardItemWordMeaningSection
         item={buildItem()}
@@ -105,19 +105,19 @@ describe("SwipeCardItemWordMeaningSection", () => {
 
     expect(StyleSheet.flatten(getByTestId("swipe-card-word-title").props.style)).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
-    expect(StyleSheet.flatten(getByText("/siːd/").props.style)).toEqual(
+    expect(StyleSheet.flatten(getByText("/siːd/").props.style)).not.toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
     expect(StyleSheet.flatten(getByText("씨, 씨앗").props.style)).not.toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
@@ -138,19 +138,19 @@ describe("SwipeCardItemWordMeaningSection", () => {
 
     expect(StyleSheet.flatten(getByTestId("swipe-card-word-title").props.style)).not.toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
     expect(StyleSheet.flatten(getByText("/siːd/").props.style)).not.toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
     expect(StyleSheet.flatten(getByText("씨, 씨앗").props.style)).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );

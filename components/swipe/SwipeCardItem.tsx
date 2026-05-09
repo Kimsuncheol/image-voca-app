@@ -32,7 +32,7 @@ export function SwipeCardItem({
   onSavedWordChange,
   isPreviewMode = false,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  reviewMaskTarget = "word",
   onMaskChange,
 }: SwipeCardItemProps) {
   const { isDark } = useTheme();

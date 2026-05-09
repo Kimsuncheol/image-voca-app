@@ -165,7 +165,10 @@ function VocabularyScreenContent() {
 
   const dayNumber = parseInt(day || "1", 10);
   const isPreviewMode = preview === "1";
-  const [isMaskEnabled, setIsMaskEnabled] = useState(false);
+  const [maskVisibility, setMaskVisibility] = useState({
+    face: false,
+    back: false,
+  });
   const isProgressDisabled = isPreviewMode;
   const isStudyCompleted =
     (!isProgressDisabled &&
@@ -182,7 +185,7 @@ function VocabularyScreenContent() {
     setInitialDeckIndex(0);
     setActiveSpeechIndex(0);
     setResumeProgressResolved(false);
-    setIsMaskEnabled(false);
+    setMaskVisibility({ face: false, back: false });
   }, [courseId, dayNumber]);
 
   const trackSessionLearnedWord = useCallback((wordId: string) => {
@@ -195,7 +198,15 @@ function VocabularyScreenContent() {
   }, []);
 
   const resetMaskToDefault = useCallback(() => {
-    setIsMaskEnabled(false);
+    setMaskVisibility({ face: false, back: false });
+  }, []);
+
+  const setFaceMaskVisibility = useCallback((enabled: boolean) => {
+    setMaskVisibility((current) => ({ ...current, face: enabled }));
+  }, []);
+
+  const setBackMaskVisibility = useCallback((enabled: boolean) => {
+    setMaskVisibility((current) => ({ ...current, back: enabled }));
   }, []);
 
   const speakVocabularyCard = useCallback(
@@ -905,9 +916,13 @@ function VocabularyScreenContent() {
                   isStudyCompleted || isPreviewMode
                 }
                 isPreviewMode={isPreviewMode}
-                isReviewMode={isMaskEnabled}
+                isReviewMode={maskVisibility.face}
+                isFaceReviewMode={maskVisibility.face}
+                isBackReviewMode={maskVisibility.back}
                 reviewMaskTarget={vocabularyPreferences.reviewMaskTarget}
-                onMaskChange={setIsMaskEnabled}
+                onMaskChange={setFaceMaskVisibility}
+                onFaceMaskChange={setFaceMaskVisibility}
+                onBackMaskChange={setBackMaskVisibility}
               />
             )
           ) : (

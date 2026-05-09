@@ -304,14 +304,20 @@ describe("JlptVocabularyCard", () => {
     expect(queryByTestId("jlpt-card-example-roman")).toBeNull();
   });
 
-  it("masks the JLPT pronunciation while masked", () => {
-    const { getByTestId } = render(
+  it("masks the JLPT word but not pronunciation by default while masked", () => {
+    const { getByText, getByTestId } = render(
       <JlptVocabularyCard item={buildCard()} isReviewMode />,
     );
 
+    expect(StyleSheet.flatten(getByText("間").props.style)).toEqual(
+      expect.objectContaining({
+        color: "#ffffff",
+        backgroundColor: "transparent",
+      }),
+    );
     expect(
       StyleSheet.flatten(getByTestId("jlpt-card-pronunciation").props.style),
-    ).toEqual(
+    ).not.toEqual(
       expect.objectContaining({
         color: "#ffffff",
         backgroundColor: "transparent",

@@ -41,7 +41,7 @@ export function SwipeCardItemMeaningExampleSentenceSection({
   onSavedWordChange,
   isPreviewMode = false,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  reviewMaskTarget = "word",
 }: SwipeCardItemMeaningExampleSentenceSectionProps) {
   return (
     <>

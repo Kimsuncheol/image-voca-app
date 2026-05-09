@@ -27,7 +27,7 @@ export default React.memo(function BackSide({
   initialSection = "explanation",
   onFlip,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  reviewMaskTarget = "word",
   onMaskChange,
 }: BackSideProps) {
   const bgColors = getBackgroundColors(isDark);

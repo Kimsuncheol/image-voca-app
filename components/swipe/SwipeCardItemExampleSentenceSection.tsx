@@ -44,7 +44,7 @@ export function SwipeCardItemExampleSentenceSection({
   isDark,
   isActive = true,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  reviewMaskTarget = "word",
 }: SwipeCardItemExampleSentenceSectionProps) {
   const { t } = useTranslation();
   const fontColors = getFontColors(isDark);

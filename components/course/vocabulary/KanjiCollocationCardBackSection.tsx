@@ -12,9 +12,7 @@ import type { ReviewMaskTarget } from "../../../src/services/speechPreferences";
 import type { KanjiNestedListGroup } from "../../../src/types/vocabulary";
 import {
   getReviewTapeTextStyle,
-  parseReviewMaskSegments,
   shouldMaskReviewContent,
-  stripReviewMaskDelimiters,
 } from "../../../src/utils/reviewMasking";
 import { styles } from "./KanjiCollocationCardStyles";
 import { itemsAt } from "./kanjiCollocationUtils";
@@ -63,7 +61,7 @@ export function BackSection({
   isDark,
   isActive,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  reviewMaskTarget = "word",
   onFlip,
 }: BackSectionProps) {
   const { handleSpeech } = useStudySpeech();
@@ -74,16 +72,13 @@ export function BackSection({
     reviewMaskTarget,
     "meaning",
   );
-  const maskReading =
-    isReadingSection &&
-    (shouldMaskReviewContent(isReviewMode, reviewMaskTarget, "pronunciation") ||
-      maskMeaning);
-  const maskValue = isReadingSection ? maskReading : maskMeaning;
-  const maskExample = shouldMaskReviewContent(
+  const maskReading = shouldMaskReviewContent(
     isReviewMode,
     reviewMaskTarget,
-    "example",
+    "reading",
   );
+  const maskNestedContent = isReadingSection ? maskReading : maskMeaning;
+  const maskValue = maskNestedContent;
 
   const entries = values
     .map((value, index) => ({
@@ -98,7 +93,7 @@ export function BackSection({
     (event: GestureResponderEvent | undefined, text: string) => {
       event?.stopPropagation();
       if (!isActive) return;
-      void handleSpeech(stripReviewMaskDelimiters(text), "JP");
+      void handleSpeech(text, "JP");
     },
     [handleSpeech, isActive],
   );
@@ -171,29 +166,20 @@ export function BackSection({
                       <Text
                         style={[
                           styles.backExample,
-                          { color: fontColors.learningCardPrimary },
+                          maskNestedContent
+                            ? getReviewTapeTextStyle(isDark)
+                            : { color: fontColors.learningCardPrimary },
                         ]}
                       >
-                          {parseReviewMaskSegments(example).map(
-                            (segment, segmentIndex) => (
-                              <Text
-                                key={`${title}-${i}-${j}-${segmentIndex}`}
-                                style={
-                                  maskExample && segment.masked
-                                    ? getReviewTapeTextStyle(isDark)
-                                    : undefined
-                                }
-                              >
-                                {segment.text}
-                              </Text>
-                            ),
-                          )}
-                        </Text>
+                        {example}
+                      </Text>
                       {entry.translations[j] ? (
                         <Text
                           style={[
                             styles.backTranslation,
-                            { color: fontColors.learningCardMuted },
+                            maskNestedContent
+                              ? getReviewTapeTextStyle(isDark)
+                              : { color: fontColors.learningCardMuted },
                           ]}
                         >
                           {entry.translations[j]}
@@ -204,7 +190,7 @@ export function BackSection({
                       testID={`kanji-collocation-${title.toLowerCase()}-hurigana-${i}-${j}`}
                       style={[
                         styles.backFurigana,
-                        maskReading
+                        maskNestedContent
                           ? getReviewTapeTextStyle(isDark)
                           : hasHurigana
                             ? { color: fontColors.learningCardMuted }

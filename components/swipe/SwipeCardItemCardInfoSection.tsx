@@ -44,7 +44,7 @@ export function SwipeCardItemCardInfoSection({
   onSavedWordChange,
   isPreviewMode = false,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  reviewMaskTarget = "word",
   onMaskChange = () => {},
 }: CardInfoSectionProps) {
   const bgColors = getBackgroundColors(isDark);

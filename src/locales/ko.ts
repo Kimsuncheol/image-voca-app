@@ -126,8 +126,11 @@ const ko = {
       autoVocabularySpeech: "자동 읽기",
       reviewMaskTarget: "가리기 대상",
       maskTargets: {
+        word: "단어",
         "word-pronunciation": "단어",
         meaning: "뜻",
+        reading: "읽기",
+        example: "예문",
         synonym: "동의어",
         all: "전체",
       },

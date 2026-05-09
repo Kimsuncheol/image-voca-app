@@ -56,7 +56,7 @@ export default React.memo(function ExampleSection({
   isDark,
   maxHeight,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  reviewMaskTarget = "word",
   onMaskChange = () => {},
 }: ExampleSectionProps) {
   const { handleSpeech } = useStudySpeech();

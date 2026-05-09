@@ -39,7 +39,7 @@ let mockPreviewParam: string | undefined;
 let mockCourseId: CourseType = "TOEIC";
 let mockVocabularyPreferences = {
   autoSpeakVocabulary: true,
-  reviewMaskTarget: "word-pronunciation" as const,
+  reviewMaskTarget: "word" as const,
 };
 
 const cards: CourseVocabularyCard[] = [
@@ -285,14 +285,22 @@ jest.mock("../components/course/vocabulary/VocabularySwipeDeck", () => ({
     initialIndex,
     isPreviewMode,
     isReviewMode,
+    isFaceReviewMode = isReviewMode,
+    isBackReviewMode = isReviewMode,
     onMaskChange,
+    onFaceMaskChange = onMaskChange,
+    onBackMaskChange = onMaskChange,
   }: {
     onIndexChange: (index: number) => void;
     onFinish: () => void;
     initialIndex: number;
     isPreviewMode?: boolean;
     isReviewMode?: boolean;
+    isFaceReviewMode?: boolean;
+    isBackReviewMode?: boolean;
     onMaskChange?: (enabled: boolean) => void;
+    onFaceMaskChange?: (enabled: boolean) => void;
+    onBackMaskChange?: (enabled: boolean) => void;
   }) => {
     const { Text, TouchableOpacity, View } = require("react-native");
 
@@ -302,11 +310,16 @@ jest.mock("../components/course/vocabulary/VocabularySwipeDeck", () => ({
         <Text>{`Initial Index ${initialIndex}`}</Text>
         <Text>{`Preview Mode ${isPreviewMode ? "on" : "off"}`}</Text>
         <Text>{`Mask Mode ${isReviewMode ? "on" : "off"}`}</Text>
-        <TouchableOpacity onPress={() => onMaskChange?.(false)}>
+        <Text>{`Face Mask Mode ${isFaceReviewMode ? "on" : "off"}`}</Text>
+        <Text>{`Back Mask Mode ${isBackReviewMode ? "on" : "off"}`}</Text>
+        <TouchableOpacity onPress={() => onFaceMaskChange?.(false)}>
           <Text>Show Mask</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => onMaskChange?.(true)}>
+        <TouchableOpacity onPress={() => onFaceMaskChange?.(true)}>
           <Text>Mask Words</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => onBackMaskChange?.(true)}>
+          <Text>Mask Back</Text>
         </TouchableOpacity>
     <TouchableOpacity onPress={() => onIndexChange(1)}>
           <Text>Advance Deck</Text>
@@ -344,7 +357,7 @@ describe("VocabularyScreen deck state", () => {
     mockCourseId = "TOEIC";
     mockVocabularyPreferences = {
       autoSpeakVocabulary: false,
-      reviewMaskTarget: "word-pronunciation",
+      reviewMaskTarget: "word",
     };
     mockCourseProgress = {};
     mockPreviewParam = undefined;
@@ -467,7 +480,7 @@ describe("VocabularyScreen deck state", () => {
   it("automatically speaks the first vocabulary word when learning starts", async () => {
     mockVocabularyPreferences = {
       autoSpeakVocabulary: true,
-      reviewMaskTarget: "word-pronunciation",
+      reviewMaskTarget: "word",
     };
     render(<VocabularyScreen />);
 
@@ -481,7 +494,7 @@ describe("VocabularyScreen deck state", () => {
   it("automatically speaks next, previous, and revisited vocabulary words", async () => {
     mockVocabularyPreferences = {
       autoSpeakVocabulary: true,
-      reviewMaskTarget: "word-pronunciation",
+      reviewMaskTarget: "word",
     };
     const screen = render(<VocabularyScreen />);
 
@@ -513,7 +526,7 @@ describe("VocabularyScreen deck state", () => {
   it("automatically speaks JLPT pronunciation in Japanese", async () => {
     mockVocabularyPreferences = {
       autoSpeakVocabulary: true,
-      reviewMaskTarget: "word-pronunciation",
+      reviewMaskTarget: "word",
     };
     mockCourseId = "JLPT_N5";
     mockCards = [
@@ -537,7 +550,7 @@ describe("VocabularyScreen deck state", () => {
   it("automatically speaks Kanji in Japanese", async () => {
     mockVocabularyPreferences = {
       autoSpeakVocabulary: true,
-      reviewMaskTarget: "word-pronunciation",
+      reviewMaskTarget: "word",
     };
     mockCourseId = "KANJI";
     mockCards = [
@@ -575,7 +588,7 @@ describe("VocabularyScreen deck state", () => {
   it("does not auto speak the completion page", async () => {
     mockVocabularyPreferences = {
       autoSpeakVocabulary: true,
-      reviewMaskTarget: "word-pronunciation",
+      reviewMaskTarget: "word",
     };
     const screen = render(<VocabularyScreen />);
 
@@ -595,7 +608,7 @@ describe("VocabularyScreen deck state", () => {
   it("waits for the resume choice before automatically speaking", async () => {
     mockVocabularyPreferences = {
       autoSpeakVocabulary: true,
-      reviewMaskTarget: "word-pronunciation",
+      reviewMaskTarget: "word",
     };
     mockUser = { uid: "user-1" };
     mockGetResumeProgress.mockResolvedValue({
@@ -984,21 +997,28 @@ describe("VocabularyScreen deck state", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Mask Mode off")).toBeTruthy();
+      expect(screen.getByText("Face Mask Mode off")).toBeTruthy();
+      expect(screen.getByText("Back Mask Mode off")).toBeTruthy();
       expect(screen.getByText("Initial Index 0")).toBeTruthy();
       expect(mockFetchCourseProgress).toHaveBeenCalledWith("user-1", "TOEIC");
       expect(mockGetResumeProgress).toHaveBeenCalled();
     });
 
     fireEvent.press(screen.getByText("Mask Words"));
+    fireEvent.press(screen.getByText("Mask Back"));
 
     await waitFor(() => {
       expect(screen.getByText("Mask Mode on")).toBeTruthy();
+      expect(screen.getByText("Face Mask Mode on")).toBeTruthy();
+      expect(screen.getByText("Back Mask Mode on")).toBeTruthy();
     });
 
     fireEvent.press(screen.getByText("Advance Deck"));
 
     await waitFor(() => {
       expect(screen.getByText("Mask Mode off")).toBeTruthy();
+      expect(screen.getByText("Face Mask Mode off")).toBeTruthy();
+      expect(screen.getByText("Back Mask Mode off")).toBeTruthy();
       expect(mockSaveResumeProgress).toHaveBeenCalledWith(
         expect.objectContaining({
           currentIndex: 1,
@@ -1050,13 +1070,18 @@ describe("VocabularyScreen deck state", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Mask Mode off")).toBeTruthy();
+      expect(screen.getByText("Face Mask Mode off")).toBeTruthy();
+      expect(screen.getByText("Back Mask Mode off")).toBeTruthy();
       expect(beforeRemoveHandler).toBeDefined();
     });
 
     fireEvent.press(screen.getByText("Mask Words"));
+    fireEvent.press(screen.getByText("Mask Back"));
 
     await waitFor(() => {
       expect(screen.getByText("Mask Mode on")).toBeTruthy();
+      expect(screen.getByText("Face Mask Mode on")).toBeTruthy();
+      expect(screen.getByText("Back Mask Mode on")).toBeTruthy();
     });
 
     const firstEvent = {
@@ -1082,6 +1107,8 @@ describe("VocabularyScreen deck state", () => {
     });
 
     expect(screen.getByText("Mask Mode on")).toBeTruthy();
+    expect(screen.getByText("Face Mask Mode on")).toBeTruthy();
+    expect(screen.getByText("Back Mask Mode on")).toBeTruthy();
     expect(mockNavigationDispatch).not.toHaveBeenCalled();
 
     const secondEvent = {
@@ -1107,6 +1134,8 @@ describe("VocabularyScreen deck state", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Mask Mode off")).toBeTruthy();
+      expect(screen.getByText("Face Mask Mode off")).toBeTruthy();
+      expect(screen.getByText("Back Mask Mode off")).toBeTruthy();
       expect(mockNavigationDispatch).toHaveBeenCalledWith({ type: "GO_BACK" });
     });
   });

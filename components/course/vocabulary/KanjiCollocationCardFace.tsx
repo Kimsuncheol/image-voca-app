@@ -88,7 +88,7 @@ export function FaceSide({
   onSavedWordChange,
   isPreviewMode = false,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  reviewMaskTarget = "word",
   onMaskChange = () => {},
   onFlip,
   language = "en",
@@ -107,8 +107,8 @@ export function FaceSide({
     "meaning",
   );
   const maskReading =
-    shouldMaskReviewContent(isReviewMode, reviewMaskTarget, "pronunciation") ||
-    maskMeaning;
+    shouldMaskReviewContent(isReviewMode, reviewMaskTarget, "reading") ||
+    shouldMaskReviewContent(isReviewMode, reviewMaskTarget, "pronunciation");
 
   const handleSpeakItem = React.useCallback(
     (text: string) => {

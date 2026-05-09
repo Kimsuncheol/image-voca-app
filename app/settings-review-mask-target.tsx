@@ -21,8 +21,10 @@ import { useSpeechPreferences } from "../src/hooks/useSpeechPreferences";
 import type { ReviewMaskTarget } from "../src/services/speechPreferences";
 
 const REVIEW_MASK_OPTIONS: ReviewMaskTarget[] = [
-  "word-pronunciation",
+  "word",
   "meaning",
+  "reading",
+  "example",
   "synonym",
   "all",
 ];

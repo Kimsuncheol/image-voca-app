@@ -247,7 +247,7 @@ describe("Collocation FaceSide word bank toggle", () => {
       StyleSheet.flatten(screen.getByText("make a decision").props.style),
     ).not.toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
@@ -255,7 +255,7 @@ describe("Collocation FaceSide word bank toggle", () => {
       StyleSheet.flatten(screen.getByTestId("collocation-face-synonyms").props.style),
     ).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
@@ -280,13 +280,13 @@ describe("Collocation FaceSide word bank toggle", () => {
 
     expect(StyleSheet.flatten(screen.getByText("make a decision").props.style)).not.toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
     expect(StyleSheet.flatten(screen.getByText("결정을 내리다").props.style)).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );

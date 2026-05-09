@@ -3,8 +3,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export type SpeechPreferenceLanguage = "en" | "ja";
 export type SpeechSpeedPreset = "slow" | "normal" | "fast";
 export type ReviewMaskTarget =
+  | "word"
   | "word-pronunciation"
   | "meaning"
+  | "reading"
+  | "example"
   | "synonym"
   | "all";
 
@@ -62,7 +65,7 @@ export const DEFAULT_SPEECH_SPEED_PREFERENCES: SpeechSpeedPreferences = {
 
 export const DEFAULT_VOCABULARY_SPEECH_PREFERENCES: VocabularySpeechPreferences = {
   autoSpeakVocabulary: true,
-  reviewMaskTarget: "word-pronunciation",
+  reviewMaskTarget: "word",
 };
 
 const speechPreferenceListeners = new Set<
@@ -80,10 +83,25 @@ const isSpeechSpeedPreset = (value: unknown): value is SpeechSpeedPreset =>
 export const isReviewMaskTarget = (
   value: unknown,
 ): value is ReviewMaskTarget =>
+  value === "word" ||
   value === "word-pronunciation" ||
   value === "meaning" ||
+  value === "reading" ||
+  value === "example" ||
   value === "synonym" ||
   value === "all";
+
+export const normalizeReviewMaskTarget = (
+  value: unknown,
+): ReviewMaskTarget => {
+  if (value === "word-pronunciation") {
+    return "word";
+  }
+
+  return isReviewMaskTarget(value)
+    ? value
+    : DEFAULT_VOCABULARY_SPEECH_PREFERENCES.reviewMaskTarget;
+};
 
 export const getDefaultSpeechSpeedPreset = (
   _language: SpeechPreferenceLanguage,
@@ -172,9 +190,9 @@ export const normalizeVocabularySpeechPreferences = (
       typeof preferences.autoSpeakVocabulary === "boolean"
         ? preferences.autoSpeakVocabulary
         : DEFAULT_VOCABULARY_SPEECH_PREFERENCES.autoSpeakVocabulary,
-    reviewMaskTarget: isReviewMaskTarget(preferences.reviewMaskTarget)
-      ? preferences.reviewMaskTarget
-      : DEFAULT_VOCABULARY_SPEECH_PREFERENCES.reviewMaskTarget,
+    reviewMaskTarget: normalizeReviewMaskTarget(
+      preferences.reviewMaskTarget,
+    ),
   };
 };
 
@@ -375,9 +393,7 @@ export const setReviewMaskTargetPreference = async (
   const preferences = await getVocabularySpeechPreferences();
   const nextPreferences = {
     ...preferences,
-    reviewMaskTarget: isReviewMaskTarget(target)
-      ? target
-      : DEFAULT_VOCABULARY_SPEECH_PREFERENCES.reviewMaskTarget,
+    reviewMaskTarget: normalizeReviewMaskTarget(target),
   };
   applyVocabularySpeechPreferences(nextPreferences);
   const persistedLocally =

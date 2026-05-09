@@ -61,15 +61,20 @@ export function GeneralBackSection({
   isActive,
   showFurigana,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  reviewMaskTarget = "word",
   onFlip,
 }: GeneralBackSectionProps) {
   const { handleSpeech } = useStudySpeech();
   const fontColors = getFontColors(isDark);
-  const maskExample = shouldMaskReviewContent(
+  const maskWholeExample = shouldMaskReviewContent(
     isReviewMode,
     reviewMaskTarget,
     "example",
+  );
+  const maskDelimitedWord = shouldMaskReviewContent(
+    isReviewMode,
+    reviewMaskTarget,
+    "word",
   );
   const items = examples
     .map((example, index) => ({
@@ -168,7 +173,9 @@ export function GeneralBackSection({
                     style={[
                       styles.backExample,
                       styles.backExampleOverlay,
-                      { color: fontColors.learningCardPrimary },
+                      maskWholeExample
+                        ? getReviewTapeTextStyle(isDark)
+                        : { color: fontColors.learningCardPrimary },
                     ]}
                   >
                     {visibleSegments.flatMap((reviewSegment, segmentIndex) =>
@@ -190,7 +197,8 @@ export function GeneralBackSection({
                                     { color: fontColors.learningCardMuted },
                                   ]
                                 : undefined,
-                              maskExample && reviewSegment.masked
+                              maskWholeExample ||
+                              (maskDelimitedWord && reviewSegment.masked)
                                 ? getReviewTapeTextStyle(isDark)
                                 : undefined,
                             ]}
@@ -206,7 +214,9 @@ export function GeneralBackSection({
                   <Text
                     style={[
                       styles.backTranslation,
-                      { color: fontColors.learningCardMuted },
+                      maskWholeExample
+                        ? getReviewTapeTextStyle(isDark)
+                        : { color: fontColors.learningCardMuted },
                     ]}
                   >
                     {item.translation}

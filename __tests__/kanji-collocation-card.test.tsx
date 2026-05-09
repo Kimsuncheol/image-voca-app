@@ -64,7 +64,7 @@ jest.mock("../components/common/DayBadge", () => ({
 jest.mock("react-native-flip-card", () => {
   const React = require("react");
   const { View } = require("react-native");
-  return ({
+  const FlipCardMock = ({
     children,
     flip,
   }: {
@@ -74,6 +74,8 @@ jest.mock("react-native-flip-card", () => {
     const sides = React.Children.toArray(children);
     return <View>{sides[flip ? 1 : 0]}</View>;
   };
+  FlipCardMock.displayName = "FlipCardMock";
+  return FlipCardMock;
 });
 
 function buildKanjiWord(overrides: Partial<KanjiWord> = {}): KanjiWord {
@@ -120,6 +122,52 @@ const flattenStyleOf = (node: { props: { style?: unknown } }): any =>
 const firstTextNodeOf = (node: {
   findAllByType: (type: unknown) => Array<{ props: { style?: unknown } }>;
 }) => node.findAllByType(Text)[0];
+
+const expectMaskedReviewText = (node: { props: { style?: unknown } }) => {
+  expect(flattenStyleOf(node)).toEqual(
+    expect.objectContaining({
+      color: "#ffffff",
+      backgroundColor: "transparent",
+    }),
+  );
+};
+
+const expectUnmaskedReviewText = (node: { props: { style?: unknown } }) => {
+  expect(flattenStyleOf(node)).not.toEqual(
+    expect.objectContaining({
+      color: "#ffffff",
+      backgroundColor: "transparent",
+    }),
+  );
+};
+
+const visibleStringTextNodesOf = (node: {
+  findAllByType: (
+    type: unknown,
+  ) => Array<{ props: { children?: unknown; style?: unknown } }>;
+}) =>
+  node
+    .findAllByType(Text)
+    .filter((textNode) => typeof textNode.props.children === "string");
+
+const expectAllVisibleTextNodesMasked = (
+  nodes: Array<{ props: { style?: unknown } }>,
+) => {
+  expect(nodes.length).toBeGreaterThan(0);
+  nodes.forEach(expectMaskedReviewText);
+};
+
+const expectGeneralExampleMasked = (
+  screen: ReturnType<typeof render>,
+  index: number,
+) => {
+  const visibleExample = screen.getByTestId(
+    `kanji-collocation-example-visible-${index}`,
+  );
+
+  expectMaskedReviewText(visibleExample);
+  expectAllVisibleTextNodesMasked(visibleStringTextNodesOf(visibleExample));
+};
 
 describe("KanjiCollocationCard", () => {
   beforeEach(() => {
@@ -172,28 +220,69 @@ describe("KanjiCollocationCard", () => {
     expect(screen.queryByTestId("kanji-collocation-back-side")).toBeNull();
   });
 
-  it("masks face reading values while masked", () => {
+  it("masks only the Kanji word by default in review mode", () => {
     const screen = render(
       <KanjiCollocationCard item={buildKanjiWord()} isReviewMode />,
     );
 
-    const readingTexts = screen.getByTestId("kanji-collocation-face-reading-0").findAllByType(Text);
+    expectMaskedReviewText(screen.getByText("語"));
 
-    expect(StyleSheet.flatten(readingTexts[0].props.style)).toEqual(
-      expect.objectContaining({
-        color: "#ffffff",
-        backgroundColor: "transparent",
-      }),
-    );
-    expect(StyleSheet.flatten(readingTexts[1].props.style)).toEqual(
-      expect.objectContaining({
-        color: "#ffffff",
-        backgroundColor: "transparent",
-      }),
-    );
+    const meaningTexts = screen
+      .getByTestId("kanji-collocation-face-meaning-0")
+      .findAllByType(Text);
+    const readingTexts = screen
+      .getByTestId("kanji-collocation-face-reading-0")
+      .findAllByType(Text);
+
+    expectUnmaskedReviewText(meaningTexts[0]);
+    expectUnmaskedReviewText(readingTexts[0]);
+    expectUnmaskedReviewText(readingTexts[1]);
   });
 
-  it("masks Kanji meaning and reading but not the Kanji when configured", () => {
+  it("keeps the Kanji face mask independent from the back mask", () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord()}
+        isFaceReviewMode
+        isBackReviewMode={false}
+        reviewMaskTarget="all"
+      />,
+    );
+
+    expectMaskedReviewText(screen.getByText("語"));
+
+    flipToBack(screen);
+
+    expect(screen.getByText("Mask")).toBeTruthy();
+    expectUnmaskedReviewText(
+      screen
+        .getByTestId("kanji-collocation-meaning-value-row-0")
+        .findByType(Text),
+    );
+    visibleStringTextNodesOf(
+      screen.getByTestId("kanji-collocation-example-visible-0"),
+    ).forEach(expectUnmaskedReviewText);
+  });
+
+  it("keeps the Kanji back mask independent from the face mask", () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord()}
+        isFaceReviewMode={false}
+        isBackReviewMode
+        reviewMaskTarget="example"
+      />,
+    );
+
+    expectUnmaskedReviewText(screen.getByText("語"));
+
+    flipToBack(screen);
+
+    expect(screen.getByText("Show")).toBeTruthy();
+    expectGeneralExampleMasked(screen, 0);
+  });
+
+  it("masks Kanji meaning but not reading or the Kanji when configured", () => {
     const screen = render(
       <KanjiCollocationCard
         item={buildKanjiWord()}
@@ -217,6 +306,43 @@ describe("KanjiCollocationCard", () => {
       .findAllByType(Text);
 
     expect(StyleSheet.flatten(meaningTexts[0].props.style)).toEqual(
+      expect.objectContaining({
+        color: "#ffffff",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(StyleSheet.flatten(readingTexts[0].props.style)).not.toEqual(
+      expect.objectContaining({
+        color: "#ffffff",
+        backgroundColor: "transparent",
+      }),
+    );
+  });
+
+  it("masks Kanji reading but not meaning or the Kanji when configured", () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord()}
+        isReviewMode
+        reviewMaskTarget="reading"
+      />,
+    );
+
+    expect(StyleSheet.flatten(screen.getByText("語").props.style)).not.toEqual(
+      expect.objectContaining({
+        color: "#ffffff",
+        backgroundColor: "transparent",
+      }),
+    );
+
+    const meaningTexts = screen
+      .getByTestId("kanji-collocation-face-meaning-0")
+      .findAllByType(Text);
+    const readingTexts = screen
+      .getByTestId("kanji-collocation-face-reading-0")
+      .findAllByType(Text);
+
+    expect(StyleSheet.flatten(meaningTexts[0].props.style)).not.toEqual(
       expect.objectContaining({
         color: "#ffffff",
         backgroundColor: "transparent",
@@ -705,9 +831,48 @@ describe("KanjiCollocationCard", () => {
     expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
   });
 
-  it("masks back reading values while masked", () => {
+  it("masks back meaning values and nested meaning content with the meaning review target", () => {
     const screen = render(
-      <KanjiCollocationCard item={buildKanjiWord()} isReviewMode />,
+      <KanjiCollocationCard
+        item={buildKanjiWord()}
+        isReviewMode
+        reviewMaskTarget="meaning"
+      />,
+    );
+    flipToBack(screen);
+
+    expect(
+      flattenStyleOf(screen.getByTestId("kanji-collocation-meaning-value-row-0").findByType(Text)),
+    ).toEqual(
+      expect.objectContaining({
+        color: "#ffffff",
+        backgroundColor: "transparent",
+      }),
+    );
+    expectMaskedReviewText(screen.getByText("熟語"));
+    expectMaskedReviewText(screen.getByText("compound word"));
+    expect(
+      flattenStyleOf(screen.getByTestId("kanji-collocation-meaning-hurigana-0-0")),
+    ).toEqual(
+      expect.objectContaining({
+        color: "#ffffff",
+        backgroundColor: "transparent",
+      }),
+    );
+    expectUnmaskedReviewText(
+      screen.getByTestId("kanji-collocation-reading-value-row-0").findByType(Text),
+    );
+    expectUnmaskedReviewText(screen.getByText("日本語"));
+    expectUnmaskedReviewText(screen.getByText("Japanese language"));
+  });
+
+  it("masks back reading values and nested reading content with the reading review target", () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord()}
+        isReviewMode
+        reviewMaskTarget="reading"
+      />,
     );
     flipToBack(screen);
 
@@ -719,6 +884,8 @@ describe("KanjiCollocationCard", () => {
         backgroundColor: "transparent",
       }),
     );
+    expectMaskedReviewText(screen.getByText("日本語"));
+    expectMaskedReviewText(screen.getByText("Japanese language"));
     expect(
       flattenStyleOf(screen.getByTestId("kanji-collocation-reading-hurigana-0-0")),
     ).toEqual(
@@ -727,6 +894,11 @@ describe("KanjiCollocationCard", () => {
         backgroundColor: "transparent",
       }),
     );
+    expectUnmaskedReviewText(
+      screen.getByTestId("kanji-collocation-meaning-value-row-0").findByType(Text),
+    );
+    expectUnmaskedReviewText(screen.getByText("熟語"));
+    expectUnmaskedReviewText(screen.getByText("compound word"));
   });
 
   it("renders meaning and reading hurigana at font size 8 when がな is active", () => {
@@ -1122,6 +1294,450 @@ describe("KanjiCollocationCard", () => {
     });
     expect(mockStopCardSpeech).not.toHaveBeenCalled();
     expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
+  });
+
+  it("does not mask nested Kanji examples with the example review target", () => {
+    const meaningExamples = ["一言", "一息", "一筋", "一つ"];
+    const readingExamples = [
+      "一月",
+      "一年",
+      "一日",
+      "一度",
+      "同一",
+      "統一",
+      "一回",
+      "一般",
+    ];
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord({
+          meaningExample: [{ items: meaningExamples }],
+          meaningEnglishTranslation: [{ items: [] }],
+          readingExample: [{ items: readingExamples }],
+          readingEnglishTranslation: [{ items: [] }],
+        })}
+        isReviewMode
+        reviewMaskTarget="example"
+      />,
+    );
+    flipToBack(screen);
+
+    [...meaningExamples, ...readingExamples].forEach((example) => {
+      expectUnmaskedReviewText(screen.getByText(example));
+    });
+  });
+
+  it("does not mask nested Kanji Korean translations with the example review target", () => {
+    useJapaneseContentLanguageStore.setState({
+      mode: "ko",
+      _initialized: true,
+    });
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord({
+          meaningExample: [{ items: ["一言"] }],
+          meaningKoreanTranslation: [{ items: ["한마디"] }],
+          readingExample: [{ items: ["一息"] }],
+          readingKoreanTranslation: [{ items: ["한숨"] }],
+        })}
+        isReviewMode
+        reviewMaskTarget="example"
+      />,
+    );
+    flipToBack(screen);
+
+    expectUnmaskedReviewText(screen.getByText("한마디"));
+    expectUnmaskedReviewText(screen.getByText("한숨"));
+  });
+
+  it("masks plain nested Kanji examples and translations when review mask target is all", () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord({
+          meaningExample: [{ items: ["一言"] }],
+          meaningEnglishTranslation: [{ items: ["brief word"] }],
+          readingExample: [{ items: ["一息"] }],
+          readingEnglishTranslation: [{ items: ["one breath"] }],
+        })}
+        isReviewMode
+        reviewMaskTarget="all"
+      />,
+    );
+    flipToBack(screen);
+
+    expectMaskedReviewText(screen.getByText("一言"));
+    expectMaskedReviewText(screen.getByText("brief word"));
+    expectMaskedReviewText(screen.getByText("一息"));
+    expectMaskedReviewText(screen.getByText("one breath"));
+  });
+
+  it("masks only meaning-side nested Kanji content for meaning-only review target", () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord({
+          meaningExample: [{ items: ["一言"] }],
+          meaningExampleHurigana: [{ items: ["ひとこと"] }],
+          meaningEnglishTranslation: [{ items: ["brief word"] }],
+          readingExample: [{ items: ["一息"] }],
+          readingExampleHurigana: [{ items: ["ひといき"] }],
+          readingEnglishTranslation: [{ items: ["one breath"] }],
+        })}
+        isReviewMode
+        reviewMaskTarget="meaning"
+      />,
+    );
+    flipToBack(screen);
+
+    expectMaskedReviewText(screen.getByText("一言"));
+    expectMaskedReviewText(screen.getByText("ひとこと"));
+    expectMaskedReviewText(screen.getByText("brief word"));
+    expectUnmaskedReviewText(screen.getByText("一息"));
+    expectUnmaskedReviewText(screen.getByText("ひといき"));
+    expectUnmaskedReviewText(screen.getByText("one breath"));
+  });
+
+  it("masks only reading-side nested Kanji content for reading review target", () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord({
+          meaningExample: [{ items: ["一言"] }],
+          meaningExampleHurigana: [{ items: ["ひとこと"] }],
+          meaningEnglishTranslation: [{ items: ["brief word"] }],
+          readingExample: [{ items: ["一息"] }],
+          readingExampleHurigana: [{ items: ["ひといき"] }],
+          readingEnglishTranslation: [{ items: ["one breath"] }],
+        })}
+        isReviewMode
+        reviewMaskTarget="reading"
+      />,
+    );
+    flipToBack(screen);
+
+    expectUnmaskedReviewText(screen.getByText("一言"));
+    expectUnmaskedReviewText(screen.getByText("ひとこと"));
+    expectUnmaskedReviewText(screen.getByText("brief word"));
+    expectMaskedReviewText(screen.getByText("一息"));
+    expectMaskedReviewText(screen.getByText("ひといき"));
+    expectMaskedReviewText(screen.getByText("one breath"));
+  });
+
+  it("does not mask general Kanji examples for meaning-only review target", () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord({
+          kanji: "一",
+          example: [
+            "これは[[[いつ]]]でいくらですか。",
+            "一月は新しい[[[一年]]]の始まりだ。",
+          ],
+          exampleHurigana: [],
+        })}
+        isReviewMode
+        reviewMaskTarget="meaning"
+      />,
+    );
+    flipToBack(screen);
+
+    const firstVisibleSegments = screen
+      .getByTestId("kanji-collocation-example-visible-0")
+      .findAllByType(Text)
+      .filter((textNode) => typeof textNode.props.children === "string");
+    const secondVisibleSegments = screen
+      .getByTestId("kanji-collocation-example-visible-1")
+      .findAllByType(Text)
+      .filter((textNode) => typeof textNode.props.children === "string");
+
+    expect(
+      [...firstVisibleSegments, ...secondVisibleSegments].some(
+        (textNode) => flattenStyleOf(textNode).color === "#ffffff",
+      ),
+    ).toBe(false);
+  });
+
+  it("does not mask plain nested Kanji examples or translations for word review target", () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord({
+          kanji: "一",
+          meaningExample: [{ items: ["一言"] }],
+          meaningEnglishTranslation: [{ items: ["brief word"] }],
+          readingExample: [{ items: ["一息"] }],
+          readingEnglishTranslation: [{ items: ["one breath"] }],
+        })}
+        isReviewMode
+        reviewMaskTarget="word"
+      />,
+    );
+    flipToBack(screen);
+
+    expectUnmaskedReviewText(screen.getByText("一言"));
+    expectUnmaskedReviewText(screen.getByText("brief word"));
+    expectUnmaskedReviewText(screen.getByText("一息"));
+    expectUnmaskedReviewText(screen.getByText("one breath"));
+  });
+
+  it("speaks nested Kanji examples without delimiter parsing", async () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord({
+          meaningExample: [{ items: ["一言"] }],
+          meaningExampleHurigana: [{ items: [] }],
+          readingExample: [{ items: ["一息"] }],
+          readingExampleHurigana: [{ items: [] }],
+        })}
+        isReviewMode
+        reviewMaskTarget="example"
+      />,
+    );
+    flipToBack(screen);
+    mockSpeak.mockClear();
+    mockStopCardSpeech.mockClear();
+
+    fireEvent.press(
+      screen.getByTestId("kanji-collocation-meaning-pair-item-0-0"),
+    );
+
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledWith("一言", {
+        language: "ja-JP",
+      });
+    });
+
+    fireEvent.press(
+      screen.getByTestId("kanji-collocation-reading-pair-item-0-0"),
+    );
+
+    await waitFor(() => {
+      expect(mockSpeak).toHaveBeenCalledWith("一息", {
+        language: "ja-JP",
+      });
+    });
+    expect(mockStopCardSpeech).not.toHaveBeenCalled();
+    expect(screen.getByTestId("kanji-collocation-back-side")).toBeTruthy();
+  });
+
+  it("masks delimiter spans in the general Kanji EXAMPLE section with the word target", () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord({
+          kanji: "一",
+          example: [
+            "これは[[[いつ]]]でいくらですか。",
+            "一月は新しい[[[一]]]年の始まりだ。",
+          ],
+          exampleHurigana: [],
+          exampleEnglishTranslation: [
+            "How much is this one?",
+            "January begins a new year.",
+          ],
+        })}
+        isReviewMode
+        reviewMaskTarget="word"
+      />,
+    );
+    flipToBack(screen);
+
+    const firstVisibleSegments = screen
+      .getByTestId("kanji-collocation-example-visible-0")
+      .findAllByType(Text);
+    const secondVisibleSegments = screen
+      .getByTestId("kanji-collocation-example-visible-1")
+      .findAllByType(Text);
+
+    expect(
+      firstVisibleSegments.some(
+        (textNode) =>
+          textNode.props.children === "いつ" &&
+          flattenStyleOf(textNode).color === "#ffffff",
+      ),
+    ).toBe(true);
+    expect(
+      secondVisibleSegments.some(
+        (textNode) =>
+          textNode.props.children === "一" &&
+          flattenStyleOf(textNode).color === "#ffffff",
+      ),
+    ).toBe(true);
+    expect(
+      firstVisibleSegments.some(
+        (textNode) =>
+          textNode.props.children === "これは" &&
+          flattenStyleOf(textNode)?.color === "#ffffff",
+      ),
+    ).toBe(false);
+    expect(textChildrenOf(screen.getByTestId("kanji-collocation-example-visible-0"))).toEqual([
+      "これは",
+      "いつ",
+      "でいくらですか。",
+    ]);
+  });
+
+  it("masks whole general Kanji examples with the example target", () => {
+    const screen = render(
+      <KanjiCollocationCard
+        item={buildKanjiWord({
+          kanji: "一",
+          example: [
+            "これは[[[いつ]]]でいくらですか。",
+            "一月は新しい[[[一年]]]の始まりだ。",
+          ],
+          exampleHurigana: [],
+          exampleEnglishTranslation: [
+            "How much is this one?",
+            "January begins a new year.",
+          ],
+        })}
+        isReviewMode
+        reviewMaskTarget="example"
+      />,
+    );
+    flipToBack(screen);
+
+    const firstVisibleSegments = screen
+      .getByTestId("kanji-collocation-example-visible-0")
+      .findAllByType(Text);
+    const firstVisibleStrings = firstVisibleSegments.filter(
+      (textNode) => typeof textNode.props.children === "string",
+    );
+    const secondVisibleSegments = screen
+      .getByTestId("kanji-collocation-example-visible-1")
+      .findAllByType(Text);
+    const secondVisibleStrings = secondVisibleSegments.filter(
+      (textNode) => typeof textNode.props.children === "string",
+    );
+
+    expect(textChildrenOf(screen.getByTestId("kanji-collocation-example-visible-0"))).toEqual([
+      "これは",
+      "いつ",
+      "でいくらですか。",
+    ]);
+    expect(textChildrenOf(screen.getByTestId("kanji-collocation-example-visible-1"))).toEqual([
+      "一月は新しい",
+      "一年",
+      "の始まりだ。",
+    ]);
+    expectMaskedReviewText(
+      screen.getByTestId("kanji-collocation-example-visible-0"),
+    );
+    expectMaskedReviewText(
+      screen.getByTestId("kanji-collocation-example-visible-1"),
+    );
+    expect(
+      firstVisibleStrings.every(
+        (textNode) => flattenStyleOf(textNode).color === "#ffffff",
+      ),
+    ).toBe(true);
+    expect(
+      secondVisibleStrings.every(
+        (textNode) => flattenStyleOf(textNode).color === "#ffffff",
+      ),
+    ).toBe(true);
+    expectMaskedReviewText(screen.getByText("How much is this one?"));
+    expectMaskedReviewText(screen.getByText("January begins a new year."));
+  });
+
+  it("masks whole general Kanji examples after tapping Mask with the example target", () => {
+    const item = buildKanjiWord({
+      kanji: "一",
+      example: [
+        "これは[[[いつ]]]でいくらですか。",
+        "一月は新しい[[[一年]]]の始まりだ。",
+      ],
+      exampleHurigana: [],
+      exampleEnglishTranslation: [
+        "How much is this one?",
+        "January begins a new year.",
+      ],
+    });
+    let isMaskEnabled = false;
+    const onMaskChange = jest.fn((enabled: boolean) => {
+      isMaskEnabled = enabled;
+    });
+    const screen = render(
+      <KanjiCollocationCard
+        item={item}
+        isReviewMode={isMaskEnabled}
+        reviewMaskTarget="example"
+        onMaskChange={onMaskChange}
+      />,
+    );
+    flipToBack(screen);
+
+    visibleStringTextNodesOf(
+      screen.getByTestId("kanji-collocation-example-visible-0"),
+    ).forEach(expectUnmaskedReviewText);
+
+    fireEvent.press(
+      screen.getByTestId("kanji-collocation-back-mask-toggle-button"),
+    );
+
+    expect(onMaskChange).toHaveBeenCalledWith(true);
+
+    screen.rerender(
+      <KanjiCollocationCard
+        item={item}
+        isReviewMode={isMaskEnabled}
+        reviewMaskTarget="example"
+        onMaskChange={onMaskChange}
+      />,
+    );
+
+    expectGeneralExampleMasked(screen, 0);
+    expectGeneralExampleMasked(screen, 1);
+    expectMaskedReviewText(screen.getByText("How much is this one?"));
+    expectMaskedReviewText(screen.getByText("January begins a new year."));
+  });
+
+  it("masks whole general Kanji examples after tapping Mask with the all target", () => {
+    const item = buildKanjiWord({
+      kanji: "一",
+      example: [
+        "これは[[[いつ]]]でいくらですか。",
+        "一月は新しい[[[一年]]]の始まりだ。",
+      ],
+      exampleHurigana: [],
+      exampleEnglishTranslation: [
+        "How much is this one?",
+        "January begins a new year.",
+      ],
+    });
+    let isMaskEnabled = false;
+    const onMaskChange = jest.fn((enabled: boolean) => {
+      isMaskEnabled = enabled;
+    });
+    const screen = render(
+      <KanjiCollocationCard
+        item={item}
+        isReviewMode={isMaskEnabled}
+        reviewMaskTarget="all"
+        onMaskChange={onMaskChange}
+      />,
+    );
+    flipToBack(screen);
+
+    visibleStringTextNodesOf(
+      screen.getByTestId("kanji-collocation-example-visible-0"),
+    ).forEach(expectUnmaskedReviewText);
+
+    fireEvent.press(
+      screen.getByTestId("kanji-collocation-back-mask-toggle-button"),
+    );
+
+    expect(onMaskChange).toHaveBeenCalledWith(true);
+
+    screen.rerender(
+      <KanjiCollocationCard
+        item={item}
+        isReviewMode={isMaskEnabled}
+        reviewMaskTarget="all"
+        onMaskChange={onMaskChange}
+      />,
+    );
+
+    expectGeneralExampleMasked(screen, 0);
+    expectGeneralExampleMasked(screen, 1);
+    expectMaskedReviewText(screen.getByText("How much is this one?"));
+    expectMaskedReviewText(screen.getByText("January begins a new year."));
   });
 
   it("flips back to the face side when a reading example row background is pressed", () => {

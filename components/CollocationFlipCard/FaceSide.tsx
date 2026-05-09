@@ -98,7 +98,7 @@ export default React.memo(function FaceSide({
   onFlip,
   onImageLoad,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  reviewMaskTarget = "word",
   onMaskChange = () => {},
 }: FaceSideProps) {
   // ============================================================================

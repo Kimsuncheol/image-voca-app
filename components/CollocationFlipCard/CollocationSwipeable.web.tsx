@@ -26,8 +26,12 @@ interface Props {
   isStudyCompleted?: boolean;
   isPreviewMode?: boolean;
   isReviewMode?: boolean;
+  isFaceReviewMode?: boolean;
+  isBackReviewMode?: boolean;
   reviewMaskTarget?: ReviewMaskTarget;
   onMaskChange?: (enabled: boolean) => void;
+  onFaceMaskChange?: (enabled: boolean) => void;
+  onBackMaskChange?: (enabled: boolean) => void;
 }
 
 const HINT_TIMEOUT_MS = 1200;
@@ -45,8 +49,12 @@ export const CollocationSwipeable: React.FC<Props> = ({
   isStudyCompleted = false,
   isPreviewMode = false,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  isFaceReviewMode = isReviewMode,
+  isBackReviewMode = isReviewMode,
+  reviewMaskTarget = "word",
   onMaskChange,
+  onFaceMaskChange = onMaskChange,
+  onBackMaskChange = onMaskChange,
 }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -169,8 +177,12 @@ export const CollocationSwipeable: React.FC<Props> = ({
             onFirstFlipToBack={handleCardFirstFlip}
             isActive={true}
             isReviewMode={isReviewMode}
+            isFaceReviewMode={isFaceReviewMode}
+            isBackReviewMode={isBackReviewMode}
             reviewMaskTarget={reviewMaskTarget}
             onMaskChange={onMaskChange}
+            onFaceMaskChange={onFaceMaskChange}
+            onBackMaskChange={onBackMaskChange}
           />
         ) : (
           renderFinalPage?.()

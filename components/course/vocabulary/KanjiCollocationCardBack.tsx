@@ -54,7 +54,7 @@ export function BackSide({
   language,
   useKorean,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  reviewMaskTarget = "word",
   onMaskChange = () => {},
   onFlip,
 }: BackSideProps) {

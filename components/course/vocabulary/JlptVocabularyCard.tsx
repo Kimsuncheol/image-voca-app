@@ -293,7 +293,7 @@ export function JlptVocabularyCard({
   onToggleKana = () => {},
   isPreviewMode = false,
   isReviewMode = false,
-  reviewMaskTarget = "word-pronunciation",
+  reviewMaskTarget = "word",
   onMaskChange = () => {},
 }: JlptVocabularyCardProps) {
   const { isDark } = useTheme();

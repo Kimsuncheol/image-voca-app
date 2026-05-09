@@ -48,8 +48,10 @@ const translations: Record<string, string> = {
   "settings.speech.fast": "Fast",
   "settings.speech.autoVocabularySpeech": "Auto speech",
   "settings.speech.reviewMaskTarget": "Mask target",
-  "settings.speech.maskTargets.word-pronunciation": "Word",
+  "settings.speech.maskTargets.word": "Word",
+  "settings.speech.maskTargets.example": "Example",
   "settings.speech.maskTargets.meaning": "Meaning",
+  "settings.speech.maskTargets.reading": "Reading",
   "settings.speech.maskTargets.synonym": "Synonym",
   "settings.speech.maskTargets.all": "All",
   "settings.speech.saveFailed":
@@ -172,7 +174,7 @@ describe("SpeechSection", () => {
     });
     await expect(getVocabularySpeechPreferences()).resolves.toEqual({
       autoSpeakVocabulary: false,
-      reviewMaskTarget: "word-pronunciation",
+      reviewMaskTarget: "word",
     });
   });
 

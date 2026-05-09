@@ -67,7 +67,12 @@ jest.mock("react-i18next", () => ({
         "settings.speech.normal": "Normal",
         "settings.speech.autoVocabularySpeech": "Auto speech",
         "settings.speech.reviewMaskTarget": "Mask target",
-        "settings.speech.maskTargets.word-pronunciation": "Word",
+        "settings.speech.maskTargets.word": "Word",
+        "settings.speech.maskTargets.meaning": "Meaning",
+        "settings.speech.maskTargets.reading": "Reading",
+        "settings.speech.maskTargets.example": "Example",
+        "settings.speech.maskTargets.synonym": "Synonym",
+        "settings.speech.maskTargets.all": "All",
         "settings.eyeComfort.title": "Eye Comfort",
         "settings.eyeComfort.toggleLabel": "Eye comfort mode",
         "settings.eyeComfort.description":
@@ -107,7 +112,7 @@ jest.mock("../src/hooks/useSpeechPreferences", () => ({
     setPreset: jest.fn().mockResolvedValue({ persistedLocally: true }),
     vocabularyPreferences: {
       autoSpeakVocabulary: true,
-      reviewMaskTarget: "word-pronunciation",
+      reviewMaskTarget: "word",
     },
     setAutoSpeakVocabulary: jest
       .fn()

@@ -2,7 +2,6 @@ import { FontSizes } from "@/constants/fontSizes";
 import { FontWeights } from "@/constants/fontWeights";
 import { LineHeights } from "@/constants/lineHeights";
 import { StyleSheet } from "react-native";
-import { FontColors } from "../../../constants/fontColors";
 import { CARD_HEIGHT, CARD_WIDTH } from "../../../src/constants/layout";
 import { blackCardSpacing } from "./blackCardStyles";
 
@@ -243,11 +242,11 @@ export const styles = StyleSheet.create({
     textAlign: "left",
   },
   backFuriganaPlaceholder: {
-    color: FontColors.light.transparent,
+    color: "transparent",
     backgroundColor: "transparent",
   },
   backFuriganaSpacer: {
-    color: FontColors.light.transparent,
+    color: "transparent",
     backgroundColor: "transparent",
   },
   backInlineFurigana: {
@@ -258,7 +257,7 @@ export const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   backExampleSizer: {
-    color: FontColors.light.transparent,
+    color: "transparent",
     backgroundColor: "transparent",
   },
   backExampleOverlay: {

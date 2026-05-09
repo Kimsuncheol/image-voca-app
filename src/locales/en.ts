@@ -127,8 +127,11 @@ const en = {
       autoVocabularySpeech: "Auto speech",
       reviewMaskTarget: "Mask target",
       maskTargets: {
+        word: "Word",
         "word-pronunciation": "Word",
         meaning: "Meaning",
+        reading: "Reading",
+        example: "Example",
         synonym: "Synonym",
         all: "All",
       },

@@ -163,14 +163,20 @@ describe("SwipeCardItem synonyms", () => {
     expect(onMaskChange).toHaveBeenNthCalledWith(2, false);
   });
 
-  it("masks the standard card pronunciation while masked", () => {
-    const { getByText } = render(
+  it("masks the standard card word while masked", () => {
+    const { getByTestId, getByText } = render(
       <SwipeCardItem item={buildCard({ course: "TOEIC" })} isReviewMode />,
     );
 
-    expect(StyleSheet.flatten(getByText("/əˈbæn.dən/").props.style)).toEqual(
+    expect(StyleSheet.flatten(getByTestId("swipe-card-word-title").props.style)).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
+        backgroundColor: "transparent",
+      }),
+    );
+    expect(StyleSheet.flatten(getByText("/əˈbæn.dən/").props.style)).not.toEqual(
+      expect.objectContaining({
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
@@ -189,13 +195,13 @@ describe("SwipeCardItem synonyms", () => {
       StyleSheet.flatten(getByText("/əˈbæn.dən/").props.style),
     ).not.toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
     expect(StyleSheet.flatten(getByTestId("swipe-card-synonyms").props.style)).toEqual(
       expect.objectContaining({
-        color: "transparent",
+        color: "#ffffff",
         backgroundColor: "transparent",
       }),
     );
