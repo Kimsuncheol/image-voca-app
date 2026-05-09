@@ -153,14 +153,19 @@ export function GeneralBackSection({
                         (segment, japaneseSegmentIndex) => (
                           <Text
                             key={`sizer-${item.originalIndex}-${segmentIndex}-${japaneseSegmentIndex}`}
-                            style={
+                            style={[
                               segment.isKanaParen
                                 ? [
                                     styles.backInlineFurigana,
                                     styles.backExampleSizer,
                                   ]
-                                : undefined
-                            }
+                                : undefined,  
+                                maskWholeExample ||
+                                (maskDelimitedWord && reviewSegment.masked)
+                                  ? getReviewTapeTextStyle(isDark)
+                                  : undefined,
+                                
+                            ]}
                           >
                             {segment.text}
                           </Text>
