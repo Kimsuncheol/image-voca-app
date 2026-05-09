@@ -2,6 +2,10 @@ import { render } from "@testing-library/react-native";
 import React from "react";
 import { Dimensions, StyleSheet } from "react-native";
 import { WordCard } from "../components/wordbank/WordCard";
+import {
+  __resetJapaneseContentLanguageStoreForTests,
+  useJapaneseContentLanguageStore,
+} from "../src/stores/japaneseContentLanguageStore";
 
 jest.mock("../src/context/AuthContext", () => ({
   useAuth: () => ({ user: null }),
@@ -57,6 +61,32 @@ describe("Word bank WordCard synonyms", () => {
     addedAt: "2026-01-01T00:00:00.000Z",
   };
 
+  const jlptWord = {
+    id: "jlpt-1",
+    word: "間",
+    meaning: "interval; space; between",
+    translation: "between the station and the hotel",
+    pronunciation: "あいだ",
+    example: "駅とホテルの間",
+    course: "JLPT_N5",
+    localized: {
+      en: {
+        meaning: "interval; space; between",
+        translation: "between the station and the hotel",
+      },
+      ko: {
+        meaning: "사이, 동안",
+        translation: "역과 호텔 사이",
+      },
+    },
+    addedAt: "2026-01-01T00:00:00.000Z",
+  };
+
+  beforeEach(() => {
+    __resetJapaneseContentLanguageStoreForTests();
+    useJapaneseContentLanguageStore.setState({ _initialized: true });
+  });
+
   it("renders the synonyms section for saved TOEFL_IELTS words", () => {
     const { getByText, getByTestId } = render(
       <WordCard word={baseWord} isDark={false} />,
@@ -71,6 +101,33 @@ describe("Word bank WordCard synonyms", () => {
       fontSize: 15,
       color: "#374151",
     });
+  });
+
+  it("renders English JLPT Word Bank content by default when UI language is English", () => {
+    const { getByText, queryByText } = render(
+      <WordCard word={jlptWord} isDark={false} />,
+    );
+
+    expect(getByText("interval; space; between")).toBeTruthy();
+    expect(getByText("between the station and the hotel")).toBeTruthy();
+    expect(queryByText("사이, 동안")).toBeNull();
+    expect(queryByText("역과 호텔 사이")).toBeNull();
+  });
+
+  it("renders Korean JLPT Word Bank content when Japanese-in-Korean is enabled", () => {
+    useJapaneseContentLanguageStore.setState({
+      mode: "ko",
+      _initialized: true,
+    });
+
+    const { getByText, queryByText } = render(
+      <WordCard word={jlptWord} isDark={false} />,
+    );
+
+    expect(getByText("사이, 동안")).toBeTruthy();
+    expect(getByText("역과 호텔 사이")).toBeTruthy();
+    expect(queryByText("interval; space; between")).toBeNull();
+    expect(queryByText("between the station and the hotel")).toBeNull();
   });
 
   it("masks saved word titles when the word target is active", () => {

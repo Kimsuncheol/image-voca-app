@@ -7,6 +7,7 @@ import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
+import { useJapaneseContentLanguage } from "../../src/hooks/useJapaneseContentLanguage";
 import {
   getStudyLanguageTypeFromSpeechLanguage,
   useStudySpeech,
@@ -109,6 +110,7 @@ function StandardWordCard({
   useCardSpeechCleanup();
   const { i18n } = useTranslation();
   const { learningLanguage } = useLearningLanguage();
+  const contentLanguage = useJapaneseContentLanguage(word.course, i18n.language);
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
   const maskWord = shouldMaskReviewContent(
@@ -150,9 +152,9 @@ function StandardWordCard({
           imageUrl: word.imageUrl,
           localized: word.localized,
         },
-        i18n.language,
+        contentLanguage,
       ),
-    [i18n.language, word],
+    [contentLanguage, word],
   );
   React.useEffect(() => {
     console.log("[WordCard] fields", {
