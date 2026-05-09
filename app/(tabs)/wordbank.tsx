@@ -8,7 +8,6 @@ import { StudyModeProvider } from "../../src/hooks/useStudyMode";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { useTheme } from "../../src/context/ThemeContext";
-import { EyeComfortHeaderButton } from "../../src/components/common/EyeComfortHeaderButton";
 import { CourseType, getTopLevelCoursesForLanguage } from "../../src/types/vocabulary";
 
 export default function WordBankScreen() {
@@ -51,7 +50,7 @@ function WordBankScreenContent() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <WordBankHeader rightAction={<EyeComfortHeaderButton />} />
+        <WordBankHeader />
         <WordBankCourseGrid
           courses={courses}
           onCoursePress={handleCoursePress}

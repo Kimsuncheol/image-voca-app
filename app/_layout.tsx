@@ -11,6 +11,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   MD3DarkTheme,
@@ -21,6 +22,8 @@ import { AppSplashScreen } from "../components/common/AppSplashScreen";
 import { NetworkErrorOverlay } from "../components/common/NetworkErrorOverlay";
 import { useColorScheme } from "../hooks/use-color-scheme";
 import { EyeComfortOverlay } from "../src/components/common/EyeComfortOverlay";
+import { EyeComfortHeaderButton } from "../src/components/common/EyeComfortHeaderButton";
+import { LanguageHeaderButton } from "../src/components/common/LanguageHeaderButton";
 import { ReadingDisplayModal } from "../src/components/common/ReadingDisplayModal";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import {
@@ -72,6 +75,15 @@ function LanguageSettingsSync() {
   }, [localeSignature, locales]);
 
   return null;
+}
+
+function CoursesHeaderActions() {
+  return (
+    <View style={styles.coursesHeaderActions}>
+      <LanguageHeaderButton showJapaneseKoreanOption />
+      <EyeComfortHeaderButton />
+    </View>
+  );
 }
 
 export function RootLayoutNav() {
@@ -153,7 +165,14 @@ export function RootLayoutNav() {
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="wordbank" options={{ headerShown: false }} />
-            <Stack.Screen name="courses" options={{ headerStyle: {backgroundColor: bgColors.screen}}} />
+            <Stack.Screen
+              name="courses"
+              options={{
+                headerRight: () => <CoursesHeaderActions />,
+                headerStyle: { backgroundColor: bgColors.screen },
+                headerTintColor: isDark ? "#fff" : "#000",
+              }}
+            />
             <Stack.Screen name="course" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: "modal" }} />
             <Stack.Screen
@@ -373,6 +392,14 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  coursesHeaderActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+});
 
 export default function RootLayout() {
   return (

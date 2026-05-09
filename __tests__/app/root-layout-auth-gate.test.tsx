@@ -1,10 +1,12 @@
 import { render, waitFor } from "@testing-library/react-native";
 import { useRouter, useSegments } from "expo-router";
 import React from "react";
+import { Text as MockText } from "react-native";
 import { RootLayoutNav } from "../../app/_layout";
 
 const mockReplace = jest.fn();
 const mockUseAuth = jest.fn();
+const mockStackScreens: { name?: string; options?: any }[] = [];
 
 jest.mock("expo-router", () => {
   const Stack = (({ children }: { children: React.ReactNode }) => (
@@ -13,7 +15,14 @@ jest.mock("expo-router", () => {
     Screen: React.FC;
   };
   Stack.displayName = "MockStack";
-  Stack.Screen = () => null;
+  Stack.Screen = (props: {
+    name?: string;
+    options?: { headerRight?: () => React.ReactNode };
+  }) => {
+    mockStackScreens.push(props);
+    const HeaderRight = props.options?.headerRight;
+    return HeaderRight ? <HeaderRight /> : null;
+  };
   Stack.Screen.displayName = "MockStackScreen";
   return {
     Stack,
@@ -112,6 +121,34 @@ jest.mock("../../components/common/NetworkErrorOverlay", () => ({
   NetworkErrorOverlay: () => null,
 }));
 
+jest.mock("../../src/components/common/LanguageHeaderButton", () => ({
+  LanguageHeaderButton: ({
+    showJapaneseKoreanOption,
+  }: {
+    showJapaneseKoreanOption?: boolean;
+  }) => {
+    return (
+      <MockText testID="language-header-button">
+        {showJapaneseKoreanOption ? "japanese-korean-enabled" : "default"}
+      </MockText>
+    );
+  },
+}));
+
+jest.mock("../../src/components/common/EyeComfortHeaderButton", () => ({
+  EyeComfortHeaderButton: () => (
+    <MockText testID="eye-comfort-header-button">Aa</MockText>
+  ),
+}));
+
+jest.mock("../../src/components/common/ReadingDisplayModal", () => ({
+  ReadingDisplayModal: () => null,
+}));
+
+jest.mock("../../src/components/common/EyeComfortOverlay", () => ({
+  EyeComfortOverlay: () => null,
+}));
+
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
@@ -121,9 +158,31 @@ jest.mock("react-i18next", () => ({
 describe("RootLayoutNav auth gating", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockStackScreens.length = 0;
     (useRouter as jest.Mock).mockReturnValue({
       replace: mockReplace,
     });
+  });
+
+  it("renders language and reading display triggers in the courses native header", () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1" },
+      loading: false,
+      authStatus: "signed_in",
+    });
+    (useSegments as jest.Mock).mockReturnValue(["courses"]);
+
+    const screen = render(<RootLayoutNav />);
+
+    expect(screen.getByTestId("language-header-button").props.children).toBe(
+      "japanese-korean-enabled",
+    );
+    expect(screen.getByTestId("eye-comfort-header-button")).toBeTruthy();
+    const coursesScreen = mockStackScreens.find(
+      (stackScreen) => stackScreen.name === "courses",
+    );
+    expect(coursesScreen?.options?.headerRight).toBeTruthy();
+    expect(coursesScreen?.options?.headerTintColor).toBe("#000");
   });
 
   it("redirects signed-out users away from app routes", async () => {
