@@ -254,6 +254,38 @@ describe("RootLayoutNav auth gating", () => {
     expect(screen.getByTestId("courses-mask-header-button")).toBeTruthy();
   });
 
+  it("hides the courses mask trigger for JLPT saved words when target is reading", () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1" },
+      loading: false,
+      authStatus: "signed_in",
+    });
+    mockGlobalSearchParams = { course: "JLPT_N5" };
+    mockReviewMaskTarget = "reading";
+    (useSegments as jest.Mock).mockReturnValue(["courses", "[course]"]);
+
+    const screen = render(<RootLayoutNav />);
+
+    expect(screen.queryByTestId("courses-mask-header-button")).toBeNull();
+    expect(screen.getByTestId("language-header-button")).toBeTruthy();
+    expect(screen.getByTestId("eye-comfort-header-button")).toBeTruthy();
+  });
+
+  it("keeps the courses mask trigger for JLPT saved words when target is word", () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1" },
+      loading: false,
+      authStatus: "signed_in",
+    });
+    mockGlobalSearchParams = { course: "JLPT_N5" };
+    mockReviewMaskTarget = "word";
+    (useSegments as jest.Mock).mockReturnValue(["courses", "[course]"]);
+
+    const screen = render(<RootLayoutNav />);
+
+    expect(screen.getByTestId("courses-mask-header-button")).toBeTruthy();
+  });
+
   it("keeps the courses mask trigger for non-Kanji saved words when target is synonym", () => {
     mockUseAuth.mockReturnValue({
       user: { uid: "user-1" },
@@ -262,6 +294,21 @@ describe("RootLayoutNav auth gating", () => {
     });
     mockGlobalSearchParams = { course: "TOEIC" };
     mockReviewMaskTarget = "synonym";
+    (useSegments as jest.Mock).mockReturnValue(["courses", "[course]"]);
+
+    const screen = render(<RootLayoutNav />);
+
+    expect(screen.getByTestId("courses-mask-header-button")).toBeTruthy();
+  });
+
+  it("keeps the courses mask trigger for non-Japanese saved words when target is reading", () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1" },
+      loading: false,
+      authStatus: "signed_in",
+    });
+    mockGlobalSearchParams = { course: "TOEIC" };
+    mockReviewMaskTarget = "reading";
     (useSegments as jest.Mock).mockReturnValue(["courses", "[course]"]);
 
     const screen = render(<RootLayoutNav />);

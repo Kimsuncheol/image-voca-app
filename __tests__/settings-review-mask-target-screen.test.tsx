@@ -1,4 +1,9 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import {
+  fireEvent,
+  render,
+  waitFor,
+  within,
+} from "@testing-library/react-native";
 import React from "react";
 import { StyleSheet } from "react-native";
 
@@ -36,6 +41,9 @@ jest.mock("react-i18next", () => ({
     t: (key: string) =>
       ({
         "settings.speech.reviewMaskTarget": "Mask target",
+        "settings.speech.maskTargetSections.common": "Common",
+        "settings.speech.maskTargetSections.reading": "Reading section",
+        "settings.speech.maskTargetSections.synonym": "Synonym section",
         "settings.speech.maskTargets.word": "Word",
         "settings.speech.maskTargets.meaning": "Meaning",
         "settings.speech.maskTargets.reading": "Reading",
@@ -89,16 +97,42 @@ describe("SettingsReviewMaskTargetScreen", () => {
     mockSetReviewMaskTarget.mockResolvedValue({ persistedLocally: true });
   });
 
-  it("renders English mask target options without Reading", () => {
+  it("renders English mask target sections with Synonym in Common", () => {
     const screen = render(<SettingsReviewMaskTargetScreen />);
 
     expect(screen.getByTestId("top-banner-ad").props.children).toBe("false");
-    expect(screen.getByText("Word")).toBeTruthy();
-    expect(screen.getByText("Meaning")).toBeTruthy();
+    const commonSection = screen.getByTestId(
+      "settings-review-mask-target-section-common",
+    );
+
+    expect(screen.getByText("Common")).toBeTruthy();
+    expect(screen.queryByTestId("settings-review-mask-target-section-reading"))
+      .toBeNull();
+    expect(screen.queryByTestId("settings-review-mask-target-section-synonym"))
+      .toBeNull();
+    expect(screen.queryByText("Synonym section")).toBeNull();
+    expect(
+      within(commonSection).getByTestId("settings-review-mask-target-option-word"),
+    ).toBeTruthy();
+    expect(
+      within(commonSection).getByTestId(
+        "settings-review-mask-target-option-meaning",
+      ),
+    ).toBeTruthy();
+    expect(
+      within(commonSection).getByTestId(
+        "settings-review-mask-target-option-example",
+      ),
+    ).toBeTruthy();
+    expect(
+      within(commonSection).getByTestId(
+        "settings-review-mask-target-option-synonym",
+      ),
+    ).toBeTruthy();
+    expect(
+      within(commonSection).getByTestId("settings-review-mask-target-option-all"),
+    ).toBeTruthy();
     expect(screen.queryByText("Reading")).toBeNull();
-    expect(screen.getByText("Example")).toBeTruthy();
-    expect(screen.getByText("Synonym")).toBeTruthy();
-    expect(screen.getByText("All")).toBeTruthy();
     expect(
       screen.getByTestId("settings-review-mask-target-check-word"),
     ).toBeTruthy();
@@ -117,14 +151,76 @@ describe("SettingsReviewMaskTargetScreen", () => {
     expect(headerStyle.backgroundColor).toBe(containerStyle.backgroundColor);
   });
 
-  it("renders Reading only for Japanese learning language", () => {
+  it("renders Reading section only for Japanese learning language", () => {
     mockLearningLanguage = "ja";
 
     const screen = render(<SettingsReviewMaskTargetScreen />);
 
+    expect(
+      screen.getByTestId("settings-review-mask-target-section-common"),
+    ).toBeTruthy();
+    expect(
+      screen.getByTestId("settings-review-mask-target-section-reading"),
+    ).toBeTruthy();
+    expect(
+      screen.getByTestId("settings-review-mask-target-section-synonym"),
+    ).toBeTruthy();
     expect(screen.getByText("Reading")).toBeTruthy();
     expect(
       screen.getByTestId("settings-review-mask-target-option-reading"),
+    ).toBeTruthy();
+  });
+
+  it("places Common, Reading, and Synonym options in separate sections", () => {
+    mockLearningLanguage = "ja";
+
+    const screen = render(<SettingsReviewMaskTargetScreen />);
+
+    const commonSection = screen.getByTestId(
+      "settings-review-mask-target-section-common",
+    );
+    const readingSection = screen.getByTestId(
+      "settings-review-mask-target-section-reading",
+    );
+    const synonymSection = screen.getByTestId(
+      "settings-review-mask-target-section-synonym",
+    );
+
+    expect(
+      within(commonSection).getByTestId("settings-review-mask-target-option-word"),
+    ).toBeTruthy();
+    expect(
+      within(commonSection).getByTestId(
+        "settings-review-mask-target-option-meaning",
+      ),
+    ).toBeTruthy();
+    expect(
+      within(commonSection).getByTestId(
+        "settings-review-mask-target-option-example",
+      ),
+    ).toBeTruthy();
+    expect(
+      within(commonSection).getByTestId("settings-review-mask-target-option-all"),
+    ).toBeTruthy();
+    expect(
+      within(commonSection).queryByTestId(
+        "settings-review-mask-target-option-reading",
+      ),
+    ).toBeNull();
+    expect(
+      within(commonSection).queryByTestId(
+        "settings-review-mask-target-option-synonym",
+      ),
+    ).toBeNull();
+    expect(
+      within(readingSection).getByTestId(
+        "settings-review-mask-target-option-reading",
+      ),
+    ).toBeTruthy();
+    expect(
+      within(synonymSection).getByTestId(
+        "settings-review-mask-target-option-synonym",
+      ),
     ).toBeTruthy();
   });
 

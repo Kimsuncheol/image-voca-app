@@ -56,6 +56,7 @@ import {
 import {
   CourseType,
   isCourseAvailableForLanguage,
+  isJlptLevelCourseId,
 } from "../src/types/vocabulary";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -92,7 +93,10 @@ function CoursesHeaderActions() {
   const { vocabularyPreferences } = useSpeechPreferences();
   const course = getParamValue(params.course);
   const hideMaskButton =
-    course === "KANJI" && vocabularyPreferences.reviewMaskTarget === "synonym";
+    (course === "KANJI" &&
+      vocabularyPreferences.reviewMaskTarget === "synonym") ||
+    (isJlptLevelCourseId(course) &&
+      vocabularyPreferences.reviewMaskTarget === "reading");
 
   return (
     <View style={styles.coursesHeaderActions}>

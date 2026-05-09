@@ -116,6 +116,11 @@ const ja = {
         synonym: "類義語",
         all: "すべて",
       },
+      maskTargetSections: {
+        common: "共通",
+        reading: "読み",
+        synonym: "類義語",
+      },
       saveFailed:
         "発音速度は今すぐ反映されましたが、この端末には保存できませんでした。",
     },

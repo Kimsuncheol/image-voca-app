@@ -21,14 +21,29 @@ import { useTheme } from "../src/context/ThemeContext";
 import { useSpeechPreferences } from "../src/hooks/useSpeechPreferences";
 import type { ReviewMaskTarget } from "../src/services/speechPreferences";
 
-const REVIEW_MASK_OPTIONS: ReviewMaskTarget[] = [
+const JAPANESE_COMMON_REVIEW_MASK_OPTIONS: ReviewMaskTarget[] = [
   "word",
   "meaning",
-  "reading",
+  "example",
+  "all",
+];
+
+const NON_JAPANESE_COMMON_REVIEW_MASK_OPTIONS: ReviewMaskTarget[] = [
+  "word",
+  "meaning",
   "example",
   "synonym",
   "all",
 ];
+
+const READING_REVIEW_MASK_OPTIONS: ReviewMaskTarget[] = ["reading"];
+const SYNONYM_REVIEW_MASK_OPTIONS: ReviewMaskTarget[] = ["synonym"];
+
+type ReviewMaskSection = {
+  id: "common" | "reading" | "synonym";
+  titleKey: string;
+  options: ReviewMaskTarget[];
+};
 
 export default function SettingsReviewMaskTargetScreen() {
   const { t } = useTranslation();
@@ -36,11 +51,31 @@ export default function SettingsReviewMaskTargetScreen() {
   const { learningLanguage } = useLearningLanguage();
   const { vocabularyPreferences, setReviewMaskTarget } = useSpeechPreferences();
   const styles = getStyles(isDark);
-  const reviewMaskOptions = React.useMemo(
-    () =>
-      learningLanguage === "ja"
-        ? REVIEW_MASK_OPTIONS
-        : REVIEW_MASK_OPTIONS.filter((target) => target !== "reading"),
+  const reviewMaskSections = React.useMemo<ReviewMaskSection[]>(
+    () => [
+      {
+        id: "common",
+        titleKey: "settings.speech.maskTargetSections.common",
+        options:
+          learningLanguage === "ja"
+            ? JAPANESE_COMMON_REVIEW_MASK_OPTIONS
+            : NON_JAPANESE_COMMON_REVIEW_MASK_OPTIONS,
+      },
+      ...(learningLanguage === "ja"
+        ? [
+            {
+              id: "reading" as const,
+              titleKey: "settings.speech.maskTargetSections.reading",
+              options: READING_REVIEW_MASK_OPTIONS,
+            },
+            {
+              id: "synonym" as const,
+              titleKey: "settings.speech.maskTargetSections.synonym",
+              options: SYNONYM_REVIEW_MASK_OPTIONS,
+            },
+          ]
+        : []),
+    ],
     [learningLanguage],
   );
 
@@ -79,49 +114,53 @@ export default function SettingsReviewMaskTargetScreen() {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            {t("settings.speech.reviewMaskTarget")}
-          </Text>
-          <View style={styles.card}>
-            {reviewMaskOptions.map((target, index) => {
-              const isSelected =
-                vocabularyPreferences.reviewMaskTarget === target;
+        {reviewMaskSections.map((section) => (
+          <View
+            key={section.id}
+            testID={`settings-review-mask-target-section-${section.id}`}
+            style={styles.section}
+          >
+            <Text style={styles.sectionTitle}>{t(section.titleKey)}</Text>
+            <View style={styles.card}>
+              {section.options.map((target, index) => {
+                const isSelected =
+                  vocabularyPreferences.reviewMaskTarget === target;
 
-              return (
-                <React.Fragment key={target}>
-                  {index > 0 && <View style={styles.separator} />}
-                  <TouchableOpacity
-                    testID={`settings-review-mask-target-option-${target}`}
-                    style={styles.option}
-                    onPress={() => {
-                      void handleChangeReviewMaskTarget(target);
-                    }}
-                  >
-                    <View style={styles.optionLeft}>
-                      <Ionicons
-                        name="eye-off-outline"
-                        size={24}
-                        color={isDark ? "#fff" : "#333"}
-                      />
-                      <Text style={styles.optionText}>
-                        {t(`settings.speech.maskTargets.${target}`)}
-                      </Text>
-                    </View>
-                    {isSelected && (
-                      <Ionicons
-                        testID={`settings-review-mask-target-check-${target}`}
-                        name="checkmark"
-                        size={24}
-                        color="#007AFF"
-                      />
-                    )}
-                  </TouchableOpacity>
-                </React.Fragment>
-              );
-            })}
+                return (
+                  <React.Fragment key={target}>
+                    {index > 0 && <View style={styles.separator} />}
+                    <TouchableOpacity
+                      testID={`settings-review-mask-target-option-${target}`}
+                      style={styles.option}
+                      onPress={() => {
+                        void handleChangeReviewMaskTarget(target);
+                      }}
+                    >
+                      <View style={styles.optionLeft}>
+                        <Ionicons
+                          name="eye-off-outline"
+                          size={24}
+                          color={isDark ? "#fff" : "#333"}
+                        />
+                        <Text style={styles.optionText}>
+                          {t(`settings.speech.maskTargets.${target}`)}
+                        </Text>
+                      </View>
+                      {isSelected && (
+                        <Ionicons
+                          testID={`settings-review-mask-target-check-${target}`}
+                          name="checkmark"
+                          size={24}
+                          color="#007AFF"
+                        />
+                      )}
+                    </TouchableOpacity>
+                  </React.Fragment>
+                );
+              })}
+            </View>
           </View>
-        </View>
+        ))}
       </ScrollView>
     </View>
   );

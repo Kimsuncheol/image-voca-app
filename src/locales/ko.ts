@@ -134,6 +134,11 @@ const ko = {
         synonym: "동의어",
         all: "전체",
       },
+      maskTargetSections: {
+        common: "공통",
+        reading: "읽기",
+        synonym: "동의어",
+      },
       saveFailed:
         "발음 속도는 지금 바로 적용되었지만 이 기기에는 저장하지 못했습니다.",
     },

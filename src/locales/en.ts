@@ -135,6 +135,11 @@ const en = {
         synonym: "Synonym",
         all: "All",
       },
+      maskTargetSections: {
+        common: "Common",
+        reading: "Reading",
+        synonym: "Synonym",
+      },
       saveFailed:
         "Speech speed changed for now, but could not be saved on this device.",
     },
