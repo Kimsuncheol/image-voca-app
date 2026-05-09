@@ -1,4 +1,5 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { useFocusEffect } from "expo-router";
 import { setDoc } from "firebase/firestore";
 import React, * as ReactModule from "react";
 import { Alert } from "react-native";
@@ -25,6 +26,8 @@ const mockSetSplashMounted = jest.fn();
 const mockSetSelectedFilter = jest.fn();
 const mockSetSearchQuery = jest.fn();
 let mockCourse = "TOEIC";
+let latestFocusCallback: (() => void | (() => void)) | undefined;
+let latestFocusCleanup: (() => void) | undefined;
 
 jest.mock("expo-router", () => ({
   Stack: {
@@ -189,6 +192,13 @@ describe("CourseWordBankScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCourse = "TOEIC";
+    latestFocusCallback = undefined;
+    latestFocusCleanup = undefined;
+    (useFocusEffect as jest.Mock).mockImplementation(
+      (callback: () => void | (() => void)) => {
+        latestFocusCallback = callback;
+      },
+    );
     __resetWordBankMaskStoreForTests();
     jest.spyOn(Alert, "alert").mockImplementation(() => {});
     jest.spyOn(console, "error").mockImplementation(() => {});
@@ -232,6 +242,22 @@ describe("CourseWordBankScreen", () => {
     const screen = render(<CourseWordBankScreen />);
 
     expect(screen.getAllByText("review:off:example")).toHaveLength(2);
+  });
+
+  it("resets only the current course mask state when leaving the screen", () => {
+    useWordBankMaskStore.getState().setMaskEnabled("TOEIC", true);
+    useWordBankMaskStore.getState().setMaskEnabled("CSAT", true);
+    mockScreenState(initialWords);
+
+    const screen = render(<CourseWordBankScreen />);
+
+    expect(useWordBankMaskStore.getState().isMaskEnabled("TOEIC")).toBe(true);
+    latestFocusCleanup = latestFocusCallback?.() ?? undefined;
+    screen.unmount();
+    latestFocusCleanup?.();
+
+    expect(useWordBankMaskStore.getState().isMaskEnabled("TOEIC")).toBe(false);
+    expect(useWordBankMaskStore.getState().isMaskEnabled("CSAT")).toBe(true);
   });
 
   it("deletes a word through the screen-level list row", async () => {

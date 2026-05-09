@@ -5,6 +5,7 @@ interface WordBankMaskState {
   isMaskEnabled: (courseId: string) => boolean;
   setMaskEnabled: (courseId: string, value: boolean) => void;
   toggleMask: (courseId: string) => void;
+  resetMask: (courseId: string) => void;
 }
 
 export const useWordBankMaskStore = create<WordBankMaskState>((set) => ({
@@ -23,6 +24,13 @@ export const useWordBankMaskStore = create<WordBankMaskState>((set) => ({
       maskByCourse: {
         ...state.maskByCourse,
         [courseId]: !state.maskByCourse[courseId],
+      },
+    })),
+  resetMask: (courseId) =>
+    set((state) => ({
+      maskByCourse: {
+        ...state.maskByCourse,
+        [courseId]: false,
       },
     })),
 }));

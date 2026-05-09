@@ -59,6 +59,7 @@ export default function CourseWordBankScreen() {
   const isReviewMode = useWordBankMaskStore((state) =>
     course ? state.isMaskEnabled(course) : false,
   );
+  const resetMask = useWordBankMaskStore((state) => state.resetMask);
 
   // === State Management ===
 
@@ -188,7 +189,12 @@ export default function CourseWordBankScreen() {
   useFocusEffect(
     useCallback(() => {
       fetchWords();
-    }, [fetchWords]),
+      return () => {
+        if (course) {
+          resetMask(course);
+        }
+      };
+    }, [course, fetchWords, resetMask]),
   );
 
   // === Event Handlers ===
