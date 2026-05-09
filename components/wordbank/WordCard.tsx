@@ -25,10 +25,8 @@ import { WordCardExample } from "./WordCardExample";
 import { WordCardHeader } from "./WordCardHeader";
 import { WordCardMeaning } from "./WordCardMeaning";
 import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
-import {
-  getReviewTapeTextStyle,
-  shouldMaskReviewContent,
-} from "../../src/utils/reviewMasking";
+import { shouldMaskReviewContent } from "../../src/utils/reviewMasking";
+import { getWordBankReviewTapeTextStyle } from "./wordBankMasking";
 
 /**
  * SavedWord type definition
@@ -128,7 +126,7 @@ function StandardWordCard({
     reviewMaskTarget,
     "reading",
   );
-  const maskStyle = getReviewTapeTextStyle(isDark);
+  const maskStyle = getWordBankReviewTapeTextStyle(isDark);
 
   const speakLanguage = learningLanguage === "ja" ? "ja-JP" : "en-US";
   const [showKana, setShowKana] = React.useState(false);
@@ -275,6 +273,7 @@ function StandardWordCard({
         showKana={showKana}
         isReviewMode={isReviewMode}
         reviewMaskTarget={reviewMaskTarget}
+        maskTextStyle={maskStyle}
       />
 
       {hasFurigana ? (

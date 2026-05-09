@@ -148,7 +148,22 @@ describe("KanjiWordBankCard", () => {
     );
 
     expect(screen.getByText("語")).toHaveStyle({
-      color: "#ffffff",
+      color: "#F8FAFC",
+    });
+  });
+
+  it("masks saved Kanji word text with the dark card background in dark mode", () => {
+    const screen = render(
+      <KanjiWordBankCard
+        word={buildSavedKanjiWord()}
+        isDark
+        isReviewMode
+        reviewMaskTarget="word"
+      />,
+    );
+
+    expect(screen.getByText("語")).toHaveStyle({
+      color: "#050505",
     });
   });
 
@@ -165,7 +180,24 @@ describe("KanjiWordBankCard", () => {
     expect(
       screen.getByTestId("kanji-collocation-example-visible-0"),
     ).toHaveStyle({
-      color: "#ffffff",
+      color: "#F8FAFC",
+    });
+  });
+
+  it("masks saved Kanji general examples with the dark card background in dark mode", () => {
+    const screen = render(
+      <KanjiWordBankCard
+        word={buildSavedKanjiWord()}
+        isDark
+        isReviewMode
+        reviewMaskTarget="example"
+      />,
+    );
+
+    expect(
+      screen.getByTestId("kanji-collocation-example-visible-0"),
+    ).toHaveStyle({
+      color: "#050505",
     });
   });
 
@@ -182,7 +214,7 @@ describe("KanjiWordBankCard", () => {
     expect(
       screen.getByTestId("kanji-collocation-example-visible-0"),
     ).toHaveStyle({
-      color: "#ffffff",
+      color: "#F8FAFC",
     });
   });
 

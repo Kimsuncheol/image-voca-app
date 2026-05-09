@@ -9,6 +9,8 @@ import {
   Text,
   TouchableOpacity,
   View,
+  type StyleProp,
+  type TextStyle,
 } from "react-native";
 import { getBackgroundColors } from "../../constants/backgroundColors";
 import { getFontColors } from "../../constants/fontColors";
@@ -67,6 +69,7 @@ interface WordCardExampleProps {
   showKana?: boolean;
   isReviewMode?: boolean;
   reviewMaskTarget?: ReviewMaskTarget;
+  maskTextStyle?: StyleProp<TextStyle>;
 }
 
 export function WordCardExample({
@@ -82,6 +85,7 @@ export function WordCardExample({
   showKana = true,
   isReviewMode = false,
   reviewMaskTarget = "word",
+  maskTextStyle,
 }: WordCardExampleProps) {
   const { handleSpeech } = useStudySpeech();
   useCardSpeechCleanup();
@@ -100,6 +104,8 @@ export function WordCardExample({
     reviewMaskTarget,
     "synonym",
   );
+  const effectiveMaskTextStyle =
+    maskTextStyle ?? getReviewTapeTextStyle(isDark);
 
   const processedExample = React.useMemo(
     () => (showKana ? example : stripKanaParens(example)),
@@ -234,7 +240,7 @@ export function WordCardExample({
           style={[
             styles.synonyms,
             { color: fontColors.learningCardSecondary },
-            maskSynonym ? getReviewTapeTextStyle(isDark) : undefined,
+            maskSynonym ? effectiveMaskTextStyle : undefined,
           ]}
         >
           {formattedSynonyms}
@@ -258,7 +264,7 @@ export function WordCardExample({
               style={[
                 styles.example,
                 { color: fontColors.learningCardPrimary },
-                maskExample ? getReviewTapeTextStyle(isDark) : undefined,
+                maskExample ? effectiveMaskTextStyle : undefined,
               ]}
             >
               {segments.map((segment, segIndex) =>
@@ -268,7 +274,7 @@ export function WordCardExample({
                     style={[
                       styles.exampleFurigana,
                       { color: fontColors.learningCardMuted },
-                      maskExample ? getReviewTapeTextStyle(isDark) : undefined,
+                      maskExample ? effectiveMaskTextStyle : undefined,
                     ]}
                   >
                     {segment.text}
@@ -285,7 +291,7 @@ export function WordCardExample({
               style={[
                 styles.translation,
                 { color: fontColors.translation },
-                maskExample ? getReviewTapeTextStyle(isDark) : undefined,
+                maskExample ? effectiveMaskTextStyle : undefined,
               ]}
             >
               {translations[index].trim()}
@@ -344,7 +350,7 @@ export function WordCardExample({
                   style={[
                     styles.example,
                     { color: fontColors.learningCardPrimary },
-                    maskExample ? getReviewTapeTextStyle(isDark) : undefined,
+                    maskExample ? effectiveMaskTextStyle : undefined,
                   ]}
                 >
                   {item.exampleText.trim()}
@@ -360,7 +366,7 @@ export function WordCardExample({
                   style={[
                     styles.translation,
                     { color: fontColors.translation },
-                    maskExample ? getReviewTapeTextStyle(isDark) : undefined,
+                    maskExample ? effectiveMaskTextStyle : undefined,
                   ]}
                 >
                   {item.translationText.trim()}

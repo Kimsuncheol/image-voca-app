@@ -21,10 +21,8 @@ import { GeneralBackSection } from "../course/vocabulary/KanjiCollocationCardGen
 import type { SavedWord } from "./WordCard";
 import { LineHeights } from "@/constants/lineHeights";
 import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
-import {
-  getReviewTapeTextStyle,
-  shouldMaskReviewContent,
-} from "../../src/utils/reviewMasking";
+import { shouldMaskReviewContent } from "../../src/utils/reviewMasking";
+import { getWordBankReviewTapeTextStyle } from "./wordBankMasking";
 
 interface KanjiWordBankCardProps {
   word: SavedWord;
@@ -48,7 +46,7 @@ export function KanjiWordBankCard({
   const useKorean = language === "ko";
   const bgColors = getBackgroundColors(isDark);
   const fontColors = getFontColors(isDark);
-  const maskStyle = getReviewTapeTextStyle(isDark);
+  const maskStyle = getWordBankReviewTapeTextStyle(isDark);
   const maskWord = shouldMaskReviewContent(
     isReviewMode,
     reviewMaskTarget,
@@ -272,6 +270,7 @@ export function KanjiWordBankCard({
             showFurigana={showFurigana}
             isReviewMode={isReviewMode}
             reviewMaskTarget={reviewMaskTarget}
+            maskTextStyle={maskStyle}
             onFlip={handleStaticExampleRowPress}
           />
         </View>

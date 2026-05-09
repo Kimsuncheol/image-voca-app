@@ -84,7 +84,22 @@ describe("Word bank WordCard synonyms", () => {
     );
 
     expect(getByTestId("word-card-title")).toHaveStyle({
-      color: "#ffffff",
+      color: "#F8FAFC",
+    });
+  });
+
+  it("masks saved word titles with the dark card background in dark mode", () => {
+    const { getByTestId } = render(
+      <WordCard
+        word={baseWord}
+        isDark
+        isReviewMode
+        reviewMaskTarget="word"
+      />,
+    );
+
+    expect(getByTestId("word-card-title")).toHaveStyle({
+      color: "#050505",
     });
   });
 
@@ -99,10 +114,25 @@ describe("Word bank WordCard synonyms", () => {
     );
 
     expect(getByTestId("word-card-example")).toHaveStyle({
-      color: "#ffffff",
+      color: "#F8FAFC",
     });
     expect(getByTestId("word-card-translation")).toHaveStyle({
-      color: "#ffffff",
+      color: "#F8FAFC",
+    });
+  });
+
+  it("masks saved examples with the dark card background in dark mode", () => {
+    const { getByTestId } = render(
+      <WordCard
+        word={baseWord}
+        isDark
+        isReviewMode
+        reviewMaskTarget="example"
+      />,
+    );
+
+    expect(getByTestId("word-card-example")).toHaveStyle({
+      color: "#050505",
     });
   });
 
@@ -117,7 +147,7 @@ describe("Word bank WordCard synonyms", () => {
     );
 
     expect(getByTestId("word-card-synonyms")).toHaveStyle({
-      color: "#ffffff",
+      color: "#F8FAFC",
     });
   });
 

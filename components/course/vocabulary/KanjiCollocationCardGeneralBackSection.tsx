@@ -5,6 +5,8 @@ import {
   TouchableOpacity,
   View,
   type GestureResponderEvent,
+  type StyleProp,
+  type TextStyle,
 } from "react-native";
 import { getFontColors } from "../../../constants/fontColors";
 import { useStudySpeech } from "../../../src/hooks/useStudyMode";
@@ -42,6 +44,7 @@ interface GeneralBackSectionProps {
   /** Whether example target spans should be hidden under tape masks */
   isReviewMode?: boolean;
   reviewMaskTarget?: ReviewMaskTarget;
+  maskTextStyle?: StyleProp<TextStyle>;
   /** Callback triggered to flip the card horizontally back to the front face */
   onFlip: () => void;
 }
@@ -62,10 +65,13 @@ export function GeneralBackSection({
   showFurigana,
   isReviewMode = false,
   reviewMaskTarget = "word",
+  maskTextStyle,
   onFlip,
 }: GeneralBackSectionProps) {
   const { handleSpeech } = useStudySpeech();
   const fontColors = getFontColors(isDark);
+  const effectiveMaskTextStyle =
+    maskTextStyle ?? getReviewTapeTextStyle(isDark);
   const maskWholeExample = shouldMaskReviewContent(
     isReviewMode,
     reviewMaskTarget,
@@ -162,7 +168,7 @@ export function GeneralBackSection({
                                 : undefined,  
                                 maskWholeExample ||
                                 (maskDelimitedWord && reviewSegment.masked)
-                                  ? getReviewTapeTextStyle(isDark)
+                                  ? effectiveMaskTextStyle
                                   : undefined,
                                 
                             ]}
@@ -179,7 +185,7 @@ export function GeneralBackSection({
                       styles.backExample,
                       styles.backExampleOverlay,
                       maskWholeExample
-                        ? getReviewTapeTextStyle(isDark)
+                        ? effectiveMaskTextStyle
                         : { color: fontColors.learningCardPrimary },
                     ]}
                   >
@@ -204,7 +210,7 @@ export function GeneralBackSection({
                                 : undefined,
                               maskWholeExample ||
                               (maskDelimitedWord && reviewSegment.masked)
-                                ? getReviewTapeTextStyle(isDark)
+                                ? effectiveMaskTextStyle
                                 : undefined,
                             ]}
                           >
@@ -220,7 +226,7 @@ export function GeneralBackSection({
                     style={[
                       styles.backTranslation,
                       maskWholeExample
-                        ? getReviewTapeTextStyle(isDark)
+                        ? effectiveMaskTextStyle
                         : { color: fontColors.learningCardMuted },
                     ]}
                   >
