@@ -116,7 +116,8 @@ function CoursesHeaderActions() {
 }
 
 const isReadingBrightnessRoute = (segments: string[]) =>
-  (segments[0] === "course" && segments[2] === "vocabulary") ||
+  (segments[0] === "course" &&
+    (segments[2] === "vocabulary" || segments[2] === "quiz-play")) ||
   segments[0] === "courses";
 
 export function RootLayoutNav() {

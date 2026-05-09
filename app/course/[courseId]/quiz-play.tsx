@@ -27,11 +27,13 @@ import {
   QuizHeader,
   QuizTimer,
 } from "../../../components/course";
+import { EyeComfortHeaderButton } from "../../../src/components/common/EyeComfortHeaderButton";
 import { useAuth } from "../../../src/context/AuthContext";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useAndroidImmersiveStudyMode } from "../../../src/hooks/useAndroidImmersiveStudyMode";
 import { useJapaneseContentLanguage } from "../../../src/hooks/useJapaneseContentLanguage";
+import { useReadingDisplayStore } from "../../../src/stores/readingDisplayStore";
 import {
   type QuizTypeId,
   resolveRuntimeQuizType,
@@ -102,6 +104,9 @@ export default function QuizPlayScreen() {
   const requestedQuizType = sanitizeRequestedQuizType(courseId, quizType);
   const course = findRuntimeCourse(courseId);
   const contentLanguage = useJapaneseContentLanguage(courseId, i18n.language);
+  const isReadingDisplayModalOpen = useReadingDisplayStore(
+    (state) => state.isDisplayModalOpen,
+  );
   const dayNumber = parseInt(day || "1", 10);
   const showJlptPronunciationDetails = isJlptLevelCourseId(courseId);
 
@@ -744,7 +749,12 @@ export default function QuizPlayScreen() {
       style={[styles.container, { backgroundColor: bgColors.screen }]}
     >
       <Stack.Screen options={{ headerShown: false }} />
-      <QuizHeader title="" isDark={isDark} onQuit={handleQuit} />
+      <QuizHeader
+        title=""
+        isDark={isDark}
+        onQuit={handleQuit}
+        rightAction={<EyeComfortHeaderButton />}
+      />
       {!quizFinished && !loading && (
         <QuizTimer
           duration={15}
@@ -753,6 +763,7 @@ export default function QuizPlayScreen() {
             !showResult &&
             !quizFinished &&
             !isQuitPromptOpen &&
+            !isReadingDisplayModalOpen &&
             !wrongWord &&
             !wrongMeaning &&
             incorrectCount < MAX_INCORRECT_ANSWERS

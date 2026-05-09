@@ -250,6 +250,27 @@ describe("RootLayoutNav auth gating", () => {
     });
   });
 
+  it("activates reading brightness scope on quiz play routes", async () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1" },
+      loading: false,
+      authStatus: "signed_in",
+    });
+    (useSegments as jest.Mock).mockReturnValue([
+      "course",
+      "[courseId]",
+      "quiz-play",
+    ]);
+
+    render(<RootLayoutNav />);
+
+    await waitFor(() => {
+      expect(
+        useReadingDisplayStore.getState().isBrightnessScopeActive,
+      ).toBe(true);
+    });
+  });
+
   it("activates reading brightness scope on Word Bank routes", async () => {
     mockUseAuth.mockReturnValue({
       user: { uid: "user-1" },

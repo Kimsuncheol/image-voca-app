@@ -6,6 +6,10 @@ import {
   __resetJapaneseContentLanguageStoreForTests,
   useJapaneseContentLanguageStore,
 } from "../src/stores/japaneseContentLanguageStore";
+import {
+  __resetReadingDisplayStoreForTests,
+  useReadingDisplayStore,
+} from "../src/stores/readingDisplayStore";
 
 const mockBack = jest.fn();
 const mockFetchCourseQuizData = jest.fn();
@@ -194,11 +198,25 @@ jest.mock("../components/course", () => ({
     );
     return <Text>{`QuizFinishView:${score}/${totalQuestions}`}</Text>;
   },
-  QuizHeader: ({ onQuit }: { onQuit: () => void }) => {
+  QuizHeader: ({
+    onQuit,
+    rightAction,
+  }: {
+    onQuit: () => void;
+    rightAction?: React.ReactNode;
+  }) => {
     const { Button } = jest.requireActual<typeof import("react-native")>(
       "react-native",
     );
-    return <Button title="quit-quiz" onPress={onQuit} />;
+    const { View } = jest.requireActual<typeof import("react-native")>(
+      "react-native",
+    );
+    return (
+      <View>
+        <Button title="quit-quiz" onPress={onQuit} />
+        {rightAction}
+      </View>
+    );
   },
   QuizTimer: ({
     isRunning,
@@ -233,7 +251,9 @@ describe("QuizPlayScreen Firestore quiz data", () => {
       day: "5",
       quizType: "matching",
     };
+    __resetReadingDisplayStoreForTests();
     __resetJapaneseContentLanguageStoreForTests();
+    useReadingDisplayStore.setState({ _initialized: true });
     useJapaneseContentLanguageStore.setState({ _initialized: true });
   });
 
@@ -270,6 +290,7 @@ describe("QuizPlayScreen Firestore quiz data", () => {
     expect(mockPrefetchVocabularyCards).not.toHaveBeenCalled();
     expect(screen.getByText("word:alpha")).toBeTruthy();
     expect(screen.getByText("matchingMeanings:second,first")).toBeTruthy();
+    expect(screen.getByTestId("eye-comfort-header-button")).toBeTruthy();
     expect(mockStackScreenOptions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ headerShown: false }),
@@ -278,6 +299,39 @@ describe("QuizPlayScreen Firestore quiz data", () => {
     expect(getLatestStackScreenOptions()).toEqual(
       expect.objectContaining({ headerShown: false }),
     );
+  });
+
+  it("pauses the timer while the reading display modal is open", async () => {
+    mockFetchCourseQuizData.mockResolvedValue({
+      questions: [
+        {
+          id: "i1",
+          word: "alpha",
+          meaning: "first",
+          matchChoiceText: "first",
+          correctAnswer: "first",
+        },
+      ],
+      matchingChoices: ["first"],
+    });
+
+    render(<QuizPlayScreen />);
+
+    await waitFor(() => {
+      expect(getLatestQuizTimerProps()).toEqual(
+        expect.objectContaining({ isRunning: true, quizKey: "matching-0" }),
+      );
+    });
+
+    act(() => {
+      useReadingDisplayStore.setState({ isDisplayModalOpen: true });
+    });
+
+    await waitFor(() => {
+      expect(getLatestQuizTimerProps()).toEqual(
+        expect.objectContaining({ isRunning: false, quizKey: "matching-0" }),
+      );
+    });
   });
 
   it("uses Korean Japanese-content preference for JLPT quiz data without changing UI language", async () => {

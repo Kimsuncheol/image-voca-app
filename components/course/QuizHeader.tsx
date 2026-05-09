@@ -8,9 +8,15 @@ interface QuizHeaderProps {
   title: string;
   isDark: boolean;
   onQuit?: () => void;
+  rightAction?: React.ReactNode;
 }
 
-export function QuizHeader({ title, isDark, onQuit }: QuizHeaderProps) {
+export function QuizHeader({
+  title,
+  isDark,
+  onQuit,
+  rightAction,
+}: QuizHeaderProps) {
   return (
     <View style={styles.container}>
       {onQuit ? (
@@ -31,7 +37,7 @@ export function QuizHeader({ title, isDark, onQuit }: QuizHeaderProps) {
       <ThemedText style={styles.title} type="defaultSemiBold">
         {title}
       </ThemedText>
-      <View style={styles.rightSpacer} />
+      <View style={styles.rightSpacer}>{rightAction}</View>
     </View>
   );
 }
@@ -54,5 +60,7 @@ const styles = StyleSheet.create({
   },
   rightSpacer: {
     width: 44, // Matches the approximate width and padding of the back button to keep title perfectly centered
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
