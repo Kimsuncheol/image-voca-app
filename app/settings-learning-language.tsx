@@ -18,6 +18,7 @@ import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useLearningLanguage } from "../src/context/LearningLanguageContext";
 import { useTheme } from "../src/context/ThemeContext";
+import { useSpeechPreferences } from "../src/hooks/useSpeechPreferences";
 import type { LearningLanguage } from "../src/types/vocabulary";
 
 const LEARNING_LANGUAGE_OPTIONS: LearningLanguage[] = ["en", "ja"];
@@ -26,6 +27,7 @@ export default function SettingsLearningLanguageScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const { learningLanguage, setLearningLanguage } = useLearningLanguage();
+  const { vocabularyPreferences, setReviewMaskTarget } = useSpeechPreferences();
   const styles = getStyles(isDark);
   const title = t("settings.language.learningLanguage");
 
@@ -42,6 +44,17 @@ export default function SettingsLearningLanguageScreen() {
     t(`settings.language.${language === "ja" ? "japanese" : "english"}`, {
       defaultValue: labels[language],
     });
+
+  const handleSelectLearningLanguage = async (language: LearningLanguage) => {
+    await setLearningLanguage(language);
+
+    if (
+      language === "en" &&
+      vocabularyPreferences.reviewMaskTarget === "reading"
+    ) {
+      await setReviewMaskTarget("word");
+    }
+  };
 
   return (
     <SafeAreaView
@@ -76,7 +89,7 @@ export default function SettingsLearningLanguageScreen() {
                     testID={`settings-learning-language-option-${language}`}
                     style={styles.option}
                     onPress={() => {
-                      void setLearningLanguage(language);
+                      void handleSelectLearningLanguage(language);
                     }}
                   >
                     <View style={styles.optionLeft}>

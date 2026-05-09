@@ -3,11 +3,14 @@ import React from "react";
 import { StyleSheet } from "react-native";
 
 import SettingsLearningLanguageScreen from "../app/settings-learning-language";
+import type { ReviewMaskTarget } from "../src/services/speechPreferences";
 import type { LearningLanguage } from "../src/types/vocabulary";
 
 const mockSetLearningLanguage = jest.fn();
+const mockSetReviewMaskTarget = jest.fn();
 const mockStackScreen = jest.fn();
 let mockLearningLanguage: LearningLanguage = "en";
+let mockReviewMaskTarget: ReviewMaskTarget = "word";
 
 jest.mock("@expo/vector-icons", () => {
   const React = require("react");
@@ -81,11 +84,23 @@ jest.mock("../src/context/ThemeContext", () => ({
   }),
 }));
 
+jest.mock("../src/hooks/useSpeechPreferences", () => ({
+  useSpeechPreferences: () => ({
+    vocabularyPreferences: {
+      autoSpeakVocabulary: true,
+      reviewMaskTarget: mockReviewMaskTarget,
+    },
+    setReviewMaskTarget: (...args: any[]) => mockSetReviewMaskTarget(...args),
+  }),
+}));
+
 describe("SettingsLearningLanguageScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockLearningLanguage = "en";
+    mockReviewMaskTarget = "word";
     mockSetLearningLanguage.mockResolvedValue(undefined);
+    mockSetReviewMaskTarget.mockResolvedValue({ persistedLocally: true });
   });
 
   it("renders the banner, options, selected checkmark, and matching header background", () => {
@@ -134,5 +149,43 @@ describe("SettingsLearningLanguageScreen", () => {
     await waitFor(() => {
       expect(mockSetLearningLanguage).toHaveBeenCalledWith("ja");
     });
+  });
+
+  it("resets Reading mask target when switching from Japanese to English", async () => {
+    mockLearningLanguage = "ja";
+    mockReviewMaskTarget = "reading";
+    const screen = render(<SettingsLearningLanguageScreen />);
+
+    fireEvent.press(screen.getByTestId("settings-learning-language-option-en"));
+
+    await waitFor(() => {
+      expect(mockSetLearningLanguage).toHaveBeenCalledWith("en");
+      expect(mockSetReviewMaskTarget).toHaveBeenCalledWith("word");
+    });
+  });
+
+  it("does not reset the mask target when switching to Japanese", async () => {
+    mockReviewMaskTarget = "reading";
+    const screen = render(<SettingsLearningLanguageScreen />);
+
+    fireEvent.press(screen.getByTestId("settings-learning-language-option-ja"));
+
+    await waitFor(() => {
+      expect(mockSetLearningLanguage).toHaveBeenCalledWith("ja");
+    });
+    expect(mockSetReviewMaskTarget).not.toHaveBeenCalled();
+  });
+
+  it("does not rewrite non-Reading mask target when switching to English", async () => {
+    mockLearningLanguage = "ja";
+    mockReviewMaskTarget = "meaning";
+    const screen = render(<SettingsLearningLanguageScreen />);
+
+    fireEvent.press(screen.getByTestId("settings-learning-language-option-en"));
+
+    await waitFor(() => {
+      expect(mockSetLearningLanguage).toHaveBeenCalledWith("en");
+    });
+    expect(mockSetReviewMaskTarget).not.toHaveBeenCalled();
   });
 });

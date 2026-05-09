@@ -8,6 +8,7 @@ import type { ReviewMaskTarget } from "../src/services/speechPreferences";
 const mockSetReviewMaskTarget = jest.fn();
 const mockStackScreen = jest.fn();
 let mockReviewMaskTarget: ReviewMaskTarget = "word";
+let mockLearningLanguage = "en";
 
 jest.mock("@expo/vector-icons", () => {
   const React = require("react");
@@ -64,6 +65,12 @@ jest.mock("../src/context/ThemeContext", () => ({
   }),
 }));
 
+jest.mock("../src/context/LearningLanguageContext", () => ({
+  useLearningLanguage: () => ({
+    learningLanguage: mockLearningLanguage,
+  }),
+}));
+
 jest.mock("../src/hooks/useSpeechPreferences", () => ({
   useSpeechPreferences: () => ({
     vocabularyPreferences: {
@@ -78,16 +85,17 @@ describe("SettingsReviewMaskTargetScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockReviewMaskTarget = "word";
+    mockLearningLanguage = "en";
     mockSetReviewMaskTarget.mockResolvedValue({ persistedLocally: true });
   });
 
-  it("renders the banner, mask target options, and selected checkmark", () => {
+  it("renders English mask target options without Reading", () => {
     const screen = render(<SettingsReviewMaskTargetScreen />);
 
     expect(screen.getByTestId("top-banner-ad").props.children).toBe("false");
     expect(screen.getByText("Word")).toBeTruthy();
     expect(screen.getByText("Meaning")).toBeTruthy();
-    expect(screen.getByText("Reading")).toBeTruthy();
+    expect(screen.queryByText("Reading")).toBeNull();
     expect(screen.getByText("Example")).toBeTruthy();
     expect(screen.getByText("Synonym")).toBeTruthy();
     expect(screen.getByText("All")).toBeTruthy();
@@ -107,6 +115,27 @@ describe("SettingsReviewMaskTargetScreen", () => {
       mockStackScreen.mock.calls[0][0].options.headerStyle,
     );
     expect(headerStyle.backgroundColor).toBe(containerStyle.backgroundColor);
+  });
+
+  it("renders Reading only for Japanese learning language", () => {
+    mockLearningLanguage = "ja";
+
+    const screen = render(<SettingsReviewMaskTargetScreen />);
+
+    expect(screen.getByText("Reading")).toBeTruthy();
+    expect(
+      screen.getByTestId("settings-review-mask-target-option-reading"),
+    ).toBeTruthy();
+  });
+
+  it("normalizes persisted Reading to Word in English mode", async () => {
+    mockReviewMaskTarget = "reading";
+
+    render(<SettingsReviewMaskTargetScreen />);
+
+    await waitFor(() => {
+      expect(mockSetReviewMaskTarget).toHaveBeenCalledWith("word");
+    });
   });
 
   it("persists Word as the word target", async () => {
@@ -134,6 +163,7 @@ describe("SettingsReviewMaskTargetScreen", () => {
   });
 
   it("persists Reading as the reading target", async () => {
+    mockLearningLanguage = "ja";
     const screen = render(<SettingsReviewMaskTargetScreen />);
 
     fireEvent.press(

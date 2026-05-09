@@ -16,6 +16,7 @@ import {
 import { TopBannerAd } from "../components/ads/TopBannerAd";
 import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
+import { useLearningLanguage } from "../src/context/LearningLanguageContext";
 import { useTheme } from "../src/context/ThemeContext";
 import { useSpeechPreferences } from "../src/hooks/useSpeechPreferences";
 import type { ReviewMaskTarget } from "../src/services/speechPreferences";
@@ -32,8 +33,16 @@ const REVIEW_MASK_OPTIONS: ReviewMaskTarget[] = [
 export default function SettingsReviewMaskTargetScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
+  const { learningLanguage } = useLearningLanguage();
   const { vocabularyPreferences, setReviewMaskTarget } = useSpeechPreferences();
   const styles = getStyles(isDark);
+  const reviewMaskOptions = React.useMemo(
+    () =>
+      learningLanguage === "ja"
+        ? REVIEW_MASK_OPTIONS
+        : REVIEW_MASK_OPTIONS.filter((target) => target !== "reading"),
+    [learningLanguage],
+  );
 
   const handleChangeReviewMaskTarget = async (target: ReviewMaskTarget) => {
     const result = await setReviewMaskTarget(target);
@@ -42,6 +51,19 @@ export default function SettingsReviewMaskTargetScreen() {
       Alert.alert(t("common.error"), t("settings.speech.saveFailed"));
     }
   };
+
+  React.useEffect(() => {
+    if (
+      learningLanguage !== "ja" &&
+      vocabularyPreferences.reviewMaskTarget === "reading"
+    ) {
+      void setReviewMaskTarget("word");
+    }
+  }, [
+    learningLanguage,
+    setReviewMaskTarget,
+    vocabularyPreferences.reviewMaskTarget,
+  ]);
 
   return (
     <View style={styles.container} testID="settings-review-mask-target-screen">
@@ -62,7 +84,7 @@ export default function SettingsReviewMaskTargetScreen() {
             {t("settings.speech.reviewMaskTarget")}
           </Text>
           <View style={styles.card}>
-            {REVIEW_MASK_OPTIONS.map((target, index) => {
+            {reviewMaskOptions.map((target, index) => {
               const isSelected =
                 vocabularyPreferences.reviewMaskTarget === target;
 
