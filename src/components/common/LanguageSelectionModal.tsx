@@ -99,11 +99,17 @@ export function LanguageSelectionModal({
   const insets = useSafeAreaInsets();
   const headerContextHeight = React.useContext(HeaderHeightContext);
   const windowDimensions = useWindowDimensions();
+  const defaultHeaderHeight = getDefaultHeaderHeight(
+    windowDimensions,
+    false,
+    insets.top,
+  );
   const headerHeight =
-    headerContextHeight ??
-    getDefaultHeaderHeight(windowDimensions, false, insets.top);
+    typeof headerContextHeight === "number" && headerContextHeight > 0
+      ? headerContextHeight
+      : defaultHeaderHeight;
   const options = getLanguageModeOptions(t);
-  const panelTop = headerHeight + 10;
+  const panelTop = Math.max(insets.top, headerHeight - 8);
   const availablePanelHeight = Math.max(
     220,
     windowDimensions.height - panelTop - 24,

@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { HeaderHeightContext } from "@react-navigation/elements";
 import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
 import { StyleSheet } from "react-native";
@@ -79,7 +80,11 @@ describe("ReadingDisplayModal", () => {
   });
 
   it("positions the panel below the header instead of bottom-aligning it", () => {
-    const screen = render(<ReadingDisplayModal />);
+    const screen = render(
+      <HeaderHeightContext.Provider value={0}>
+        <ReadingDisplayModal />
+      </HeaderHeightContext.Provider>,
+    );
     const overlayStyle = StyleSheet.flatten(
       screen.getByTestId("reading-display-modal-overlay").props.style,
     );
@@ -89,7 +94,7 @@ describe("ReadingDisplayModal", () => {
 
     expect(overlayStyle.justifyContent).toBeUndefined();
     expect(panelStyle.position).toBe("absolute");
-    expect(panelStyle.top).toBe(26);
+    expect(panelStyle.top).toBe(48);
     expect(panelStyle.right).toBe(16);
     expect(panelStyle.left).toBe(16);
     expect(panelStyle.maxWidth).toBe(360);

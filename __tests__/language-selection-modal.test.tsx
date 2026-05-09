@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { HeaderHeightContext } from "@react-navigation/elements";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
 import { StyleSheet } from "react-native";
@@ -144,15 +145,17 @@ describe("LanguageSelectionModal", () => {
       .toBeTruthy();
   });
 
-  it("caps the floating panel height", () => {
+  it("falls back to default header height when context height is zero", () => {
     const screen = render(
-      <LanguageSelectionModal visible onClose={jest.fn()} />,
+      <HeaderHeightContext.Provider value={0}>
+        <LanguageSelectionModal visible onClose={jest.fn()} />
+      </HeaderHeightContext.Provider>,
     );
 
     const panel = screen.getByTestId("language-selection-modal-panel");
     const panelStyle = StyleSheet.flatten(panel.props.style);
 
-    expect(panelStyle.top).toBe(66);
+    expect(panelStyle.top).toBe(48);
     expect(panelStyle.maxHeight).toBe(420);
   });
 
