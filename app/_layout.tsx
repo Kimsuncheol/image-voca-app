@@ -90,13 +90,20 @@ const getParamValue = (value: string | string[] | undefined) =>
 
 function CoursesHeaderActions() {
   const params = useGlobalSearchParams<{ course?: string | string[] }>();
+  const segments = useSegments();
   const { vocabularyPreferences } = useSpeechPreferences();
   const course = getParamValue(params.course);
+  const isJlptLevelSelectionRoute =
+    segments[0] === "courses" && segments[1] === "jlpt-levels";
   const hideMaskButton =
     (course === "KANJI" &&
       vocabularyPreferences.reviewMaskTarget === "synonym") ||
     (isJlptLevelCourseId(course) &&
       vocabularyPreferences.reviewMaskTarget === "reading");
+
+  if (isJlptLevelSelectionRoute) {
+    return null;
+  }
 
   return (
     <View style={styles.coursesHeaderActions}>

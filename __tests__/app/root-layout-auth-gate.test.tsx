@@ -205,6 +205,25 @@ describe("RootLayoutNav auth gating", () => {
     expect(coursesScreen?.options?.headerTintColor).toBe("#000");
   });
 
+  it("hides courses header triggers on the Word Bank JLPT level selection route", () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1" },
+      loading: false,
+      authStatus: "signed_in",
+    });
+    (useSegments as jest.Mock).mockReturnValue(["courses", "jlpt-levels"]);
+
+    const screen = render(<RootLayoutNav />);
+
+    expect(screen.queryByTestId("courses-mask-header-button")).toBeNull();
+    expect(screen.queryByTestId("language-header-button")).toBeNull();
+    expect(screen.queryByTestId("eye-comfort-header-button")).toBeNull();
+    const coursesScreen = mockStackScreens.find(
+      (stackScreen) => stackScreen.name === "courses",
+    );
+    expect(coursesScreen?.options?.headerRight).toBeTruthy();
+  });
+
   it("toggles the Word Bank mask state from the courses native header", () => {
     mockUseAuth.mockReturnValue({
       user: { uid: "user-1" },
