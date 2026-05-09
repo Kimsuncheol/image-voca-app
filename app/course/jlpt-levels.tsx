@@ -1,3 +1,4 @@
+import { FontSizes } from "@/constants/fontSizes";
 import { Stack, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,7 +11,6 @@ import { getBackgroundColors } from "../../constants/backgroundColors";
 import { useTheme } from "../../src/context/ThemeContext";
 import { getTotalDaysForCourse } from "../../src/services/vocabularyPrefetch";
 import { JLPT_LEVELS, JLPTLevelCourse } from "../../src/types/vocabulary";
-import { FontSizes } from "@/constants/fontSizes";
 
 export default function JlptLevelsScreen() {
   const { isDark } = useTheme();
@@ -107,8 +107,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 0,
-    paddingBottom: 40,
+    marginTop: 16,
+    marginBottom: 40,
   },
   header: {
     marginBottom: 24,
