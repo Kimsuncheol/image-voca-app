@@ -170,11 +170,17 @@ function VocabularyScreenContent() {
     back: false,
   });
   const isProgressDisabled = isPreviewMode;
+  const isDayCompleted =
+    !isProgressDisabled &&
+    Boolean(courseProgress[courseId as string]?.[dayNumber]?.completed);
   const isStudyCompleted =
-    (!isProgressDisabled &&
-      (isFinished ||
-        courseProgress[courseId as string]?.[dayNumber]?.completed)) ||
-    false;
+    (!isProgressDisabled && (isFinished || isDayCompleted)) || false;
+  const shouldTrackLearningProgress =
+    !isProgressDisabled && courseProgressLoaded && !isDayCompleted;
+  const shouldTrackResumeProgress =
+    !isPreviewMode &&
+    !isFinished &&
+    Boolean(user && courseId && cards.length > 0);
 
   useEffect(() => {
     sessionLearnedWordIdsRef.current = new Set();
@@ -431,8 +437,7 @@ function VocabularyScreenContent() {
       isPreviewMode ||
       !user ||
       !courseId ||
-      cards.length === 0 ||
-      isStudyCompleted
+      !shouldTrackResumeProgress
     ) {
       return;
     }
@@ -449,7 +454,7 @@ function VocabularyScreenContent() {
     courseId,
     dayNumber,
     isPreviewMode,
-    isStudyCompleted,
+    shouldTrackResumeProgress,
     typedCourseId,
     user,
   ]);
@@ -479,24 +484,12 @@ function VocabularyScreenContent() {
       isPreviewMode ||
       !user ||
       !courseId ||
-      cards.length === 0 ||
+      !shouldTrackResumeProgress ||
       !courseProgressLoaded
     ) {
       if (isPreviewMode || !user || !courseId) {
         setResumeProgressResolved(true);
       }
-      return;
-    }
-
-    if (isStudyCompleted) {
-      setResumeProgressResolved(true);
-      void clearResumeProgress({
-        userId: user.uid,
-        courseId: typedCourseId,
-        dayNumber,
-      }).catch((error) => {
-        console.warn("Failed to clear completed day resume progress:", error);
-      });
       return;
     }
 
@@ -572,7 +565,7 @@ function VocabularyScreenContent() {
     courseProgressLoaded,
     dayNumber,
     isPreviewMode,
-    isStudyCompleted,
+    shouldTrackResumeProgress,
     t,
     typedCourseId,
     user,
@@ -595,7 +588,7 @@ function VocabularyScreenContent() {
         isPreviewMode ||
         loading ||
         cards.length === 0 ||
-        isStudyCompleted
+        !shouldTrackResumeProgress
       ) {
         return;
       }
@@ -631,11 +624,11 @@ function VocabularyScreenContent() {
     cards.length,
     courseId,
     isPreviewMode,
-    isStudyCompleted,
     loading,
     navigation,
     persistCurrentResumeProgress,
     resetMaskToDefault,
+    shouldTrackResumeProgress,
     t,
     user,
   ]);
@@ -649,7 +642,7 @@ function VocabularyScreenContent() {
    * Records the word as learned in the local buffer.
    */
   const onSwipeRight = (item: CourseVocabularyCard) => {
-    if (isProgressDisabled) {
+    if (!shouldTrackLearningProgress) {
       return;
     }
 
@@ -682,7 +675,7 @@ function VocabularyScreenContent() {
       return;
     }
 
-    if (user && courseId) {
+    if (user && courseId && shouldTrackLearningProgress) {
       const learnedCount = sessionLearnedWordIdsRef.current.size;
 
       // Flush buffered words to database
@@ -739,6 +732,15 @@ function VocabularyScreenContent() {
       } catch (error) {
         console.error("Error marking day as completed:", error);
       }
+      return;
+    }
+
+    if (user && courseId && shouldTrackResumeProgress) {
+      await clearResumeProgress({
+        userId: user.uid,
+        courseId,
+        dayNumber,
+      });
     }
   };
 
@@ -752,13 +754,13 @@ function VocabularyScreenContent() {
     currentIndexRef.current = index;
     setActiveSpeechIndex(index);
 
-    if (isProgressDisabled) {
-      return;
-    }
-
     void persistCurrentResumeProgress().catch((error) => {
       console.warn("Failed to save vocabulary resume progress:", error);
     });
+
+    if (!shouldTrackLearningProgress) {
+      return;
+    }
 
     if (cards[index]) {
       const item = cards[index];

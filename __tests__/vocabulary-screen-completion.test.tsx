@@ -87,6 +87,16 @@ jest.mock("../src/context/ThemeContext", () => ({
   }),
 }));
 
+jest.mock("../src/hooks/useSpeechPreferences", () => ({
+  useSpeechPreferences: () => ({
+    vocabularyPreferences: {
+      autoSpeakVocabulary: false,
+      reviewMaskTarget: "word",
+    },
+    isLoading: false,
+  }),
+}));
+
 jest.mock("firebase/firestore", () => ({
   doc: jest.fn(() => "mock-doc-ref"),
   getDoc: (arg: unknown) => mockGetDoc(arg),
@@ -140,6 +150,14 @@ jest.mock("../components/common/AppSplashScreen", () => ({
 
 jest.mock("../components/common/StreakMilestoneModal", () => ({
   StreakMilestoneModal: () => null,
+}));
+
+jest.mock("../src/components/common/LanguageHeaderButton", () => ({
+  LanguageHeaderButton: () => null,
+}));
+
+jest.mock("../src/components/common/EyeComfortHeaderButton", () => ({
+  EyeComfortHeaderButton: () => null,
 }));
 
 jest.mock("../components/course/vocabulary/VocabularyEmptyState", () => ({

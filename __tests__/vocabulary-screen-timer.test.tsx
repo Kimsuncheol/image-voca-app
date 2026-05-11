@@ -18,6 +18,9 @@ const mockGetResumeProgress: jest.Mock = jest.fn(async () => null);
 const mockSaveResumeProgress: jest.Mock = jest.fn(async () => null);
 const mockClearResumeProgress: jest.Mock = jest.fn(async () => undefined);
 const mockUpdateDoc: jest.Mock = jest.fn(async () => undefined);
+const mockUpsertVocabularyDayStudyHistory: jest.Mock = jest.fn(
+  async () => undefined,
+);
 const mockLanguageHeaderButton = jest.fn(
   ({
     showJapaneseKoreanOption,
@@ -222,7 +225,8 @@ jest.mock("../src/services/vocabularyDayResume", () => ({
 }));
 
 jest.mock("../src/services/dailyStudyHistory", () => ({
-  upsertVocabularyDayStudyHistory: jest.fn(async () => undefined),
+  upsertVocabularyDayStudyHistory: (args: unknown) =>
+    mockUpsertVocabularyDayStudyHistory(args),
 }));
 
 jest.mock("../src/stores", () => ({
@@ -365,6 +369,7 @@ describe("VocabularyScreen deck state", () => {
     mockGetResumeProgress.mockResolvedValue(null);
     mockSaveResumeProgress.mockResolvedValue(null);
     mockClearResumeProgress.mockResolvedValue(undefined);
+    mockUpsertVocabularyDayStudyHistory.mockResolvedValue(undefined);
     beforeRemoveHandler = undefined;
     mockNavigationAddListener.mockImplementation((eventName, handler) => {
       if (eventName === "beforeRemove") {
@@ -407,7 +412,11 @@ describe("VocabularyScreen deck state", () => {
     expect(headerChildren).toHaveLength(3);
     expect(headerStyle.gap).toBe(16);
     expect(
-      (headerChildren[1] as React.ReactElement).props
+      (
+        headerChildren[1] as React.ReactElement<{
+          showJapaneseKoreanOption?: boolean;
+        }>
+      ).props
         .showJapaneseKoreanOption,
     ).toBe(false);
     expect(mockLanguageHeaderButton).toHaveBeenCalledWith({
@@ -917,7 +926,33 @@ describe("VocabularyScreen deck state", () => {
     );
   });
 
-  it("does not prompt for completed days and clears stale progress", async () => {
+  it("starts completed days from the beginning when there is no saved progress", async () => {
+    mockUser = { uid: "user-1" };
+    mockCourseProgress = { TOEIC: { 1: { completed: true } } };
+    mockGetResumeProgress.mockResolvedValue(null);
+
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Initial Index 0")).toBeTruthy();
+      expect(mockGetResumeProgress).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: "user-1",
+          courseId: "TOEIC",
+          dayNumber: 1,
+        }),
+      );
+    });
+
+    expect(mockClearResumeProgress).not.toHaveBeenCalled();
+    expect(Alert.alert).not.toHaveBeenCalledWith(
+      "Continue where you left off?",
+      "Resume message",
+      expect.any(Array),
+    );
+  });
+
+  it("prompts to continue from saved progress on completed day revisits", async () => {
     mockUser = { uid: "user-1" };
     mockCourseProgress = { TOEIC: { 1: { completed: true } } };
     mockGetResumeProgress.mockResolvedValue({
@@ -928,9 +963,109 @@ describe("VocabularyScreen deck state", () => {
       updatedAt: "2026-04-27T00:00:00.000Z",
     });
 
-    render(<VocabularyScreen />);
+    const screen = render(<VocabularyScreen />);
 
     await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Continue where you left off?",
+        "Resume message",
+        expect.any(Array),
+      );
+    });
+
+    const buttons = alertSpy.mock.calls[0][2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+    act(() => {
+      buttons.find((button) => button.text === "Continue")?.onPress?.();
+    });
+
+    expect(screen.getByText("Initial Index 1")).toBeTruthy();
+    expect(mockClearResumeProgress).not.toHaveBeenCalled();
+  });
+
+  it("saves the current index before confirmed leave on completed day revisits", async () => {
+    mockUser = { uid: "user-1" };
+    mockCourseProgress = { TOEIC: { 1: { completed: true } } };
+
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Advance Deck")).toBeTruthy();
+      expect(beforeRemoveHandler).toBeDefined();
+    });
+
+    fireEvent.press(screen.getByText("Advance Deck"));
+
+    const event = {
+      preventDefault: jest.fn(),
+      data: { action: { type: "GO_BACK" } },
+    };
+
+    act(() => {
+      beforeRemoveHandler?.(event);
+    });
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Leave this day?",
+      "Your current word will be saved.",
+      expect.any(Array),
+    );
+
+    const leaveCall = alertSpy.mock.calls.find(
+      (call) => call[0] === "Leave this day?",
+    );
+    const buttons = leaveCall?.[2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+
+    act(() => {
+      buttons.find((button) => button.text === "Leave")?.onPress?.();
+    });
+
+    await waitFor(() => {
+      expect(mockSaveResumeProgress).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          currentIndex: 1,
+          courseId: "TOEIC",
+          dayNumber: 1,
+        }),
+      );
+      expect(mockNavigationDispatch).toHaveBeenCalledWith({ type: "GO_BACK" });
+    });
+  });
+
+  it("does not update learning stats when completed days are revisited", async () => {
+    mockUser = { uid: "user-1" };
+    mockCourseProgress = { TOEIC: { 1: { completed: true } } };
+
+    const screen = render(<VocabularyScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Advance Deck")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("Advance Deck"));
+
+    await waitFor(() => {
+      expect(mockSaveResumeProgress).toHaveBeenCalledWith(
+        expect.objectContaining({
+          currentIndex: 1,
+          courseId: "TOEIC",
+          dayNumber: 1,
+        }),
+      );
+    });
+
+    expect(mockBufferWordLearned).not.toHaveBeenCalled();
+
+    fireEvent.press(screen.getByText("Finish Deck"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Finish View")).toBeTruthy();
       expect(mockClearResumeProgress).toHaveBeenCalledWith({
         userId: "user-1",
         courseId: "TOEIC",
@@ -938,8 +1073,10 @@ describe("VocabularyScreen deck state", () => {
       });
     });
 
-    expect(mockGetResumeProgress).not.toHaveBeenCalled();
-    expect(Alert.alert).not.toHaveBeenCalled();
+    expect(mockFlushWordStats).not.toHaveBeenCalled();
+    expect(mockUpdateCourseDayProgress).not.toHaveBeenCalled();
+    expect(mockUpdateDoc).not.toHaveBeenCalled();
+    expect(mockUpsertVocabularyDayStudyHistory).not.toHaveBeenCalled();
   });
 
   it("does not mount the deck when the empty state is shown", async () => {
