@@ -40,7 +40,9 @@ export interface QuizQuestion {
   prompt?: string;
   highlightText?: string;
   targetExample?: string;
+  placementPrompt?: string;
   placementChunks?: WordPlacementChunk[];
+  placementTranslations?: string[];
 }
 
 export interface QuizVocabData {

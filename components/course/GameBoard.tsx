@@ -33,7 +33,9 @@ interface QuizQuestion {
   prompt?: string;
   highlightText?: string;
   targetExample?: string;
+  placementPrompt?: string;
   placementChunks?: WordPlacementChunk[];
+  placementTranslations?: string[];
 }
 
 interface GameBoardProps {
@@ -191,8 +193,10 @@ export function GameBoard({
       ) : isWordsPlacement ? (
         <WordsPlacementGame
           word={currentQuestion.word}
+          promptText={currentQuestion.placementPrompt}
           targetExample={currentQuestion.targetExample ?? ""}
           chunks={currentQuestion.placementChunks ?? []}
+          translations={currentQuestion.placementTranslations ?? []}
           userAnswer={userAnswer}
           showResult={showResult}
           isCorrect={isCorrect}

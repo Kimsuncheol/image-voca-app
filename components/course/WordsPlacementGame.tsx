@@ -9,8 +9,10 @@ import { ThemedText } from "../themed-text";
 
 interface WordsPlacementGameProps {
   word: string;
+  promptText?: string;
   targetExample: string;
   chunks: WordPlacementChunk[];
+  translations?: string[];
   userAnswer: string;
   showResult: boolean;
   isCorrect: boolean;
@@ -46,8 +48,10 @@ const shuffleChunks = (chunks: WordPlacementChunk[]) => {
 
 export function WordsPlacementGame({
   word,
+  promptText,
   targetExample,
   chunks,
+  translations = [],
   userAnswer,
   showResult,
   isCorrect,
@@ -92,7 +96,9 @@ export function WordsPlacementGame({
             defaultValue: "Build a sentence with",
           })}
         </ThemedText>
-        <ThemedText style={styles.wordText}>{word}</ThemedText>
+        <ThemedText testID="words-placement-prompt" style={styles.wordText}>
+          {promptText ?? word}
+        </ThemedText>
       </View>
 
       <View
@@ -145,6 +151,21 @@ export function WordsPlacementGame({
             })}
           </ThemedText>
           <ThemedText style={styles.revealText}>{targetExample}</ThemedText>
+          {translations.length > 0 ? (
+            <View
+              testID="words-placement-translations"
+              style={styles.translationsContainer}
+            >
+              {translations.map((translation, index) => (
+                <ThemedText
+                  key={`${translation}-${index}`}
+                  style={styles.translationText}
+                >
+                  {translation}
+                </ThemedText>
+              ))}
+            </View>
+          ) : null}
         </View>
       ) : null}
 
@@ -262,6 +283,15 @@ const styles = StyleSheet.create({
   revealText: {
     fontSize: FontSizes.bodyLg,
     fontWeight: FontWeights.semiBold,
+  },
+  translationsContainer: {
+    gap: 4,
+    marginTop: 4,
+  },
+  translationText: {
+    fontSize: FontSizes.body,
+    opacity: 0.72,
+    lineHeight: 22,
   },
   wrongText: {
     color: "#dc3545",

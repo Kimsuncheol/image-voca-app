@@ -42,8 +42,11 @@ jest.mock("../components/course/MultipleChoiceGame", () => ({
   MultipleChoiceGame: () => null,
 }));
 
+const mockWordsPlacementGame = jest.fn();
+
 jest.mock("../components/course/WordsPlacementGame", () => ({
-  WordsPlacementGame: () => {
+  WordsPlacementGame: (props: unknown) => {
+    mockWordsPlacementGame(props);
     const React = jest.requireActual<typeof import("react")>("react");
     const { Text } = jest.requireActual<typeof import("react-native")>(
       "react-native",
@@ -88,6 +91,10 @@ const baseProps = {
 };
 
 describe("GameBoard matching modes", () => {
+  beforeEach(() => {
+    mockWordsPlacementGame.mockClear();
+  });
+
   it("routes standard matching to MatchingGame", () => {
     const screen = render(<GameBoard {...baseProps} quizType="matching" />);
 
@@ -112,6 +119,7 @@ describe("GameBoard matching modes", () => {
         currentQuestion={{
           ...baseProps.currentQuestion,
           targetExample: "Too much help may spoil your child.",
+          placementPrompt: "망치다",
           placementChunks: [
             {
               id: "chunk-1",
@@ -120,11 +128,18 @@ describe("GameBoard matching modes", () => {
               order: 1,
             },
           ],
+          placementTranslations: ["Too much help spoils a child."],
         }}
       />,
     );
 
     expect(screen.getByText("WordsPlacementGame")).toBeTruthy();
+    expect(mockWordsPlacementGame).toHaveBeenCalledWith(
+      expect.objectContaining({
+        promptText: "망치다",
+        translations: ["Too much help spoils a child."],
+      }),
+    );
     expect(screen.queryByText("MatchingGame")).toBeNull();
   });
 });

@@ -52,6 +52,7 @@ describe("WordsPlacementGame", () => {
     const screen = render(
       <WordsPlacementGame
         word="spoil"
+        promptText="망치다"
         targetExample="Too much help may spoil your child."
         chunks={chunks}
         userAnswer=""
@@ -61,6 +62,9 @@ describe("WordsPlacementGame", () => {
       />,
     );
 
+    expect(screen.getByTestId("words-placement-prompt").props.children).toBe(
+      "망치다",
+    );
     expect(screen.getByTestId("words-placement-submit").props.accessibilityState)
       .toMatchObject({ disabled: true });
 
@@ -87,6 +91,7 @@ describe("WordsPlacementGame", () => {
         word="spoil"
         targetExample="Too much help may spoil your child."
         chunks={chunks}
+        translations={["너무 많은 도움은 아이를 망칠 수 있다."]}
         userAnswer="chunk-2|chunk-1|chunk-3"
         showResult={true}
         isCorrect={false}
@@ -96,14 +101,16 @@ describe("WordsPlacementGame", () => {
 
     expect(screen.getByTestId("words-placement-wrong")).toBeTruthy();
     expect(screen.queryByText("Too much help may spoil your child.")).toBeNull();
+    expect(screen.queryByText("너무 많은 도움은 아이를 망칠 수 있다.")).toBeNull();
   });
 
-  it("reveals the target sentence on success", () => {
+  it("reveals the target sentence and translations on success", () => {
     const screen = render(
       <WordsPlacementGame
         word="spoil"
         targetExample="Too much help may spoil your child."
         chunks={chunks}
+        translations={["Too much help spoils a child.", "너무 많은 도움은 아이를 망친다."]}
         userAnswer="chunk-1|chunk-2|chunk-3"
         showResult={true}
         isCorrect={true}
@@ -112,5 +119,26 @@ describe("WordsPlacementGame", () => {
     );
 
     expect(screen.getByText("Too much help may spoil your child.")).toBeTruthy();
+    expect(screen.getByTestId("words-placement-translations")).toBeTruthy();
+    expect(screen.getByText("Too much help spoils a child.")).toBeTruthy();
+    expect(screen.getByText("너무 많은 도움은 아이를 망친다.")).toBeTruthy();
+  });
+
+  it("does not render the translation section when no translations exist", () => {
+    const screen = render(
+      <WordsPlacementGame
+        word="spoil"
+        targetExample="Too much help may spoil your child."
+        chunks={chunks}
+        translations={[]}
+        userAnswer="chunk-1|chunk-2|chunk-3"
+        showResult={true}
+        isCorrect={true}
+        onAnswer={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Too much help may spoil your child.")).toBeTruthy();
+    expect(screen.queryByTestId("words-placement-translations")).toBeNull();
   });
 });

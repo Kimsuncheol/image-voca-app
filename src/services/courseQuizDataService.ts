@@ -68,12 +68,20 @@ type WordsPlacementChunk = {
 type WordsPlacementGroup = {
   targetExample?: unknown;
   chunks?: unknown;
+  translation?: unknown;
+  translationEnglish?: unknown;
+  translationKorean?: unknown;
+  exampleEnglishTranslation?: unknown;
+  exampleKoreanTranslation?: unknown;
 };
 
 type WordsPlacementItem = {
   wordId?: unknown;
   word?: unknown;
   example?: unknown;
+  translation?: unknown;
+  translationEnglish?: unknown;
+  translationKorean?: unknown;
   wordsToPlace?: unknown;
 };
 
@@ -522,8 +530,43 @@ const normalizePlacementChunk = (
   return { id, text, type, order };
 };
 
+const getWordsPlacementTranslations = (
+  group: WordsPlacementGroup,
+): string[] =>
+  [
+    group.translation,
+    group.translationEnglish,
+    group.translationKorean,
+    group.exampleEnglishTranslation,
+    group.exampleKoreanTranslation,
+  ]
+    .map(normalizeString)
+    .filter((value): value is string => Boolean(value));
+
+const resolveWordsPlacementPrompt = (
+  item: WordsPlacementItem,
+  word: string,
+  appLanguage?: string,
+  courseId?: CourseType,
+) => {
+  const translation = normalizeString(item.translation);
+  const translationEnglish = normalizeString(item.translationEnglish);
+  const translationKorean = normalizeString(item.translationKorean);
+  const learningLanguage = getLearningLanguageForCourse(courseId);
+
+  if (learningLanguage === "ja") {
+    return appLanguage === "ko"
+      ? translationKorean ?? translationEnglish ?? word
+      : translationEnglish ?? translationKorean ?? word;
+  }
+
+  return translation ?? word;
+};
+
 const normalizeWordsPlacementQuiz = (
   data: Record<string, unknown>,
+  appLanguage?: string,
+  courseId?: CourseType,
 ): FirestoreCourseQuizData | null => {
   const rawItems = Array.isArray(data.items) ? data.items : [];
   if (rawItems.length === 0) return null;
@@ -534,6 +577,9 @@ const normalizeWordsPlacementQuiz = (
     const item = rawItem as WordsPlacementItem;
     const wordId = normalizeString(item.wordId) ?? `item-${itemIndex}`;
     const word = normalizeString(item.word);
+    const placementPrompt = word
+      ? resolveWordsPlacementPrompt(item, word, appLanguage, courseId)
+      : undefined;
     const rawGroups = Array.isArray(item.wordsToPlace)
       ? item.wordsToPlace
       : [];
@@ -565,7 +611,9 @@ const normalizeWordsPlacementQuiz = (
           meaning: targetExample,
           correctAnswer: targetExample,
           targetExample,
+          placementPrompt,
           placementChunks: chunks,
+          placementTranslations: getWordsPlacementTranslations(group),
         } satisfies QuizQuestion;
       })
       .filter((question): question is QuizQuestion => Boolean(question));
@@ -750,7 +798,7 @@ export const normalizeFirestoreCourseQuiz = (
     ? normalizeMatchingQuiz(data, appLanguage, courseId)
     : quizKind === "fill_in_the_blank"
       ? normalizeFillInBlankQuiz(data, appLanguage, courseId)
-      : normalizeWordsPlacementQuiz(data);
+      : normalizeWordsPlacementQuiz(data, appLanguage, courseId);
 
 export const fetchCourseQuizData = async (
   courseId: CourseType,

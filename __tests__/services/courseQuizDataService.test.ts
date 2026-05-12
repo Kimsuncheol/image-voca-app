@@ -98,10 +98,12 @@ describe("courseQuizDataService", () => {
           {
             wordId: "word-1",
             word: "spoil",
+            translation: "망치다",
             example: "[[[spoil]]] raw debug source",
             wordsToPlace: [
               {
                 targetExample: "Too much help may spoil your child.",
+                translation: "너무 많은 도움은 아이를 망칠 수 있다.",
                 chunks: [
                   {
                     id: "chunk-2",
@@ -150,6 +152,8 @@ describe("courseQuizDataService", () => {
       meaning: "Too much help may spoil your child.",
       correctAnswer: "Too much help may spoil your child.",
       targetExample: "Too much help may spoil your child.",
+      placementPrompt: "망치다",
+      placementTranslations: ["너무 많은 도움은 아이를 망칠 수 있다."],
     });
     expect(result?.questions[0].placementChunks).toHaveLength(3);
     expect(JSON.stringify(result?.questions[0])).not.toContain(
@@ -167,6 +171,8 @@ describe("courseQuizDataService", () => {
           wordsToPlace: [
             {
               targetExample: "間に入る。",
+              translationEnglish: "Enter between.",
+              translationKorean: "사이에 들어가다.",
               chunks: [
                 { id: "a", text: "間に", type: "answer", order: 1 },
                 { id: "b", text: "入る。", type: "sentence_chunk", order: 2 },
@@ -174,6 +180,8 @@ describe("courseQuizDataService", () => {
             },
             {
               targetExample: "少し間を置く。",
+              exampleEnglishTranslation: "Leave a little interval.",
+              exampleKoreanTranslation: "잠시 간격을 두다.",
               chunks: [
                 { id: "c", text: "少し", type: "sentence_chunk", order: 1 },
                 { id: "d", text: "間を置く。", type: "answer", order: 2 },
@@ -187,6 +195,103 @@ describe("courseQuizDataService", () => {
     expect(result?.questions.map((question) => question.targetExample)).toEqual([
       "間に入る。",
       "少し間を置く。",
+    ]);
+    expect(result?.questions.map((question) => question.placementTranslations)).toEqual([
+      ["Enter between.", "사이에 들어가다."],
+      ["Leave a little interval.", "잠시 간격을 두다."],
+    ]);
+  });
+
+  it("localizes words_placement prompt text for Japanese courses", () => {
+    const data = {
+      items: [
+        {
+          wordId: "word-1",
+          word: "間",
+          translationEnglish: "between",
+          translationKorean: "사이",
+          wordsToPlace: [
+            {
+              targetExample: "家と学校の間に公園がある。",
+              translationEnglish:
+                "There is a park between my house and school.",
+              translationKorean: "집과 학교 사이에 공원이 있다.",
+              chunks: [
+                { id: "a", text: "家と", type: "sentence_chunk", order: 1 },
+                { id: "b", text: "間に", type: "answer", order: 2 },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(
+      normalizeFirestoreCourseQuiz("words_placement", data, "ko", "JLPT_N5")
+        ?.questions[0].placementPrompt,
+    ).toBe("사이");
+    expect(
+      normalizeFirestoreCourseQuiz("words_placement", data, "en", "JLPT_N5")
+        ?.questions[0].placementPrompt,
+    ).toBe("between");
+  });
+
+  it("falls back to word when words_placement prompt translation is missing", () => {
+    const result = normalizeFirestoreCourseQuiz(
+      "words_placement",
+      {
+        items: [
+          {
+            wordId: "word-1",
+            word: "measure",
+            translation: " ",
+            wordsToPlace: [
+              {
+                targetExample: "A number of measures were taken.",
+                chunks: [
+                  { id: "a", text: "A number of", type: "sentence_chunk", order: 1 },
+                  { id: "b", text: "measures", type: "answer", order: 2 },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      "en",
+      "TOEIC",
+    );
+
+    expect(result?.questions[0].placementPrompt).toBe("measure");
+  });
+
+  it("filters empty words_placement translation fields", () => {
+    const result = normalizeFirestoreCourseQuiz("words_placement", {
+      items: [
+        {
+          wordId: "word-1",
+          word: "一",
+          example: "[[[一]]] raw",
+          wordsToPlace: [
+            {
+              targetExample: "これはいつでいくらですか。",
+              translation: "   ",
+              translationEnglish: "",
+              translationKorean: " ",
+              exampleEnglishTranslation: "How much is this one?",
+              exampleKoreanTranslation: "이것은 한 개에 얼마입니까?",
+              chunks: [
+                { id: "a", text: "これは", type: "sentence_chunk", order: 1 },
+                { id: "b", text: "いつで", type: "answer", order: 2 },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result?.questions[0].placementTranslations).toEqual([
+      "How much is this one?",
+      "이것은 한 개에 얼마입니까?",
     ]);
   });
 
