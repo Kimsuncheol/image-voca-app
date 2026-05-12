@@ -236,6 +236,122 @@ describe("courseQuizDataService", () => {
     ).toBe("between");
   });
 
+  it("uses group translations as words_placement prompt fallback", () => {
+    const english = normalizeFirestoreCourseQuiz(
+      "words_placement",
+      {
+        items: [
+          {
+            wordId: "word-1",
+            word: "measure",
+            wordsToPlace: [
+              {
+                targetExample: "A number of measures were taken.",
+                translation: "여러 조치가 취해졌다.",
+                chunks: [
+                  { id: "a", text: "A number of", type: "sentence_chunk", order: 1 },
+                  { id: "b", text: "measures", type: "answer", order: 2 },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      "en",
+      "TOEIC",
+    );
+
+    expect(english?.questions[0].placementPrompt).toBe("여러 조치가 취해졌다.");
+
+    const jlpt = {
+      items: [
+        {
+          wordId: "word-1",
+          word: "間",
+          wordsToPlace: [
+            {
+              targetExample: "家と学校の間に公園がある。",
+              translationEnglish:
+                "There is a park between my house and school.",
+              translationKorean: "집과 학교 사이에 공원이 있다.",
+              chunks: [
+                { id: "c", text: "家と", type: "sentence_chunk", order: 1 },
+                { id: "d", text: "間に", type: "answer", order: 2 },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(
+      normalizeFirestoreCourseQuiz("words_placement", jlpt, "ko", "JLPT_N5")
+        ?.questions[0].placementPrompt,
+    ).toBe("집과 학교 사이에 공원이 있다.");
+    expect(
+      normalizeFirestoreCourseQuiz("words_placement", jlpt, "en", "JLPT_N5")
+        ?.questions[0].placementPrompt,
+    ).toBe("There is a park between my house and school.");
+
+    const kanji = {
+      items: [
+        {
+          wordId: "word-1",
+          word: "一",
+          wordsToPlace: [
+            {
+              targetExample: "これはいつでいくらですか。",
+              exampleEnglishTranslation: "How much is this one?",
+              exampleKoreanTranslation: "이것은 한 개에 얼마입니까?",
+              chunks: [
+                { id: "e", text: "これは", type: "sentence_chunk", order: 1 },
+                { id: "f", text: "いつで", type: "answer", order: 2 },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(
+      normalizeFirestoreCourseQuiz("words_placement", kanji, "ko", "KANJI")
+        ?.questions[0].placementPrompt,
+    ).toBe("이것은 한 개에 얼마입니까?");
+    expect(
+      normalizeFirestoreCourseQuiz("words_placement", kanji, "en", "KANJI")
+        ?.questions[0].placementPrompt,
+    ).toBe("How much is this one?");
+  });
+
+  it("prefers item words_placement prompt translation over group fallback", () => {
+    const result = normalizeFirestoreCourseQuiz(
+      "words_placement",
+      {
+        items: [
+          {
+            wordId: "word-1",
+            word: "measure",
+            translation: "조치",
+            wordsToPlace: [
+              {
+                targetExample: "A number of measures were taken.",
+                translation: "여러 조치가 취해졌다.",
+                chunks: [
+                  { id: "a", text: "A number of", type: "sentence_chunk", order: 1 },
+                  { id: "b", text: "measures", type: "answer", order: 2 },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      "en",
+      "TOEIC",
+    );
+
+    expect(result?.questions[0].placementPrompt).toBe("조치");
+  });
+
   it("falls back to word when words_placement prompt translation is missing", () => {
     const result = normalizeFirestoreCourseQuiz(
       "words_placement",

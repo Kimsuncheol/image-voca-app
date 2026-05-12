@@ -86,61 +86,82 @@ export function WordsPlacementGame({
   return (
     <View style={styles.container}>
       <View
+        testID="words-placement-build-card"
         style={[
-          styles.promptCard,
-          { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
-        ]}
-      >
-        <ThemedText style={styles.promptLabel}>
-          {t("quiz.types.wordsPlacement.prompt", {
-            defaultValue: "Build a sentence with",
-          })}
-        </ThemedText>
-        <ThemedText testID="words-placement-prompt" style={styles.wordText}>
-          {promptText ?? word}
-        </ThemedText>
-      </View>
-
-      <View
-        testID="words-placement-answer-area"
-        style={[
-          styles.answerArea,
+          styles.buildCard,
           {
-            backgroundColor: isDark ? "#111" : "#fff",
             borderColor: isWrong ? "#dc3545" : isDark ? "#333" : "#d8d8d8",
           },
-          isCorrect && showResult ? styles.correctAnswerArea : undefined,
+          isCorrect && showResult ? styles.correctBuildCard : undefined,
         ]}
       >
-        {selectedChunks.length === 0 ? (
-          <ThemedText style={styles.placeholderText}>
-            {t("quiz.types.wordsPlacement.emptyAnswer", {
-              defaultValue: "Tap chunks below to build the sentence",
+        <View
+          testID="words-placement-prompt-section"
+          style={[
+            styles.promptSection,
+            { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
+          ]}
+        >
+          <ThemedText style={styles.promptLabel}>
+            {t("quiz.types.wordsPlacement.prompt", {
+              defaultValue: "Build a sentence with",
             })}
           </ThemedText>
-        ) : (
-          <View style={styles.chipWrap}>
-            {selectedChunks.map((chunk) => (
-              <Pressable
-                key={chunk.id}
-                testID={`words-placement-selected-${chunk.id}`}
-                disabled={showResult}
-                onPress={() =>
-                  setSelectedChunks((prev) =>
-                    prev.filter((selected) => selected.id !== chunk.id),
-                  )
-                }
-                style={[
-                  styles.chip,
-                  styles.selectedChip,
-                  { backgroundColor: isDark ? "#263247" : "#e8efff" },
-                ]}
-              >
-                <ThemedText style={styles.chipText}>{chunk.text}</ThemedText>
-              </Pressable>
-            ))}
+          <ThemedText testID="words-placement-prompt" style={styles.wordText}>
+            {promptText ?? word}
+          </ThemedText>
+        </View>
+
+        <View style={styles.buildDivider} />
+
+        <View
+          testID="words-placement-answer-area"
+          style={[
+            styles.answerArea,
+            { backgroundColor: isDark ? "#111" : "#fff" },
+          ]}
+        >
+          <View style={styles.answerContent}>
+            <ThemedText
+              testID="words-placement-answer-instruction"
+              style={styles.placeholderText}
+            >
+              {t("quiz.types.wordsPlacement.emptyAnswer", {
+                defaultValue: "Tap chunks below to build the sentence",
+              })}
+            </ThemedText>
+            {selectedChunks.length === 0 ? (
+              <View
+                testID="words-placement-empty-selection"
+                style={styles.emptySelection}
+              />
+            ) : (
+              <View style={styles.chipWrap}>
+                {selectedChunks.map((chunk) => (
+                  <Pressable
+                    key={chunk.id}
+                    testID={`words-placement-selected-${chunk.id}`}
+                    disabled={showResult}
+                    onPress={() =>
+                      setSelectedChunks((prev) =>
+                        prev.filter((selected) => selected.id !== chunk.id),
+                      )
+                    }
+                    style={[
+                      styles.chip,
+                      styles.selectedChip,
+                      { backgroundColor: isDark ? "#263247" : "#e8efff" },
+                    ]}
+                  >
+                    <ThemedText style={styles.chipText}>
+                      {chunk.text}
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </View>
+            )}
           </View>
-        )}
+        </View>
       </View>
 
       {isCorrect && showResult ? (
@@ -223,30 +244,44 @@ const styles = StyleSheet.create({
     gap: 18,
     flex: 1,
   },
-  promptCard: {
-    padding: 18,
-    borderRadius: 12,
-    gap: 8,
+  buildCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  promptSection: {
+    minHeight: 128,
+    paddingHorizontal: 20,
+    paddingVertical: 22,
+    gap: 16,
+    justifyContent: "center",
   },
   promptLabel: {
     fontSize: FontSizes.sm,
     opacity: 0.65,
   },
   wordText: {
-    fontSize: FontSizes.headingLg,
-    fontWeight: FontWeights.bold,
+    fontSize: FontSizes.body,
+    fontWeight: FontWeights.normal,
     textAlign: "center",
   },
   answerArea: {
     minHeight: 120,
-    borderRadius: 12,
-    borderWidth: 1,
     padding: 14,
     justifyContent: "center",
   },
-  correctAnswerArea: {
+  answerContent: {
+    gap: 14,
+  },
+  buildDivider: {
+    height: 1,
+    backgroundColor: "rgba(128,128,128,0.18)",
+  },
+  emptySelection: {
+    minHeight: 42,
+  },
+  correctBuildCard: {
     borderColor: "#28a745",
-    backgroundColor: "#28a74520",
   },
   placeholderText: {
     fontSize: FontSizes.body,

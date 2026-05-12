@@ -1,5 +1,6 @@
 
 export const FontWeights = {
+  normal: "400",
   regular: "400",
   medium: "500",
   popQuizMeaning: "500",

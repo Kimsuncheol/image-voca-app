@@ -1,5 +1,8 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
+import { StyleSheet } from "react-native";
+import { FontSizes } from "../constants/fontSizes";
+import { FontWeights } from "../constants/fontWeights";
 import {
   isWordsPlacementCorrect,
   serializePlacementAnswer,
@@ -62,17 +65,46 @@ describe("WordsPlacementGame", () => {
       />,
     );
 
+    expect(screen.getByTestId("words-placement-build-card")).toBeTruthy();
+    const promptSectionStyle = StyleSheet.flatten(
+      screen.getByTestId("words-placement-prompt-section").props.style,
+    );
+    const answerAreaStyle = StyleSheet.flatten(
+      screen.getByTestId("words-placement-answer-area").props.style,
+    );
+    expect(promptSectionStyle.backgroundColor).toBe("#f5f5f5");
+    expect(answerAreaStyle.backgroundColor).toBe("#fff");
+    expect(promptSectionStyle.backgroundColor).not.toBe(
+      answerAreaStyle.backgroundColor,
+    );
     expect(screen.getByTestId("words-placement-prompt").props.children).toBe(
       "망치다",
     );
+    expect(screen.getByText("Build a sentence with")).toBeTruthy();
+    expect(
+      screen.getByTestId("words-placement-answer-instruction").props.children,
+    ).toBe("Tap chunks below to build the sentence");
+    expect(screen.getByTestId("words-placement-empty-selection")).toBeTruthy();
+    const promptStyle = StyleSheet.flatten(
+      screen.getByTestId("words-placement-prompt").props.style,
+    );
+    expect(promptStyle).toMatchObject({
+      fontSize: FontSizes.body,
+      fontWeight: FontWeights.normal,
+    });
     expect(screen.getByTestId("words-placement-submit").props.accessibilityState)
       .toMatchObject({ disabled: true });
 
     fireEvent.press(screen.getByTestId("words-placement-choice-chunk-1"));
     expect(screen.getByTestId("words-placement-selected-chunk-1")).toBeTruthy();
+    expect(
+      screen.getByTestId("words-placement-answer-instruction").props.children,
+    ).toBe("Tap chunks below to build the sentence");
+    expect(screen.queryByTestId("words-placement-empty-selection")).toBeNull();
 
     fireEvent.press(screen.getByTestId("words-placement-selected-chunk-1"));
     expect(screen.queryByTestId("words-placement-selected-chunk-1")).toBeNull();
+    expect(screen.getByTestId("words-placement-empty-selection")).toBeTruthy();
 
     fireEvent.press(screen.getByTestId("words-placement-choice-chunk-1"));
     fireEvent.press(screen.getByTestId("words-placement-choice-chunk-2"));

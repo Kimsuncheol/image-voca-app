@@ -545,22 +545,38 @@ const getWordsPlacementTranslations = (
 
 const resolveWordsPlacementPrompt = (
   item: WordsPlacementItem,
+  group: WordsPlacementGroup,
   word: string,
   appLanguage?: string,
   courseId?: CourseType,
 ) => {
-  const translation = normalizeString(item.translation);
-  const translationEnglish = normalizeString(item.translationEnglish);
-  const translationKorean = normalizeString(item.translationKorean);
+  const itemTranslation = normalizeString(item.translation);
+  const itemTranslationEnglish = normalizeString(item.translationEnglish);
+  const itemTranslationKorean = normalizeString(item.translationKorean);
+  const groupTranslation = normalizeString(group.translation);
+  const groupTranslationEnglish =
+    normalizeString(group.translationEnglish) ??
+    normalizeString(group.exampleEnglishTranslation);
+  const groupTranslationKorean =
+    normalizeString(group.translationKorean) ??
+    normalizeString(group.exampleKoreanTranslation);
   const learningLanguage = getLearningLanguageForCourse(courseId);
 
   if (learningLanguage === "ja") {
     return appLanguage === "ko"
-      ? translationKorean ?? translationEnglish ?? word
-      : translationEnglish ?? translationKorean ?? word;
+      ? itemTranslationKorean ??
+          itemTranslationEnglish ??
+          groupTranslationKorean ??
+          groupTranslationEnglish ??
+          word
+      : itemTranslationEnglish ??
+          itemTranslationKorean ??
+          groupTranslationEnglish ??
+          groupTranslationKorean ??
+          word;
   }
 
-  return translation ?? word;
+  return itemTranslation ?? groupTranslation ?? word;
 };
 
 const normalizeWordsPlacementQuiz = (
@@ -577,9 +593,6 @@ const normalizeWordsPlacementQuiz = (
     const item = rawItem as WordsPlacementItem;
     const wordId = normalizeString(item.wordId) ?? `item-${itemIndex}`;
     const word = normalizeString(item.word);
-    const placementPrompt = word
-      ? resolveWordsPlacementPrompt(item, word, appLanguage, courseId)
-      : undefined;
     const rawGroups = Array.isArray(item.wordsToPlace)
       ? item.wordsToPlace
       : [];
@@ -611,7 +624,13 @@ const normalizeWordsPlacementQuiz = (
           meaning: targetExample,
           correctAnswer: targetExample,
           targetExample,
-          placementPrompt,
+          placementPrompt: resolveWordsPlacementPrompt(
+            item,
+            group,
+            word,
+            appLanguage,
+            courseId,
+          ),
           placementChunks: chunks,
           placementTranslations: getWordsPlacementTranslations(group),
         } satisfies QuizQuestion;
