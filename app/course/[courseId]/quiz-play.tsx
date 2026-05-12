@@ -79,6 +79,18 @@ const shuffleArray = <T,>(items: T[]): T[] => {
 const INITIAL_LOADING_MIN_MS = 500;
 const MAX_INCORRECT_ANSWERS = 3;
 const ANSWER_FEEDBACK_MS = 1500;
+const WORDS_PLACEMENT_MIN_SECONDS = 30;
+const WORDS_PLACEMENT_MAX_SECONDS = 90;
+const WORDS_PLACEMENT_SECONDS_PER_CHUNK = 6;
+
+export const getWordsPlacementTimeLimit = (chunkCount: number) =>
+  Math.min(
+    WORDS_PLACEMENT_MAX_SECONDS,
+    Math.max(
+      WORDS_PLACEMENT_MIN_SECONDS,
+      chunkCount * WORDS_PLACEMENT_SECONDS_PER_CHUNK,
+    ),
+  );
 
 const sleep = (ms: number) =>
   new Promise((resolve) => {
@@ -131,7 +143,6 @@ export default function QuizPlayScreen() {
   const [matchedPairs, setMatchedPairs] = useState<Record<string, string>>({});
   const [matchingMeanings, setMatchingMeanings] = useState<string[]>([]);
   const [matchingTimerResetKey, setMatchingTimerResetKey] = useState(0);
-  const [placementTimerResetKey, setPlacementTimerResetKey] = useState(0);
   const [isQuitPromptOpen, setIsQuitPromptOpen] = useState(false);
   const [effectiveQuizType, setEffectiveQuizType] =
     useState<QuizTypeId>(requestedQuizType);
@@ -220,7 +231,6 @@ export default function QuizPlayScreen() {
       setWrongMeaning(null);
       setMatchedPairs({});
       setMatchingTimerResetKey(0);
-      setPlacementTimerResetKey(0);
       setIsQuitPromptOpen(false);
       try {
         if (isFirestoreBackedQuizType(requestedQuizType)) {
@@ -365,6 +375,9 @@ export default function QuizPlayScreen() {
   const matchedCount = Object.keys(matchedPairs).length;
   const totalQuestions = questions.length;
   const progressCurrent = isMatching ? matchedCount : currentIndex + 1;
+  const timerDuration = isWordsPlacement
+    ? getWordsPlacementTimeLimit(currentQuestion?.placementChunks?.length ?? 0)
+    : 15;
 
   const maybeMarkRetake = React.useCallback(
     async (nextScore: number) => {
@@ -488,7 +501,10 @@ export default function QuizPlayScreen() {
     return nextIncorrectCount >= MAX_INCORRECT_ANSWERS;
   };
 
-  const handleAnswer = async (answer: string) => {
+  const handleAnswer = async (
+    answer: string,
+    options?: { advanceWordsPlacementOnIncorrect?: boolean },
+  ) => {
     const placementChunks = currentQuestion.placementChunks ?? [];
     const selectedPlacementChunks = answer
       .split("|")
@@ -525,8 +541,13 @@ export default function QuizPlayScreen() {
       bufferQuizAnswer(user.uid, correct);
     }
 
+    const reachedMaxIncorrect = !correct && recordIncorrectAndMaybeFinish();
     const shouldFinishAfterFeedback =
-      !correct && recordIncorrectAndMaybeFinish();
+      !correct && !isWordsPlacement && reachedMaxIncorrect;
+    const shouldAdvanceWordsPlacementAfterIncorrect =
+      !correct &&
+      isWordsPlacement &&
+      Boolean(options?.advanceWordsPlacementOnIncorrect);
 
     // Auto-advance after showing feedback
     clearAnswerAdvanceTimeout();
@@ -534,14 +555,24 @@ export default function QuizPlayScreen() {
       answerAdvanceTimeoutRef.current = null;
       if (!isFocusedRef.current) return;
       setShowResult(false);
-      if (!isWordsPlacement || correct) {
+      if (
+        !isWordsPlacement ||
+        correct ||
+        shouldAdvanceWordsPlacementAfterIncorrect
+      ) {
         setUserAnswer("");
       }
 
       if (shouldFinishAfterFeedback) {
         finishQuiz(nextScore);
       } else if (!correct && isWordsPlacement) {
-        setPlacementTimerResetKey((prev) => prev + 1);
+        if (shouldAdvanceWordsPlacementAfterIncorrect) {
+          if (currentIndex < totalQuestions - 1) {
+            setCurrentIndex((prev) => prev + 1);
+          } else {
+            finishQuiz(nextScore);
+          }
+        }
       } else if (currentIndex < totalQuestions - 1) {
         setCurrentIndex((prev) => prev + 1);
       } else {
@@ -641,6 +672,9 @@ export default function QuizPlayScreen() {
         isWordsPlacement
           ? serializePlacementAnswer([])
           : "",
+        isWordsPlacement
+          ? { advanceWordsPlacementOnIncorrect: true }
+          : undefined,
       ); // Empty answer triggers incorrect
     }
   };
@@ -711,7 +745,6 @@ export default function QuizPlayScreen() {
     setWrongMeaning(null);
     setMatchedPairs({});
     setMatchingTimerResetKey(0);
-    setPlacementTimerResetKey(0);
     setIsQuitPromptOpen(false);
   };
 
@@ -781,7 +814,7 @@ export default function QuizPlayScreen() {
       />
       {!quizFinished && !loading && (
         <QuizTimer
-          duration={isWordsPlacement ? 30 : 15}
+          duration={timerDuration}
           onTimeUp={handleTimeUp}
           isRunning={
             !showResult &&
@@ -790,13 +823,13 @@ export default function QuizPlayScreen() {
             !isReadingDisplayModalOpen &&
             !wrongWord &&
             !wrongMeaning &&
-            incorrectCount < MAX_INCORRECT_ANSWERS
+            (isWordsPlacement || incorrectCount < MAX_INCORRECT_ANSWERS)
           }
           quizKey={
             isMatching
               ? `matching-${matchingTimerResetKey}`
               : isWordsPlacement
-                ? `words-placement-${currentIndex}-${dayNumber}-${placementTimerResetKey}`
+                ? `words-placement-${currentIndex}-${dayNumber}`
                 : `${currentIndex}-${dayNumber}`
           }
         />

@@ -1,6 +1,10 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
-import QuizPlayScreen from "../app/course/[courseId]/quiz-play";
+import QuizPlayScreen, {
+  getWordsPlacementTimeLimit,
+} from "../app/course/[courseId]/quiz-play";
+
+const mockQuizTimer = jest.fn();
 
 jest.mock("expo-router", () => ({
   Stack: {
@@ -151,12 +155,24 @@ jest.mock("../components/course", () => ({
   },
   QuizFinishView: () => null,
   QuizHeader: () => null,
-  QuizTimer: () => null,
+  QuizTimer: (props: {
+    duration: number;
+    onTimeUp: () => void;
+    quizKey: string;
+  }) => {
+    mockQuizTimer(props);
+    const { Button } = jest.requireActual<typeof import("react-native")>(
+      "react-native",
+    );
+
+    return <Button title="time-up" onPress={props.onTimeUp} />;
+  },
 }));
 
 describe("QuizPlayScreen words_placement", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockQuizTimer.mockClear();
     jest.useFakeTimers();
   });
 
@@ -181,5 +197,60 @@ describe("QuizPlayScreen words_placement", () => {
       expect(screen.getByText("question:word-1-0")).toBeTruthy();
     });
     expect(screen.queryByText("question:word-1-1")).toBeNull();
+  });
+
+  it("does not reset the words placement timer after an incorrect attempt", async () => {
+    const screen = render(<QuizPlayScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("question:word-1-0")).toBeTruthy();
+    });
+
+    const initialTimerKey = mockQuizTimer.mock.calls.at(-1)?.[0].quizKey;
+
+    fireEvent.press(screen.getByText("wrong"));
+
+    act(() => {
+      jest.advanceTimersByTime(1600);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("question:word-1-0")).toBeTruthy();
+    });
+
+    expect(mockQuizTimer.mock.calls.at(-1)?.[0].quizKey).toBe(initialTimerKey);
+  });
+
+  it("advances a words placement round on timeout", async () => {
+    const screen = render(<QuizPlayScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("question:word-1-0")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("time-up"));
+
+    act(() => {
+      jest.advanceTimersByTime(1600);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("question:word-1-1")).toBeTruthy();
+    });
+  });
+
+  it("uses dynamic words placement timer duration", async () => {
+    const screen = render(<QuizPlayScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("question:word-1-0")).toBeTruthy();
+    });
+
+    expect(mockQuizTimer.mock.calls.at(-1)?.[0].duration).toBe(30);
+    expect(getWordsPlacementTimeLimit(2)).toBe(30);
+    expect(getWordsPlacementTimeLimit(5)).toBe(30);
+    expect(getWordsPlacementTimeLimit(6)).toBe(36);
+    expect(getWordsPlacementTimeLimit(10)).toBe(60);
+    expect(getWordsPlacementTimeLimit(20)).toBe(90);
   });
 });

@@ -1,4 +1,4 @@
-import { fireEvent, render } from "@testing-library/react-native";
+import { act, fireEvent, render } from "@testing-library/react-native";
 import React from "react";
 import { StyleSheet } from "react-native";
 import { FontSizes } from "../constants/fontSizes";
@@ -43,6 +43,14 @@ const chunks: WordPlacementChunk[] = [
 ];
 
 describe("WordsPlacementGame", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it("validates selected chunks by order instead of input array order", () => {
     const selected = [chunks[1], chunks[0], chunks[2]];
 
@@ -50,7 +58,7 @@ describe("WordsPlacementGame", () => {
     expect(isWordsPlacementCorrect(chunks, chunks)).toBe(false);
   });
 
-  it("moves chips into the answer area and enables submit only when complete", () => {
+  it("moves chips into the answer area and auto-submits only when complete", () => {
     const onAnswer = jest.fn();
     const screen = render(
       <WordsPlacementGame
@@ -91,9 +99,15 @@ describe("WordsPlacementGame", () => {
     expect(promptStyle).toMatchObject({
       fontSize: FontSizes.body,
       fontWeight: FontWeights.normal,
+      textAlign: "left",
     });
-    expect(screen.getByTestId("words-placement-submit").props.accessibilityState)
-      .toMatchObject({ disabled: true });
+    const answerInstructionStyle = StyleSheet.flatten(
+      screen.getByTestId("words-placement-answer-instruction").props.style,
+    );
+    expect(answerInstructionStyle).toMatchObject({
+      textAlign: "left",
+    });
+    expect(screen.queryByTestId("words-placement-submit")).toBeNull();
 
     fireEvent.press(screen.getByTestId("words-placement-choice-chunk-1"));
     expect(screen.getByTestId("words-placement-selected-chunk-1")).toBeTruthy();
@@ -108,9 +122,24 @@ describe("WordsPlacementGame", () => {
 
     fireEvent.press(screen.getByTestId("words-placement-choice-chunk-1"));
     fireEvent.press(screen.getByTestId("words-placement-choice-chunk-2"));
+
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+
+    expect(onAnswer).not.toHaveBeenCalled();
+
     fireEvent.press(screen.getByTestId("words-placement-choice-chunk-3"));
 
-    fireEvent.press(screen.getByTestId("words-placement-submit"));
+    act(() => {
+      jest.advanceTimersByTime(499);
+    });
+
+    expect(onAnswer).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
 
     expect(onAnswer).toHaveBeenCalledWith(
       serializePlacementAnswer([chunks[1], chunks[0], chunks[2]]),
@@ -118,26 +147,79 @@ describe("WordsPlacementGame", () => {
   });
 
   it("shows wrong retry state without revealing the target sentence", () => {
+    const onAnswer = jest.fn();
     const screen = render(
       <WordsPlacementGame
         word="spoil"
         targetExample="Too much help may spoil your child."
         chunks={chunks}
         translations={["너무 많은 도움은 아이를 망칠 수 있다."]}
-        userAnswer="chunk-2|chunk-1|chunk-3"
+        userAnswer=""
+        showResult={false}
+        isCorrect={false}
+        onAnswer={onAnswer}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId("words-placement-choice-chunk-2"));
+    fireEvent.press(screen.getByTestId("words-placement-choice-chunk-1"));
+    fireEvent.press(screen.getByTestId("words-placement-choice-chunk-3"));
+
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+
+    const wrongAnswer = serializePlacementAnswer([chunks[0], chunks[1], chunks[2]]);
+    expect(onAnswer).toHaveBeenCalledWith(wrongAnswer);
+
+    screen.update(
+      <WordsPlacementGame
+        word="spoil"
+        targetExample="Too much help may spoil your child."
+        chunks={chunks}
+        translations={["너무 많은 도움은 아이를 망칠 수 있다."]}
+        userAnswer={wrongAnswer}
         showResult={true}
         isCorrect={false}
-        onAnswer={jest.fn()}
+        onAnswer={onAnswer}
       />,
     );
 
     expect(screen.getByTestId("words-placement-wrong")).toBeTruthy();
+    expect(screen.getByTestId("words-placement-build-card")).toBeTruthy();
+    expect(screen.getByTestId("words-placement-selected-chunk-2")).toBeTruthy();
+    expect(screen.getByTestId("words-placement-selected-chunk-1")).toBeTruthy();
+    expect(screen.getByTestId("words-placement-selected-chunk-3")).toBeTruthy();
     expect(screen.queryByText("Too much help may spoil your child.")).toBeNull();
     expect(screen.queryByText("너무 많은 도움은 아이를 망칠 수 있다.")).toBeNull();
   });
 
-  it("reveals the target sentence and translations on success", () => {
+  it("keeps the solved chunks in the build card without a below-card reveal on success", () => {
+    const onAnswer = jest.fn();
     const screen = render(
+      <WordsPlacementGame
+        word="spoil"
+        targetExample="Too much help may spoil your child."
+        chunks={chunks}
+        translations={["Too much help spoils a child.", "너무 많은 도움은 아이를 망친다."]}
+        userAnswer=""
+        showResult={false}
+        isCorrect={false}
+        onAnswer={onAnswer}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId("words-placement-choice-chunk-1"));
+    fireEvent.press(screen.getByTestId("words-placement-choice-chunk-2"));
+    fireEvent.press(screen.getByTestId("words-placement-choice-chunk-3"));
+
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+
+    expect(onAnswer).toHaveBeenCalledWith("chunk-1|chunk-2|chunk-3");
+
+    screen.update(
       <WordsPlacementGame
         word="spoil"
         targetExample="Too much help may spoil your child."
@@ -146,17 +228,22 @@ describe("WordsPlacementGame", () => {
         userAnswer="chunk-1|chunk-2|chunk-3"
         showResult={true}
         isCorrect={true}
-        onAnswer={jest.fn()}
+        onAnswer={onAnswer}
       />,
     );
 
-    expect(screen.getByText("Too much help may spoil your child.")).toBeTruthy();
-    expect(screen.getByTestId("words-placement-translations")).toBeTruthy();
-    expect(screen.getByText("Too much help spoils a child.")).toBeTruthy();
-    expect(screen.getByText("너무 많은 도움은 아이를 망친다.")).toBeTruthy();
+    expect(screen.getByTestId("words-placement-build-card")).toBeTruthy();
+    expect(screen.getByTestId("words-placement-selected-chunk-1")).toBeTruthy();
+    expect(screen.getByTestId("words-placement-selected-chunk-2")).toBeTruthy();
+    expect(screen.getByTestId("words-placement-selected-chunk-3")).toBeTruthy();
+    expect(screen.queryByText("Too much help may spoil your child.")).toBeNull();
+    expect(screen.queryByTestId("words-placement-translations")).toBeNull();
+    expect(screen.queryByText("Too much help spoils a child.")).toBeNull();
+    expect(screen.queryByText("너무 많은 도움은 아이를 망친다.")).toBeNull();
+    expect(screen.queryByText("Sentence chunks")).toBeNull();
   });
 
-  it("does not render the translation section when no translations exist", () => {
+  it("does not render the below-card reveal when no translations exist", () => {
     const screen = render(
       <WordsPlacementGame
         word="spoil"
@@ -170,7 +257,7 @@ describe("WordsPlacementGame", () => {
       />,
     );
 
-    expect(screen.getByText("Too much help may spoil your child.")).toBeTruthy();
+    expect(screen.queryByText("Too much help may spoil your child.")).toBeNull();
     expect(screen.queryByTestId("words-placement-translations")).toBeNull();
   });
 });

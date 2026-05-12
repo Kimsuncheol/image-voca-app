@@ -1,7 +1,7 @@
 import { FontSizes } from "@/constants/fontSizes";
 import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Animated, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { WordPlacementChunk } from "../../src/course/quizUtils";
 import { useTheme } from "../../src/context/ThemeContext";
@@ -49,9 +49,7 @@ const shuffleChunks = (chunks: WordPlacementChunk[]) => {
 export function WordsPlacementGame({
   word,
   promptText,
-  targetExample,
   chunks,
-  translations = [],
   userAnswer,
   showResult,
   isCorrect,
@@ -62,10 +60,13 @@ export function WordsPlacementGame({
   const [selectedChunks, setSelectedChunks] = React.useState<
     WordPlacementChunk[]
   >([]);
+  const shakeX = React.useRef(new Animated.Value(0)).current;
+  const lastSubmittedAnswerRef = React.useRef<string | null>(null);
   const shuffledChunks = React.useMemo(() => shuffleChunks(chunks), [chunks]);
 
   React.useEffect(() => {
     setSelectedChunks([]);
+    lastSubmittedAnswerRef.current = null;
   }, [chunks]);
 
   const selectedIds = React.useMemo(
@@ -75,17 +76,67 @@ export function WordsPlacementGame({
   const availableChunks = shuffledChunks.filter(
     (chunk) => !selectedIds.has(chunk.id),
   );
-  const canSubmit = selectedChunks.length === chunks.length && !showResult;
+  const serializedAnswer = React.useMemo(
+    () => serializePlacementAnswer(selectedChunks),
+    [selectedChunks],
+  );
+  const isComplete =
+    chunks.length > 0 && selectedChunks.length === chunks.length;
   const isWrong = showResult && userAnswer && !isCorrect;
 
-  const handleSubmit = () => {
-    if (!canSubmit) return;
-    onAnswer(serializePlacementAnswer(selectedChunks));
-  };
+  React.useEffect(() => {
+    if (!isComplete) {
+      lastSubmittedAnswerRef.current = null;
+      return;
+    }
+    if (showResult || lastSubmittedAnswerRef.current === serializedAnswer) {
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      lastSubmittedAnswerRef.current = serializedAnswer;
+      onAnswer(serializedAnswer);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [isComplete, onAnswer, serializedAnswer, showResult]);
+
+  React.useEffect(() => {
+    if (!isWrong) return;
+
+    shakeX.setValue(0);
+    Animated.sequence([
+      Animated.timing(shakeX, {
+        toValue: 8,
+        duration: 60,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeX, {
+        toValue: -8,
+        duration: 60,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeX, {
+        toValue: 6,
+        duration: 60,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeX, {
+        toValue: -6,
+        duration: 60,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeX, {
+        toValue: 0,
+        duration: 60,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [isWrong, shakeX]);
 
   return (
     <View style={styles.container}>
-      <View
+      <Animated.View
         testID="words-placement-build-card"
         style={[
           styles.buildCard,
@@ -93,6 +144,7 @@ export function WordsPlacementGame({
             borderColor: isWrong ? "#dc3545" : isDark ? "#333" : "#d8d8d8",
           },
           isCorrect && showResult ? styles.correctBuildCard : undefined,
+          { transform: [{ translateX: shakeX }] },
         ]}
       >
         <View
@@ -141,7 +193,7 @@ export function WordsPlacementGame({
                   <Pressable
                     key={chunk.id}
                     testID={`words-placement-selected-${chunk.id}`}
-                    disabled={showResult}
+                    disabled={showResult && isCorrect}
                     onPress={() =>
                       setSelectedChunks((prev) =>
                         prev.filter((selected) => selected.id !== chunk.id),
@@ -162,33 +214,7 @@ export function WordsPlacementGame({
             )}
           </View>
         </View>
-      </View>
-
-      {isCorrect && showResult ? (
-        <View style={styles.revealContainer}>
-          <ThemedText style={styles.revealLabel}>
-            {t("quiz.types.wordsPlacement.answer", {
-              defaultValue: "Sentence",
-            })}
-          </ThemedText>
-          <ThemedText style={styles.revealText}>{targetExample}</ThemedText>
-          {translations.length > 0 ? (
-            <View
-              testID="words-placement-translations"
-              style={styles.translationsContainer}
-            >
-              {translations.map((translation, index) => (
-                <ThemedText
-                  key={`${translation}-${index}`}
-                  style={styles.translationText}
-                >
-                  {translation}
-                </ThemedText>
-              ))}
-            </View>
-          ) : null}
-        </View>
-      ) : null}
+      </Animated.View>
 
       {isWrong ? (
         <ThemedText testID="words-placement-wrong" style={styles.wrongText}>
@@ -198,43 +224,31 @@ export function WordsPlacementGame({
         </ThemedText>
       ) : null}
 
-      <View style={styles.choicesContainer}>
-        <ThemedText style={styles.choicesLabel}>
-          {t("quiz.types.wordsPlacement.chooseChunks", {
-            defaultValue: "Sentence chunks",
-          })}
-        </ThemedText>
-        <View style={styles.chipWrap}>
-          {availableChunks.map((chunk) => (
-            <Pressable
-              key={chunk.id}
-              testID={`words-placement-choice-${chunk.id}`}
-              disabled={showResult}
-              onPress={() => setSelectedChunks((prev) => [...prev, chunk])}
-              style={[
-                styles.chip,
-                { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
-              ]}
-            >
-              <ThemedText style={styles.chipText}>{chunk.text}</ThemedText>
-            </Pressable>
-          ))}
+      {availableChunks.length > 0 ? (
+        <View style={styles.choicesContainer}>
+          <ThemedText style={styles.choicesLabel}>
+            {t("quiz.types.wordsPlacement.chooseChunks", {
+              defaultValue: "Sentence chunks",
+            })}
+          </ThemedText>
+          <View style={styles.chipWrap}>
+            {availableChunks.map((chunk) => (
+              <Pressable
+                key={chunk.id}
+                testID={`words-placement-choice-${chunk.id}`}
+                disabled={showResult}
+                onPress={() => setSelectedChunks((prev) => [...prev, chunk])}
+                style={[
+                  styles.chip,
+                  { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
+                ]}
+              >
+                <ThemedText style={styles.chipText}>{chunk.text}</ThemedText>
+              </Pressable>
+            ))}
+          </View>
         </View>
-      </View>
-
-      <Pressable
-        testID="words-placement-submit"
-        disabled={!canSubmit}
-        onPress={handleSubmit}
-        style={[
-          styles.submitButton,
-          { backgroundColor: canSubmit ? "#007AFF" : "#9CA3AF" },
-        ]}
-      >
-        <ThemedText style={styles.submitText}>
-          {t("common.submit", { defaultValue: "Submit" })}
-        </ThemedText>
-      </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -263,7 +277,7 @@ const styles = StyleSheet.create({
   wordText: {
     fontSize: FontSizes.body,
     fontWeight: FontWeights.normal,
-    textAlign: "center",
+    textAlign: "left",
   },
   answerArea: {
     minHeight: 120,
@@ -286,7 +300,7 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: FontSizes.body,
     opacity: 0.55,
-    textAlign: "center",
+    textAlign: "left",
   },
   chipWrap: {
     flexDirection: "row",
@@ -307,27 +321,6 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.body,
     lineHeight: 22,
   },
-  revealContainer: {
-    gap: 4,
-    paddingHorizontal: 2,
-  },
-  revealLabel: {
-    fontSize: FontSizes.sm,
-    opacity: 0.6,
-  },
-  revealText: {
-    fontSize: FontSizes.bodyLg,
-    fontWeight: FontWeights.semiBold,
-  },
-  translationsContainer: {
-    gap: 4,
-    marginTop: 4,
-  },
-  translationText: {
-    fontSize: FontSizes.body,
-    opacity: 0.72,
-    lineHeight: 22,
-  },
   wrongText: {
     color: "#dc3545",
     fontSize: FontSizes.body,
@@ -340,15 +333,5 @@ const styles = StyleSheet.create({
   choicesLabel: {
     fontSize: FontSizes.body,
     opacity: 0.65,
-  },
-  submitButton: {
-    alignItems: "center",
-    paddingVertical: 14,
-    borderRadius: 12,
-  },
-  submitText: {
-    color: "#fff",
-    fontSize: FontSizes.bodyLg,
-    fontWeight: FontWeights.semiBold,
   },
 });
