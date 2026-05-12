@@ -828,6 +828,15 @@ const ko = {
         title: "매칭",
         description: "단어와 뜻을 짝지으세요",
       },
+      wordsPlacement: {
+        title: "단어 배열",
+        description: "예문을 올바른 순서로 완성하세요",
+        prompt: "이 단어로 문장을 완성하세요",
+        emptyAnswer: "아래 조각을 눌러 문장을 만드세요",
+        chooseChunks: "문장 조각",
+        answer: "문장",
+        tryAgain: "순서를 다시 확인해 보세요.",
+      },
       listening: {
         title: "리스닝",
         description: "듣고 단어 입력",

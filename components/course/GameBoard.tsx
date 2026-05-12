@@ -1,5 +1,8 @@
 import React from "react";
-import type { QuizWordOption } from "../../src/course/quizUtils";
+import type {
+  QuizWordOption,
+  WordPlacementChunk,
+} from "../../src/course/quizUtils";
 import { View } from "react-native";
 import { CollocationGapFillSentenceGame } from "./CollocationGapFillSentenceGame";
 import { CollocationMatchingGame } from "./CollocationMatchingGame";
@@ -9,6 +12,7 @@ import { MatchingGame } from "./MatchingGame";
 import { MultipleChoiceGame } from "./MultipleChoiceGame";
 import { QuizFeedback } from "./QuizFeedback";
 import { SynonymMatchingGame } from "./SynonymMatchingGame";
+import { WordsPlacementGame } from "./WordsPlacementGame";
 
 interface QuizQuestion {
   id: string;
@@ -28,6 +32,8 @@ interface QuizQuestion {
   correctForms?: string[];
   prompt?: string;
   highlightText?: string;
+  targetExample?: string;
+  placementChunks?: WordPlacementChunk[];
 }
 
 interface GameBoardProps {
@@ -90,6 +96,7 @@ export function GameBoard({
     quizType === "synonym-matching" ||
     quizType === "pronunciation-matching";
   const isFillInBlank = quizType === "fill-in-blank";
+  const isWordsPlacement = quizType === "words_placement";
 
   return (
     <View style={(isMatching || isCollocationMatching) ? { flex: 1 } : undefined}>
@@ -181,6 +188,16 @@ export function GameBoard({
           correctForms={currentQuestion.correctForms}
           showPronunciationDetails={showPronunciationDetails}
         />
+      ) : isWordsPlacement ? (
+        <WordsPlacementGame
+          word={currentQuestion.word}
+          targetExample={currentQuestion.targetExample ?? ""}
+          chunks={currentQuestion.placementChunks ?? []}
+          userAnswer={userAnswer}
+          showResult={showResult}
+          isCorrect={isCorrect}
+          onAnswer={onAnswer}
+        />
       ) : (
         <MultipleChoiceGame
           options={(currentQuestion.options as string[]) || []}
@@ -194,7 +211,7 @@ export function GameBoard({
         />
       )}
 
-      {showResult && !isMatching && (
+      {showResult && !isMatching && !isWordsPlacement && (
         <QuizFeedback
           isCorrect={isCorrect}
           correctAnswer={currentQuestion.correctAnswer}

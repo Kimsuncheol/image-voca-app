@@ -42,6 +42,16 @@ jest.mock("../components/course/MultipleChoiceGame", () => ({
   MultipleChoiceGame: () => null,
 }));
 
+jest.mock("../components/course/WordsPlacementGame", () => ({
+  WordsPlacementGame: () => {
+    const React = jest.requireActual<typeof import("react")>("react");
+    const { Text } = jest.requireActual<typeof import("react-native")>(
+      "react-native",
+    );
+    return <Text>WordsPlacementGame</Text>;
+  },
+}));
+
 jest.mock("../components/course/QuizFeedback", () => ({
   QuizFeedback: () => null,
 }));
@@ -91,6 +101,30 @@ describe("GameBoard matching modes", () => {
     );
 
     expect(screen.getByText("SynonymMatchingGame")).toBeTruthy();
+    expect(screen.queryByText("MatchingGame")).toBeNull();
+  });
+
+  it("routes words_placement to WordsPlacementGame", () => {
+    const screen = render(
+      <GameBoard
+        {...baseProps}
+        quizType="words_placement"
+        currentQuestion={{
+          ...baseProps.currentQuestion,
+          targetExample: "Too much help may spoil your child.",
+          placementChunks: [
+            {
+              id: "chunk-1",
+              text: "Too much help may",
+              type: "sentence_chunk",
+              order: 1,
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByText("WordsPlacementGame")).toBeTruthy();
     expect(screen.queryByText("MatchingGame")).toBeNull();
   });
 });

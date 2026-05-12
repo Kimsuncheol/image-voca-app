@@ -89,6 +89,159 @@ describe("courseQuizDataService", () => {
     });
   });
 
+  it("maps words_placement to the words_placement quiz collection", async () => {
+    (getDoc as jest.Mock).mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        gameType: "words_placement",
+        items: [
+          {
+            wordId: "word-1",
+            word: "spoil",
+            example: "[[[spoil]]] raw debug source",
+            wordsToPlace: [
+              {
+                targetExample: "Too much help may spoil your child.",
+                chunks: [
+                  {
+                    id: "chunk-2",
+                    text: "spoil",
+                    type: "answer",
+                    order: 2,
+                  },
+                  {
+                    id: "chunk-1",
+                    text: "Too much help may",
+                    type: "sentence_chunk",
+                    order: 1,
+                  },
+                  {
+                    id: "chunk-3",
+                    text: "your child.",
+                    type: "sentence_chunk",
+                    order: 3,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }),
+    });
+
+    const result = await fetchCourseQuizData(
+      "TOEIC",
+      2,
+      "words_placement",
+      "en",
+    );
+
+    expect(doc).toHaveBeenCalledWith(
+      {},
+      "courses/toeic",
+      "Day2",
+      "Day2-quiz",
+      "words_placement",
+      "data",
+    );
+    expect(result?.questions[0]).toMatchObject({
+      id: "word-1-0",
+      word: "spoil",
+      meaning: "Too much help may spoil your child.",
+      correctAnswer: "Too much help may spoil your child.",
+      targetExample: "Too much help may spoil your child.",
+    });
+    expect(result?.questions[0].placementChunks).toHaveLength(3);
+    expect(JSON.stringify(result?.questions[0])).not.toContain(
+      "[[[spoil]]]",
+    );
+  });
+
+  it("flattens multiple words_placement groups into playable questions", () => {
+    const result = normalizeFirestoreCourseQuiz("words_placement", {
+      items: [
+        {
+          wordId: "word-1",
+          word: "間",
+          example: "raw",
+          wordsToPlace: [
+            {
+              targetExample: "間に入る。",
+              chunks: [
+                { id: "a", text: "間に", type: "answer", order: 1 },
+                { id: "b", text: "入る。", type: "sentence_chunk", order: 2 },
+              ],
+            },
+            {
+              targetExample: "少し間を置く。",
+              chunks: [
+                { id: "c", text: "少し", type: "sentence_chunk", order: 1 },
+                { id: "d", text: "間を置く。", type: "answer", order: 2 },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result?.questions.map((question) => question.targetExample)).toEqual([
+      "間に入る。",
+      "少し間を置く。",
+    ]);
+  });
+
+  it("rejects invalid words_placement groups", () => {
+    expect(
+      normalizeFirestoreCourseQuiz("words_placement", {
+        items: [
+          {
+            wordId: "word-1",
+            word: "spoil",
+            wordsToPlace: [
+              {
+                targetExample: "",
+                chunks: [
+                  { id: "a", text: "spoil", type: "answer", order: 1 },
+                ],
+              },
+              {
+                targetExample: "Valid sentence.",
+                chunks: [
+                  { id: "b", text: "Valid", type: "answer", order: 1 },
+                  {
+                    id: "c",
+                    text: "sentence.",
+                    type: "sentence_chunk",
+                    order: 2,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      })?.questions,
+    ).toHaveLength(1);
+
+    expect(
+      normalizeFirestoreCourseQuiz("words_placement", {
+        items: [
+          {
+            wordId: "word-1",
+            word: "spoil",
+            wordsToPlace: [
+              {
+                targetExample: "Invalid sentence.",
+                chunks: [
+                  { id: "a", text: "Invalid", type: "bad", order: 1 },
+                ],
+              },
+            ],
+          },
+        ],
+      }),
+    ).toBeNull();
+  });
+
   it("builds the JLPT N5 Day 1 fill-in-blank quiz data path", async () => {
     (getDoc as jest.Mock).mockResolvedValue({
       exists: () => false,

@@ -14,6 +14,13 @@ export interface QuizWordOption {
   answerText?: string;
 }
 
+export type WordPlacementChunk = {
+  id: string;
+  text: string;
+  type: "sentence_chunk" | "answer";
+  order: number;
+};
+
 export interface QuizQuestion {
   id: string;
   word: string;
@@ -32,6 +39,8 @@ export interface QuizQuestion {
   correctForms?: string[];
   prompt?: string;
   highlightText?: string;
+  targetExample?: string;
+  placementChunks?: WordPlacementChunk[];
 }
 
 export interface QuizVocabData {

@@ -1,6 +1,10 @@
 import { doc, getDoc } from "firebase/firestore";
 import type { QuizTypeId } from "../course/quizModes";
-import type { QuizQuestion, QuizWordOption } from "../course/quizUtils";
+import type {
+  QuizQuestion,
+  QuizWordOption,
+  WordPlacementChunk,
+} from "../course/quizUtils";
 import {
   getLearningLanguageForCourse,
   isJlptLevelCourseId,
@@ -9,7 +13,7 @@ import {
 import { db } from "./firebase";
 import { getCourseConfig } from "./vocabularyPrefetch";
 
-type FirestoreQuizKind = "matching" | "fill_in_the_blank";
+type FirestoreQuizKind = "matching" | "fill_in_the_blank" | "words_placement";
 
 type QuizTextValue =
   | string
@@ -52,6 +56,25 @@ type FillInBlankQuestion = {
   options?: unknown;
   answer_id?: unknown;
   answer_text?: unknown;
+};
+
+type WordsPlacementChunk = {
+  id?: unknown;
+  text?: unknown;
+  type?: unknown;
+  order?: unknown;
+};
+
+type WordsPlacementGroup = {
+  targetExample?: unknown;
+  chunks?: unknown;
+};
+
+type WordsPlacementItem = {
+  wordId?: unknown;
+  word?: unknown;
+  example?: unknown;
+  wordsToPlace?: unknown;
 };
 
 export type FirestoreCourseQuizData = {
@@ -280,6 +303,8 @@ export const getFirestoreQuizKindForQuizType = (
     case "fill-in-blank":
     case "gap-fill-sentence":
       return "fill_in_the_blank";
+    case "words_placement":
+      return "words_placement";
     default:
       return null;
   }
@@ -471,6 +496,84 @@ const normalizeFillInBlankQuiz = (
   return questions.length > 0 ? { questions, matchingChoices: [] } : null;
 };
 
+const normalizePlacementChunk = (
+  rawChunk: unknown,
+): WordPlacementChunk | null => {
+  if (!rawChunk || typeof rawChunk !== "object") return null;
+
+  const chunk = rawChunk as WordsPlacementChunk;
+  const id = normalizeString(chunk.id);
+  const text = normalizeString(chunk.text);
+  const type = normalizeString(chunk.type);
+  const order =
+    typeof chunk.order === "number" && Number.isFinite(chunk.order)
+      ? chunk.order
+      : undefined;
+
+  if (
+    !id ||
+    !text ||
+    order === undefined ||
+    (type !== "sentence_chunk" && type !== "answer")
+  ) {
+    return null;
+  }
+
+  return { id, text, type, order };
+};
+
+const normalizeWordsPlacementQuiz = (
+  data: Record<string, unknown>,
+): FirestoreCourseQuizData | null => {
+  const rawItems = Array.isArray(data.items) ? data.items : [];
+  if (rawItems.length === 0) return null;
+
+  const questions: QuizQuestion[] = rawItems.flatMap((rawItem, itemIndex) => {
+    if (!rawItem || typeof rawItem !== "object") return [];
+
+    const item = rawItem as WordsPlacementItem;
+    const wordId = normalizeString(item.wordId) ?? `item-${itemIndex}`;
+    const word = normalizeString(item.word);
+    const rawGroups = Array.isArray(item.wordsToPlace)
+      ? item.wordsToPlace
+      : [];
+
+    if (!word || rawGroups.length === 0) return [];
+
+    return rawGroups
+      .map<QuizQuestion | null>((rawGroup, groupIndex) => {
+        if (!rawGroup || typeof rawGroup !== "object") return null;
+
+        const group = rawGroup as WordsPlacementGroup;
+        const targetExample = normalizeString(group.targetExample);
+        const rawChunks = Array.isArray(group.chunks) ? group.chunks : [];
+        const chunks = rawChunks
+          .map(normalizePlacementChunk)
+          .filter((chunk): chunk is WordPlacementChunk => Boolean(chunk));
+
+        if (
+          !targetExample ||
+          chunks.length === 0 ||
+          chunks.length !== rawChunks.length
+        ) {
+          return null;
+        }
+
+        return {
+          id: `${wordId}-${groupIndex}`,
+          word,
+          meaning: targetExample,
+          correctAnswer: targetExample,
+          targetExample,
+          placementChunks: chunks,
+        } satisfies QuizQuestion;
+      })
+      .filter((question): question is QuizQuestion => Boolean(question));
+  });
+
+  return questions.length > 0 ? { questions, matchingChoices: [] } : null;
+};
+
 const describeInvalidMatchingQuiz = (
   data: Record<string, unknown>,
   appLanguage?: string,
@@ -579,6 +682,52 @@ const describeInvalidFillInBlankQuiz = (data: Record<string, unknown>) => {
   return "no playable fill-in-the-blank questions after normalization";
 };
 
+const describeInvalidWordsPlacementQuiz = (data: Record<string, unknown>) => {
+  if (!Array.isArray(data.items)) return "items is not an array";
+  if (data.items.length === 0) return "items is empty";
+
+  for (const [itemIndex, rawItem] of data.items.entries()) {
+    if (!rawItem || typeof rawItem !== "object") {
+      return `item ${itemIndex} is not an object`;
+    }
+
+    const item = rawItem as WordsPlacementItem;
+    const wordId = normalizeString(item.wordId) ?? `item ${itemIndex}`;
+    if (!normalizeString(item.word)) return `${wordId} has no word`;
+    if (!Array.isArray(item.wordsToPlace)) {
+      return `${wordId} wordsToPlace is not an array`;
+    }
+    if (item.wordsToPlace.length === 0) {
+      return `${wordId} wordsToPlace is empty`;
+    }
+
+    for (const [groupIndex, rawGroup] of item.wordsToPlace.entries()) {
+      if (!rawGroup || typeof rawGroup !== "object") {
+        return `${wordId} group ${groupIndex} is not an object`;
+      }
+
+      const group = rawGroup as WordsPlacementGroup;
+      if (!normalizeString(group.targetExample)) {
+        return `${wordId} group ${groupIndex} has no targetExample`;
+      }
+      if (!Array.isArray(group.chunks)) {
+        return `${wordId} group ${groupIndex} chunks is not an array`;
+      }
+      if (group.chunks.length === 0) {
+        return `${wordId} group ${groupIndex} chunks is empty`;
+      }
+      const validChunks = group.chunks
+        .map(normalizePlacementChunk)
+        .filter(Boolean);
+      if (validChunks.length !== group.chunks.length) {
+        return `${wordId} group ${groupIndex} has invalid chunks`;
+      }
+    }
+  }
+
+  return "no playable words placement questions after normalization";
+};
+
 const describeInvalidQuizData = (
   quizKind: FirestoreQuizKind,
   data: Record<string, unknown>,
@@ -587,7 +736,9 @@ const describeInvalidQuizData = (
 ) =>
   quizKind === "matching"
     ? describeInvalidMatchingQuiz(data, appLanguage, courseId)
-    : describeInvalidFillInBlankQuiz(data);
+    : quizKind === "fill_in_the_blank"
+      ? describeInvalidFillInBlankQuiz(data)
+      : describeInvalidWordsPlacementQuiz(data);
 
 export const normalizeFirestoreCourseQuiz = (
   quizKind: FirestoreQuizKind,
@@ -597,7 +748,9 @@ export const normalizeFirestoreCourseQuiz = (
 ): FirestoreCourseQuizData | null =>
   quizKind === "matching"
     ? normalizeMatchingQuiz(data, appLanguage, courseId)
-    : normalizeFillInBlankQuiz(data, appLanguage, courseId);
+    : quizKind === "fill_in_the_blank"
+      ? normalizeFillInBlankQuiz(data, appLanguage, courseId)
+      : normalizeWordsPlacementQuiz(data);
 
 export const fetchCourseQuizData = async (
   courseId: CourseType,
@@ -649,6 +802,11 @@ export const fetchCourseQuizData = async (
       questionsLength: Array.isArray(data.questions)
         ? data.questions.length
         : undefined,
+    });
+  } else if (quizKind === "words_placement") {
+    logQuizDebug("words placement doc shape", {
+      itemsIsArray: Array.isArray(data.items),
+      itemsLength: Array.isArray(data.items) ? data.items.length : undefined,
     });
   } else {
     const rawAnswerKey = getMatchingAnswerKey(data);

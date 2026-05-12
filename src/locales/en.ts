@@ -839,6 +839,15 @@ const en = {
         title: "Matching",
         description: "Pair words with their meanings",
       },
+      wordsPlacement: {
+        title: "Words Placement",
+        description: "Rebuild the example sentence",
+        prompt: "Build a sentence with",
+        emptyAnswer: "Tap chunks below to build the sentence",
+        chooseChunks: "Sentence chunks",
+        answer: "Sentence",
+        tryAgain: "Try that order again.",
+      },
       listening: {
         title: "Listening",
         description: "Listen and type the word",

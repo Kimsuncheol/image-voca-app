@@ -786,6 +786,15 @@ const ja = {
         title: "マッチング",
         description: "単語と意味をペアにしてください",
       },
+      wordsPlacement: {
+        title: "語順並べ替え",
+        description: "例文を正しい順番に組み立ててください",
+        prompt: "この単語で文を作ってください",
+        emptyAnswer: "下のチャンクをタップして文を作ってください",
+        chooseChunks: "文のチャンク",
+        answer: "文",
+        tryAgain: "順番をもう一度確認してください。",
+      },
       listening: {
         title: "リスニング",
         description: "聞いて単語を入力してください",

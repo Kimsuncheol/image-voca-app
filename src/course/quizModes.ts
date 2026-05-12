@@ -5,6 +5,7 @@ export type QuizTypeId =
   | "pronunciation-matching"
   | "synonym-matching"
   | "fill-in-blank"
+  | "words_placement"
   | "gap-fill-sentence"
   | "collocation-matching";
 
@@ -37,6 +38,15 @@ const STANDARD_QUIZ_TYPES: QuizTypeOption[] = [
     icon: "create-outline",
     color: "#4ECDC4",
   },
+  {
+    id: "words_placement",
+    title: "Words Placement",
+    titleKey: "quiz.types.wordsPlacement.title",
+    description: "Rebuild the example sentence",
+    descriptionKey: "quiz.types.wordsPlacement.description",
+    icon: "reorder-four",
+    color: "#7C9CFF",
+  },
 ];
 
 const TOEFL_QUIZ_TYPES: QuizTypeOption[] = [
@@ -67,6 +77,15 @@ const TOEFL_QUIZ_TYPES: QuizTypeOption[] = [
     icon: "create-outline",
     color: "#4ECDC4",
   },
+  {
+    id: "words_placement",
+    title: "Words Placement",
+    titleKey: "quiz.types.wordsPlacement.title",
+    description: "Rebuild the example sentence",
+    descriptionKey: "quiz.types.wordsPlacement.description",
+    icon: "reorder-four",
+    color: "#7C9CFF",
+  },
 ];
 
 const JLPT_QUIZ_TYPES: QuizTypeOption[] = [
@@ -87,6 +106,15 @@ const JLPT_QUIZ_TYPES: QuizTypeOption[] = [
     descriptionKey: "quiz.types.fillInBlank.description",
     icon: "create-outline",
     color: "#4ECDC4",
+  },
+  {
+    id: "words_placement",
+    title: "Words Placement",
+    titleKey: "quiz.types.wordsPlacement.title",
+    description: "Rebuild the example sentence",
+    descriptionKey: "quiz.types.wordsPlacement.description",
+    icon: "reorder-four",
+    color: "#7C9CFF",
   },
 ];
 
@@ -118,6 +146,15 @@ const KANJI_QUIZ_TYPES: QuizTypeOption[] = [
     icon: "create-outline",
     color: "#4ECDC4",
   },
+  {
+    id: "words_placement",
+    title: "Words Placement",
+    titleKey: "quiz.types.wordsPlacement.title",
+    description: "Rebuild the example sentence",
+    descriptionKey: "quiz.types.wordsPlacement.description",
+    icon: "reorder-four",
+    color: "#7C9CFF",
+  },
 ];
 
 const COLLOCATION_QUIZ_TYPES: QuizTypeOption[] = [
@@ -138,6 +175,15 @@ const COLLOCATION_QUIZ_TYPES: QuizTypeOption[] = [
     descriptionKey: "quiz.types.collocationMatching.description",
     icon: "git-compare",
     color: "#FFE66D",
+  },
+  {
+    id: "words_placement",
+    title: "Words Placement",
+    titleKey: "quiz.types.wordsPlacement.title",
+    description: "Rebuild the example sentence",
+    descriptionKey: "quiz.types.wordsPlacement.description",
+    icon: "reorder-four",
+    color: "#7C9CFF",
   },
 ];
 

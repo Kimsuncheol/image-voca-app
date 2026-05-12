@@ -27,6 +27,10 @@ import {
   QuizHeader,
   QuizTimer,
 } from "../../../components/course";
+import {
+  isWordsPlacementCorrect,
+  serializePlacementAnswer,
+} from "../../../components/course/WordsPlacementGame";
 import { EyeComfortHeaderButton } from "../../../src/components/common/EyeComfortHeaderButton";
 import { useAuth } from "../../../src/context/AuthContext";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
@@ -127,6 +131,7 @@ export default function QuizPlayScreen() {
   const [matchedPairs, setMatchedPairs] = useState<Record<string, string>>({});
   const [matchingMeanings, setMatchingMeanings] = useState<string[]>([]);
   const [matchingTimerResetKey, setMatchingTimerResetKey] = useState(0);
+  const [placementTimerResetKey, setPlacementTimerResetKey] = useState(0);
   const [isQuitPromptOpen, setIsQuitPromptOpen] = useState(false);
   const [effectiveQuizType, setEffectiveQuizType] =
     useState<QuizTypeId>(requestedQuizType);
@@ -215,6 +220,7 @@ export default function QuizPlayScreen() {
       setWrongMeaning(null);
       setMatchedPairs({});
       setMatchingTimerResetKey(0);
+      setPlacementTimerResetKey(0);
       setIsQuitPromptOpen(false);
       try {
         if (isFirestoreBackedQuizType(requestedQuizType)) {
@@ -355,6 +361,7 @@ export default function QuizPlayScreen() {
     resolvedQuizType === "matching" ||
     resolvedQuizType === "synonym-matching" ||
     resolvedQuizType === "pronunciation-matching";
+  const isWordsPlacement = effectiveQuizType === "words_placement";
   const matchedCount = Object.keys(matchedPairs).length;
   const totalQuestions = questions.length;
   const progressCurrent = isMatching ? matchedCount : currentIndex + 1;
@@ -482,9 +489,17 @@ export default function QuizPlayScreen() {
   };
 
   const handleAnswer = async (answer: string) => {
-    const correct =
-      answer.toLowerCase().trim() ===
-      currentQuestion.correctAnswer.toLowerCase().trim();
+    const placementChunks = currentQuestion.placementChunks ?? [];
+    const selectedPlacementChunks = answer
+      .split("|")
+      .map((id) => placementChunks.find((chunk) => chunk.id === id))
+      .filter(
+        (chunk): chunk is NonNullable<typeof chunk> => Boolean(chunk),
+      );
+    const correct = isWordsPlacement
+      ? isWordsPlacementCorrect(selectedPlacementChunks, placementChunks)
+      : answer.toLowerCase().trim() ===
+        currentQuestion.correctAnswer.toLowerCase().trim();
     const nextScore = correct ? score + 1 : score;
     console.log(
       `[Quiz] ${effectiveQuizType} answer in handleAnswer`,
@@ -519,10 +534,14 @@ export default function QuizPlayScreen() {
       answerAdvanceTimeoutRef.current = null;
       if (!isFocusedRef.current) return;
       setShowResult(false);
-      setUserAnswer("");
+      if (!isWordsPlacement || correct) {
+        setUserAnswer("");
+      }
 
       if (shouldFinishAfterFeedback) {
         finishQuiz(nextScore);
+      } else if (!correct && isWordsPlacement) {
+        setPlacementTimerResetKey((prev) => prev + 1);
       } else if (currentIndex < totalQuestions - 1) {
         setCurrentIndex((prev) => prev + 1);
       } else {
@@ -618,7 +637,11 @@ export default function QuizPlayScreen() {
 
     // Treat as incorrect answer
     if (!showResult && !quizFinished) {
-      handleAnswer(""); // Empty answer triggers incorrect
+      handleAnswer(
+        isWordsPlacement
+          ? serializePlacementAnswer([])
+          : "",
+      ); // Empty answer triggers incorrect
     }
   };
 
@@ -688,6 +711,7 @@ export default function QuizPlayScreen() {
     setWrongMeaning(null);
     setMatchedPairs({});
     setMatchingTimerResetKey(0);
+    setPlacementTimerResetKey(0);
     setIsQuitPromptOpen(false);
   };
 
@@ -757,7 +781,7 @@ export default function QuizPlayScreen() {
       />
       {!quizFinished && !loading && (
         <QuizTimer
-          duration={15}
+          duration={isWordsPlacement ? 30 : 15}
           onTimeUp={handleTimeUp}
           isRunning={
             !showResult &&
@@ -771,7 +795,9 @@ export default function QuizPlayScreen() {
           quizKey={
             isMatching
               ? `matching-${matchingTimerResetKey}`
-              : `${currentIndex}-${dayNumber}`
+              : isWordsPlacement
+                ? `words-placement-${currentIndex}-${dayNumber}-${placementTimerResetKey}`
+                : `${currentIndex}-${dayNumber}`
           }
         />
       )}
