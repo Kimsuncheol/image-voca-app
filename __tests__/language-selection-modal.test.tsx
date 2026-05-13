@@ -7,15 +7,21 @@ import { LanguageHeaderButton } from "../src/components/common/LanguageHeaderBut
 import { LanguageSelectionModal } from "../src/components/common/LanguageSelectionModal";
 import {
   __resetJapaneseContentLanguageStoreForTests,
+  JAPANESE_CONTENT_LANGUAGE_FIRESTORE_FIELD,
   useJapaneseContentLanguageStore,
 } from "../src/stores/japaneseContentLanguageStore";
 
 const mockSetLanguageMode = jest.fn();
 const mockGetStudyReminderEnabledPreference = jest.fn();
 const mockScheduleDailyNotifications = jest.fn();
+const mockGetDoc = jest.fn();
+const mockSetDoc = jest.fn(
+  async (_ref: unknown, _data: unknown, _options: unknown) => undefined,
+);
 let mockMode = "system";
 let mockEffectiveLanguage = "en-US";
 let mockIsDark = false;
+let mockUser: { uid: string } | null = { uid: "user-1" };
 
 jest.mock("@expo/vector-icons", () => {
   const React = require("react");
@@ -50,6 +56,23 @@ jest.mock("../src/context/ThemeContext", () => ({
   useTheme: () => ({
     isDark: mockIsDark,
   }),
+}));
+
+jest.mock("../src/context/AuthContext", () => ({
+  useAuth: () => ({
+    user: mockUser,
+  }),
+}));
+
+jest.mock("firebase/firestore", () => ({
+  doc: jest.fn((_db, collection: string, id: string) => `${collection}/${id}`),
+  getDoc: (ref: unknown) => mockGetDoc(ref),
+  setDoc: (ref: unknown, data: unknown, options: unknown) =>
+    mockSetDoc(ref, data, options),
+}));
+
+jest.mock("../src/services/firebase", () => ({
+  db: {},
 }));
 
 jest.mock("../src/stores/languageSettingsStore", () => ({
@@ -102,13 +125,22 @@ describe("LanguageSelectionModal", () => {
     await AsyncStorage.clear();
     jest.clearAllMocks();
     __resetJapaneseContentLanguageStoreForTests();
-    useJapaneseContentLanguageStore.setState({ _initialized: true });
+    useJapaneseContentLanguageStore.setState({
+      _initialized: true,
+      _hydratedUserId: "user-1",
+    });
     mockMode = "system";
     mockEffectiveLanguage = "en-US";
     mockIsDark = false;
+    mockUser = { uid: "user-1" };
     mockSetLanguageMode.mockResolvedValue(undefined);
     mockGetStudyReminderEnabledPreference.mockResolvedValue(false);
     mockScheduleDailyNotifications.mockResolvedValue(undefined);
+    mockSetDoc.mockResolvedValue(undefined);
+    mockGetDoc.mockResolvedValue({
+      exists: () => false,
+      data: () => ({}),
+    });
   });
 
   it("opens from the header button and closes on outside press", () => {
@@ -175,6 +207,7 @@ describe("LanguageSelectionModal", () => {
     useJapaneseContentLanguageStore.setState({
       mode: "ko",
       _initialized: true,
+      _hydratedUserId: "user-1",
     });
     const onClose = jest.fn();
     const screen = render(<LanguageSelectionModal visible onClose={onClose} />);
@@ -182,14 +215,14 @@ describe("LanguageSelectionModal", () => {
     fireEvent.press(screen.getByTestId("language-selection-option-en-GB"));
 
     await waitFor(() => {
-    expect(mockSetLanguageMode).toHaveBeenCalledWith("en-GB");
+      expect(mockSetLanguageMode).toHaveBeenCalledWith("en-GB");
     });
     expect(mockScheduleDailyNotifications).toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
     expect(useJapaneseContentLanguageStore.getState().mode).toBe("ko");
   });
 
-  it("shows Japanese Korean shortcut and keeps UI language unchanged", async () => {
+  it("toggles Japanese Korean shortcut on and keeps UI language unchanged", async () => {
     const screen = render(
       <LanguageSelectionModal
         visible
@@ -202,6 +235,12 @@ describe("LanguageSelectionModal", () => {
     expect(
       screen.queryByTestId("language-selection-japanese-korean-check"),
     ).toBeNull();
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId("language-selection-japanese-korean-option").props
+          .style,
+      ).backgroundColor,
+    ).toBe("transparent");
 
     fireEvent.press(
       screen.getByTestId("language-selection-japanese-korean-option"),
@@ -211,8 +250,58 @@ describe("LanguageSelectionModal", () => {
       expect(useJapaneseContentLanguageStore.getState().mode).toBe("ko");
     });
     expect(mockSetLanguageMode).not.toHaveBeenCalled();
+    expect(mockSetDoc).toHaveBeenCalledWith(
+      "users/user-1",
+      { [JAPANESE_CONTENT_LANGUAGE_FIRESTORE_FIELD]: "ko" },
+      { merge: true },
+    );
     expect(screen.getByTestId("language-selection-japanese-korean-check"))
       .toBeTruthy();
+  });
+
+  it("toggles Japanese Korean shortcut off and saves default remotely", async () => {
+    useJapaneseContentLanguageStore.setState({
+      mode: "ko",
+      _initialized: true,
+      _hydratedUserId: "user-1",
+    });
+    const screen = render(
+      <LanguageSelectionModal
+        visible
+        onClose={jest.fn()}
+        showJapaneseKoreanOption
+      />,
+    );
+
+    expect(screen.getByTestId("language-selection-japanese-korean-check"))
+      .toBeTruthy();
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId("language-selection-japanese-korean-option").props
+          .style,
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        backgroundColor: "rgba(255,149,0,0.1)",
+        borderColor: "rgba(255,149,0,0.35)",
+      }),
+    );
+
+    fireEvent.press(
+      screen.getByTestId("language-selection-japanese-korean-option"),
+    );
+
+    await waitFor(() => {
+      expect(useJapaneseContentLanguageStore.getState().mode).toBe("default");
+    });
+    expect(mockSetDoc).toHaveBeenCalledWith(
+      "users/user-1",
+      { [JAPANESE_CONTENT_LANGUAGE_FIRESTORE_FIELD]: "default" },
+      { merge: true },
+    );
+    expect(
+      screen.queryByTestId("language-selection-japanese-korean-check"),
+    ).toBeNull();
   });
 
   it("hides the Japanese Korean shortcut when not requested", () => {

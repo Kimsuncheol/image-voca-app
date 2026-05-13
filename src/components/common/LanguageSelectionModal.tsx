@@ -19,6 +19,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useJapaneseContentLanguageStore } from "../../stores/japaneseContentLanguageStore";
 import { useLanguageSettingsStore } from "../../stores/languageSettingsStore";
@@ -82,6 +83,7 @@ export function LanguageSelectionModal({
 }: LanguageSelectionModalProps) {
   const { t } = useTranslation();
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const styles = getStyles(isDark);
   const mode = useLanguageSettingsStore((state) => state.mode);
   const japaneseContentMode = useJapaneseContentLanguageStore(
@@ -93,9 +95,14 @@ export function LanguageSelectionModal({
   const isJapaneseContentInitialized = useJapaneseContentLanguageStore(
     (state) => state._initialized,
   );
+  const hydratedJapaneseContentUserId = useJapaneseContentLanguageStore(
+    (state) => state._hydratedUserId,
+  );
   const hydrateJapaneseContent = useJapaneseContentLanguageStore(
     (state) => state.hydrate,
   );
+  const japaneseContentUserId = user?.uid ?? null;
+  const isJapaneseKoreanSelected = japaneseContentMode === "ko";
   const insets = useSafeAreaInsets();
   const headerContextHeight = React.useContext(HeaderHeightContext);
   const windowDimensions = useWindowDimensions();
@@ -127,7 +134,10 @@ export function LanguageSelectionModal({
 
   const handleSelectJapaneseKorean = async () => {
     try {
-      await setJapaneseContentMode("ko");
+      await setJapaneseContentMode(
+        japaneseContentMode === "ko" ? "default" : "ko",
+        japaneseContentUserId,
+      );
       onClose();
     } catch (error) {
       console.warn("Failed to change Japanese content language", error);
@@ -135,10 +145,18 @@ export function LanguageSelectionModal({
   };
 
   React.useEffect(() => {
-    if (!isJapaneseContentInitialized) {
-      void hydrateJapaneseContent();
+    if (
+      !isJapaneseContentInitialized ||
+      hydratedJapaneseContentUserId !== japaneseContentUserId
+    ) {
+      void hydrateJapaneseContent(japaneseContentUserId);
     }
-  }, [hydrateJapaneseContent, isJapaneseContentInitialized]);
+  }, [
+    hydrateJapaneseContent,
+    hydratedJapaneseContentUserId,
+    isJapaneseContentInitialized,
+    japaneseContentUserId,
+  ]);
 
   return (
     <Modal
@@ -170,7 +188,12 @@ export function LanguageSelectionModal({
           {showJapaneseKoreanOption ? (
             <Pressable
               testID="language-selection-japanese-korean-option"
-              style={styles.featuredOption}
+              style={[
+                styles.featuredOption,
+                isJapaneseKoreanSelected
+                  ? styles.featuredOptionSelected
+                  : styles.featuredOptionUnselected,
+              ]}
               onPress={() => {
                 void handleSelectJapaneseKorean();
               }}
@@ -187,7 +210,7 @@ export function LanguageSelectionModal({
                   })}
                 </Text>
               </View>
-              {japaneseContentMode === "ko" ? (
+              {isJapaneseKoreanSelected ? (
                 <Ionicons
                   testID="language-selection-japanese-korean-check"
                   name="checkmark"
@@ -265,13 +288,21 @@ const getStyles = (isDark: boolean) => {
       gap: 12,
       borderRadius: 14,
       borderWidth: 1,
+      padding: 12,
+    },
+    featuredOptionSelected: {
       borderColor: isDark
         ? "rgba(255,149,0,0.45)"
         : "rgba(255,149,0,0.35)",
       backgroundColor: isDark
         ? "rgba(255,149,0,0.12)"
         : "rgba(255,149,0,0.1)",
-      padding: 12,
+    },
+    featuredOptionUnselected: {
+      borderColor: isDark
+        ? "rgba(255,255,255,0.12)"
+        : "rgba(17,24,39,0.08)",
+      backgroundColor: "transparent",
     },
     featuredTextBlock: {
       flex: 1,
