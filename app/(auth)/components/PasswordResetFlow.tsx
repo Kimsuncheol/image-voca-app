@@ -1,13 +1,8 @@
 import { FontWeights } from "@/constants/fontWeights";
-import Constants from "expo-constants";
-import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
-import { FirebaseError } from "firebase/app";
 import { FontSizes } from "@/constants/fontSizes";
 import {
-  ActionCodeSettings,
   confirmPasswordReset,
-  sendPasswordResetEmail,
   verifyPasswordResetCode,
 } from "firebase/auth";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -18,6 +13,7 @@ import { FontColors, getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { usePasswordResetDeepLink } from "../../../src/hooks/usePasswordResetDeepLink";
 import { auth } from "../../../src/services/firebase";
+import { sendPasswordResetEmailForAddress } from "../../../src/services/passwordResetService";
 import { AuthErrorToast } from "./AuthErrorToast";
 import { AuthKeyboardScreen } from "./AuthKeyboardScreen";
 import { FormInput } from "./FormInput";
@@ -33,27 +29,6 @@ interface PasswordResetFlowProps {
   emailEditable: boolean;
   redirectAfterSuccess: "/(auth)/login";
 }
-
-const getFirebaseErrorCode = (error: unknown) => {
-  if (error instanceof FirebaseError) {
-    return error.code;
-  }
-
-  if (typeof error === "object" && error !== null) {
-    const maybeCode = (error as { code?: unknown }).code;
-    if (typeof maybeCode === "string") {
-      return maybeCode;
-    }
-  }
-
-  return undefined;
-};
-
-const shouldRetryWithoutActionCodeSettings = (code?: string) =>
-  code === "auth/invalid-continue-uri" ||
-  code === "auth/unauthorized-continue-uri" ||
-  code === "auth/missing-continue-uri" ||
-  code === "auth/argument-error";
 
 export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
   variant,
@@ -96,7 +71,7 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }, [email]);
 
-  const hasMinLength = password.length >= 8;
+  const hasMinLength = password.length >= 6;
   const passwordsMatch = password === confirmPassword && password !== "";
   const canSubmitReset = hasMinLength && passwordsMatch && !!verifiedCode && !isResettingPassword;
 
@@ -170,41 +145,15 @@ export const PasswordResetFlow: React.FC<PasswordResetFlowProps> = ({
       return;
     }
 
-    const routePath = variant === "forgot" ? "/forgot-password" : "/reset-password";
-    const iosBundleId = Constants.expoConfig?.ios?.bundleIdentifier;
-    const androidPackageName = Constants.expoConfig?.android?.package;
-
-    const actionCodeSettings: ActionCodeSettings = {
-      url: Linking.createURL(routePath),
-      handleCodeInApp: true,
-      ...(iosBundleId ? { iOS: { bundleId: iosBundleId } } : {}),
-      ...(androidPackageName
-        ? {
-            android: {
-              packageName: androidPackageName,
-              installApp: true,
-            },
-          }
-        : {}),
-    };
-
     setIsSendingEmail(true);
     try {
-      try {
-        await sendPasswordResetEmail(auth, email, actionCodeSettings);
-      } catch (error) {
-        const code = getFirebaseErrorCode(error);
-        if (!shouldRetryWithoutActionCodeSettings(code)) {
-          throw error;
-        }
-
-        // Fallback for environments where deep-link ActionCodeSettings are not accepted.
-        await sendPasswordResetEmail(auth, email);
+      const result = await sendPasswordResetEmailForAddress(email);
+      if (!result.ok) {
+        throw result.error;
       }
       setEmailSent(true);
-      setSuccessMessage(t("auth.passwordReset.emailSent", { email }));
-    } catch (error) {
-      console.error("Failed to send password reset email:", error);
+      setSuccessMessage(t("auth.passwordReset.emailSent", { email: result.email }));
+    } catch {
       setGeneralError(t("auth.passwordReset.sendFailed"));
     } finally {
       setIsSendingEmail(false);

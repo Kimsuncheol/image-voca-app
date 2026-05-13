@@ -5,6 +5,8 @@ import { useMemo } from "react";
 type PasswordResetLinkParams = {
   mode?: string;
   oobCode?: string;
+  apiKey?: string;
+  continueUrl?: string;
 };
 
 type QueryValue = string | string[] | undefined;
@@ -27,13 +29,15 @@ const parseNestedLink = (link?: string): PasswordResetLinkParams => {
     return {
       mode: readParam(nestedParams?.mode),
       oobCode: readParam(nestedParams?.oobCode),
+      apiKey: readParam(nestedParams?.apiKey),
+      continueUrl: readParam(nestedParams?.continueUrl),
     };
   } catch {
     return {};
   }
 };
 
-const parseQueryParams = (
+export const parsePasswordResetQueryParams = (
   params?: Record<string, QueryValue>,
 ): PasswordResetLinkParams => {
   if (!params) return {};
@@ -44,6 +48,8 @@ const parseQueryParams = (
     return {
       mode: directMode,
       oobCode: directCode,
+      apiKey: readParam(params.apiKey),
+      continueUrl: readParam(params.continueUrl),
     };
   }
 
@@ -52,6 +58,8 @@ const parseQueryParams = (
   return {
     mode: nested.mode || directMode,
     oobCode: nested.oobCode,
+    apiKey: nested.apiKey || readParam(params.apiKey),
+    continueUrl: nested.continueUrl || readParam(params.continueUrl),
   };
 };
 
@@ -61,7 +69,7 @@ export const usePasswordResetDeepLink = (): PasswordResetLinkParams => {
 
   return useMemo(() => {
     const paramsFromUrl = url
-      ? parseQueryParams(
+      ? parsePasswordResetQueryParams(
           Linking.parse(url).queryParams as Record<string, QueryValue> | undefined,
         )
       : {};
@@ -70,7 +78,7 @@ export const usePasswordResetDeepLink = (): PasswordResetLinkParams => {
       return paramsFromUrl;
     }
 
-    return parseQueryParams(routeParams as Record<string, QueryValue>);
+    return parsePasswordResetQueryParams(routeParams as Record<string, QueryValue>);
   }, [routeParams, url]);
 };
 

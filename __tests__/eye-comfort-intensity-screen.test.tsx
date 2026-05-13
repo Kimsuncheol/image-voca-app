@@ -44,6 +44,9 @@ jest.mock("react-i18next", () => ({
         "settings.eyeComfort.levels.high": "High",
         "settings.eyeComfort.levels.custom": "Customize",
         "settings.eyeComfort.customIntensity": "Custom intensity",
+        "readingDisplay.eyeComfortScope": "Apply to",
+        "readingDisplay.eyeComfortScopes.screen": "Entire screen",
+        "readingDisplay.eyeComfortScopes.images": "Images only",
       })[key] ??
       options?.defaultValue ??
       key,
@@ -76,6 +79,7 @@ describe("EyeComfortIntensityScreen", () => {
     useReadingDisplayStore.setState({
       eyeComfortEnabled: true,
       eyeComfortIntensity: 0.14,
+      eyeComfortScope: "screen",
       _initialized: true,
     });
   });
@@ -90,6 +94,32 @@ describe("EyeComfortIntensityScreen", () => {
     expect(
       screen.getByTestId("eye-comfort-intensity-check-medium"),
     ).toBeTruthy();
+  });
+
+  it("renders eye comfort scope options and checks the selected scope", () => {
+    const screen = render(<EyeComfortIntensityScreen />);
+
+    expect(screen.getByText("Apply to")).toBeTruthy();
+    expect(screen.getByText("Entire screen")).toBeTruthy();
+    expect(screen.getByText("Images only")).toBeTruthy();
+    expect(screen.getByTestId("eye-comfort-scope-check-screen")).toBeTruthy();
+    expect(screen.queryByTestId("eye-comfort-scope-check-images")).toBeNull();
+  });
+
+  it("updates the shared eye comfort scope immediately", () => {
+    const screen = render(<EyeComfortIntensityScreen />);
+
+    fireEvent.press(screen.getByTestId("eye-comfort-scope-option-images"));
+
+    expect(useReadingDisplayStore.getState().eyeComfortScope).toBe("images");
+    expect(screen.queryByTestId("eye-comfort-scope-check-screen")).toBeNull();
+    expect(screen.getByTestId("eye-comfort-scope-check-images")).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("eye-comfort-scope-option-screen"));
+
+    expect(useReadingDisplayStore.getState().eyeComfortScope).toBe("screen");
+    expect(screen.getByTestId("eye-comfort-scope-check-screen")).toBeTruthy();
+    expect(screen.queryByTestId("eye-comfort-scope-check-images")).toBeNull();
   });
 
   it("hides the custom slider for preset levels", () => {

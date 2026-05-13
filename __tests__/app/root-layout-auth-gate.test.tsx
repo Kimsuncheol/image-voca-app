@@ -460,6 +460,21 @@ describe("RootLayoutNav auth gating", () => {
     });
   });
 
+  it("allows signed-out users to open the top-level password reset route", async () => {
+    mockUseAuth.mockReturnValue({
+      user: null,
+      loading: false,
+      authStatus: "signed_out",
+    });
+    (useSegments as jest.Mock).mockReturnValue(["reset-password"]);
+
+    render(<RootLayoutNav />);
+
+    await waitFor(() => {
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
+  });
+
   it("redirects pending-verification users to the verify-email screen", async () => {
     mockUseAuth.mockReturnValue({
       user: { uid: "user-1" },
@@ -472,6 +487,21 @@ describe("RootLayoutNav auth gating", () => {
 
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith("/(auth)/verify-email");
+    });
+  });
+
+  it("allows pending-verification users to open the top-level password reset route", async () => {
+    mockUseAuth.mockReturnValue({
+      user: { uid: "user-1" },
+      loading: false,
+      authStatus: "pending_verification",
+    });
+    (useSegments as jest.Mock).mockReturnValue(["reset-password"]);
+
+    render(<RootLayoutNav />);
+
+    await waitFor(() => {
+      expect(mockReplace).not.toHaveBeenCalled();
     });
   });
 

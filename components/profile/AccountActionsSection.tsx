@@ -5,6 +5,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 interface AccountActionsSectionProps {
   styles: Record<string, any>;
   loading: boolean;
+  resetPasswordLoading?: boolean;
   isAdmin: boolean;
   onResetPassword: () => void;
   onDeleteAccount: () => void;
@@ -14,6 +15,7 @@ interface AccountActionsSectionProps {
 export function AccountActionsSection({
   styles,
   loading,
+  resetPasswordLoading = false,
   isAdmin,
   onResetPassword,
   onDeleteAccount,
@@ -31,7 +33,9 @@ export function AccountActionsSection({
           disabled={loading}
         >
           <Text style={styles.actionText}>
-            {t("profile.resetPassword.title")}
+            {resetPasswordLoading
+              ? t("profile.resetPassword.sending")
+              : t("profile.resetPassword.title")}
           </Text>
           <Ionicons name="key-outline" size={20} color="#007AFF" />
         </TouchableOpacity>

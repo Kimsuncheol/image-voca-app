@@ -3,18 +3,14 @@ import React from "react";
 import PasswordResetFlow from "../../../app/(auth)/components/PasswordResetFlow";
 
 const mockReplace = jest.fn();
-const mockSendPasswordResetEmail = jest.fn();
+const mockRouter = {
+  replace: mockReplace,
+};
+const mockSendPasswordResetEmailForAddress = jest.fn();
 const mockVerifyPasswordResetCode = jest.fn();
 const mockConfirmPasswordReset = jest.fn();
-const mockSignOut = jest.fn();
 
 let mockSearchParams: Record<string, string | undefined> = {};
-
-const flushMicrotasks = async () => {
-  await new Promise((resolve) => {
-    setTimeout(resolve, 0);
-  });
-};
 
 const translations: Record<string, string> = {
   "auth.errors.passwordRequirements": "Please meet all password requirements.",
@@ -27,18 +23,21 @@ const translations: Record<string, string> = {
   "auth.passwordReset.newPasswordSubtitle":
     "Create a new password for your account.",
   "auth.passwordReset.emailPlaceholder": "Email",
-  "auth.passwordReset.sendEmail": "Send Verification Email",
+  "auth.passwordReset.sendEmail": "Send Password Reset Email",
   "auth.passwordReset.sendingEmail": "Sending email...",
   "auth.passwordReset.resendEmail": "Resend Email",
-  "auth.passwordReset.checkInbox": "Open the verification email link to continue.",
-  "auth.passwordReset.verifyingCode": "Verifying email link...",
+  "auth.passwordReset.checkInbox":
+    "Open the password reset email link to continue.",
+  "auth.passwordReset.verifyingCode": "Verifying password reset link...",
   "auth.passwordReset.verifyFailed":
-    "This verification link is invalid or expired. Request a new email.",
+    "This password reset link is invalid or expired. Request a new email.",
+  "auth.passwordReset.invalidLinkToast":
+    "This password reset link is invalid or expired. Please request a new one.",
   "auth.passwordReset.sendFailed":
-    "Failed to send verification email. Please try again.",
+    "Failed to send password reset email. Please try again.",
   "auth.passwordReset.emailRequired": "Please enter your email address.",
   "auth.passwordReset.emailInvalid": "Please enter a valid email address.",
-  "auth.passwordReset.emailSent": "Verification email sent to {{email}}.",
+  "auth.passwordReset.emailSent": "Password reset email sent to {{email}}.",
   "auth.passwordReset.passwordPlaceholder": "New Password",
   "auth.passwordReset.confirmPasswordPlaceholder": "Confirm New Password",
   "auth.passwordReset.submit": "Reset Password",
@@ -46,10 +45,13 @@ const translations: Record<string, string> = {
   "auth.passwordReset.resetSuccess":
     "Password reset successful. Please sign in again.",
   "auth.passwordReset.resetFailed": "Failed to reset password. Please try again.",
-  "auth.passwordReset.passwordHint.length": "At least 8 characters",
+  "auth.passwordReset.passwordHint.length": "At least 6 characters",
   "auth.passwordReset.passwordHint.number": "Contains a number",
   "auth.passwordReset.passwordHint.special": "Contains a special character",
   "auth.passwordReset.passwordHint.match": "Passwords match",
+  "auth.passwordReset.minLengthValidation":
+    "Password must be at least 6 characters.",
+  "auth.passwordReset.mismatchValidation": "Passwords must match.",
 };
 
 const translate = (key: string, params?: Record<string, string>) => {
@@ -68,30 +70,19 @@ jest.mock("@expo/vector-icons", () => ({
 }));
 
 jest.mock("expo-router", () => ({
-  useRouter: () => ({
-    replace: mockReplace,
-  }),
+  useRouter: () => mockRouter,
   useLocalSearchParams: () => mockSearchParams,
 }));
 
 jest.mock("expo-linking", () => ({
-  createURL: (path: string) => `imagevocaapp://${path.replace(/^\//, "")}`,
-}));
-
-jest.mock("expo-constants", () => ({
-  expoConfig: {
-    ios: { bundleIdentifier: "com.test.imagevocaapp" },
-    android: { package: "com.test.imagevocaapp" },
-  },
+  useURL: () => null,
+  parse: jest.fn(() => ({ queryParams: {} })),
 }));
 
 jest.mock("firebase/auth", () => ({
-  sendPasswordResetEmail: (...args: unknown[]) =>
-    mockSendPasswordResetEmail(...args),
   verifyPasswordResetCode: (...args: unknown[]) =>
     mockVerifyPasswordResetCode(...args),
   confirmPasswordReset: (...args: unknown[]) => mockConfirmPasswordReset(...args),
-  signOut: (...args: unknown[]) => mockSignOut(...args),
 }));
 
 jest.mock("react-i18next", () => ({
@@ -117,14 +108,23 @@ jest.mock("../../../src/services/firebase", () => ({
   auth: { currentUser: { email: "current@example.com" } },
 }));
 
+jest.mock("../../../src/services/passwordResetService", () => ({
+  sendPasswordResetEmailForAddress: (...args: unknown[]) =>
+    mockSendPasswordResetEmailForAddress(...args),
+}));
+
 describe("PasswordResetFlow", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSearchParams = {};
     mockVerifyPasswordResetCode.mockResolvedValue("verified@example.com");
+    mockSendPasswordResetEmailForAddress.mockResolvedValue({
+      ok: true,
+      email: "test@example.com",
+    });
   });
 
-  it("shows email verification step initially", () => {
+  it("shows password reset email step initially", () => {
     const { getByPlaceholderText, getByText } = render(
       <PasswordResetFlow
         variant="forgot"
@@ -135,12 +135,10 @@ describe("PasswordResetFlow", () => {
     );
 
     expect(getByPlaceholderText("Email")).toBeTruthy();
-    expect(getByText("Send Verification Email")).toBeTruthy();
+    expect(getByText("Send Password Reset Email")).toBeTruthy();
   });
 
-  it("sends verification email and shows success message", async () => {
-    mockSendPasswordResetEmail.mockResolvedValueOnce(undefined);
-
+  it("sends password reset email and shows success message", async () => {
     const { getByPlaceholderText, getByText } = render(
       <PasswordResetFlow
         variant="forgot"
@@ -151,58 +149,15 @@ describe("PasswordResetFlow", () => {
     );
 
     fireEvent.changeText(getByPlaceholderText("Email"), "test@example.com");
-    fireEvent.press(getByText("Send Verification Email"));
+    fireEvent.press(getByText("Send Password Reset Email"));
 
     await waitFor(() => {
-      expect(mockSendPasswordResetEmail).toHaveBeenCalledWith(
-        expect.any(Object),
+      expect(mockSendPasswordResetEmailForAddress).toHaveBeenCalledWith(
         "test@example.com",
-        expect.objectContaining({
-          url: "imagevocaapp://forgot-password",
-          handleCodeInApp: true,
-        }),
       );
     });
 
-    expect(getByText("Verification email sent to test@example.com.")).toBeTruthy();
-  });
-
-  it("retries email send without action code settings when continue URI is rejected", async () => {
-    mockSendPasswordResetEmail
-      .mockRejectedValueOnce({ code: "auth/invalid-continue-uri" })
-      .mockResolvedValueOnce(undefined);
-
-    const { getByPlaceholderText, getByText } = render(
-      <PasswordResetFlow
-        variant="forgot"
-        initialEmail=""
-        emailEditable={true}
-        redirectAfterSuccess="/(auth)/login"
-      />,
-    );
-
-    fireEvent.changeText(getByPlaceholderText("Email"), "test@example.com");
-    fireEvent.press(getByText("Send Verification Email"));
-
-    await waitFor(() => {
-      expect(mockSendPasswordResetEmail).toHaveBeenCalledTimes(2);
-    });
-
-    expect(mockSendPasswordResetEmail).toHaveBeenNthCalledWith(
-      1,
-      expect.any(Object),
-      "test@example.com",
-      expect.objectContaining({
-        url: "imagevocaapp://forgot-password",
-        handleCodeInApp: true,
-      }),
-    );
-    expect(mockSendPasswordResetEmail).toHaveBeenNthCalledWith(
-      2,
-      expect.any(Object),
-      "test@example.com",
-    );
-    expect(getByText("Verification email sent to test@example.com.")).toBeTruthy();
+    expect(getByText("Password reset email sent to test@example.com.")).toBeTruthy();
   });
 
   it("verifies oobCode and shows reset password form", async () => {
@@ -210,9 +165,9 @@ describe("PasswordResetFlow", () => {
 
     const { getByPlaceholderText, queryByText } = render(
       <PasswordResetFlow
-        variant="forgot"
+        variant="reset"
         initialEmail=""
-        emailEditable={true}
+        emailEditable={false}
         redirectAfterSuccess="/(auth)/login"
       />,
     );
@@ -220,9 +175,9 @@ describe("PasswordResetFlow", () => {
     await waitFor(() => {
       expect(mockVerifyPasswordResetCode).toHaveBeenCalled();
     });
-    await flushMicrotasks();
-    await flushMicrotasks();
-    expect(queryByText("Verifying email link...")).toBeNull();
+    await waitFor(() => {
+      expect(queryByText("Verifying password reset link...")).toBeNull();
+    });
 
     expect(getByPlaceholderText("New Password")).toBeTruthy();
     expect(getByPlaceholderText("Confirm New Password")).toBeTruthy();
@@ -233,9 +188,9 @@ describe("PasswordResetFlow", () => {
 
     const { getByPlaceholderText, getByText, queryByText } = render(
       <PasswordResetFlow
-        variant="forgot"
+        variant="reset"
         initialEmail=""
-        emailEditable={true}
+        emailEditable={false}
         redirectAfterSuccess="/(auth)/login"
       />,
     );
@@ -243,9 +198,9 @@ describe("PasswordResetFlow", () => {
     await waitFor(() => {
       expect(mockVerifyPasswordResetCode).toHaveBeenCalled();
     });
-    await flushMicrotasks();
-    await flushMicrotasks();
-    expect(queryByText("Verifying email link...")).toBeNull();
+    await waitFor(() => {
+      expect(queryByText("Verifying password reset link...")).toBeNull();
+    });
 
     fireEvent.changeText(getByPlaceholderText("New Password"), "Password1!");
     fireEvent.changeText(
@@ -255,20 +210,19 @@ describe("PasswordResetFlow", () => {
     fireEvent.press(getByText("Reset Password"));
 
     expect(mockConfirmPasswordReset).not.toHaveBeenCalled();
-    await waitFor(() => {
-      expect(getByText("Passwords do not match.")).toBeTruthy();
-    });
+    expect(getByText("Passwords must match.")).toBeTruthy();
   });
 
   it("dismisses password reset errors from the toast", async () => {
     mockSearchParams = { mode: "resetPassword", oobCode: "test-code" };
+    mockConfirmPasswordReset.mockRejectedValueOnce(new Error("reset failed"));
 
     const { getByLabelText, getByPlaceholderText, getByText, queryByText } =
       render(
         <PasswordResetFlow
-          variant="forgot"
+          variant="reset"
           initialEmail=""
-          emailEditable={true}
+          emailEditable={false}
           redirectAfterSuccess="/(auth)/login"
         />,
       );
@@ -276,24 +230,25 @@ describe("PasswordResetFlow", () => {
     await waitFor(() => {
       expect(mockVerifyPasswordResetCode).toHaveBeenCalled();
     });
-    await flushMicrotasks();
-    await flushMicrotasks();
+    await waitFor(() => {
+      expect(queryByText("Verifying password reset link...")).toBeNull();
+    });
 
     fireEvent.changeText(getByPlaceholderText("New Password"), "Password1!");
     fireEvent.changeText(
       getByPlaceholderText("Confirm New Password"),
-      "Password2!",
+      "Password1!",
     );
     fireEvent.press(getByText("Reset Password"));
 
     await waitFor(() => {
-      expect(getByText("Passwords do not match.")).toBeTruthy();
+      expect(getByText("Failed to reset password. Please try again.")).toBeTruthy();
     });
 
     fireEvent.press(getByLabelText("Close"));
 
     await waitFor(() => {
-      expect(queryByText("Passwords do not match.")).toBeNull();
+      expect(queryByText("Failed to reset password. Please try again.")).toBeNull();
     });
   });
 
@@ -302,9 +257,9 @@ describe("PasswordResetFlow", () => {
 
     const { getByPlaceholderText, getByText, queryByText } = render(
       <PasswordResetFlow
-        variant="forgot"
+        variant="reset"
         initialEmail=""
-        emailEditable={true}
+        emailEditable={false}
         redirectAfterSuccess="/(auth)/login"
       />,
     );
@@ -312,9 +267,9 @@ describe("PasswordResetFlow", () => {
     await waitFor(() => {
       expect(mockVerifyPasswordResetCode).toHaveBeenCalled();
     });
-    await flushMicrotasks();
-    await flushMicrotasks();
-    expect(queryByText("Verifying email link...")).toBeNull();
+    await waitFor(() => {
+      expect(queryByText("Verifying password reset link...")).toBeNull();
+    });
 
     fireEvent.changeText(getByPlaceholderText("New Password"), "abc");
     fireEvent.changeText(getByPlaceholderText("Confirm New Password"), "abc");
@@ -322,20 +277,19 @@ describe("PasswordResetFlow", () => {
 
     expect(mockConfirmPasswordReset).not.toHaveBeenCalled();
     await waitFor(() => {
-      expect(getByText("Please meet all password requirements.")).toBeTruthy();
+      expect(getByText("Password must be at least 6 characters.")).toBeTruthy();
     });
   });
 
-  it("resets password successfully, signs out, and redirects", async () => {
+  it("resets password successfully and redirects", async () => {
     mockSearchParams = { mode: "resetPassword", oobCode: "test-code" };
     mockConfirmPasswordReset.mockResolvedValueOnce(undefined);
-    mockSignOut.mockResolvedValueOnce(undefined);
 
     const { getByPlaceholderText, getByText, queryByText } = render(
       <PasswordResetFlow
-        variant="forgot"
+        variant="reset"
         initialEmail=""
-        emailEditable={true}
+        emailEditable={false}
         redirectAfterSuccess="/(auth)/login"
       />,
     );
@@ -343,9 +297,9 @@ describe("PasswordResetFlow", () => {
     await waitFor(() => {
       expect(mockVerifyPasswordResetCode).toHaveBeenCalled();
     });
-    await flushMicrotasks();
-    await flushMicrotasks();
-    expect(queryByText("Verifying email link...")).toBeNull();
+    await waitFor(() => {
+      expect(queryByText("Verifying password reset link...")).toBeNull();
+    });
 
     fireEvent.changeText(getByPlaceholderText("New Password"), "Password1!");
     fireEvent.changeText(
@@ -362,8 +316,12 @@ describe("PasswordResetFlow", () => {
       );
     });
 
-    expect(mockSignOut).toHaveBeenCalledWith(expect.any(Object));
-    expect(mockReplace).toHaveBeenCalledWith("/(auth)/login");
+    await waitFor(
+      () => {
+        expect(mockReplace).toHaveBeenCalledWith("/(auth)/login");
+      },
+      { timeout: 2500 },
+    );
   });
 
   it("shows error when verification code is invalid", async () => {
@@ -372,9 +330,9 @@ describe("PasswordResetFlow", () => {
 
     const { getByText } = render(
       <PasswordResetFlow
-        variant="forgot"
+        variant="reset"
         initialEmail=""
-        emailEditable={true}
+        emailEditable={false}
         redirectAfterSuccess="/(auth)/login"
       />,
     );
@@ -382,11 +340,9 @@ describe("PasswordResetFlow", () => {
     await waitFor(() => {
       expect(
         getByText(
-          "This verification link is invalid or expired. Request a new email.",
+          "This password reset link is invalid or expired. Please request a new one.",
         ),
       ).toBeTruthy();
     });
-
-    expect(getByText("Send Verification Email")).toBeTruthy();
   });
 });

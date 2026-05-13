@@ -162,13 +162,14 @@ export function RootLayoutNav() {
 
     const inAuthGroup = segments[0] === "(auth)";
     const isPasswordResetRoute =
-      inAuthGroup && segments[1] === "reset-password";
+      (inAuthGroup && segments[1] === "reset-password") ||
+      segments[0] === "reset-password";
     const isVerifyEmailRoute = inAuthGroup && segments[1] === "verify-email";
     const isAccountDeletedRoute =
       inAuthGroup && segments[1] === "account-deleted";
 
     if (authStatus === "signed_out") {
-      if (!inAuthGroup || isVerifyEmailRoute) {
+      if ((!inAuthGroup && !isPasswordResetRoute) || isVerifyEmailRoute) {
         router.replace("/(auth)/login");
       }
       return;
@@ -205,6 +206,7 @@ export function RootLayoutNav() {
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="reset-password" options={{ headerShown: false }} />
             <Stack.Screen name="wordbank" options={{ headerShown: false }} />
             <Stack.Screen
               name="courses"

@@ -32,6 +32,7 @@ import { getBackgroundColors } from "../constants/backgroundColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import { auth, storage } from "../src/services/firebase";
+import { sendCurrentUserPasswordResetEmail } from "../src/services/passwordResetService";
 import { useSubscriptionStore } from "../src/stores";
 import { getDeviceCountryDisplayName } from "../src/utils/deviceCountry";
 
@@ -45,6 +46,7 @@ export default function ProfileScreen() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [initialImage, setInitialImage] = useState<string | null>(null);
   const [initialDisplayName, setInitialDisplayName] = useState("");
+  const [isSendingPasswordReset, setIsSendingPasswordReset] = useState(false);
   const user = auth.currentUser;
   const navigation = useNavigation();
   const router = useRouter();
@@ -175,8 +177,30 @@ export default function ProfileScreen() {
     router.push("/delete-account-before-you-leave");
   };
 
-  const handleResetPassword = () => {
-    router.push("/(auth)/reset-password");
+  const handleResetPassword = async () => {
+    if (isSendingPasswordReset) return;
+
+    setIsSendingPasswordReset(true);
+    const result = await sendCurrentUserPasswordResetEmail();
+    setIsSendingPasswordReset(false);
+
+    if (result.ok) {
+      Alert.alert(
+        t("common.success"),
+        t("profile.resetPassword.emailSent", { email: result.email }),
+      );
+      return;
+    }
+
+    if (result.reason === "missing-email") {
+      Alert.alert(
+        t("common.error"),
+        t("profile.resetPassword.emailMissing"),
+      );
+      return;
+    }
+
+    Alert.alert(t("common.error"), t("profile.resetPassword.sendFailed"));
   };
 
   return (
@@ -233,7 +257,8 @@ export default function ProfileScreen() {
           />
           <AccountActionsSection
             styles={styles}
-            loading={loading}
+            loading={loading || isSendingPasswordReset}
+            resetPasswordLoading={isSendingPasswordReset}
             isAdmin={role.includes("admin")}
             onResetPassword={handleResetPassword}
             onDeleteAccount={handleDeleteAccount}

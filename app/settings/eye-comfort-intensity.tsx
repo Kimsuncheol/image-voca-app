@@ -22,6 +22,10 @@ import {
   EYE_COMFORT_LEVELS,
   type EyeComfortLevel,
 } from "../../src/utils/eyeComfortColors";
+import {
+  useReadingDisplayStore,
+  type EyeComfortScope,
+} from "../../src/stores/readingDisplayStore";
 
 interface CustomIntensitySliderProps {
   value: number;
@@ -87,6 +91,12 @@ export default function EyeComfortIntensityScreen() {
   const { isDark } = useTheme();
   const { level, customIntensity, setLevel, setCustomIntensity } =
     useEyeComfort();
+  const eyeComfortScope = useReadingDisplayStore(
+    (state) => state.eyeComfortScope,
+  );
+  const setEyeComfortScope = useReadingDisplayStore(
+    (state) => state.setEyeComfortScope,
+  );
   const styles = getStyles(isDark);
 
   const getLevelLabel = (candidate: EyeComfortLevel) =>
@@ -163,6 +173,61 @@ export default function EyeComfortIntensityScreen() {
                 </React.Fragment>
               );
             })}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {t("readingDisplay.eyeComfortScope", {
+              defaultValue: "Apply to",
+            })}
+          </Text>
+          <View style={styles.card}>
+            {(["screen", "images"] as EyeComfortScope[]).map(
+              (scope, index) => {
+                const isSelected = eyeComfortScope === scope;
+
+                return (
+                  <React.Fragment key={scope}>
+                    {index > 0 && <View style={styles.separator} />}
+                    <TouchableOpacity
+                      testID={`eye-comfort-scope-option-${scope}`}
+                      style={styles.option}
+                      onPress={() => setEyeComfortScope(scope)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.optionLeft}>
+                        <Ionicons
+                          name={
+                            scope === "screen"
+                              ? "phone-portrait-outline"
+                              : "image-outline"
+                          }
+                          size={24}
+                          color={isDark ? "#fff" : "#333"}
+                        />
+                        <Text style={styles.optionText}>
+                          {t(`readingDisplay.eyeComfortScopes.${scope}`, {
+                            defaultValue:
+                              scope === "screen"
+                                ? "Entire screen"
+                                : "Images only",
+                          })}
+                        </Text>
+                      </View>
+                      {isSelected ? (
+                        <Ionicons
+                          testID={`eye-comfort-scope-check-${scope}`}
+                          name="checkmark"
+                          size={24}
+                          color="#007AFF"
+                        />
+                      ) : null}
+                    </TouchableOpacity>
+                  </React.Fragment>
+                );
+              },
+            )}
           </View>
         </View>
       </ScrollView>
