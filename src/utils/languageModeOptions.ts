@@ -1,9 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { setLanguageMode, type LanguageMode } from "../i18n";
-import {
-  getStudyReminderEnabledPreference,
-  scheduleDailyNotifications,
-} from "./notifications";
+import type { LanguageMode } from "../stores/languageSettingsStore";
 
 type Translate = (key: string, options?: { defaultValue?: string }) => string;
 
@@ -14,6 +10,15 @@ export type LanguageModeOption = {
   | { icon: keyof typeof Ionicons.glyphMap; flag?: never }
   | { flag: string; icon?: never }
 );
+
+const ENGLISH_MODE_FLAGS: Partial<Record<LanguageMode, string>> = {
+  "en-US": "🇺🇸",
+  "en-GB": "🇬🇧",
+  "en-AU": "🇦🇺",
+  "en-NZ": "🇳🇿",
+  "en-IE": "🇮🇪",
+  "en-CA": "🇨🇦",
+};
 
 export const getLanguageModeOptions = (t: Translate): LanguageModeOption[] => [
   {
@@ -36,6 +41,34 @@ export const getLanguageModeOptions = (t: Translate): LanguageModeOption[] => [
       defaultValue: "English (United Kingdom)",
     }),
     flag: "🇬🇧",
+  },
+  {
+    mode: "en-AU",
+    label: t("settings.language.englishAustralia", {
+      defaultValue: "English (Australia)",
+    }),
+    flag: "🇦🇺",
+  },
+  {
+    mode: "en-NZ",
+    label: t("settings.language.englishNewZealand", {
+      defaultValue: "English (New Zealand)",
+    }),
+    flag: "🇳🇿",
+  },
+  {
+    mode: "en-IE",
+    label: t("settings.language.englishIreland", {
+      defaultValue: "English (Ireland)",
+    }),
+    flag: "🇮🇪",
+  },
+  {
+    mode: "en-CA",
+    label: t("settings.language.englishCanada", {
+      defaultValue: "English (Canada)",
+    }),
+    flag: "🇨🇦",
   },
   {
     mode: "ko",
@@ -79,9 +112,33 @@ export const getLanguageModeOptions = (t: Translate): LanguageModeOption[] => [
   },
 ];
 
+export const getLanguageModeSummary = (
+  option: LanguageModeOption,
+  t: Translate,
+) => {
+  const englishFlag = ENGLISH_MODE_FLAGS[option.mode];
+  if (englishFlag) {
+    return `${t("settings.language.english", {
+      defaultValue: "English",
+    })} ${englishFlag}`;
+  }
+
+  if (option.flag) {
+    return `${option.label} ${option.flag}`;
+  }
+
+  return option.label;
+};
+
 export const changeLanguageModeWithSideEffects = async (
   nextMode: LanguageMode,
 ) => {
+  const { setLanguageMode } = require("../i18n") as typeof import("../i18n");
+  const {
+    getStudyReminderEnabledPreference,
+    scheduleDailyNotifications,
+  } = require("./notifications") as typeof import("./notifications");
+
   await setLanguageMode(nextMode);
 
   if (await getStudyReminderEnabledPreference()) {

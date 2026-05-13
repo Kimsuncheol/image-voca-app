@@ -30,6 +30,10 @@ export type { LanguageMode, SupportedLanguage };
 const resources = {
   "en-US": { translation: en },
   "en-GB": { translation: en },
+  "en-AU": { translation: en },
+  "en-NZ": { translation: en },
+  "en-IE": { translation: en },
+  "en-CA": { translation: en },
   ko: { translation: ko },
   ja: { translation: ja },
   es: { translation: es },

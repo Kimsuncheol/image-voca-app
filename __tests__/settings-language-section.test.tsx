@@ -31,6 +31,10 @@ const translations: Record<string, string> = {
   "settings.language.english": "English",
   "settings.language.englishUnitedStates": "English (United States)",
   "settings.language.englishUnitedKingdom": "English (United Kingdom)",
+  "settings.language.englishAustralia": "English (Australia)",
+  "settings.language.englishNewZealand": "English (New Zealand)",
+  "settings.language.englishIreland": "English (Ireland)",
+  "settings.language.englishCanada": "English (Canada)",
   "settings.language.korean": "Korean",
   "settings.language.japanese": "Japanese",
   "settings.language.spanish": "Spanish",
@@ -73,13 +77,41 @@ describe("LanguageSection", () => {
       />,
     );
 
-    expect(screen.getByText("English (United Kingdom)")).toBeTruthy();
+    expect(screen.getByText("English 🇬🇧")).toBeTruthy();
     fireEvent.press(screen.getByTestId("settings-language-row"));
 
     expect(mockRouterPush).toHaveBeenCalledWith("/settings-language");
   });
 
-  it("summarizes newly supported display languages", () => {
+  it.each([
+    ["en-US", "English 🇺🇸"],
+    ["en-GB", "English 🇬🇧"],
+    ["en-AU", "English 🇦🇺"],
+    ["en-NZ", "English 🇳🇿"],
+    ["en-IE", "English 🇮🇪"],
+    ["en-CA", "English 🇨🇦"],
+    ["ko", "Korean 🇰🇷"],
+    ["ja", "Japanese 🇯🇵"],
+    ["es", "Spanish 🇪🇸"],
+    ["fr", "French 🇫🇷"],
+    ["ru", "Russian 🇷🇺"],
+    ["de", "German 🇩🇪"],
+    ["it", "Italian 🇮🇹"],
+    ["hi", "Hindi 🇮🇳"],
+  ] as const)("summarizes %s as %s", (currentMode, summary) => {
+    const screen = render(
+      <LanguageSection
+        styles={styles}
+        isDark={false}
+        currentMode={currentMode}
+        t={(key) => translations[key] ?? key}
+      />,
+    );
+
+    expect(screen.getByText(summary)).toBeTruthy();
+  });
+
+  it("summarizes newly supported display languages with flags", () => {
     const screen = render(
       <LanguageSection
         styles={styles}
@@ -89,6 +121,6 @@ describe("LanguageSection", () => {
       />,
     );
 
-    expect(screen.getByText("French")).toBeTruthy();
+    expect(screen.getByText("French 🇫🇷")).toBeTruthy();
   });
 });

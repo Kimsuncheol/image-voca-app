@@ -78,6 +78,18 @@ describe("language settings store", () => {
       "en-GB",
     );
     expect(resolveSystemLanguage([makeLocale("en-AU", "en", "AU")])).toBe(
+      "en-AU",
+    );
+    expect(resolveSystemLanguage([makeLocale("en-NZ", "en", "NZ")])).toBe(
+      "en-NZ",
+    );
+    expect(resolveSystemLanguage([makeLocale("en-IE", "en", "IE")])).toBe(
+      "en-IE",
+    );
+    expect(resolveSystemLanguage([makeLocale("en-CA", "en", "CA")])).toBe(
+      "en-CA",
+    );
+    expect(resolveSystemLanguage([makeLocale("en-ZA", "en", "ZA")])).toBe(
       "en-US",
     );
     expect(resolveSystemLanguage([makeLocale("en", "en", null)])).toBe(

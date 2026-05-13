@@ -106,6 +106,10 @@ jest.mock("react-i18next", () => ({
         "settings.language.systemDefault": "System Default",
         "settings.language.englishUnitedStates": "English (United States)",
         "settings.language.englishUnitedKingdom": "English (United Kingdom)",
+        "settings.language.englishAustralia": "English (Australia)",
+        "settings.language.englishNewZealand": "English (New Zealand)",
+        "settings.language.englishIreland": "English (Ireland)",
+        "settings.language.englishCanada": "English (Canada)",
         "settings.language.korean": "Korean",
         "settings.language.japanese": "Japanese",
         "settings.language.spanish": "Spanish",
@@ -165,6 +169,10 @@ describe("LanguageSelectionModal", () => {
     expect(screen.getByText("System Default")).toBeTruthy();
     expect(screen.getByText("English (United States)")).toBeTruthy();
     expect(screen.getByText("English (United Kingdom)")).toBeTruthy();
+    expect(screen.getByText("English (Australia)")).toBeTruthy();
+    expect(screen.getByText("English (New Zealand)")).toBeTruthy();
+    expect(screen.getByText("English (Ireland)")).toBeTruthy();
+    expect(screen.getByText("English (Canada)")).toBeTruthy();
     expect(screen.getByText("Korean")).toBeTruthy();
     expect(screen.getByText("Japanese")).toBeTruthy();
     expect(screen.getByText("Spanish")).toBeTruthy();

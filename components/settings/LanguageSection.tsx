@@ -4,12 +4,16 @@ import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 import type { LanguageMode } from "../../src/i18n";
+import {
+  getLanguageModeOptions,
+  getLanguageModeSummary,
+} from "../../src/utils/languageModeOptions";
 
 interface LanguageSectionProps {
   styles: Record<string, any>;
   isDark: boolean;
   currentMode: LanguageMode;
-  t: (key: string) => string;
+  t: (key: string, options?: { defaultValue?: string }) => string;
 }
 
 export function LanguageSection({
@@ -19,25 +23,11 @@ export function LanguageSection({
   t,
 }: LanguageSectionProps) {
   const router = useRouter();
-  const options: {
-    mode: LanguageMode;
-    label: string;
-  }[] = [
-    { mode: "system", label: t("settings.language.systemDefault") },
-    { mode: "en-US", label: t("settings.language.englishUnitedStates") },
-    { mode: "en-GB", label: t("settings.language.englishUnitedKingdom") },
-    { mode: "ko", label: t("settings.language.korean") },
-    { mode: "ja", label: t("settings.language.japanese") },
-    { mode: "es", label: t("settings.language.spanish") },
-    { mode: "fr", label: t("settings.language.french") },
-    { mode: "ru", label: t("settings.language.russian") },
-    { mode: "de", label: t("settings.language.german") },
-    { mode: "it", label: t("settings.language.italian") },
-    { mode: "hi", label: t("settings.language.hindi") },
-  ];
-  const currentLabel =
-    options.find((option) => option.mode === currentMode)?.label ??
-    t("settings.language.systemDefault");
+  const options = getLanguageModeOptions(t);
+  const currentOption = options.find((option) => option.mode === currentMode);
+  const currentLabel = currentOption
+    ? getLanguageModeSummary(currentOption, t)
+    : t("settings.language.systemDefault");
 
   return (
     <View style={styles.section}>

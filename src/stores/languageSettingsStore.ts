@@ -9,6 +9,10 @@ export const LANGUAGE_SETTINGS_STORAGE_KEY = "@languageSettings:v1";
 export const SUPPORTED_LANGUAGES = [
   "en-US",
   "en-GB",
+  "en-AU",
+  "en-NZ",
+  "en-IE",
+  "en-CA",
   "ko",
   "ja",
   "es",
@@ -71,7 +75,20 @@ export const normalizeSupportedLanguage = (
     const region =
       localeRegion?.toUpperCase() ??
       (typeof regionCode === "string" ? regionCode.toUpperCase() : null);
-    return region === "GB" ? "en-GB" : "en-US";
+    switch (region) {
+      case "GB":
+        return "en-GB";
+      case "AU":
+        return "en-AU";
+      case "NZ":
+        return "en-NZ";
+      case "IE":
+        return "en-IE";
+      case "CA":
+        return "en-CA";
+      default:
+        return "en-US";
+    }
   }
 
   return isSupportedLanguage(baseLanguage) ? baseLanguage : null;

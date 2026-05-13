@@ -40,6 +40,10 @@ jest.mock("react-i18next", () => ({
         "settings.language.english": "English",
         "settings.language.englishUnitedStates": "English (United States)",
         "settings.language.englishUnitedKingdom": "English (United Kingdom)",
+        "settings.language.englishAustralia": "English (Australia)",
+        "settings.language.englishNewZealand": "English (New Zealand)",
+        "settings.language.englishIreland": "English (Ireland)",
+        "settings.language.englishCanada": "English (Canada)",
         "settings.language.korean": "Korean",
         "settings.language.japanese": "Japanese",
         "settings.language.spanish": "Spanish",
@@ -116,6 +120,10 @@ describe("SettingsLanguageScreen", () => {
     expect(screen.getByText("System Default")).toBeTruthy();
     expect(screen.getByText("English (United States)")).toBeTruthy();
     expect(screen.getByText("English (United Kingdom)")).toBeTruthy();
+    expect(screen.getByText("English (Australia)")).toBeTruthy();
+    expect(screen.getByText("English (New Zealand)")).toBeTruthy();
+    expect(screen.getByText("English (Ireland)")).toBeTruthy();
+    expect(screen.getByText("English (Canada)")).toBeTruthy();
     expect(screen.getByText("Korean")).toBeTruthy();
     expect(screen.getByText("Japanese")).toBeTruthy();
     expect(screen.getByText("Spanish")).toBeTruthy();
@@ -126,6 +134,10 @@ describe("SettingsLanguageScreen", () => {
     expect(screen.getByText("Hindi")).toBeTruthy();
     expect(screen.getByText("🇺🇸")).toBeTruthy();
     expect(screen.getByText("🇬🇧")).toBeTruthy();
+    expect(screen.getByText("🇦🇺")).toBeTruthy();
+    expect(screen.getByText("🇳🇿")).toBeTruthy();
+    expect(screen.getByText("🇮🇪")).toBeTruthy();
+    expect(screen.getByText("🇨🇦")).toBeTruthy();
     expect(screen.getByText("🇰🇷")).toBeTruthy();
     expect(screen.getByText("🇯🇵")).toBeTruthy();
     expect(screen.getByText("🇪🇸")).toBeTruthy();
@@ -184,5 +196,18 @@ describe("SettingsLanguageScreen", () => {
     const screen = render(<SettingsLanguageScreen />);
 
     expect(screen.getByTestId("settings-language-check-en-GB")).toBeTruthy();
+  });
+
+  it("persists and checks a regional English display language", async () => {
+    mockLanguageMode = "en-AU";
+    const screen = render(<SettingsLanguageScreen />);
+
+    expect(screen.getByTestId("settings-language-check-en-AU")).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("settings-language-option-en-CA"));
+
+    await waitFor(() => {
+      expect(mockSetLanguageMode).toHaveBeenCalledWith("en-CA");
+    });
   });
 });
