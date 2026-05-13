@@ -3,6 +3,7 @@ import * as Brightness from "expo-brightness";
 import { create } from "zustand";
 
 export type BrightnessMode = "system" | "app";
+export type EyeComfortScope = "screen" | "images";
 
 export const READING_DISPLAY_STORAGE_KEY = "@readingDisplay:v1";
 export const MIN_APP_BRIGHTNESS = 0.05;
@@ -15,6 +16,7 @@ export interface ReadingDisplaySnapshot {
   appBrightness: number;
   eyeComfortEnabled: boolean;
   eyeComfortIntensity: number;
+  eyeComfortScope: EyeComfortScope;
   isDisplayModalOpen: boolean;
 }
 
@@ -25,6 +27,7 @@ export interface ReadingDisplayState extends ReadingDisplaySnapshot {
   setEyeComfortEnabled: (value: boolean) => void;
   toggleEyeComfort: () => void;
   setEyeComfortIntensity: (value: number) => void;
+  setEyeComfortScope: (scope: EyeComfortScope) => void;
   openDisplayModal: () => void;
   closeDisplayModal: () => void;
   hydrate: () => Promise<ReadingDisplaySnapshot>;
@@ -40,6 +43,7 @@ export const DEFAULT_READING_DISPLAY_SNAPSHOT: ReadingDisplaySnapshot = {
   appBrightness: 0.8,
   eyeComfortEnabled: false,
   eyeComfortIntensity: 0.14,
+  eyeComfortScope: "screen",
   isDisplayModalOpen: false,
 };
 
@@ -73,6 +77,9 @@ export const normalizeEyeComfortIntensity = (value: unknown) => {
 const isBrightnessMode = (value: unknown): value is BrightnessMode =>
   value === "system" || value === "app";
 
+const isEyeComfortScope = (value: unknown): value is EyeComfortScope =>
+  value === "screen" || value === "images";
+
 const normalizeStoredReadingDisplay = (
   value: unknown,
 ): ReadingDisplaySnapshot => {
@@ -96,6 +103,9 @@ const normalizeStoredReadingDisplay = (
     eyeComfortIntensity: normalizeEyeComfortIntensity(
       stored.eyeComfortIntensity,
     ),
+    eyeComfortScope: isEyeComfortScope(stored.eyeComfortScope)
+      ? stored.eyeComfortScope
+      : DEFAULT_READING_DISPLAY_SNAPSHOT.eyeComfortScope,
     isDisplayModalOpen:
       typeof stored.isDisplayModalOpen === "boolean"
         ? stored.isDisplayModalOpen
@@ -267,6 +277,21 @@ export const useReadingDisplayStore = create<InternalReadingDisplayState>(
       );
     },
 
+    setEyeComfortScope: (scope) => {
+      if (!isEyeComfortScope(scope)) {
+        return;
+      }
+
+      applySnapshot(
+        set,
+        {
+          ...getSnapshot(get),
+          eyeComfortScope: scope,
+        },
+        get().isBrightnessScopeActive,
+      );
+    },
+
     openDisplayModal: () => {
       applySnapshot(
         set,
@@ -301,6 +326,7 @@ const getSnapshot = (
     appBrightness: state.appBrightness,
     eyeComfortEnabled: state.eyeComfortEnabled,
     eyeComfortIntensity: state.eyeComfortIntensity,
+    eyeComfortScope: state.eyeComfortScope,
     isDisplayModalOpen: state.isDisplayModalOpen,
   };
 };

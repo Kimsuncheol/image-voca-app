@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import React from "react";
 import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { getBackgroundColors } from "../../constants/backgroundColors";
+import { EyeComfortImageOverlay } from "../../src/components/common/EyeComfortImageOverlay";
 import { ImagePlaceholder } from "../common/ImagePlaceholder";
 import {
   blackCardSharedStyles,
@@ -44,6 +45,7 @@ export function SwipeCardItemImageSection({
       ) : (
         <ImagePlaceholder isDark={isDark} style={styles.cardImage} />
       )}
+      <EyeComfortImageOverlay />
       {topRightOverlay ? (
         <View testID="swipe-card-image-top-right-overlay" style={styles.topRightOverlay}>
           {topRightOverlay}

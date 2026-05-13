@@ -1,9 +1,18 @@
-import { render } from "@testing-library/react-native";
+import { act, render } from "@testing-library/react-native";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { SwipeCardItemImageSection } from "../components/swipe/SwipeCardItemImageSection";
+import {
+  __resetReadingDisplayStoreForTests,
+  useReadingDisplayStore,
+} from "../src/stores/readingDisplayStore";
 
 describe("SwipeCardItemImageSection", () => {
+  beforeEach(() => {
+    __resetReadingDisplayStoreForTests();
+    useReadingDisplayStore.setState({ _initialized: true });
+  });
+
   it("renders an image when imageUrl is provided", () => {
     const { getByTestId, queryByTestId } = render(
       <SwipeCardItemImageSection
@@ -44,6 +53,25 @@ describe("SwipeCardItemImageSection", () => {
     expect(getByText("save")).toBeTruthy();
   });
 
+  it("renders the eye comfort image overlay only for images scope", () => {
+    useReadingDisplayStore.setState({
+      eyeComfortEnabled: true,
+      eyeComfortScope: "images",
+    });
+    const { getByTestId, rerender, queryByTestId } = render(
+      <SwipeCardItemImageSection isDark={false} />,
+    );
+
+    expect(getByTestId("eye-comfort-image-overlay")).toBeTruthy();
+
+    act(() => {
+      useReadingDisplayStore.setState({ eyeComfortScope: "screen" });
+    });
+    rerender(<SwipeCardItemImageSection isDark={false} />);
+
+    expect(queryByTestId("eye-comfort-image-overlay")).toBeNull();
+  });
+
   it("uses the tight content top inset for the image content area", () => {
     const { UNSAFE_getByType } = render(
       <SwipeCardItemImageSection isDark={false} />,
@@ -54,7 +82,7 @@ describe("SwipeCardItemImageSection", () => {
     expect(containerStyle).toEqual(
       expect.objectContaining({
         paddingHorizontal: 4,
-        paddingTop: 10,
+        paddingTop: 0,
       }),
     );
   });

@@ -4,24 +4,24 @@ import { useTheme } from "../../context/ThemeContext";
 import { useReadingDisplayStore } from "../../stores/readingDisplayStore";
 import { getEyeComfortOverlayColorFromIntensity } from "../../utils/eyeComfortColors";
 
-export function EyeComfortOverlay() {
+export function EyeComfortImageOverlay() {
   const { isDark } = useTheme();
   const isEnabled = useReadingDisplayStore(
     (state) => state.eyeComfortEnabled,
   );
+  const scope = useReadingDisplayStore((state) => state.eyeComfortScope);
   const intensity = useReadingDisplayStore(
     (state) => state.eyeComfortIntensity,
   );
-  const scope = useReadingDisplayStore((state) => state.eyeComfortScope);
 
-  if (!isEnabled || scope !== "screen") {
+  if (!isEnabled || scope !== "images") {
     return null;
   }
 
   return (
     <View
       pointerEvents="none"
-      testID="eye-comfort-overlay"
+      testID="eye-comfort-image-overlay"
       style={[
         styles.overlay,
         {
@@ -38,7 +38,5 @@ export function EyeComfortOverlay() {
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 9999,
-    elevation: 9999,
   },
 });

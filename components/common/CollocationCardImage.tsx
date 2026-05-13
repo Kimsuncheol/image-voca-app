@@ -1,6 +1,7 @@
 import { Image, ImageStyle } from "expo-image";
 import React from "react";
-import { StyleProp, ViewStyle } from "react-native";
+import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { EyeComfortImageOverlay } from "../../src/components/common/EyeComfortImageOverlay";
 import { ImagePlaceholder } from "./ImagePlaceholder";
 
 export interface CollocationCardImageProps {
@@ -18,18 +19,40 @@ export function CollocationCardImage({
 }: CollocationCardImageProps) {
   if (imageUrl) {
     return (
-      <Image
-        source={{ uri: imageUrl }}
-        style={style as StyleProp<ImageStyle>}
-        contentFit="contain"
-        cachePolicy="memory-disk"
-        onLoad={onImageLoad}
-        onError={onImageLoad}
-      />
+      <View
+        testID="collocation-card-image-frame"
+        style={[style as StyleProp<ViewStyle>, styles.imageFrame]}
+      >
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.fill}
+          contentFit="contain"
+          cachePolicy="memory-disk"
+          onLoad={onImageLoad}
+          onError={onImageLoad}
+        />
+        <EyeComfortImageOverlay />
+      </View>
     );
   }
 
   return (
-    <ImagePlaceholder isDark={isDark} style={style as StyleProp<ViewStyle>} />
+    <View
+      testID="collocation-card-image-frame"
+      style={[style as StyleProp<ViewStyle>, styles.imageFrame]}
+    >
+      <ImagePlaceholder isDark={isDark} style={styles.fill} />
+      <EyeComfortImageOverlay />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  imageFrame: {
+    position: "relative",
+    overflow: "hidden",
+  },
+  fill: {
+    ...StyleSheet.absoluteFillObject,
+  },
+});

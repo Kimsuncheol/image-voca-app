@@ -43,6 +43,9 @@ jest.mock("react-i18next", () => ({
         "readingDisplay.brightnessModes.system": "System",
         "readingDisplay.brightnessModes.app": "App",
         "readingDisplay.eyeComfort": "Eye comfort mode",
+        "readingDisplay.eyeComfortScope": "Apply to",
+        "readingDisplay.eyeComfortScopes.screen": "Entire screen",
+        "readingDisplay.eyeComfortScopes.images": "Images only",
         "readingDisplay.intensity": "Intensity",
         "settings.appearance.title": "Appearance",
         "settings.appearance.light": "Light",
@@ -161,6 +164,25 @@ describe("ReadingDisplayModal", () => {
     fireEvent.press(screen.getByRole("switch"));
 
     expect(useReadingDisplayStore.getState().eyeComfortEnabled).toBe(true);
+  });
+
+  it("selects the eye comfort scope from the modal", () => {
+    const screen = render(<ReadingDisplayModal />);
+
+    expect(screen.getByText("Apply to")).toBeTruthy();
+    expect(screen.getByText("Entire screen")).toBeTruthy();
+    expect(screen.getByText("Images only")).toBeTruthy();
+    expect(useReadingDisplayStore.getState().eyeComfortScope).toBe("screen");
+
+    fireEvent.press(
+      screen.getByTestId("reading-display-eye-comfort-scope-images"),
+    );
+    expect(useReadingDisplayStore.getState().eyeComfortScope).toBe("images");
+
+    fireEvent.press(
+      screen.getByTestId("reading-display-eye-comfort-scope-screen"),
+    );
+    expect(useReadingDisplayStore.getState().eyeComfortScope).toBe("screen");
   });
 
   it("dims and disables the intensity slider when eye comfort is off", () => {

@@ -56,6 +56,9 @@ export function ReadingDisplayModal() {
   const eyeComfortEnabled = useReadingDisplayStore(
     (state) => state.eyeComfortEnabled,
   );
+  const eyeComfortScope = useReadingDisplayStore(
+    (state) => state.eyeComfortScope,
+  );
   const isInitialized = useReadingDisplayStore(
     (state) => state._initialized,
   );
@@ -71,6 +74,9 @@ export function ReadingDisplayModal() {
   );
   const setEyeComfortEnabled = useReadingDisplayStore(
     (state) => state.setEyeComfortEnabled,
+  );
+  const setEyeComfortScope = useReadingDisplayStore(
+    (state) => state.setEyeComfortScope,
   );
   const { customIntensity, setCustomIntensity } = useEyeComfort();
   const isAppBrightness = brightnessMode === "app";
@@ -270,6 +276,42 @@ export function ReadingDisplayModal() {
                   true: isDark ? "#0a84ff" : "#007AFF",
                 }}
               />
+            </View>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.label}>
+                {t("readingDisplay.eyeComfortScope", {
+                  defaultValue: "Apply to",
+                })}
+              </Text>
+            </View>
+            <View style={styles.segmentedControl}>
+              {(["screen", "images"] as const).map((scope) => {
+                const isSelected = eyeComfortScope === scope;
+
+                return (
+                  <Pressable
+                    key={scope}
+                    testID={`reading-display-eye-comfort-scope-${scope}`}
+                    style={[
+                      styles.segment,
+                      isSelected && styles.segmentSelected,
+                    ]}
+                    onPress={() => setEyeComfortScope(scope)}
+                  >
+                    <Text
+                      style={[
+                        styles.segmentText,
+                        isSelected && styles.segmentTextSelected,
+                      ]}
+                    >
+                      {t(`readingDisplay.eyeComfortScopes.${scope}`, {
+                        defaultValue:
+                          scope === "screen" ? "Entire screen" : "Images only",
+                      })}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
 

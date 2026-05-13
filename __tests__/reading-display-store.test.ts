@@ -56,6 +56,7 @@ describe("reading display store", () => {
         appBrightness: 4,
         eyeComfortEnabled: "yes",
         eyeComfortIntensity: -1,
+        eyeComfortScope: "cards",
         isDisplayModalOpen: "open",
       }),
     );
@@ -67,6 +68,7 @@ describe("reading display store", () => {
       appBrightness: 1,
       eyeComfortEnabled: false,
       eyeComfortIntensity: 0.04,
+      eyeComfortScope: "screen",
       isDisplayModalOpen: false,
     });
   });
@@ -88,6 +90,7 @@ describe("reading display store", () => {
 
     useReadingDisplayStore.getState().setEyeComfortEnabled(true);
     useReadingDisplayStore.getState().setEyeComfortIntensity(0.18);
+    useReadingDisplayStore.getState().setEyeComfortScope("images");
     useReadingDisplayStore.getState().openDisplayModal();
     await waitFor(async () => {
       const stored = await AsyncStorage.getItem(
@@ -95,6 +98,7 @@ describe("reading display store", () => {
       );
       expect(stored).toContain('"eyeComfortEnabled":true');
       expect(stored).toContain('"eyeComfortIntensity":0.18');
+      expect(stored).toContain('"eyeComfortScope":"images"');
       expect(stored).toContain('"isDisplayModalOpen":true');
     });
 

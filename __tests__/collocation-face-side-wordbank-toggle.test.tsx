@@ -150,13 +150,24 @@ describe("Collocation FaceSide word bank toggle", () => {
 
   it("uses the tight content top inset for the image content area", () => {
     const screen = render(buildFaceSide());
+    const imageFrame = screen.getByTestId("collocation-card-image-frame");
     const image = screen.getByTestId("mock-expo-image");
+    const imageFrameStyle = StyleSheet.flatten(imageFrame.props.style);
     const imageStyle = StyleSheet.flatten(image.props.style);
 
-    expect(imageStyle).toEqual(
+    expect(imageFrameStyle).toEqual(
       expect.objectContaining({
         marginHorizontal: 4,
         marginTop: 0,
+      }),
+    );
+    expect(imageStyle).toEqual(
+      expect.objectContaining({
+        bottom: 0,
+        left: 0,
+        position: "absolute",
+        right: 0,
+        top: 0,
       }),
     );
   });
