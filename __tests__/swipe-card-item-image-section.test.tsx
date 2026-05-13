@@ -28,6 +28,15 @@ describe("SwipeCardItemImageSection", () => {
     });
     expect(image.props.contentFit).toBe("cover");
     expect(image.props.cachePolicy).toBe("memory-disk");
+    expect(StyleSheet.flatten(image.props.style)).toEqual(
+      expect.objectContaining({
+        bottom: 0,
+        left: 0,
+        position: "absolute",
+        right: 0,
+        top: 0,
+      }),
+    );
     expect(queryByTestId("icon-image-outline")).toBeNull();
   });
 
@@ -70,6 +79,25 @@ describe("SwipeCardItemImageSection", () => {
     rerender(<SwipeCardItemImageSection isDark={false} />);
 
     expect(queryByTestId("eye-comfort-image-overlay")).toBeNull();
+  });
+
+  it("bounds the eye comfort overlay to the image frame", () => {
+    const { getByTestId } = render(
+      <SwipeCardItemImageSection isDark={false} />,
+    );
+
+    const frameStyle = StyleSheet.flatten(
+      getByTestId("swipe-card-image-frame").props.style,
+    );
+
+    expect(frameStyle).toEqual(
+      expect.objectContaining({
+        height: "86%",
+        width: "100%",
+        position: "relative",
+        overflow: "hidden",
+      }),
+    );
   });
 
   it("uses the tight content top inset for the image content area", () => {

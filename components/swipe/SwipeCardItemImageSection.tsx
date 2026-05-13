@@ -35,17 +35,19 @@ export function SwipeCardItemImageSection({
         containerStyle,
       ]}
     >
-      {imageUrl ? (
-        <Image
-          source={{ uri: imageUrl }}
-          style={styles.cardImage}
-          contentFit="cover"
-          cachePolicy="memory-disk"
-        />
-      ) : (
-        <ImagePlaceholder isDark={isDark} style={styles.cardImage} />
-      )}
-      <EyeComfortImageOverlay />
+      <View testID="swipe-card-image-frame" style={styles.cardImageFrame}>
+        {imageUrl ? (
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.cardImage}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+          />
+        ) : (
+          <ImagePlaceholder isDark={isDark} style={styles.cardImage} />
+        )}
+        <EyeComfortImageOverlay />
+      </View>
       {topRightOverlay ? (
         <View testID="swipe-card-image-top-right-overlay" style={styles.topRightOverlay}>
           {topRightOverlay}
@@ -65,9 +67,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingTop: blackCardSpacing.contentTop,
   },
-  cardImage: {
+  cardImageFrame: {
     height: "86%",
     width: "100%",
+    position: "relative",
+    overflow: "hidden",
+  },
+  cardImage: {
+    ...StyleSheet.absoluteFillObject,
     resizeMode: "cover",
     borderRadius: 0,
   },
