@@ -823,6 +823,10 @@ const ko = {
         targetWord: "목표 단어",
         completeSentence: "문장을 완성하세요",
         chooseWord: "정답 단어를 선택하세요",
+        typeAnswer: "정답을 입력하세요",
+        answerPlaceholder: "정답",
+        keyboardLanguageMismatch:
+          "{{language}} 키보드로 전환해 퀴즈에 답하세요.",
       },
       synonymMatching: {
         title: "유의어 매칭",

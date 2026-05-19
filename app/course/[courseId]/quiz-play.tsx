@@ -60,9 +60,11 @@ import { useUserStatsStore } from "../../../src/stores";
 import {
   CourseType,
   findRuntimeCourse,
+  getLearningLanguageForCourse,
   isJlptLevelCourseId,
   isKanjiWord,
 } from "../../../src/types/vocabulary";
+import { isFillInBlankAnswerCorrect } from "../../../src/utils/fillInBlankAnswer";
 import { resolveQuizVocabulary } from "../../../src/utils/localizedVocabulary";
 import { isPronunciationMatchEligible } from "../../../src/utils/pronunciationMatching";
 import { normalizeSynonyms } from "../../../src/utils/synonyms";
@@ -514,8 +516,15 @@ export default function QuizPlayScreen() {
       );
     const correct = isWordsPlacement
       ? isWordsPlacementCorrect(selectedPlacementChunks, placementChunks)
-      : answer.toLowerCase().trim() ===
-        currentQuestion.correctAnswer.toLowerCase().trim();
+      : resolvedQuizType === "fill-in-blank"
+        ? isFillInBlankAnswerCorrect({
+            answer,
+            correctAnswer: currentQuestion.correctAnswer,
+            correctForms: currentQuestion.correctForms,
+            language: getLearningLanguageForCourse(courseId) ?? contentLanguage,
+          })
+        : answer.toLowerCase().trim() ===
+          currentQuestion.correctAnswer.toLowerCase().trim();
     const nextScore = correct ? score + 1 : score;
     console.log(
       `[Quiz] ${effectiveQuizType} answer in handleAnswer`,

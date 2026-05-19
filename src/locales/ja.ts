@@ -782,6 +782,10 @@ const ja = {
         targetWord: "目標単語",
         completeSentence: "文を完成させてください",
         chooseWord: "正しい単語を選んでください",
+        typeAnswer: "答えを入力してください",
+        answerPlaceholder: "答え",
+        keyboardLanguageMismatch:
+          "{{language}}キーボードに切り替えて解答してください。",
       },
       synonymMatching: {
         title: "類義語マッチング",

@@ -834,6 +834,10 @@ const en = {
         targetWord: "Target Word",
         completeSentence: "Complete the sentence",
         chooseWord: "Choose the correct word",
+        typeAnswer: "Type the answer",
+        answerPlaceholder: "Answer",
+        keyboardLanguageMismatch:
+          "Switch to the {{language}} keyboard to answer this quiz.",
       },
       synonymMatching: {
         title: "Synonym Matching",

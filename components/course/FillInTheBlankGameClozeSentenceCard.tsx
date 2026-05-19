@@ -17,6 +17,7 @@ interface FillInTheBlankGameClozeSentenceCardProps {
   showResult?: boolean;
   isCorrect?: boolean;
   correctForms?: string[];
+  onBlankPress?: () => void;
 }
 
 export function FillInTheBlankGameClozeSentenceCard({
@@ -27,6 +28,7 @@ export function FillInTheBlankGameClozeSentenceCard({
   showResult,
   isCorrect,
   correctForms = [],
+  onBlankPress,
 }: FillInTheBlankGameClozeSentenceCardProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -68,6 +70,8 @@ export function FillInTheBlankGameClozeSentenceCard({
               return (
                 <React.Fragment key={partIndex}>
                   <Text
+                    testID={`fill-in-blank-cloze-blank-${currentBlankIndex}`}
+                    onPress={onBlankPress}
                     style={[
                       styles.blank,
                       {
@@ -105,7 +109,7 @@ export function FillInTheBlankGameClozeSentenceCard({
                             ? "#666"
                             : "#999",
                         minWidth: displayWord === "         " ? 80 : undefined,
-                        paddingHorizontal: displayWord === "         " ? 8 : 12,
+                        paddingHorizontal: displayWord === "         " ? 14 : 16,
                       },
                     ]}
                   >
@@ -174,7 +178,7 @@ const styles = StyleSheet.create({
     textAlign: "left",
   },
   blank: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 14,
     paddingVertical: 2,
     borderRadius: 6,
     borderWidth: 1.5,

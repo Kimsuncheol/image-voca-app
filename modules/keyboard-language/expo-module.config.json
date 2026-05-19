@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["KeyboardLanguageModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.keyboardlanguage.KeyboardLanguageModule"]
+  }
+}
