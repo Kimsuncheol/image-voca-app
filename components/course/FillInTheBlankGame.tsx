@@ -1,6 +1,7 @@
 import React from "react";
 import type { QuizWordOption } from "../../src/course/quizUtils";
 import {
+  Keyboard,
   StyleSheet,
   TextInput,
   View,
@@ -48,6 +49,12 @@ export function FillInTheBlankGame({
   const toastTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const keyboardRefocusTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const canRefocusKeyboardRef = React.useRef(!showResult);
+  const suppressedKeyboardHideCountRef = React.useRef(0);
+  const questionKeyRef = React.useRef(`${clozeSentence}\u0000${correctAnswer}`);
   const lastToastAtRef = React.useRef(0);
   const targetLanguage = getLearningLanguageForCourse(courseId) ?? "en";
   const [draftAnswer, setDraftAnswer] = React.useState("");
@@ -62,6 +69,13 @@ export function FillInTheBlankGame({
 
   const focusInput = React.useCallback(() => {
     inputRef.current?.focus();
+  }, []);
+
+  const clearKeyboardRefocusTimeout = React.useCallback(() => {
+    if (keyboardRefocusTimeoutRef.current) {
+      clearTimeout(keyboardRefocusTimeoutRef.current);
+      keyboardRefocusTimeoutRef.current = null;
+    }
   }, []);
 
   const showKeyboardLanguageToast = React.useCallback(() => {
@@ -97,8 +111,24 @@ export function FillInTheBlankGame({
   }, [showKeyboardLanguageToast, targetLanguage]);
 
   React.useEffect(() => {
+    const nextQuestionKey = `${clozeSentence}\u0000${correctAnswer}`;
+    if (questionKeyRef.current !== nextQuestionKey) {
+      questionKeyRef.current = nextQuestionKey;
+      suppressedKeyboardHideCountRef.current = 0;
+    }
     setDraftAnswer("");
   }, [clozeSentence, correctAnswer]);
+
+  React.useEffect(() => {
+    canRefocusKeyboardRef.current = !showResult;
+    if (showResult) {
+      clearKeyboardRefocusTimeout();
+    }
+  }, [clearKeyboardRefocusTimeout, showResult]);
+
+  React.useEffect(() => {
+    clearKeyboardRefocusTimeout();
+  }, [clearKeyboardRefocusTimeout, clozeSentence, correctAnswer]);
 
   React.useEffect(() => {
     if (showResult) return;
@@ -118,20 +148,55 @@ export function FillInTheBlankGame({
     targetLanguage,
   ]);
 
+  React.useEffect(() => {
+    const subscription = Keyboard.addListener("keyboardDidHide", () => {
+      clearKeyboardRefocusTimeout();
+      if (suppressedKeyboardHideCountRef.current > 0) {
+        suppressedKeyboardHideCountRef.current -= 1;
+        return;
+      }
+      if (!canRefocusKeyboardRef.current) return;
+
+      keyboardRefocusTimeoutRef.current = setTimeout(() => {
+        keyboardRefocusTimeoutRef.current = null;
+        if (!canRefocusKeyboardRef.current) return;
+        focusInput();
+        void preferKeyboardLanguage(targetLanguage);
+        void checkKeyboardLanguage();
+      }, 120);
+    });
+
+    return () => {
+      subscription.remove();
+      clearKeyboardRefocusTimeout();
+    };
+  }, [
+    checkKeyboardLanguage,
+    clearKeyboardRefocusTimeout,
+    focusInput,
+    targetLanguage,
+  ]);
+
   React.useEffect(
     () => () => {
+      canRefocusKeyboardRef.current = false;
+      clearKeyboardRefocusTimeout();
       if (toastTimeoutRef.current) {
         clearTimeout(toastTimeoutRef.current);
       }
     },
-    [],
+    [clearKeyboardRefocusTimeout],
   );
 
   const handleSubmit = React.useCallback(() => {
     const trimmedAnswer = draftAnswer.trim();
     if (!trimmedAnswer || showResult) return;
+    canRefocusKeyboardRef.current = false;
+    suppressedKeyboardHideCountRef.current += 1;
+    clearKeyboardRefocusTimeout();
     onAnswer(trimmedAnswer);
-  }, [draftAnswer, onAnswer, showResult]);
+    Keyboard.dismiss();
+  }, [clearKeyboardRefocusTimeout, draftAnswer, onAnswer, showResult]);
 
   return (
     <View style={styles.container}>
@@ -160,6 +225,7 @@ export function FillInTheBlankGame({
         testID="fill-in-blank-input"
         value={draftAnswer}
         onChangeText={(nextAnswer) => {
+          if (showResult) return;
           setDraftAnswer(nextAnswer);
           void checkKeyboardLanguage();
         }}
@@ -171,7 +237,8 @@ export function FillInTheBlankGame({
         autoFocus
         autoCapitalize="none"
         autoCorrect={false}
-        editable={!showResult}
+        editable
+        submitBehavior="submit"
         blurOnSubmit={false}
         enterKeyHint="done"
         returnKeyType="done"

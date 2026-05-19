@@ -142,4 +142,42 @@ describe("GameBoard matching modes", () => {
     );
     expect(screen.queryByText("MatchingGame")).toBeNull();
   });
+
+  it("wraps standard quiz content with correct result decoration", () => {
+    const screen = render(
+      <GameBoard
+        {...baseProps}
+        quizType="multiple-choice"
+        showResult
+        isCorrect
+      />,
+    );
+
+    expect(screen.getByTestId("quiz-result-animation")).toBeTruthy();
+    expect(screen.getByTestId("quiz-result-correct-glow")).toBeTruthy();
+    expect(screen.queryByTestId("quiz-result-incorrect-glow")).toBeNull();
+  });
+
+  it("does not render result decoration before marking", () => {
+    const screen = render(
+      <GameBoard {...baseProps} quizType="multiple-choice" />,
+    );
+
+    expect(screen.getByTestId("quiz-result-animation")).toBeTruthy();
+    expect(screen.queryByTestId("quiz-result-correct-glow")).toBeNull();
+    expect(screen.queryByTestId("quiz-result-incorrect-glow")).toBeNull();
+  });
+
+  it("does not wrap matching-style games with shared result animation", () => {
+    const screen = render(
+      <GameBoard
+        {...baseProps}
+        quizType="matching"
+        showResult
+        isCorrect={false}
+      />,
+    );
+
+    expect(screen.queryByTestId("quiz-result-animation")).toBeNull();
+  });
 });

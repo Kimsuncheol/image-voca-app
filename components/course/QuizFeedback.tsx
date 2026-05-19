@@ -14,21 +14,35 @@ interface QuizFeedbackProps {
 export function QuizFeedback({ isCorrect, correctAnswer }: QuizFeedbackProps) {
   const { t } = useTranslation();
 
-  if (isCorrect) return null;
-
   return (
     <View style={styles.feedbackContainer}>
-      <View style={[styles.feedbackBadge, { backgroundColor: "#dc3545" }]}>
-        <Ionicons name="close-circle" size={24} color="#fff" />
+      <View
+        testID={
+          isCorrect ? "quiz-feedback-correct" : "quiz-feedback-incorrect"
+        }
+        style={[
+          styles.feedbackBadge,
+          { backgroundColor: isCorrect ? "#28a745" : "#dc3545" },
+        ]}
+      >
+        <Ionicons
+          name={isCorrect ? "checkmark-circle" : "close-circle"}
+          size={24}
+          color="#fff"
+        />
         <ThemedText style={styles.feedbackText}>
-          {t("quiz.feedback.incorrect")}
+          {isCorrect
+            ? t("quiz.feedback.correct", { defaultValue: "Correct" })
+            : t("quiz.feedback.incorrect")}
         </ThemedText>
       </View>
-      <ThemedText style={styles.correctAnswerText}>
-        {t("quiz.feedback.correctAnswer", {
-          answer: correctAnswer,
-        })}
-      </ThemedText>
+      {!isCorrect && (
+        <ThemedText style={styles.correctAnswerText}>
+          {t("quiz.feedback.correctAnswer", {
+            answer: correctAnswer,
+          })}
+        </ThemedText>
+      )}
     </View>
   );
 }
