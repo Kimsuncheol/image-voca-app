@@ -7,14 +7,21 @@ import { useTheme } from "../../src/context/ThemeContext";
 import { RuntimeCourse } from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
 import { FontSizes } from "@/constants/fontSizes";
+import { CompletedStamp } from "./CompletedStamp";
 
 interface CourseCardProps {
   course: RuntimeCourse;
   onPress: () => void;
   isRecent?: boolean;
+  isCompleted?: boolean;
 }
 
-export function CourseCard({ course, onPress, isRecent }: CourseCardProps) {
+export function CourseCard({
+  course,
+  onPress,
+  isRecent,
+  isCompleted = false,
+}: CourseCardProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
 
@@ -28,6 +35,14 @@ export function CourseCard({ course, onPress, isRecent }: CourseCardProps) {
       onPress={onPress}
       activeOpacity={0.7}
     >
+      {isCompleted && (
+        <CompletedStamp
+          testID={`course-card-completed-${course.id}`}
+          accessibilityLabel={t("common.completed", {
+            defaultValue: "Completed",
+          })}
+        />
+      )}
       <View style={[styles.iconContainer, { backgroundColor: course.color + "20" }]}>
         <Ionicons name={course.icon as any} size={28} color={course.color} />
       </View>
@@ -48,11 +63,6 @@ export function CourseCard({ course, onPress, isRecent }: CourseCardProps) {
           {t(course.descriptionKey, { defaultValue: course.description })}
         </ThemedText>
       </View>
-      <Ionicons
-        name="chevron-forward"
-        size={20}
-        color={isDark ? "#666" : "#999"}
-      />
     </TouchableOpacity>
   );
 }
@@ -64,6 +74,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     marginBottom: 12,
+    position: "relative",
   },
   iconContainer: {
     width: 56,

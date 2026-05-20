@@ -11,11 +11,13 @@ import { FontSizes } from "@/constants/fontSizes";
 interface RecentCourseSectionProps {
   course: RuntimeCourse;
   onPress: () => void;
+  isCompleted?: boolean;
 }
 
 export function RecentCourseSection({
   course,
   onPress,
+  isCompleted = false,
 }: RecentCourseSectionProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -32,7 +34,12 @@ export function RecentCourseSection({
           {t("courses.recentCourse")}
         </ThemedText>
       </View>
-      <CourseCard course={course} onPress={onPress} isRecent />
+      <CourseCard
+        course={course}
+        onPress={onPress}
+        isRecent
+        isCompleted={isCompleted}
+      />
     </View>
   );
 }

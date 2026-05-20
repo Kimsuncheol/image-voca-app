@@ -7,15 +7,18 @@ import { useTheme } from "../../src/context/ThemeContext";
 import { JLPTLevelCourse } from "../../src/types/vocabulary";
 import { ThemedText } from "../themed-text";
 import { FontSizes } from "@/constants/fontSizes";
+import { CompletedStamp } from "./CompletedStamp";
 
 interface JlptLevelCardProps {
   level: JLPTLevelCourse;
   onPress: () => void;
+  isCompleted?: boolean;
 }
 
 export function JlptLevelCard({
   level,
   onPress,
+  isCompleted = false,
 }: JlptLevelCardProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -29,6 +32,14 @@ export function JlptLevelCard({
       onPress={onPress}
       activeOpacity={0.7}
     >
+      {isCompleted && (
+        <CompletedStamp
+          testID={`jlpt-level-completed-${level.id}`}
+          accessibilityLabel={t("common.completed", {
+            defaultValue: "Completed",
+          })}
+        />
+      )}
       <View
         style={[
           styles.badge,
@@ -41,19 +52,16 @@ export function JlptLevelCard({
       </View>
 
       <View style={styles.content}>
-        <ThemedText type="subtitle">
-          {t(level.titleKey, { defaultValue: level.title })}
-        </ThemedText>
+        <View style={styles.titleRow}>
+          <ThemedText type="subtitle">
+            {t(level.titleKey, { defaultValue: level.title })}
+          </ThemedText>
+        </View>
         <ThemedText style={styles.description}>
           {t(level.descriptionKey, { defaultValue: level.description })}
         </ThemedText>
       </View>
 
-      <Ionicons
-        name="chevron-forward"
-        size={20}
-        color={isDark ? "#666" : "#999"}
-      />
     </TouchableOpacity>
   );
 }
@@ -66,6 +74,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 12,
     minHeight: 92,
+    position: "relative",
   },
   badge: {
     width: 64,
@@ -82,6 +91,12 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
   },
   description: {
     fontSize: FontSizes.label,

@@ -14,11 +14,15 @@ jest.mock("../components/themed-text", () => {
 import JlptLevelsScreen from "../app/course/jlpt-levels";
 
 const mockPush = jest.fn();
+const mockFetchCourseProgress = jest.fn();
+let mockCourseProgress: Record<string, Record<number, { completed?: boolean }>> =
+  {};
 
 jest.mock("expo-router", () => ({
   Stack: {
     Screen: () => null,
   },
+  useFocusEffect: (callback: () => void) => callback(),
   useRouter: () => ({
     push: mockPush,
   }),
@@ -30,6 +34,19 @@ const mockGetTotalDaysForCourse = jest.fn(async (courseId: string) =>
 
 jest.mock("../src/services/vocabularyPrefetch", () => ({
   getTotalDaysForCourse: (courseId: string) => mockGetTotalDaysForCourse(courseId),
+}));
+
+jest.mock("../src/context/AuthContext", () => ({
+  useAuth: () => ({
+    user: { uid: "user-1" },
+  }),
+}));
+
+jest.mock("../src/stores", () => ({
+  useUserStatsStore: () => ({
+    courseProgress: mockCourseProgress,
+    fetchCourseProgress: mockFetchCourseProgress,
+  }),
 }));
 
 jest.mock("../src/context/ThemeContext", () => ({
@@ -56,6 +73,7 @@ jest.mock("react-i18next", () => ({
         "courses.jlpt.levels.n5.title": "N5",
         "courses.jlpt.levels.n5.description": "Beginner",
         "common.back": "Back",
+        "common.completed": "Completed",
       };
       return table[key] ?? options?.defaultValue ?? key;
     },
@@ -65,6 +83,7 @@ jest.mock("react-i18next", () => ({
 describe("JlptLevelsScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCourseProgress = {};
   });
 
   it("renders JLPT levels as a vertical list without fetched day metadata", async () => {
@@ -89,6 +108,32 @@ describe("JlptLevelsScreen", () => {
     });
     await waitFor(() => {
       expect(mockGetTotalDaysForCourse).toHaveBeenCalledTimes(5);
+    });
+
+    fireEvent.press(screen.getAllByText("N1")[0]);
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith({
+        pathname: "/course/[courseId]/days",
+        params: { courseId: "JLPT_N1", initialTotalDays: "12" },
+      });
+    });
+  });
+
+  it("stamps completed JLPT levels while keeping them pressable", async () => {
+    mockCourseProgress = {
+      JLPT_N1: Object.fromEntries(
+        Array.from({ length: 12 }, (_, index) => [
+          index + 1,
+          { completed: true },
+        ]),
+      ),
+    };
+
+    const screen = render(<JlptLevelsScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("jlpt-level-completed-JLPT_N1")).toBeTruthy();
     });
 
     fireEvent.press(screen.getAllByText("N1")[0]);

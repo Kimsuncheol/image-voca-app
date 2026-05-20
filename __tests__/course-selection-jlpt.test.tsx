@@ -5,11 +5,21 @@ import CourseSelectionScreen from "../app/(tabs)/swipe";
 
 const mockPush = jest.fn();
 const mockFetchSubscription = jest.fn();
+const mockFetchCourseProgress = jest.fn();
 const mockLearningLanguage = { current: "ja" as "en" | "ja" };
 const mockRecentCourseByLanguage: Partial<Record<"en" | "ja", string>> = {};
+let mockCourseProgress: Record<string, Record<number, { completed?: boolean }>> =
+  {};
+let mockTotalDaysByCourse: Record<string, number> = {};
+let mockKeepFocusActive = false;
 
 jest.mock("expo-router", () => ({
-  useFocusEffect: (callback: () => void) => callback(),
+  useFocusEffect: (callback: () => void | (() => void)) => {
+    const cleanup = callback();
+    if (!mockKeepFocusActive && typeof cleanup === "function") {
+      cleanup();
+    }
+  },
   useRouter: () => ({
     push: mockPush,
   }),
@@ -41,6 +51,15 @@ jest.mock("../src/stores", () => ({
   useSubscriptionStore: () => ({
     fetchSubscription: mockFetchSubscription,
   }),
+  useUserStatsStore: () => ({
+    courseProgress: mockCourseProgress,
+    fetchCourseProgress: mockFetchCourseProgress,
+  }),
+}));
+
+jest.mock("../src/services/vocabularyPrefetch", () => ({
+  getTotalDaysForCourse: (courseId: string) =>
+    Promise.resolve(mockTotalDaysByCourse[courseId] ?? 0),
 }));
 
 jest.mock("../src/context/LearningLanguageContext", () => ({
@@ -72,9 +91,11 @@ jest.mock("../components/course", () => ({
   RecentCourseSection: ({
     course,
     onPress,
+    isCompleted,
   }: {
     course: { title: string };
     onPress: () => void;
+    isCompleted?: boolean;
   }) => {
     const { Pressable, Text } = jest.requireActual<typeof import("react-native")>(
       "react-native",
@@ -82,15 +103,18 @@ jest.mock("../components/course", () => ({
     return (
       <Pressable onPress={onPress}>
         <Text>{`recent:${course.title}`}</Text>
+        {isCompleted ? <Text>{`completed:${course.title}`}</Text> : null}
       </Pressable>
     );
   },
   AllCoursesSection: ({
     courses,
     onCoursePress,
+    completedCourseIds,
   }: {
     courses: { id: string; title: string }[];
     onCoursePress: (course: { id: string; title: string }) => void;
+    completedCourseIds?: Record<string, boolean>;
   }) => {
     const { Pressable, Text, View } = jest.requireActual<
       typeof import("react-native")
@@ -100,6 +124,9 @@ jest.mock("../components/course", () => ({
         {courses.map((course) => (
           <Pressable key={course.id} onPress={() => onCoursePress(course)}>
             <Text>{course.title}</Text>
+            {completedCourseIds?.[course.id] ? (
+              <Text>{`completed:${course.title}`}</Text>
+            ) : null}
           </Pressable>
         ))}
       </View>
@@ -107,17 +134,24 @@ jest.mock("../components/course", () => ({
   },
 }));
 
+const renderCourseSelection = async () => {
+  return render(<CourseSelectionScreen />);
+};
+
 describe("CourseSelectionScreen JLPT routing", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     mockLearningLanguage.current = "ja";
+    mockCourseProgress = {};
+    mockTotalDaysByCourse = {};
+    mockKeepFocusActive = false;
     delete mockRecentCourseByLanguage.en;
     delete mockRecentCourseByLanguage.ja;
     await AsyncStorage.clear();
   });
 
-  it("routes Elementary Japanese to the hub screen for Japanese learners", () => {
-    const screen = render(<CourseSelectionScreen />);
+  it("routes Elementary Japanese to the hub screen for Japanese learners", async () => {
+    const screen = await renderCourseSelection();
 
     fireEvent.press(screen.getByText("Elementary Japanese"));
 
@@ -125,7 +159,7 @@ describe("CourseSelectionScreen JLPT routing", () => {
   });
 
   it("routes JLPT to the level selection screen", async () => {
-    const screen = render(<CourseSelectionScreen />);
+    const screen = await renderCourseSelection();
 
     fireEvent.press(screen.getByText("JLPT"));
 
@@ -135,7 +169,7 @@ describe("CourseSelectionScreen JLPT routing", () => {
   it("does not render the recent course section for Japanese learners", async () => {
     mockRecentCourseByLanguage.ja = "JLPT_N2";
 
-    const screen = render(<CourseSelectionScreen />);
+    const screen = await renderCourseSelection();
 
     await waitFor(() => {
       expect(screen.getByText("JLPT")).toBeTruthy();
@@ -144,11 +178,39 @@ describe("CourseSelectionScreen JLPT routing", () => {
     expect(screen.queryByText("recent:N2")).toBeNull();
   });
 
-  it("keeps the non-Japanese Voca screen free of the Elementary Japanese entry", () => {
+  it("keeps the non-Japanese Voca screen free of the Elementary Japanese entry", async () => {
     mockLearningLanguage.current = "en";
 
-    const screen = render(<CourseSelectionScreen />);
+    const screen = await renderCourseSelection();
 
     expect(screen.queryByText("Elementary Japanese")).toBeNull();
+  });
+
+  it("passes completed state to the JLPT parent while keeping it pressable", async () => {
+    mockKeepFocusActive = true;
+    mockTotalDaysByCourse = {
+      JLPT_N1: 1,
+      JLPT_N2: 1,
+      JLPT_N3: 1,
+      JLPT_N4: 1,
+      JLPT_N5: 1,
+    };
+    mockCourseProgress = {
+      JLPT_N1: { 1: { completed: true } },
+      JLPT_N2: { 1: { completed: true } },
+      JLPT_N3: { 1: { completed: true } },
+      JLPT_N4: { 1: { completed: true } },
+      JLPT_N5: { 1: { completed: true } },
+    };
+
+    const screen = await renderCourseSelection();
+
+    await waitFor(() => {
+      expect(screen.getByText("completed:JLPT")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("JLPT"));
+
+    expect(mockPush).toHaveBeenCalledWith("/course/jlpt-levels");
   });
 });

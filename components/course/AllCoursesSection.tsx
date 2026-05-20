@@ -3,7 +3,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
-import { Course } from "../../src/types/vocabulary";
+import { Course, CourseType } from "../../src/types/vocabulary";
 import { CourseCard } from "../course";
 import { ThemedText } from "../themed-text";
 import { FontSizes } from "@/constants/fontSizes";
@@ -11,11 +11,13 @@ import { FontSizes } from "@/constants/fontSizes";
 interface AllCoursesSectionProps {
   courses: Course[];
   onCoursePress: (course: Course) => void;
+  completedCourseIds?: Partial<Record<CourseType, boolean>>;
 }
 
 export function AllCoursesSection({
   courses,
   onCoursePress,
+  completedCourseIds = {},
 }: AllCoursesSectionProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -36,6 +38,7 @@ export function AllCoursesSection({
         <CourseCard
           key={course.id}
           course={course}
+          isCompleted={completedCourseIds[course.id] === true}
           onPress={() => onCoursePress(course)}
         />
       ))}
