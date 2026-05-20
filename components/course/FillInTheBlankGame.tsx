@@ -110,6 +110,28 @@ export function FillInTheBlankGame({
     }
   }, [showKeyboardLanguageToast, targetLanguage]);
 
+  const reopenKeyboardFromBlankPress = React.useCallback(() => {
+    if (showResult) return;
+
+    clearKeyboardRefocusTimeout();
+    canRefocusKeyboardRef.current = true;
+    inputRef.current?.blur();
+
+    keyboardRefocusTimeoutRef.current = setTimeout(() => {
+      keyboardRefocusTimeoutRef.current = null;
+      if (!canRefocusKeyboardRef.current) return;
+      focusInput();
+      void preferKeyboardLanguage(targetLanguage);
+      void checkKeyboardLanguage();
+    }, 40);
+  }, [
+    checkKeyboardLanguage,
+    clearKeyboardRefocusTimeout,
+    focusInput,
+    showResult,
+    targetLanguage,
+  ]);
+
   React.useEffect(() => {
     const nextQuestionKey = `${clozeSentence}\u0000${correctAnswer}`;
     if (questionKeyRef.current !== nextQuestionKey) {
@@ -213,11 +235,7 @@ export function FillInTheBlankGame({
         showResult={showResult}
         isCorrect={isCorrect}
         correctForms={correctForms}
-        onBlankPress={() => {
-          focusInput();
-          void preferKeyboardLanguage(targetLanguage);
-          void checkKeyboardLanguage();
-        }}
+        onBlankPress={reopenKeyboardFromBlankPress}
       />
 
       <TextInput

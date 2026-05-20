@@ -119,13 +119,35 @@ describe("FillInTheBlankGame typed input", () => {
     expect(keyboardDismissSpy).not.toHaveBeenCalled();
   });
 
-  it("lets a blank press re-run the keyboard preference guard", () => {
+  it("lets a blank press force a delayed keyboard reopen", () => {
+    jest.useFakeTimers();
     const screen = renderGame();
 
+    jest.runOnlyPendingTimers();
+    jest.clearAllMocks();
     fireEvent.press(screen.getByTestId("fill-in-blank-cloze-blank-0"));
+
+    expect(preferKeyboardLanguage).not.toHaveBeenCalled();
+    expect(getCurrentKeyboardLanguage).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(40);
 
     expect(preferKeyboardLanguage).toHaveBeenCalledWith("en");
     expect(getCurrentKeyboardLanguage).toHaveBeenCalled();
+  });
+
+  it("does not reopen the keyboard from a blank press during result feedback", () => {
+    jest.useFakeTimers();
+    const screen = renderGame({
+      userAnswer: "alpha",
+      showResult: true,
+    });
+
+    fireEvent.press(screen.getByTestId("fill-in-blank-cloze-blank-0"));
+    jest.advanceTimersByTime(40);
+
+    expect(preferKeyboardLanguage).not.toHaveBeenCalled();
+    expect(getCurrentKeyboardLanguage).not.toHaveBeenCalled();
   });
 
   it("refocuses the hidden input when the keyboard hides during active input", () => {
