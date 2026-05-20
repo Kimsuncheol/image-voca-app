@@ -1,3 +1,4 @@
+import { BorderColors } from "@/constants/borderColors";
 import { FontWeights } from "@/constants/fontWeights";
 import { FontSizes } from "@/constants/fontSizes";
 import { LineHeights } from "@/constants/lineHeights";
@@ -30,20 +31,20 @@ export const styles = StyleSheet.create({
     elevation: 0,
     justifyContent: "space-between",
     borderWidth: 0,
-    borderColor: "#FFFFFF",
+    borderColor: BorderColors.light.collocationFace,
   },
   faceDeleteModeLight: {
-    borderColor: "#d0d0d0",
+    borderColor: BorderColors.light.collocationDeleteMode,
   },
   faceDeleteModeDark: {
-    borderColor: "#3a3a3c",
+    borderColor: BorderColors.dark.collocationDeleteMode,
   },
   faceSelectedLight: {
-    borderColor: "#007AFF",
+    borderColor: BorderColors.light.accent,
     backgroundColor: "#F1F7FF",
   },
   faceSelectedDark: {
-    borderColor: "#0A84FF",
+    borderColor: BorderColors.dark.accentStrong,
     backgroundColor: "#162331",
   },
   faceContentContainer: {
@@ -135,7 +136,7 @@ export const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: "rgba(255,255,255,0.08)",
     borderWidth: 0.5,
-    borderColor: "rgba(255,255,255,0.12)",
+    borderColor: BorderColors.light.collocationSynChip,
     marginTop: 4,
   },
   faceSynChipText: {
@@ -178,15 +179,15 @@ export const styles = StyleSheet.create({
   },
   faceSelectionBadgeSelected: {
     backgroundColor: "#007AFF",
-    borderColor: "#007AFF",
+    borderColor: BorderColors.light.accent,
   },
   faceSelectionBadgeIdleLight: {
     backgroundColor: "#fff",
-    borderColor: "#c7c7cc",
+    borderColor: BorderColors.light.collocationBadgeIdle,
   },
   faceSelectionBadgeIdleDark: {
     backgroundColor: "#2c2c2e",
-    borderColor: "#636366",
+    borderColor: BorderColors.dark.collocationBadgeIdle,
   },
   faceCardImage: {
     flex: 4,
@@ -214,11 +215,11 @@ export const styles = StyleSheet.create({
     elevation: 0,
     justifyContent: "space-between",
     borderWidth: 0,
-    borderColor: "#FFFFFF",
+    borderColor: BorderColors.light.collocationFace,
   },
   backDark: {
     backgroundColor: "#000000",
-    borderColor: "#000000",
+    borderColor: BorderColors.dark.black,
     shadowColor: "#000",
     shadowOpacity: 0,
   },
@@ -251,7 +252,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1.5,
-    borderBottomColor: "rgba(17,24,39,0.18)",
+    borderBottomColor: BorderColors.light.collocationBackDivider,
     marginBottom: 16,
   },
   backSectionLabel: {
@@ -374,7 +375,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: BorderColors.light.collocationTranslationDivider,
     marginBottom: 8,
   },
   translationLabel: {
@@ -425,7 +426,7 @@ export const styles = StyleSheet.create({
     elevation: 8,
     justifyContent: "space-between",
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.02)",
+    borderColor: BorderColors.light.collocationHairline,
   },
   skeletonBase: {
     backgroundColor: "#E1E9EE",

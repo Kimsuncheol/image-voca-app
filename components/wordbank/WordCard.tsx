@@ -4,6 +4,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { getBackgroundColors } from "../../constants/backgroundColors";
+import { BorderColors, getBorderColors } from "../../constants/borderColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
@@ -112,6 +113,7 @@ function StandardWordCard({
   const { learningLanguage } = useLearningLanguage();
   const contentLanguage = useJapaneseContentLanguage(word.course, i18n.language);
   const bgColors = getBackgroundColors(isDark);
+  const borderColors = getBorderColors(isDark);
   const fontColors = getFontColors(isDark);
   const maskWord = shouldMaskReviewContent(
     isReviewMode,
@@ -287,8 +289,8 @@ function StandardWordCard({
               showKana && styles.kanaTogglePillActive,
               {
                 borderColor: showKana
-                  ? bgColors.learningCardKanaActive
-                  : fontColors.learningCardDividerMuted,
+                  ? borderColors.learningCardKanaActive
+                  : borderColors.learningCardDividerMuted,
                 backgroundColor: showKana
                   ? bgColors.learningCardKanaActive
                   : bgColors.transparent,
@@ -320,7 +322,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 12,
     borderWidth: 1.5,
-    borderColor: "transparent",
+    borderColor: BorderColors.light.transparent,
   },
   topSection: {
     flexDirection: "row",

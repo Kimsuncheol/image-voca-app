@@ -127,6 +127,7 @@ describe("FillInTheBlankGame typed input", () => {
     jest.clearAllMocks();
     fireEvent.press(screen.getByTestId("fill-in-blank-cloze-blank-0"));
 
+    expect(keyboardDismissSpy).not.toHaveBeenCalled();
     expect(preferKeyboardLanguage).not.toHaveBeenCalled();
     expect(getCurrentKeyboardLanguage).not.toHaveBeenCalled();
 
@@ -134,6 +135,130 @@ describe("FillInTheBlankGame typed input", () => {
 
     expect(preferKeyboardLanguage).toHaveBeenCalledWith("en");
     expect(getCurrentKeyboardLanguage).toHaveBeenCalled();
+  });
+
+  it("remounts and reopens the keyboard when pressing a blank after outside unmount", () => {
+    jest.useFakeTimers();
+    const screen = renderGame();
+
+    jest.runOnlyPendingTimers();
+    jest.clearAllMocks();
+    fireEvent.press(screen.getByTestId("fill-in-blank-dismiss-area"));
+    expect(screen.queryByTestId("fill-in-blank-input")).toBeNull();
+    jest.clearAllMocks();
+
+    fireEvent.press(screen.getByTestId("fill-in-blank-cloze-blank-0"));
+
+    expect(screen.getByTestId("fill-in-blank-input")).toBeTruthy();
+    expect(keyboardDismissSpy).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(40);
+
+    expect(preferKeyboardLanguage).toHaveBeenCalledWith("en");
+    expect(getCurrentKeyboardLanguage).toHaveBeenCalled();
+  });
+
+  it("dismisses the keyboard from outside the example container without refocusing", () => {
+    jest.useFakeTimers();
+    const screen = renderGame();
+
+    jest.runOnlyPendingTimers();
+    jest.clearAllMocks();
+    fireEvent.press(screen.getByTestId("fill-in-blank-dismiss-area"));
+
+    expect(keyboardDismissSpy).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("fill-in-blank-input")).toBeNull();
+
+    keyboardDidHideHandler?.();
+    jest.advanceTimersByTime(120);
+
+    expect(screen.queryByTestId("fill-in-blank-input")).toBeNull();
+    expect(preferKeyboardLanguage).not.toHaveBeenCalled();
+    expect(getCurrentKeyboardLanguage).not.toHaveBeenCalled();
+  });
+
+  it("remounts and reopens the keyboard when pressing inside the example container", () => {
+    jest.useFakeTimers();
+    const screen = renderGame();
+
+    jest.runOnlyPendingTimers();
+    jest.clearAllMocks();
+    fireEvent.press(screen.getByTestId("fill-in-blank-dismiss-area"));
+    expect(screen.queryByTestId("fill-in-blank-input")).toBeNull();
+    jest.clearAllMocks();
+
+    fireEvent.press(screen.getByTestId("fill-in-blank-example-container"));
+
+    expect(screen.getByTestId("fill-in-blank-input")).toBeTruthy();
+    expect(keyboardDismissSpy).not.toHaveBeenCalled();
+    expect(preferKeyboardLanguage).not.toHaveBeenCalled();
+    expect(getCurrentKeyboardLanguage).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(40);
+
+    expect(preferKeyboardLanguage).toHaveBeenCalledWith("en");
+    expect(getCurrentKeyboardLanguage).toHaveBeenCalled();
+  });
+
+  it("remounts and auto-focuses the input on the next question after outside unmount", () => {
+    jest.useFakeTimers();
+    const screen = renderGame();
+
+    jest.runOnlyPendingTimers();
+    jest.clearAllMocks();
+    fireEvent.press(screen.getByTestId("fill-in-blank-dismiss-area"));
+    expect(screen.queryByTestId("fill-in-blank-input")).toBeNull();
+
+    screen.rerender(
+      <FillInTheBlankGame
+        word="beta"
+        courseId="TOEIC"
+        clozeSentence="Pick ____ again."
+        options={[]}
+        correctAnswer="beta"
+        userAnswer=""
+        showResult={false}
+        onAnswer={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("fill-in-blank-input")).toBeTruthy();
+    jest.clearAllMocks();
+    jest.advanceTimersByTime(80);
+
+    expect(preferKeyboardLanguage).toHaveBeenCalledWith("en");
+    expect(getCurrentKeyboardLanguage).toHaveBeenCalled();
+  });
+
+  it("does not reopen from an example container tap during result feedback", () => {
+    jest.useFakeTimers();
+    const screen = renderGame({
+      userAnswer: "alpha",
+      showResult: true,
+    });
+
+    fireEvent.press(screen.getByTestId("fill-in-blank-example-container"));
+    jest.advanceTimersByTime(40);
+
+    expect(keyboardDismissSpy).not.toHaveBeenCalled();
+    expect(preferKeyboardLanguage).not.toHaveBeenCalled();
+    expect(getCurrentKeyboardLanguage).not.toHaveBeenCalled();
+  });
+
+  it("does not dismiss from an outside tap during result feedback", () => {
+    jest.useFakeTimers();
+    const screen = renderGame({
+      userAnswer: "alpha",
+      showResult: true,
+    });
+
+    fireEvent.press(screen.getByTestId("fill-in-blank-dismiss-area"));
+    keyboardDidHideHandler?.();
+    jest.advanceTimersByTime(120);
+
+    expect(keyboardDismissSpy).not.toHaveBeenCalled();
+    expect(preferKeyboardLanguage).not.toHaveBeenCalled();
+    expect(getCurrentKeyboardLanguage).not.toHaveBeenCalled();
   });
 
   it("does not reopen the keyboard from a blank press during result feedback", () => {

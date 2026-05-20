@@ -21,6 +21,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
+import { getBorderColors } from "../../../constants/borderColors";
 import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { FontSizes } from "@/constants/fontSizes";
@@ -120,6 +121,7 @@ export const FormInput: React.FC<FormInputProps> = ({
 // STYLES
 // =============================================================================
 const getStyles = (isDark: boolean) => {
+  const borderColors = getBorderColors(isDark);
   const fontColors = getFontColors(isDark);
   const bg = getBackgroundColors(isDark);
 
@@ -128,7 +130,7 @@ const getStyles = (isDark: boolean) => {
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
-      borderColor: fontColors.inputBorder,
+      borderColor: borderColors.inputBorder,
       borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 8,
@@ -136,11 +138,11 @@ const getStyles = (isDark: boolean) => {
       backgroundColor: bg.cardElevated,
     },
     inputError: {
-      borderColor: fontColors.inputBorderError,
+      borderColor: borderColors.inputBorderError,
       backgroundColor: bg.accentRedSoft,
     },
     inputSuccess: {
-      borderColor: fontColors.inputBorderSuccess,
+      borderColor: borderColors.inputBorderSuccess,
       backgroundColor: bg.successSoft,
     },
     inputIcon: {

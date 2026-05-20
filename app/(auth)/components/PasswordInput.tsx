@@ -14,6 +14,7 @@ import React, { useState } from "react";
 import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
+import { getBorderColors } from "../../../constants/borderColors";
 import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { FontSizes } from "@/constants/fontSizes";
@@ -71,6 +72,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
 // STYLES
 // =============================================================================
 const getStyles = (isDark: boolean) => {
+  const borderColors = getBorderColors(isDark);
   const fontColors = getFontColors(isDark);
   const bg = getBackgroundColors(isDark);
 
@@ -79,7 +81,7 @@ const getStyles = (isDark: boolean) => {
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
-      borderColor: fontColors.inputBorder,
+      borderColor: borderColors.inputBorder,
       borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 8,

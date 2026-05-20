@@ -1,13 +1,16 @@
+import { getBackgroundColors } from "@/constants/backgroundColors";
+import { getBorderColors } from "@/constants/borderColors";
+import { getFontColors } from "@/constants/fontColors";
+import { FontSizes } from "@/constants/fontSizes";
 import { FontWeights } from "@/constants/fontWeights";
+import { LineHeights } from "@/constants/lineHeights";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import { stripKanaParens } from "../../src/utils/japaneseText";
 import { RoleplayRenderer } from "../CollocationFlipCard/RoleplayRenderer";
 import { ThemedText } from "../themed-text";
-import { FontSizes } from "@/constants/fontSizes";
-import { LineHeights } from "@/constants/lineHeights";
 
 interface FillInTheBlankGameClozeSentenceCardProps {
   clozeSentence: string;
@@ -17,6 +20,7 @@ interface FillInTheBlankGameClozeSentenceCardProps {
   showResult?: boolean;
   isCorrect?: boolean;
   correctForms?: string[];
+  onCardPress?: () => void;
   onBlankPress?: () => void;
 }
 
@@ -28,10 +32,14 @@ export function FillInTheBlankGameClozeSentenceCard({
   showResult,
   isCorrect,
   correctForms = [],
+  onCardPress,
   onBlankPress,
 }: FillInTheBlankGameClozeSentenceCardProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
+  const fontColors = getFontColors(isDark);
+  const backgroundColors = getBackgroundColors(isDark);
+  const borderColors = getBorderColors(isDark);
   const displaySentence = React.useMemo(
     () => stripKanaParens(clozeSentence),
     [clozeSentence],
@@ -51,7 +59,10 @@ export function FillInTheBlankGameClozeSentenceCard({
       return (
         <View key={`${lineIndex}`} style={styles.sentenceLine}>
           <Text
-            style={[styles.sentenceText, { color: isDark ? "#fff" : "#000" }]}
+            style={[
+              styles.sentenceText,
+              { color: fontColors.fillBlankSentence },
+            ]}
           >
             {parts.map((part, partIndex) => {
               const isBlank = /^_+$/.test(part);
@@ -71,45 +82,36 @@ export function FillInTheBlankGameClozeSentenceCard({
                 <React.Fragment key={partIndex}>
                   <Text
                     testID={`fill-in-blank-cloze-blank-${currentBlankIndex}`}
-                    onPress={onBlankPress}
+                    onPress={(event) => {
+                      event?.stopPropagation?.();
+                      onBlankPress?.();
+                    }}
                     style={[
                       styles.blank,
                       {
                         backgroundColor: userAnswer
                           ? showResult
                             ? isCorrect
-                              ? "#28a74520"
-                              : "#dc354520"
-                            : isDark
-                              ? "#2c2c2e"
-                              : "#e8e8e8"
-                          : isDark
-                            ? "#2c2c2e"
-                            : "#e8e8e8",
+                              ? backgroundColors.fillBlankCorrectSoft
+                              : backgroundColors.fillBlankIncorrectSoft
+                            : backgroundColors.fillBlankIdle
+                          : backgroundColors.fillBlankIdle,
                         borderColor: userAnswer
                           ? showResult
                             ? isCorrect
-                              ? "#28a745"
-                              : "#dc3545"
-                            : isDark
-                              ? "#3a3a3c"
-                              : "#d1d1d6"
-                          : isDark
-                            ? "#3a3a3c"
-                            : "#d1d1d6",
+                              ? borderColors.fillBlankCorrect
+                              : borderColors.fillBlankIncorrect
+                            : borderColors.fillBlankIdle
+                          : borderColors.fillBlankIdle,
                         color: userAnswer
                           ? showResult
                             ? isCorrect
-                              ? "#28a745"
-                              : "#dc3545"
-                            : isDark
-                              ? "#007AFF"
-                              : "#007AFF"
-                          : isDark
-                            ? "#666"
-                            : "#999",
-                        minWidth: displayWord === "         " ? 80 : undefined,
-                        paddingHorizontal: displayWord === "         " ? 14 : 16,
+                              ? fontColors.fillBlankCorrect
+                              : fontColors.fillBlankIncorrect
+                            : fontColors.fillBlankActive
+                          : fontColors.fillBlankIdle,
+                        minWidth: displayWord === "          " ? 26 : undefined,
+                        paddingHorizontal: displayWord === "         " ? 4 : 8,
                       },
                     ]}
                   >
@@ -140,10 +142,19 @@ export function FillInTheBlankGameClozeSentenceCard({
   };
 
   return (
-    <View
+    <Pressable
+      testID="fill-in-blank-example-container"
+      accessible={false}
+      onPress={(event) => {
+        event?.stopPropagation?.();
+        onCardPress?.();
+      }}
       style={[
         styles.sentenceCard,
-        { backgroundColor: isDark ? "#1c1c1e" : "#f5f5f5" },
+        {
+          backgroundColor: backgroundColors.fillBlankCard,
+          borderColor: borderColors.fillBlankCard,
+        },
       ]}
     >
       <ThemedText style={styles.sentenceLabel}>
@@ -153,7 +164,7 @@ export function FillInTheBlankGameClozeSentenceCard({
       {translation && (
         <ThemedText style={styles.translationText}>{translation}</ThemedText>
       )}
-    </View>
+    </Pressable>
   );
 }
 
@@ -162,7 +173,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.05)",
   },
   sentenceLabel: {
     fontSize: FontSizes.body,
@@ -178,15 +188,14 @@ const styles = StyleSheet.create({
     textAlign: "left",
   },
   blank: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
     borderWidth: 1.5,
     borderStyle: "dashed",
     fontWeight: FontWeights.semiBold,
     fontSize: FontSizes.title,
-    minWidth: 80,
-    textAlign: "center",
+    minWidth: 26,
     overflow: "hidden",
   },
   translationText: {

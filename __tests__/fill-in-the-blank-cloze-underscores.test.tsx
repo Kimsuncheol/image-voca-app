@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react-native";
+import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
 import { FillInTheBlankGameClozeSentenceCard } from "../components/course/FillInTheBlankGameClozeSentenceCard";
 
@@ -40,5 +40,33 @@ describe("FillInTheBlankGameClozeSentenceCard", () => {
     expect(screen.getAllByText("word")).toHaveLength(2);
     expect(screen.queryByText("__")).toBeNull();
     expect(screen.queryByText("_____")).toBeNull();
+  });
+
+  it("calls the card press handler from the visible card boundary", () => {
+    const onCardPress = jest.fn();
+    const screen = render(
+      <FillInTheBlankGameClozeSentenceCard
+        clozeSentence="Alpha ____."
+        onCardPress={onCardPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId("fill-in-blank-example-container"));
+
+    expect(onCardPress).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls the blank press handler when a blank is tapped", () => {
+    const onBlankPress = jest.fn();
+    const screen = render(
+      <FillInTheBlankGameClozeSentenceCard
+        clozeSentence="Alpha ____."
+        onBlankPress={onBlankPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId("fill-in-blank-cloze-blank-0"));
+
+    expect(onBlankPress).toHaveBeenCalledTimes(1);
   });
 });

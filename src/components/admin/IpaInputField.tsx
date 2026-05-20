@@ -1,3 +1,4 @@
+import { getBorderColors } from "@/constants/borderColors";
 import { FontWeights } from "@/constants/fontWeights";
 /**
  * =============================================================================
@@ -211,8 +212,10 @@ export const IpaInputField: React.FC<IpaInputFieldProps> = ({
 // STYLES
 // =============================================================================
 
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const borderColors = getBorderColors(isDark);
+
+  return StyleSheet.create({
     container: {
       marginBottom: 16,
     },
@@ -252,7 +255,7 @@ const getStyles = (isDark: boolean) =>
     input: {
       backgroundColor: isDark ? "#1c1c1e" : "#fff",
       borderWidth: 1,
-      borderColor: isDark ? "#38383a" : "#d1d1d6",
+      borderColor: borderColors.ipaInput,
       borderRadius: 8,
       padding: 12,
       fontSize: FontSizes.bodyLg,
@@ -266,3 +269,4 @@ const getStyles = (isDark: boolean) =>
       fontStyle: "italic",
     },
   });
+};

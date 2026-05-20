@@ -1,4 +1,5 @@
 import { getBackgroundColors } from "@/constants/backgroundColors";
+import { getBorderColors } from "@/constants/borderColors";
 import { getFontColors } from "@/constants/fontColors";
 import { FontSizes } from "@/constants/fontSizes";
 import { FontWeights } from "@/constants/fontWeights";
@@ -352,6 +353,7 @@ export function ReadingDisplayModal() {
 
 const getStyles = (isDark: boolean) => {
   const bg = getBackgroundColors(isDark);
+  const border = getBorderColors(isDark);
   const font = getFontColors(isDark);
 
   return StyleSheet.create({
@@ -374,9 +376,7 @@ const getStyles = (isDark: boolean) => {
       paddingBottom: 16,
       gap: 16,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: isDark
-        ? "rgba(255,255,255,0.16)"
-        : "rgba(17,24,39,0.08)",
+      borderColor: border.modalPanel,
     },
     header: {
       alignItems: "center",
@@ -398,9 +398,7 @@ const getStyles = (isDark: boolean) => {
       minHeight: 88,
       borderRadius: 12,
       borderWidth: 1,
-      borderColor: isDark
-        ? "rgba(255,255,255,0.14)"
-        : "rgba(17,24,39,0.12)",
+      borderColor: border.modalOption,
       alignItems: "center",
       justifyContent: "center",
       gap: 6,
@@ -408,7 +406,7 @@ const getStyles = (isDark: boolean) => {
       paddingVertical: 8,
     },
     appearanceOptionSelected: {
-      borderColor: "#007AFF",
+      borderColor: border.accent,
       borderWidth: 2,
     },
     appearancePreviewFrame: {
@@ -417,9 +415,7 @@ const getStyles = (isDark: boolean) => {
       borderRadius: 10,
       overflow: "hidden",
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: isDark
-        ? "rgba(255,255,255,0.18)"
-        : "rgba(17,24,39,0.16)",
+      borderColor: border.modalPreviewFrame,
     },
     appearancePreview: {
       flex: 1,

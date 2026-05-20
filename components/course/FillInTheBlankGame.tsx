@@ -2,9 +2,9 @@ import React from "react";
 import type { QuizWordOption } from "../../src/course/quizUtils";
 import {
   Keyboard,
+  Pressable,
   StyleSheet,
   TextInput,
-  View,
   type TextInput as TextInputType,
 } from "react-native";
 import { FillInTheBlankGameClozeSentenceCard } from "./FillInTheBlankGameClozeSentenceCard";
@@ -52,12 +52,17 @@ export function FillInTheBlankGame({
   const keyboardRefocusTimeoutRef = React.useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
+  const manualKeyboardReopenTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
   const canRefocusKeyboardRef = React.useRef(!showResult);
+  const isInputMountedRef = React.useRef(true);
   const suppressedKeyboardHideCountRef = React.useRef(0);
   const questionKeyRef = React.useRef(`${clozeSentence}\u0000${correctAnswer}`);
   const lastToastAtRef = React.useRef(0);
   const targetLanguage = getLearningLanguageForCourse(courseId) ?? "en";
   const [draftAnswer, setDraftAnswer] = React.useState("");
+  const [isInputMounted, setIsInputMounted] = React.useState(true);
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
   const submittedAnswer = userAnswer || draftAnswer;
   const isCorrect = isFillInBlankAnswerCorrect({
@@ -75,6 +80,13 @@ export function FillInTheBlankGame({
     if (keyboardRefocusTimeoutRef.current) {
       clearTimeout(keyboardRefocusTimeoutRef.current);
       keyboardRefocusTimeoutRef.current = null;
+    }
+  }, []);
+
+  const clearManualKeyboardReopenTimeout = React.useCallback(() => {
+    if (manualKeyboardReopenTimeoutRef.current) {
+      clearTimeout(manualKeyboardReopenTimeoutRef.current);
+      manualKeyboardReopenTimeoutRef.current = null;
     }
   }, []);
 
@@ -110,16 +122,18 @@ export function FillInTheBlankGame({
     }
   }, [showKeyboardLanguageToast, targetLanguage]);
 
-  const reopenKeyboardFromBlankPress = React.useCallback(() => {
+  const reopenKeyboardFromExamplePress = React.useCallback(() => {
     if (showResult) return;
 
     clearKeyboardRefocusTimeout();
+    clearManualKeyboardReopenTimeout();
+    isInputMountedRef.current = true;
+    setIsInputMounted(true);
     canRefocusKeyboardRef.current = true;
     inputRef.current?.blur();
 
-    keyboardRefocusTimeoutRef.current = setTimeout(() => {
-      keyboardRefocusTimeoutRef.current = null;
-      if (!canRefocusKeyboardRef.current) return;
+    manualKeyboardReopenTimeoutRef.current = setTimeout(() => {
+      manualKeyboardReopenTimeoutRef.current = null;
       focusInput();
       void preferKeyboardLanguage(targetLanguage);
       void checkKeyboardLanguage();
@@ -127,6 +141,7 @@ export function FillInTheBlankGame({
   }, [
     checkKeyboardLanguage,
     clearKeyboardRefocusTimeout,
+    clearManualKeyboardReopenTimeout,
     focusInput,
     showResult,
     targetLanguage,
@@ -137,24 +152,34 @@ export function FillInTheBlankGame({
     if (questionKeyRef.current !== nextQuestionKey) {
       questionKeyRef.current = nextQuestionKey;
       suppressedKeyboardHideCountRef.current = 0;
+      isInputMountedRef.current = true;
+      setIsInputMounted(true);
     }
     setDraftAnswer("");
   }, [clozeSentence, correctAnswer]);
 
   React.useEffect(() => {
-    canRefocusKeyboardRef.current = !showResult;
+    isInputMountedRef.current = isInputMounted;
+    canRefocusKeyboardRef.current = !showResult && isInputMounted;
     if (showResult) {
       clearKeyboardRefocusTimeout();
+      clearManualKeyboardReopenTimeout();
     }
-  }, [clearKeyboardRefocusTimeout, showResult]);
+  }, [
+    clearKeyboardRefocusTimeout,
+    clearManualKeyboardReopenTimeout,
+    isInputMounted,
+    showResult,
+  ]);
 
   React.useEffect(() => {
     clearKeyboardRefocusTimeout();
   }, [clearKeyboardRefocusTimeout, clozeSentence, correctAnswer]);
 
   React.useEffect(() => {
-    if (showResult) return;
+    if (showResult || !isInputMounted) return;
     const focusTimeout = setTimeout(() => {
+      if (!isInputMountedRef.current) return;
       focusInput();
       void preferKeyboardLanguage(targetLanguage);
       void checkKeyboardLanguage();
@@ -166,6 +191,7 @@ export function FillInTheBlankGame({
     clozeSentence,
     correctAnswer,
     focusInput,
+    isInputMounted,
     showResult,
     targetLanguage,
   ]);
@@ -177,10 +203,12 @@ export function FillInTheBlankGame({
         suppressedKeyboardHideCountRef.current -= 1;
         return;
       }
+      if (!isInputMountedRef.current) return;
       if (!canRefocusKeyboardRef.current) return;
 
       keyboardRefocusTimeoutRef.current = setTimeout(() => {
         keyboardRefocusTimeoutRef.current = null;
+        if (!isInputMountedRef.current) return;
         if (!canRefocusKeyboardRef.current) return;
         focusInput();
         void preferKeyboardLanguage(targetLanguage);
@@ -203,11 +231,12 @@ export function FillInTheBlankGame({
     () => () => {
       canRefocusKeyboardRef.current = false;
       clearKeyboardRefocusTimeout();
+      clearManualKeyboardReopenTimeout();
       if (toastTimeoutRef.current) {
         clearTimeout(toastTimeoutRef.current);
       }
     },
-    [clearKeyboardRefocusTimeout],
+    [clearKeyboardRefocusTimeout, clearManualKeyboardReopenTimeout],
   );
 
   const handleSubmit = React.useCallback(() => {
@@ -216,12 +245,41 @@ export function FillInTheBlankGame({
     canRefocusKeyboardRef.current = false;
     suppressedKeyboardHideCountRef.current += 1;
     clearKeyboardRefocusTimeout();
+    clearManualKeyboardReopenTimeout();
     onAnswer(trimmedAnswer);
     Keyboard.dismiss();
-  }, [clearKeyboardRefocusTimeout, draftAnswer, onAnswer, showResult]);
+  }, [
+    clearKeyboardRefocusTimeout,
+    clearManualKeyboardReopenTimeout,
+    draftAnswer,
+    onAnswer,
+    showResult,
+  ]);
+
+  const dismissKeyboardFromOutsidePress = React.useCallback(() => {
+    if (showResult) return;
+
+    clearKeyboardRefocusTimeout();
+    clearManualKeyboardReopenTimeout();
+    canRefocusKeyboardRef.current = false;
+    suppressedKeyboardHideCountRef.current += 1;
+    inputRef.current?.blur();
+    Keyboard.dismiss();
+    isInputMountedRef.current = false;
+    setIsInputMounted(false);
+  }, [
+    clearKeyboardRefocusTimeout,
+    clearManualKeyboardReopenTimeout,
+    showResult,
+  ]);
 
   return (
-    <View style={styles.container}>
+    <Pressable
+      testID="fill-in-blank-dismiss-area"
+      accessible={false}
+      style={styles.container}
+      onPress={dismissKeyboardFromOutsidePress}
+    >
       <AppToast
         message={toastMessage}
         floating
@@ -235,36 +293,39 @@ export function FillInTheBlankGame({
         showResult={showResult}
         isCorrect={isCorrect}
         correctForms={correctForms}
-        onBlankPress={reopenKeyboardFromBlankPress}
+        onCardPress={reopenKeyboardFromExamplePress}
+        onBlankPress={reopenKeyboardFromExamplePress}
       />
 
-      <TextInput
-        ref={inputRef}
-        testID="fill-in-blank-input"
-        value={draftAnswer}
-        onChangeText={(nextAnswer) => {
-          if (showResult) return;
-          setDraftAnswer(nextAnswer);
-          void checkKeyboardLanguage();
-        }}
-        onFocus={() => {
-          void preferKeyboardLanguage(targetLanguage);
-          void checkKeyboardLanguage();
-        }}
-        onSubmitEditing={handleSubmit}
-        autoFocus
-        autoCapitalize="none"
-        autoCorrect={false}
-        editable
-        submitBehavior="submit"
-        blurOnSubmit={false}
-        enterKeyHint="done"
-        returnKeyType="done"
-        inputMode="text"
-        keyboardType="default"
-        style={styles.hiddenInput}
-      />
-    </View>
+      {isInputMounted && (
+        <TextInput
+          ref={inputRef}
+          testID="fill-in-blank-input"
+          value={draftAnswer}
+          onChangeText={(nextAnswer) => {
+            if (showResult) return;
+            setDraftAnswer(nextAnswer);
+            void checkKeyboardLanguage();
+          }}
+          onFocus={() => {
+            void preferKeyboardLanguage(targetLanguage);
+            void checkKeyboardLanguage();
+          }}
+          onSubmitEditing={handleSubmit}
+          autoFocus
+          autoCapitalize="none"
+          autoCorrect={false}
+          editable
+          submitBehavior="submit"
+          blurOnSubmit={false}
+          enterKeyHint="done"
+          returnKeyType="done"
+          inputMode="text"
+          keyboardType="default"
+          style={styles.hiddenInput}
+        />
+      )}
+    </Pressable>
   );
 }
 

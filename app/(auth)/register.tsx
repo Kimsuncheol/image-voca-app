@@ -23,6 +23,7 @@ import {
   View,
 } from "react-native";
 import { getBackgroundColors } from "../../constants/backgroundColors";
+import { getBorderColors } from "../../constants/borderColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext";
 import { useLearningLanguage } from "../../src/context/LearningLanguageContext";
@@ -644,6 +645,7 @@ export default function RegisterScreen() {
  * @returns StyleSheet object with all component styles
  */
 const getStyles = (isDark: boolean) => {
+  const borderColors = getBorderColors(isDark);
   const fontColors = getFontColors(isDark);
   const bg = getBackgroundColors(isDark);
 
@@ -703,7 +705,7 @@ const getStyles = (isDark: boolean) => {
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
-      borderColor: fontColors.inputBorder,
+      borderColor: borderColors.inputBorder,
       borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 14,
@@ -713,13 +715,13 @@ const getStyles = (isDark: boolean) => {
 
     /** Input error state - Red border for invalid input */
     inputError: {
-      borderColor: fontColors.inputBorderError,
+      borderColor: borderColors.inputBorderError,
       backgroundColor: bg.accentRedSoft,
     },
 
     /** Input success state - Green border for valid input */
     inputSuccess: {
-      borderColor: fontColors.inputBorderSuccess,
+      borderColor: borderColors.inputBorderSuccess,
       backgroundColor: bg.successSoft,
     },
 
@@ -851,7 +853,7 @@ const getStyles = (isDark: boolean) => {
       borderRadius: 50,
       backgroundColor: bg.cardElevated,
       borderWidth: 2,
-      borderColor: fontColors.inputBorder,
+      borderColor: borderColors.inputBorder,
       borderStyle: "dashed", // Dashed border indicates clickable area
       justifyContent: "center",
       alignItems: "center",
@@ -873,7 +875,7 @@ const getStyles = (isDark: boolean) => {
       alignItems: "center",
       backgroundColor: bg.dangerSoft,
       borderWidth: 1,
-      borderColor: fontColors.inputBorderErrorSoft,
+      borderColor: borderColors.inputBorderErrorSoft,
       borderRadius: 12,
       padding: 12,
       marginBottom: 16,
@@ -910,7 +912,7 @@ const getStyles = (isDark: boolean) => {
       paddingHorizontal: 16,
       borderRadius: 12,
       borderWidth: 2,
-      borderColor: fontColors.inputBorder,
+      borderColor: borderColors.inputBorder,
       backgroundColor: bg.cardElevated,
       alignItems: "center",
       marginBottom: 16,

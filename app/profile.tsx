@@ -29,6 +29,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AccountActionsSection } from "../components/profile/AccountActionsSection";
 import { AccountInfoSection } from "../components/profile/AccountInfoSection";
 import { getBackgroundColors } from "../constants/backgroundColors";
+import { getBorderColors } from "../constants/borderColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import { auth, storage } from "../src/services/firebase";
@@ -272,6 +273,7 @@ export default function ProfileScreen() {
 }
 
 const getStyles = (isDark: boolean) => {
+  const borderColors = getBorderColors(isDark);
   const fontColors = getFontColors(isDark);
   const bg = getBackgroundColors(isDark);
 
@@ -305,7 +307,7 @@ const getStyles = (isDark: boolean) => {
       height: 100,
       borderRadius: 50,
       borderWidth: 4,
-      borderColor: fontColors.avatarBorder,
+      borderColor: borderColors.avatarBorder,
     },
     editIconContainer: {
       position: "absolute",
@@ -315,7 +317,7 @@ const getStyles = (isDark: boolean) => {
       padding: 8,
       borderRadius: 20,
       borderWidth: 3,
-      borderColor: fontColors.surfaceBorder,
+      borderColor: borderColors.surfaceBorder,
     },
     displayNameText: {
       fontSize: FontSizes.heading,

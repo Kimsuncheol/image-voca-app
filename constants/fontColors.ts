@@ -58,16 +58,6 @@ export type FontColorRole =
   | "iconGreenSuccess"
   | "iconError"
   | "mutedLabel"
-  | "inputBorder"
-  | "inputBorderError"
-  | "inputBorderSuccess"
-  | "inputBorderErrorSoft"
-  | "cardBorder"
-  | "successBorder"
-  | "successBorderAlt"
-  | "errorBannerBorder"
-  | "avatarBorder"
-  | "surfaceBorder"
   | "dayBadge"
   | "learningCardPrimary"
   | "learningCardSecondary"
@@ -77,6 +67,11 @@ export type FontColorRole =
   | "learningCardDividerMuted"
   | "learningCardChipText"
   | "learningCardActionText"
+  | "fillBlankSentence"
+  | "fillBlankIdle"
+  | "fillBlankActive"
+  | "fillBlankCorrect"
+  | "fillBlankIncorrect"
   | "popQuizMeaning";
 
 export type FontColorTokens = Record<FontColorRole, string>;
@@ -140,16 +135,6 @@ export const FontColors: Record<FontColorScheme, FontColorTokens> = {
     iconGreenSuccess: "#166534",
     iconError: "#D93025",
     mutedLabel: "#666",
-    inputBorder: "#E0E0E0",
-    inputBorderError: "#DC3545",
-    inputBorderSuccess: "#28A745",
-    inputBorderErrorSoft: "#FCC",
-    cardBorder: "#e2e8f0",
-    successBorder: "#bbf7d0",
-    successBorderAlt: "#9CD7AC",
-    errorBannerBorder: "#F5B5B5",
-    avatarBorder: "#FFF",
-    surfaceBorder: "#FFF",
     dayBadge: "#000",
     learningCardPrimary: "#111827",
     learningCardSecondary: "#374151",
@@ -159,6 +144,11 @@ export const FontColors: Record<FontColorScheme, FontColorTokens> = {
     learningCardDividerMuted: "rgba(17,24,39,0.12)",
     learningCardChipText: "#2563EB",
     learningCardActionText: "#007AFF",
+    fillBlankSentence: "#000",
+    fillBlankIdle: "#999",
+    fillBlankActive: "#007AFF",
+    fillBlankCorrect: "#28a745",
+    fillBlankIncorrect: "#dc3545",
     popQuizMeaning: "#1f2937",
   },
   dark: {
@@ -219,16 +209,6 @@ export const FontColors: Record<FontColorScheme, FontColorTokens> = {
     iconGreenSuccess: "#a7f3d0",
     iconError: "#FF8A8A",
     mutedLabel: "#888",
-    inputBorder: "#333",
-    inputBorderError: "#5C2B2E",
-    inputBorderSuccess: "#1E4620",
-    inputBorderErrorSoft: "#5C2B2E",
-    cardBorder: "#1f2937",
-    successBorder: "#064e3b",
-    successBorderAlt: "#1F6A2F",
-    errorBannerBorder: "#5C1F1F",
-    avatarBorder: "#333",
-    surfaceBorder: "#1C1C1E",
     dayBadge: "#fff",
     learningCardPrimary: "#FfFfFf",
     learningCardSecondary: "#D8D8D8",
@@ -238,6 +218,11 @@ export const FontColors: Record<FontColorScheme, FontColorTokens> = {
     learningCardDividerMuted: "rgba(255,255,255,0.24)",
     learningCardChipText: "#9B9BA1",
     learningCardActionText: "#0A84FF",
+    fillBlankSentence: "#fff",
+    fillBlankIdle: "#666",
+    fillBlankActive: "#007AFF",
+    fillBlankCorrect: "#28a745",
+    fillBlankIncorrect: "#dc3545",
     popQuizMeaning: "#c7c7cc",
   },
 };

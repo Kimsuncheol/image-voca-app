@@ -1,3 +1,4 @@
+import { BorderColors } from "@/constants/borderColors";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useEffect } from "react";
 import {
@@ -194,6 +195,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1.5,
-    borderColor: "#fff",
+    borderColor: BorderColors.light.white,
   },
 });

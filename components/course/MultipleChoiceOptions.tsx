@@ -1,8 +1,9 @@
+import { BorderColors } from "@/constants/borderColors";
+import { FontSizes } from "@/constants/fontSizes";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
-import { FontSizes } from "@/constants/fontSizes";
 
 interface MultipleChoiceOptionsProps {
   options: string[];
@@ -32,14 +33,14 @@ export function MultipleChoiceOptions({
             showResult &&
               option === correctAnswer && {
                 backgroundColor: "#28a74520",
-                borderColor: "#28a745",
+                borderColor: BorderColors.light.success,
                 borderWidth: 2,
               },
             showResult &&
               option !== correctAnswer &&
               userAnswer === option && {
                 backgroundColor: "#dc354520",
-                borderColor: "#dc3545",
+                borderColor: BorderColors.light.danger,
                 borderWidth: 2,
               },
           ]}
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "transparent",
+    borderColor: BorderColors.light.quizOptionIdle,
   },
   optionText: {
     fontSize: FontSizes.title,

@@ -13,6 +13,7 @@ import {
   PrimaryButton,
 } from "./components";
 import { getBackgroundColors } from "../../constants/backgroundColors";
+import { getBorderColors } from "../../constants/borderColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext";
 import { useTheme } from "../../src/context/ThemeContext";
@@ -201,6 +202,7 @@ export default function VerifyEmailScreen() {
 }
 
 const getStyles = (isDark: boolean) => {
+  const borderColors = getBorderColors(isDark);
   const fontColors = getFontColors(isDark);
   const bg = getBackgroundColors(isDark);
 
@@ -250,7 +252,7 @@ const getStyles = (isDark: boolean) => {
       borderRadius: 20,
       backgroundColor: bg.heroCard,
       borderWidth: 1,
-      borderColor: fontColors.cardBorder,
+      borderColor: borderColors.cardBorder,
       marginBottom: 24,
     },
     emailLabel: {
@@ -276,7 +278,7 @@ const getStyles = (isDark: boolean) => {
       alignItems: "center",
       borderRadius: 16,
       borderWidth: 1,
-      borderColor: fontColors.successBorder,
+      borderColor: borderColors.successBorder,
       backgroundColor: bg.accentGreenSoft,
       paddingHorizontal: 16,
       paddingVertical: 14,

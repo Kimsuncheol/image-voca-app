@@ -1,3 +1,4 @@
+import { BorderColors } from "@/constants/borderColors";
 import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, Easing, Pressable, StyleSheet } from "react-native";
 
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 4,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(255,255,255,0.55)",
+    borderColor: BorderColors.light.toggleThumb,
   },
   disabled: {
     opacity: 0.5,

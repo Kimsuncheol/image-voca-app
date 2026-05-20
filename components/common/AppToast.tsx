@@ -10,6 +10,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { getBackgroundColors } from "../../constants/backgroundColors";
+import { getBorderColors } from "../../constants/borderColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useTheme } from "../../src/context/ThemeContext";
 
@@ -129,6 +130,7 @@ export const AppToast: React.FC<AppToastProps> = ({
 
 const getStyles = (isDark: boolean) => {
   const bg = getBackgroundColors(isDark);
+  const borderColors = getBorderColors(isDark);
   const fontColors = getFontColors(isDark);
 
   return StyleSheet.create({
@@ -143,11 +145,11 @@ const getStyles = (isDark: boolean) => {
     },
     errorToast: {
       backgroundColor: bg.accentRedDeep,
-      borderColor: fontColors.errorBannerBorder,
+      borderColor: borderColors.errorBannerBorder,
     },
     successToast: {
       backgroundColor: bg.accentGreenDeep,
-      borderColor: fontColors.successBorderAlt,
+      borderColor: borderColors.successBorderAlt,
     },
     floatingToast: {
       position: "absolute",

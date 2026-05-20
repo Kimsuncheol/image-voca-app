@@ -1,3 +1,5 @@
+import { getBorderColors } from "@/constants/borderColors";
+import { FontSizes } from "@/constants/fontSizes";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -5,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import { ThemedText } from "../themed-text";
-import { FontSizes } from "@/constants/fontSizes";
 
 interface DashboardHeaderProps {
   userName?: string;
@@ -53,8 +54,10 @@ export function DashboardHeader({ userName, userPhoto }: DashboardHeaderProps) {
   );
 }
 
-const getStyles = (isDark: boolean) =>
-  StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+  const borderColors = getBorderColors(isDark);
+
+  return StyleSheet.create({
     header: {
       marginBottom: 24,
       flexDirection: "row",
@@ -79,7 +82,7 @@ const getStyles = (isDark: boolean) =>
       height: 52,
       borderRadius: 26,
       borderWidth: 2,
-      borderColor: isDark ? "#333" : "#fff",
+      borderColor: borderColors.dashboardAvatar,
     },
     avatarPlaceholder: {
       width: 52,
@@ -87,8 +90,9 @@ const getStyles = (isDark: boolean) =>
       borderRadius: 26,
       backgroundColor: isDark ? "#1c1c1e" : "#f0f0f0",
       borderWidth: 2,
-      borderColor: isDark ? "#333" : "#fff",
+      borderColor: borderColors.dashboardAvatar,
       justifyContent: "center",
       alignItems: "center",
     },
   });
+};

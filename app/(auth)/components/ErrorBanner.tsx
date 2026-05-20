@@ -16,6 +16,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
+import { getBorderColors } from "../../../constants/borderColors";
 import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { FontSizes } from "@/constants/fontSizes";
@@ -75,6 +76,7 @@ export const ErrorBanner: React.FC<ErrorBannerProps> = ({
 // STYLES
 // =============================================================================
 const getStyles = (isDark: boolean) => {
+  const borderColors = getBorderColors(isDark);
   const fontColors = getFontColors(isDark);
   const bg = getBackgroundColors(isDark);
 
@@ -88,7 +90,7 @@ const getStyles = (isDark: boolean) => {
       borderRadius: 12,
       borderWidth: 1,
       backgroundColor: bg.accentRedDeep,
-      borderColor: fontColors.errorBannerBorder,
+      borderColor: borderColors.errorBannerBorder,
     },
     errorIcon: {
       marginRight: 10,

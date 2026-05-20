@@ -1,3 +1,4 @@
+import { BorderColors } from "@/constants/borderColors";
 import React from "react";
 import { Animated, StyleSheet, View } from "react-native";
 
@@ -130,7 +131,9 @@ export function QuizResultAnimation({
           style={[
             styles.glow,
             {
-              borderColor: isCorrect ? "#28a745" : "#dc3545",
+              borderColor: isCorrect
+                ? BorderColors.light.success
+                : BorderColors.light.danger,
               backgroundColor: isCorrect ? "#28a74512" : "#dc354512",
               opacity: glowOpacity,
             },

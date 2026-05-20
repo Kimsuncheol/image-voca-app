@@ -1,3 +1,4 @@
+import { getBorderColors } from "@/constants/borderColors";
 import { FontSizes } from "@/constants/fontSizes";
 import React from "react";
 import {
@@ -36,6 +37,7 @@ export function FilterChips({
   style,
 }: FilterChipsProps) {
   const { isDark } = useTheme();
+  const borderColors = getBorderColors(isDark);
 
   return (
     <View style={[styles.container, style]}>
@@ -67,8 +69,10 @@ export function FilterChips({
               style={[
                 styles.chip,
                 { backgroundColor: bg },
-                !isSelected && isDark && styles.chipBorderDark,
-                !isSelected && !isDark && styles.chipBorderLight,
+                !isSelected && [
+                  styles.chipBorder,
+                  { borderColor: borderColors.filterChip },
+                ],
               ]}
               onPress={() => onSelect(option.id)}
               activeOpacity={0.7}
@@ -105,13 +109,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  chipBorderDark: {
+  chipBorder: {
     borderWidth: 1,
-    borderColor: "#333",
-  },
-  chipBorderLight: {
-    borderWidth: 1,
-    borderColor: "#e5e5e5",
   },
   label: {
     fontSize: FontSizes.body,

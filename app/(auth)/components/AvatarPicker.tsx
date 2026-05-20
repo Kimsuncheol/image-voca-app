@@ -16,6 +16,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
+import { getBorderColors } from "../../../constants/borderColors";
 import { getFontColors } from "../../../constants/fontColors";
 import { FontSizes } from "@/constants/fontSizes";
 
@@ -67,6 +68,7 @@ export const AvatarPicker: React.FC<AvatarPickerProps> = ({
 // STYLES
 // =============================================================================
 const getStyles = (isDark: boolean) => {
+  const borderColors = getBorderColors(isDark);
   const fontColors = getFontColors(isDark);
   const bg = getBackgroundColors(isDark);
 
@@ -91,7 +93,7 @@ const getStyles = (isDark: boolean) => {
       borderRadius: 50,
       backgroundColor: bg.cardElevated,
       borderWidth: 2,
-      borderColor: fontColors.inputBorder,
+      borderColor: borderColors.inputBorder,
       borderStyle: "dashed",
       justifyContent: "center",
       alignItems: "center",

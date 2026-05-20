@@ -1,3 +1,4 @@
+import { BorderColors, getBorderColors } from "@/constants/borderColors";
 import { FontSizes } from "@/constants/fontSizes";
 import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
@@ -57,6 +58,7 @@ export function WordsPlacementGame({
 }: WordsPlacementGameProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
+  const borderColors = getBorderColors(isDark);
   const [selectedChunks, setSelectedChunks] = React.useState<
     WordPlacementChunk[]
   >([]);
@@ -141,7 +143,9 @@ export function WordsPlacementGame({
         style={[
           styles.buildCard,
           {
-            borderColor: isWrong ? "#dc3545" : isDark ? "#333" : "#d8d8d8",
+            borderColor: isWrong
+              ? borderColors.danger
+              : borderColors.quizPlacementBuild,
           },
           isCorrect && showResult ? styles.correctBuildCard : undefined,
           { transform: [{ translateX: shakeX }] },
@@ -295,7 +299,7 @@ const styles = StyleSheet.create({
     minHeight: 42,
   },
   correctBuildCard: {
-    borderColor: "#28a745",
+    borderColor: BorderColors.light.success,
   },
   placeholderText: {
     fontSize: FontSizes.body,
@@ -312,10 +316,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "rgba(128,128,128,0.24)",
+    borderColor: BorderColors.light.quizPlacementChip,
   },
   selectedChip: {
-    borderColor: "#7C9CFF",
+    borderColor: BorderColors.light.quizPlacementSelectedChip,
   },
   chipText: {
     fontSize: FontSizes.body,

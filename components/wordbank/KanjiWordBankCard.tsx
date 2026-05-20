@@ -4,6 +4,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getBackgroundColors } from "../../constants/backgroundColors";
+import { BorderColors, getBorderColors } from "../../constants/borderColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useCardSpeechCleanup } from "../../src/hooks/useCardSpeechCleanup";
 import { useJapaneseContentLanguage } from "../../src/hooks/useJapaneseContentLanguage";
@@ -45,6 +46,7 @@ export function KanjiWordBankCard({
   const language = useJapaneseContentLanguage(word.course, i18n.language);
   const useKorean = language === "ko";
   const bgColors = getBackgroundColors(isDark);
+  const borderColors = getBorderColors(isDark);
   const fontColors = getFontColors(isDark);
   const maskStyle = getWordBankReviewTapeTextStyle(isDark);
   const maskWord = shouldMaskReviewContent(
@@ -242,7 +244,7 @@ export function KanjiWordBankCard({
                 showFurigana
                   ? { backgroundColor: bgColors.learningCardKanaActive }
                   : {
-                      borderColor: fontColors.learningCardDividerMuted,
+                      borderColor: borderColors.learningCardDividerMuted,
                       borderWidth: 1,
                     },
               ]}
@@ -285,7 +287,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 12,
     borderWidth: 1.5,
-    borderColor: "transparent",
+    borderColor: BorderColors.light.transparent,
     gap: 12,
   },
   headerRow: {

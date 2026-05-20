@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getBackgroundColors } from "../constants/backgroundColors";
+import { getBorderColors } from "../constants/borderColors";
 import { getFontColors } from "../constants/fontColors";
 import { useTheme } from "../src/context/ThemeContext";
 import { deleteCurrentUserAccount } from "../src/services/accountDeletionService";
@@ -114,6 +115,7 @@ export default function DeleteAccountConfirmPasswordScreen() {
 
 const getStyles = (isDark: boolean) => {
   const bg = getBackgroundColors(isDark);
+  const borderColors = getBorderColors(isDark);
   const fontColors = getFontColors(isDark);
 
   return StyleSheet.create({
@@ -162,7 +164,7 @@ const getStyles = (isDark: boolean) => {
     input: {
       backgroundColor: bg.card,
       borderWidth: 1,
-      borderColor: fontColors.inputBorder,
+      borderColor: borderColors.inputBorder,
       borderRadius: 12,
       color: fontColors.screenTitle,
       fontSize: FontSizes.bodyLg,

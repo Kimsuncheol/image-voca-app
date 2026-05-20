@@ -1,4 +1,5 @@
 import { getBackgroundColors } from "@/constants/backgroundColors";
+import { getBorderColors } from "@/constants/borderColors";
 import { getFontColors } from "@/constants/fontColors";
 import { FontSizes } from "@/constants/fontSizes";
 import { FontWeights } from "@/constants/fontWeights";
@@ -251,6 +252,7 @@ export function LanguageSelectionModal({
 
 const getStyles = (isDark: boolean) => {
   const bg = getBackgroundColors(isDark);
+  const border = getBorderColors(isDark);
   const font = getFontColors(isDark);
 
   return StyleSheet.create({
@@ -271,9 +273,7 @@ const getStyles = (isDark: boolean) => {
       padding: 12,
       gap: 10,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: isDark
-        ? "rgba(255,255,255,0.16)"
-        : "rgba(17,24,39,0.08)",
+      borderColor: border.modalPanel,
     },
     title: {
       color: font.screenTitle,
@@ -291,17 +291,13 @@ const getStyles = (isDark: boolean) => {
       padding: 12,
     },
     featuredOptionSelected: {
-      borderColor: isDark
-        ? "rgba(255,149,0,0.45)"
-        : "rgba(255,149,0,0.35)",
+      borderColor: border.modalFeaturedSelected,
       backgroundColor: isDark
         ? "rgba(255,149,0,0.12)"
         : "rgba(255,149,0,0.1)",
     },
     featuredOptionUnselected: {
-      borderColor: isDark
-        ? "rgba(255,255,255,0.12)"
-        : "rgba(17,24,39,0.08)",
+      borderColor: border.modalFeaturedUnselected,
       backgroundColor: "transparent",
     },
     featuredTextBlock: {

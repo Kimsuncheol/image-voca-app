@@ -3,6 +3,7 @@ import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getBackgroundColors } from "../../../constants/backgroundColors";
+import { getBorderColors } from "../../../constants/borderColors";
 import { getFontColors } from "../../../constants/fontColors";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { LinkButton } from "./LinkButton";
@@ -70,6 +71,7 @@ export const LoginPasswordStep: React.FC<LoginPasswordStepProps> = ({
 
 const getStyles = (isDark: boolean) => {
   const bg = getBackgroundColors(isDark);
+  const borderColors = getBorderColors(isDark);
   const fontColors = getFontColors(isDark);
 
   return StyleSheet.create({
@@ -86,7 +88,7 @@ const getStyles = (isDark: boolean) => {
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,
-      borderColor: fontColors.inputBorder,
+      borderColor: borderColors.inputBorder,
       borderRadius: 12,
       paddingHorizontal: 18,
       minHeight: 52,

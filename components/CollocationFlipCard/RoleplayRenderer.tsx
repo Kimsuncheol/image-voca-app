@@ -1,3 +1,4 @@
+import { BorderColors } from "@/constants/borderColors";
 import { FontWeights } from "@/constants/fontWeights";
 import React, { useMemo } from "react";
 import { StyleSheet, Text } from "react-native";
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
   },
   textDark: {
     color: "#FFFFFF",
-    borderColor: "#FFFFFF",
+    borderColor: BorderColors.light.collocationFace,
   },
   exampleText: {
     fontStyle: "italic",

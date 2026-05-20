@@ -1,3 +1,4 @@
+import { BorderColors, getBorderColors } from "@/constants/borderColors";
 import { FontWeights } from "@/constants/fontWeights";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -34,6 +35,7 @@ export function MatchingCard({
   courseColor,
   isDark,
 }: MatchingCardProps) {
+  const borderColors = getBorderColors(isDark);
   const wordFontSize = React.useMemo(
     () => getIdiomTitleFontSize(text, courseId, 16),
     [courseId, text],
@@ -55,7 +57,7 @@ export function MatchingCard({
         isMatched && styles.matchingItemMatched,
         isSelected && styles.matchingItemSelected,
         isSelected && {
-          borderColor: courseColor || "#007AFF",
+          borderColor: courseColor || borderColors.accent,
           backgroundColor: (courseColor || "#007AFF") + "10",
         },
         isIncorrect && styles.matchingItemIncorrect,
@@ -167,7 +169,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: "transparent",
+    borderColor: BorderColors.light.transparent,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -182,13 +184,13 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   matchingItemMatched: {
-    borderColor: "#28a745",
+    borderColor: BorderColors.light.success,
     backgroundColor: "transparent",
     shadowOpacity: 0,
     elevation: 0,
   },
   matchingItemIncorrect: {
-    borderColor: "#dc3545",
+    borderColor: BorderColors.light.danger,
     backgroundColor: "#dc354520",
     borderWidth: 2,
     shadowOpacity: 0,

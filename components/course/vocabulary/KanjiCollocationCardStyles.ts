@@ -1,3 +1,4 @@
+import { BorderColors } from "@/constants/borderColors";
 import { FontSizes } from "@/constants/fontSizes";
 import { FontWeights } from "@/constants/fontWeights";
 import { LineHeights } from "@/constants/lineHeights";
@@ -21,7 +22,7 @@ export const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 0,
     borderWidth: 0,
-    borderColor: "#FFFFFF",
+    borderColor: BorderColors.light.collocationFace,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
@@ -121,7 +122,7 @@ export const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 0,
     borderWidth: 0,
-    borderColor: "#FFFFFF",
+    borderColor: BorderColors.light.collocationFace,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
@@ -182,7 +183,7 @@ export const styles = StyleSheet.create({
     height: 2,
     borderWidth: 1,
     borderStyle: "dashed",
-    borderColor: "rgba(17,24,39,0.12)",
+    borderColor: BorderColors.light.learningCardDividerMuted,
   },
   backGroup: {
     gap: 6,

@@ -59,7 +59,11 @@ export type BgColorRole =
   | "learningCardSelected"
   | "learningCardDelete"
   | "learningCardExpandButton"
-  | "learningCardKanaActive";
+  | "learningCardKanaActive"
+  | "fillBlankCard"
+  | "fillBlankIdle"
+  | "fillBlankCorrectSoft"
+  | "fillBlankIncorrectSoft";
 
 export type BgColorTokens = Record<BgColorRole, string>;
 
@@ -124,6 +128,10 @@ export const BackgroundColors: Record<BgColorScheme, BgColorTokens> = {
     learningCardDelete: "#F8FAFC",
     learningCardExpandButton: "#F5F7FA",
     learningCardKanaActive: "#2EA043",
+    fillBlankCard: "#f5f5f5",
+    fillBlankIdle: "#e8e8e8",
+    fillBlankCorrectSoft: "#28a74520",
+    fillBlankIncorrectSoft: "#dc354520",
   },
   dark: {
     bgImageColor: "#ffffff",
@@ -185,6 +193,10 @@ export const BackgroundColors: Record<BgColorScheme, BgColorTokens> = {
     learningCardDelete: "#050505",
     learningCardExpandButton: "rgba(255,255,255,0.08)",
     learningCardKanaActive: "#2EA043",
+    fillBlankCard: "#1c1c1e",
+    fillBlankIdle: "#2c2c2e",
+    fillBlankCorrectSoft: "#28a74520",
+    fillBlankIncorrectSoft: "#dc354520",
   },
 };
 

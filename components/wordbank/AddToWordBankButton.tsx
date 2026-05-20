@@ -4,6 +4,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, StyleSheet, TouchableOpacity } from "react-native";
 import { getBackgroundColors } from "../../constants/backgroundColors";
+import { BorderColors, getBorderColors } from "../../constants/borderColors";
 import { getFontColors } from "../../constants/fontColors";
 import { useAuth } from "../../src/context/AuthContext";
 import { db } from "../../src/services/firebase";
@@ -42,6 +43,7 @@ export function AddToWordBankButton({
   const [isAdded, setIsAdded] = React.useState(initialIsSaved);
   const { t } = useTranslation();
   const bgColors = getBackgroundColors(isDark);
+  const borderColors = getBorderColors(isDark);
   const fontColors = getFontColors(isDark);
 
   React.useEffect(() => {
@@ -160,7 +162,7 @@ export function AddToWordBankButton({
             ? styles.starButtonAdded
             : {
                 backgroundColor: bgColors.learningCardChip,
-                borderColor: fontColors.learningCardDivider,
+                borderColor: borderColors.learningCardDivider,
               },
           isAdding && styles.buttonDisabled,
       ]}
@@ -190,7 +192,7 @@ const styles = StyleSheet.create({
   },
   starButtonAdded: {
     backgroundColor: "#F4C542",
-    borderColor: "#F4C542",
+    borderColor: BorderColors.light.warning,
   },
   bookmarkButton: {
     width: 40,
