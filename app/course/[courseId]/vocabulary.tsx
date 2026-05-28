@@ -29,7 +29,10 @@ import { getBackgroundColors } from "../../../constants/backgroundColors";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useTheme } from "../../../src/context/ThemeContext";
 import { useSpeechPreferences } from "../../../src/hooks/useSpeechPreferences";
-import { useJapaneseContentLanguage } from "../../../src/hooks/useJapaneseContentLanguage";
+import {
+  isJapaneseVocabularyCourse,
+  useJapaneseContentLanguage,
+} from "../../../src/hooks/useJapaneseContentLanguage";
 import { upsertVocabularyDayStudyHistory } from "../../../src/services/dailyStudyHistory";
 import { db } from "../../../src/services/firebase";
 import {
@@ -120,6 +123,7 @@ function VocabularyScreenContent() {
     typedCourseId,
     currentLanguage,
   );
+  const showLanguageHeaderButton = isJapaneseVocabularyCourse(typedCourseId);
   const { handleSpeech } = useStudySpeech();
   const { vocabularyPreferences, isLoading: speechPreferencesLoading } =
     useSpeechPreferences();
@@ -874,11 +878,9 @@ function VocabularyScreenContent() {
                   style={styles.headerRight}
                 >
                   <DayBadge day={dayNumber} />
-                  <LanguageHeaderButton
-                    showJapaneseKoreanOption={
-                      courseId === "KANJI" || isJlptLevelCourseId(courseId)
-                    }
-                  />
+                  {showLanguageHeaderButton ? (
+                    <LanguageHeaderButton showJapaneseKoreanOption />
+                  ) : null}
                   <EyeComfortHeaderButton />
                 </View>
               )

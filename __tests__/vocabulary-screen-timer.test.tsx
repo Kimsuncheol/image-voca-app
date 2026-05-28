@@ -393,12 +393,11 @@ describe("VocabularyScreen deck state", () => {
     expect(screen.getByText("Vocabulary Deck")).toBeTruthy();
   });
 
-  it("renders the language button between the day badge and eye comfort button", async () => {
+  it("omits the language button for English vocabulary headers", async () => {
     const screen = render(<VocabularyScreen />);
 
     await waitFor(() => {
       expect(screen.getByTestId("eye-comfort-header-button")).toBeTruthy();
-      expect(screen.getByTestId("language-header-button")).toBeTruthy();
       expect(screen.getByText("Day 1")).toBeTruthy();
     });
 
@@ -409,19 +408,10 @@ describe("VocabularyScreen deck state", () => {
       screen.getByTestId("vocabulary-header-right").props.style,
     );
 
-    expect(headerChildren).toHaveLength(3);
+    expect(screen.queryByTestId("language-header-button")).toBeNull();
+    expect(headerChildren).toHaveLength(2);
     expect(headerStyle.gap).toBe(16);
-    expect(
-      (
-        headerChildren[1] as React.ReactElement<{
-          showJapaneseKoreanOption?: boolean;
-        }>
-      ).props
-        .showJapaneseKoreanOption,
-    ).toBe(false);
-    expect(mockLanguageHeaderButton).toHaveBeenCalledWith({
-      showJapaneseKoreanOption: false,
-    });
+    expect(mockLanguageHeaderButton).not.toHaveBeenCalled();
   });
 
   it("enables the Japanese Korean shortcut for JLPT vocabulary headers", async () => {
