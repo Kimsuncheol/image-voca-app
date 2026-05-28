@@ -30,6 +30,7 @@ interface InlineMeaningWithChipsProps {
   forceInline?: boolean;
   splitPosSegmentsIntoRows?: boolean;
   usePrefixColumnLayout?: boolean;
+  disableColumnIndent?: boolean;
 }
 
 export function InlineMeaningWithChips({
@@ -46,6 +47,7 @@ export function InlineMeaningWithChips({
   forceInline = false,
   splitPosSegmentsIntoRows = false,
   usePrefixColumnLayout = false,
+  disableColumnIndent = false,
 }: InlineMeaningWithChipsProps) {
   const formattedMeaning = React.useMemo(
     () => formatIdiomMeaningForDisplay(meaning, courseId),
@@ -67,6 +69,7 @@ export function InlineMeaningWithChips({
     !usePrefixColumns &&
     !usePrefixColumnLayout &&
     !forceInline &&
+    !disableColumnIndent &&
     (displayLines.length > 1 ||
       (splitPosSegmentsIntoRows && parsedMeaning.hasPartsOfSpeech)) &&
     (!isNumberedMeaningDisplayCourseId(courseId) ||

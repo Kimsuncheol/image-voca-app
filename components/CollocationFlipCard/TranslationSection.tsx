@@ -61,9 +61,10 @@ export default React.memo(function TranslationSection({
       <Collapsible collapsed={!isOpen}>
         <View style={styles.translationSectionContent}>
           <ScrollView
+            testID="collocation-translation-scroll"
             style={[styles.translationScroll, maxHeight ? { maxHeight } : null]}
             contentContainerStyle={styles.translationScrollContent}
-            showsVerticalScrollIndicator
+            showsVerticalScrollIndicator={false}
             nestedScrollEnabled
           >
             <Text

@@ -93,7 +93,7 @@ describe("SwipeCardItem synonyms", () => {
   });
 
   it("renders all example rows without a show-more control or line caps", () => {
-    const { getByText, queryByText, toJSON } = render(
+    const { getByText, getByTestId, queryByText, toJSON } = render(
       <SwipeCardItem
         item={buildCard({
           course: "TOEIC",
@@ -113,6 +113,10 @@ describe("SwipeCardItem synonyms", () => {
     expect(queryByText("Show 1 more")).toBeNull();
     expect(firstExample.props.numberOfLines).toBeUndefined();
     expect(firstTranslation.props.numberOfLines).toBeUndefined();
+    expect(
+      getByTestId("swipe-card-examples-scroll").props
+        .showsVerticalScrollIndicator,
+    ).toBe(false);
     expect(JSON.stringify(toJSON()).indexOf("Fourth complete translation.")).toBeLessThan(
       JSON.stringify(toJSON()).indexOf("swipe-card-mask-toggle-row"),
     );

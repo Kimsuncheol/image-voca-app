@@ -1,7 +1,6 @@
 import React from "react";
 import { FontSizes } from "@/constants/fontSizes";
 import {
-  Dimensions,
   Pressable,
   Text,
   View,
@@ -21,6 +20,7 @@ import {
   buildKanjiMeaningDisplayRows,
   buildKanjiReadingDisplayRows,
 } from "../../../src/utils/kanjiDisplayRows";
+import { getFlexibleTitleFontSize } from "../../../src/utils/idiomDisplay";
 import { CollocationCardImage } from "../../common/CollocationCardImage";
 import { MaskVisibilityToggle } from "../../common/MaskVisibilityToggle";
 import { SwipeCardItemAddToWordBankButton } from "../../swipe/SwipeCardItemAddToWordBankButton";
@@ -55,22 +55,6 @@ export interface FaceSideProps {
   /** Callback triggered to flip the card horizontally to the back */
   onFlip: () => void;
 }
-
-const getDynamicFontSize = (text: string, baseFontSize: number, minFontSize: number): number => {
-  const { width } = Dimensions.get("window");
-  const availableWidth = width * 0.8;
-  const textLength = text.length;
-
-  const charWidthRatio = 0.6;
-  const estimatedWidth = textLength * baseFontSize * charWidthRatio;
-
-  if (estimatedWidth <= availableWidth) {
-    return baseFontSize;
-  }
-
-  const scaledFontSize = availableWidth / (textLength * charWidthRatio);
-  return Math.max(minFontSize, Math.min(baseFontSize, scaledFontSize));
-};
 
 /**
  * FaceSide
@@ -121,7 +105,11 @@ export function FaceSide({
   );
 
   const dynamicFontSize = React.useMemo(() => {
-    return getDynamicFontSize(stripReviewMaskDelimiters(item.kanji), 64, 32);
+    return getFlexibleTitleFontSize(
+      stripReviewMaskDelimiters(item.kanji),
+      FontSizes.displayMega,
+      FontSizes.headingXl,
+    );
   }, [item.kanji]);
 
   const meanings = buildKanjiMeaningDisplayRows(item, language);

@@ -24,6 +24,7 @@ import {
   stripKanaParens,
 } from "../../../src/utils/japaneseText";
 import { resolveVocabularyContent } from "../../../src/utils/localizedVocabulary";
+import { getFlexibleTitleFontSize } from "../../../src/utils/idiomDisplay";
 import {
   getReviewTapeTextStyle,
   parseReviewMaskSegments,
@@ -69,22 +70,6 @@ interface ExampleBlockProps {
   isReviewMode: boolean;
   reviewMaskTarget: ReviewMaskTarget;
 }
-
-const getDynamicFontSize = (text: string, baseFontSize: number, minFontSize: number): number => {
-  const { width } = Dimensions.get("window");
-  const availableWidth = width * 0.8;
-  const textLength = text.length;
-
-  const charWidthRatio = 0.6;
-  const estimatedWidth = textLength * baseFontSize * charWidthRatio;
-
-  if (estimatedWidth <= availableWidth) {
-    return baseFontSize;
-  }
-
-  const scaledFontSize = availableWidth / (textLength * charWidthRatio);
-  return Math.max(minFontSize, Math.min(baseFontSize, scaledFontSize));
-};
 
 const toDisplayValue = (value?: string) => {
   if (typeof value !== "string") return undefined;
@@ -345,7 +330,11 @@ export function JlptVocabularyCard({
   }, [handleSpeech, isActive, item.word, resolved.sharedPronunciation]);
 
   const dynamicFontSize = React.useMemo(() => {
-      return getDynamicFontSize(stripReviewMaskDelimiters(item.word), 48, 24);
+    return getFlexibleTitleFontSize(
+      stripReviewMaskDelimiters(item.word),
+      FontSizes.displayXl,
+      FontSizes.heading,
+    );
   }, [item.word]);
   const hasKanaToggle = hasKanaRevealContent(
     resolved.example,

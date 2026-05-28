@@ -8,6 +8,8 @@ import {
 } from "react-native";
 import {
   formatIdiomTitleForDisplay,
+  getFlexibleTitleFontSize,
+  getFlexibleTitleMinimumFontScale,
   getIdiomTitleMinimumFontScale,
   getIdiomTitleFontSize,
   isNumberedMeaningDisplayCourseId,
@@ -62,7 +64,14 @@ export function WordCardHeader({
     [word, wordVariants],
   );
   const titleFontSize = React.useMemo(
-    () => getIdiomTitleFontSize(longestVariant, courseId, 22),
+    () =>
+      isNumberedMeaningDisplayCourseId(courseId)
+        ? getIdiomTitleFontSize(longestVariant, courseId, FontSizes.titleLg)
+        : getFlexibleTitleFontSize(
+            longestVariant,
+            FontSizes.titleLg,
+            FontSizes.bodyLg,
+          ),
     [courseId, longestVariant],
   );
   const titleLineHeight = React.useMemo(
@@ -70,11 +79,18 @@ export function WordCardHeader({
     [titleFontSize],
   );
   const titleMinimumFontScale = React.useMemo(
-    () => getIdiomTitleMinimumFontScale(courseId, FontSizes.titleLg, titleFontSize),
+    () =>
+      isNumberedMeaningDisplayCourseId(courseId)
+        ? getIdiomTitleMinimumFontScale(
+            courseId,
+            FontSizes.titleLg,
+            titleFontSize,
+          )
+        : getFlexibleTitleMinimumFontScale(FontSizes.bodyLg, titleFontSize),
     [courseId, titleFontSize],
   );
   const shouldFitSingleLineTitle =
-    !isMultilineWord && isNumberedMeaningDisplayCourseId(courseId);
+    !isMultilineWord;
   const titleContent = (
     <View style={styles.wordTitleTextContainer}>
       {wordVariants.map((variant, index) => {

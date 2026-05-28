@@ -346,8 +346,9 @@ describe("TTS entrypoints", () => {
     );
 
     expect(getByText(/connecting flight/)).toBeTruthy();
-    expect(getByText(/connection\s+600/)).toBeTruthy();
+    expect(getByText("connection")).toBeTruthy();
     expect(queryByText(/=/)).toBeNull();
+    expect(queryByText(/600/)).toBeNull();
 
     fireEvent.press(getByText(/connection flight/));
 

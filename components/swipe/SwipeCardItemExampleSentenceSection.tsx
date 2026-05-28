@@ -106,8 +106,9 @@ export function SwipeCardItemExampleSentenceSection({
         </Text>
       ) : null}
       <ScrollView
+        testID="swipe-card-examples-scroll"
         style={styles.examplesScrollContainer}
-        showsVerticalScrollIndicator={true}
+        showsVerticalScrollIndicator={false}
         nestedScrollEnabled={true}
       >
         {examples.map((exampleText, index) => (

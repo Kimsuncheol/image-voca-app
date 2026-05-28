@@ -165,3 +165,40 @@ export function getIdiomTitleFontSize(
     Math.min(fallbackFontSize, scaledFontSize),
   );
 }
+
+export function getFlexibleTitleFontSize(
+  text: string,
+  fallbackFontSize: number,
+  minimumFontSize: number,
+  availableWidthRatio = TITLE_AVAILABLE_WIDTH_RATIO,
+  characterWidthRatio = BOLD_CHARACTER_WIDTH_RATIO,
+): number {
+  const normalizedText = text.trim();
+  if (!normalizedText) {
+    return fallbackFontSize;
+  }
+
+  const { width } = Dimensions.get("window");
+  const availableWidth = width * availableWidthRatio;
+  const estimatedWidth =
+    normalizedText.length * fallbackFontSize * characterWidthRatio;
+
+  if (estimatedWidth <= availableWidth) {
+    return fallbackFontSize;
+  }
+
+  const scaledFontSize =
+    availableWidth / (normalizedText.length * characterWidthRatio);
+
+  return Math.max(
+    minimumFontSize,
+    Math.min(fallbackFontSize, scaledFontSize),
+  );
+}
+
+export function getFlexibleTitleMinimumFontScale(
+  minimumFontSize: number,
+  currentFontSize: number,
+): number {
+  return Math.min(1, minimumFontSize / currentFontSize);
+}

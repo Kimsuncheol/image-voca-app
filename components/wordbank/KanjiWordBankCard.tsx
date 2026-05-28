@@ -24,6 +24,7 @@ import { LineHeights } from "@/constants/lineHeights";
 import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
 import { shouldMaskReviewContent } from "../../src/utils/reviewMasking";
 import { getWordBankReviewTapeTextStyle } from "./wordBankMasking";
+import { getFlexibleTitleFontSize } from "../../src/utils/idiomDisplay";
 
 interface KanjiWordBankCardProps {
   word: SavedWord;
@@ -69,6 +70,15 @@ export function KanjiWordBankCard({
 
   const meanings = buildKanjiMeaningDisplayRows(word, language);
   const readings = buildKanjiReadingDisplayRows(word, language);
+  const kanjiFontSize = React.useMemo(
+    () =>
+      getFlexibleTitleFontSize(
+        word.kanji ?? "",
+        FontSizes.displayXxl,
+        FontSizes.headingXl,
+      ),
+    [word.kanji],
+  );
 
   const exampleTranslations = useKorean
     ? (word.exampleKoreanTranslation ?? [])
@@ -105,9 +115,12 @@ export function KanjiWordBankCard({
           <Text
             style={[
               styles.kanjiText,
-              { color: fontColors.primary },
+              { color: fontColors.primary, fontSize: kanjiFontSize },
               maskWord ? maskStyle : undefined,
             ]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.62}
           >
             {word.kanji}
           </Text>
@@ -313,8 +326,9 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   kanjiText: {
-    fontSize: FontSizes.displayXxl,
     fontWeight: FontWeights.bold,
+    flexShrink: 1,
+    minWidth: 0,
   },
   thumbnail: {
     width: 110,

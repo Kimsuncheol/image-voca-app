@@ -38,7 +38,7 @@ function buildItem(): VocabularyCard {
 
 describe("SwipeCardItemWordMeaningSection", () => {
   it("renders POS groups as separate meaning rows", () => {
-    const { getByTestId, getByText, queryByText } = render(
+    const { getByTestId, getByText, queryByTestId, queryByText } = render(
       <SwipeCardItemWordMeaningSection
         item={buildItem()}
         word="sparkle"
@@ -53,12 +53,6 @@ describe("SwipeCardItemWordMeaningSection", () => {
     const secondRowStyle = StyleSheet.flatten(
       getByTestId("inline-meaning-line-1").props.style,
     );
-    const firstTextColumnStyle = StyleSheet.flatten(
-      getByTestId("inline-meaning-text-column-0").props.style,
-    );
-    const secondTextColumnStyle = StyleSheet.flatten(
-      getByTestId("inline-meaning-text-column-1").props.style,
-    );
 
     expect(getByText("n")).toBeTruthy();
     expect(getByText("v")).toBeTruthy();
@@ -68,11 +62,13 @@ describe("SwipeCardItemWordMeaningSection", () => {
     expect(queryByText("v.")).toBeNull();
     expect(queryByText("|")).toBeNull();
     expect(firstRowStyle.flexDirection).toBe("row");
+    expect(firstRowStyle.flexWrap).toBe("wrap");
     expect(secondRowStyle.flexDirection).toBe("row");
-    expect(firstTextColumnStyle.flex).toBe(1);
-    expect(firstTextColumnStyle.flexWrap).toBe("wrap");
-    expect(secondTextColumnStyle.flex).toBe(1);
-    expect(secondTextColumnStyle.flexWrap).toBe("wrap");
+    expect(secondRowStyle.flexWrap).toBe("wrap");
+    expect(queryByTestId("inline-meaning-pos-column-0")).toBeNull();
+    expect(queryByTestId("inline-meaning-text-column-0")).toBeNull();
+    expect(queryByTestId("inline-meaning-pos-column-1")).toBeNull();
+    expect(queryByTestId("inline-meaning-text-column-1")).toBeNull();
   });
 
   it("uses the current gap after pronunciation before the meaning", () => {
@@ -89,6 +85,37 @@ describe("SwipeCardItemWordMeaningSection", () => {
     const pronunciationStyle = StyleSheet.flatten(getByText("/siːd/").props.style);
 
     expect(pronunciationStyle.marginBottom).toBe(12);
+  });
+
+  it("shrinks long non-idiom study titles to fit a single line", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 320,
+      height: 844,
+      scale: 3,
+      fontScale: 1,
+    });
+
+    const { getByTestId } = render(
+      <SwipeCardItemWordMeaningSection
+        item={buildItem()}
+        word="antidisestablishmentarianism oversized vocabulary title"
+        meaning="n. long word"
+        isDark={false}
+      />,
+    );
+
+    const title = getByTestId("swipe-card-word-title");
+    const titleStyle = StyleSheet.flatten(title.props.style);
+
+    expect(titleStyle.fontSize).toBeGreaterThanOrEqual(32);
+    expect(titleStyle.fontSize).toBeLessThan(48);
+    expect(title.props.numberOfLines).toBe(1);
+    expect(title.props.adjustsFontSizeToFit).toBe(true);
+    expect(title.props.minimumFontScale).toBeCloseTo(
+      32 / titleStyle.fontSize,
+    );
+
+    jest.restoreAllMocks();
   });
 
   it("masks word by default while leaving pronunciation and meaning visible", () => {

@@ -9,6 +9,8 @@ import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
 import { VocabularyCard } from "../../src/types/vocabulary";
 import {
   formatIdiomTitleForDisplay,
+  getFlexibleTitleFontSize,
+  getFlexibleTitleMinimumFontScale,
   getIdiomTitleMinimumFontScale,
   getIdiomTitleFontSize,
   isNumberedMeaningDisplayCourseId,
@@ -102,7 +104,18 @@ export function SwipeCardItemWordMeaningSection({
     [word, wordVariants],
   );
   const titleFontSize = React.useMemo(
-    () => getIdiomTitleFontSize(longestWordVariant, item.course, FontSizes.displayXl),
+    () =>
+      isNumberedMeaningDisplayCourseId(item.course)
+        ? getIdiomTitleFontSize(
+            longestWordVariant,
+            item.course,
+            FontSizes.displayXl,
+          )
+        : getFlexibleTitleFontSize(
+            longestWordVariant,
+            FontSizes.displayXl,
+            FontSizes.headingXl,
+          ),
     [item.course, longestWordVariant],
   );
   const titleLineHeight = React.useMemo(
@@ -111,15 +124,17 @@ export function SwipeCardItemWordMeaningSection({
   );
   const titleMinimumFontScale = React.useMemo(
     () =>
-      getIdiomTitleMinimumFontScale(
-        item.course,
-        FontSizes.displayXl,
-        titleFontSize,
-      ),
+      isNumberedMeaningDisplayCourseId(item.course)
+        ? getIdiomTitleMinimumFontScale(
+            item.course,
+            FontSizes.displayXl,
+            titleFontSize,
+          )
+        : getFlexibleTitleMinimumFontScale(FontSizes.headingXl, titleFontSize),
     [item.course, titleFontSize],
   );
   const shouldFitSingleLineTitle =
-    !isMultiVariantWord && isNumberedMeaningDisplayCourseId(item.course);
+    !isMultiVariantWord;
   const speak = React.useCallback(async () => {
     if (!isActive) {
       return;
@@ -224,6 +239,7 @@ export function SwipeCardItemWordMeaningSection({
           chipTextStyle={maskMeaning ? getReviewTapeTextStyle(isDark) : undefined}
           testID="inline-meaning"
           splitPosSegmentsIntoRows
+          disableColumnIndent
         />
       </View>
     </>

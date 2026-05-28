@@ -130,6 +130,75 @@ describe("Word bank WordCard synonyms", () => {
     expect(queryByText("between the station and the hotel")).toBeNull();
   });
 
+  it("renders multi-POS word-bank meanings without column indentation", () => {
+    const { getByTestId, getByText, queryByTestId, queryByText } = render(
+      <WordCard
+        word={{
+          ...baseWord,
+          course: "TOEIC",
+          meaning: "n. 불꽃, 번쩍임 v. 번쩍이다.",
+          synonyms: undefined,
+        }}
+        isDark={false}
+      />,
+    );
+
+    const firstRowStyle = StyleSheet.flatten(
+      getByTestId("inline-meaning-line-0").props.style,
+    );
+    const secondRowStyle = StyleSheet.flatten(
+      getByTestId("inline-meaning-line-1").props.style,
+    );
+
+    expect(getByText("n")).toBeTruthy();
+    expect(getByText("v")).toBeTruthy();
+    expect(getByText("불꽃, 번쩍임")).toBeTruthy();
+    expect(getByText("번쩍이다.")).toBeTruthy();
+    expect(queryByText("n.")).toBeNull();
+    expect(queryByText("v.")).toBeNull();
+    expect(firstRowStyle.flexDirection).toBe("row");
+    expect(firstRowStyle.flexWrap).toBe("wrap");
+    expect(secondRowStyle.flexDirection).toBe("row");
+    expect(secondRowStyle.flexWrap).toBe("wrap");
+    expect(queryByTestId("inline-meaning-pos-column-0")).toBeNull();
+    expect(queryByTestId("inline-meaning-text-column-0")).toBeNull();
+    expect(queryByTestId("inline-meaning-pos-column-1")).toBeNull();
+    expect(queryByTestId("inline-meaning-text-column-1")).toBeNull();
+  });
+
+  it("shrinks long non-idiom word-card titles to fit a single line", () => {
+    jest.spyOn(Dimensions, "get").mockReturnValue({
+      width: 320,
+      height: 844,
+      scale: 3,
+      fontScale: 1,
+    });
+
+    const { getByTestId } = render(
+      <WordCard
+        word={{
+          ...baseWord,
+          course: "TOEIC",
+          word: "antidisestablishmentarianism oversized vocabulary title",
+        }}
+        isDark={false}
+      />,
+    );
+
+    const title = getByTestId("word-card-title");
+    const titleStyle = StyleSheet.flatten(title.props.style);
+
+    expect(titleStyle.fontSize).toBeGreaterThanOrEqual(16);
+    expect(titleStyle.fontSize).toBeLessThan(22);
+    expect(title.props.numberOfLines).toBe(1);
+    expect(title.props.adjustsFontSizeToFit).toBe(true);
+    expect(title.props.minimumFontScale).toBeCloseTo(
+      16 / titleStyle.fontSize,
+    );
+
+    jest.restoreAllMocks();
+  });
+
   it("masks saved word titles when the word target is active", () => {
     const { getByTestId } = render(
       <WordCard

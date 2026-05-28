@@ -37,6 +37,7 @@ export function WordCardMeaning({
       chipStyle={styles.inlineChip}
       testID="inline-meaning"
       splitPosSegmentsIntoRows
+      disableColumnIndent
     />
   );
 }

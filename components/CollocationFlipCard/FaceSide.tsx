@@ -1,8 +1,7 @@
-import { CARD_HEIGHT } from "@/src/constants/layout";
+import { FontSizes } from "@/constants/fontSizes";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
-  Dimensions,
   Pressable,
   Text,
   TouchableOpacity,
@@ -24,6 +23,7 @@ import {
   shouldMaskReviewContent,
   stripReviewMaskDelimiters,
 } from "../../src/utils/reviewMasking";
+import { getFlexibleTitleFontSize } from "../../src/utils/idiomDisplay";
 import type { ReviewMaskTarget } from "../../src/services/speechPreferences";
 import { CollocationCardImage } from "../common/CollocationCardImage";
 import { MaskVisibilityToggle } from "../common/MaskVisibilityToggle";
@@ -42,36 +42,6 @@ interface FaceSideProps {
   reviewMaskTarget?: ReviewMaskTarget;
   onMaskChange?: (enabled: boolean) => void;
 }
-
-/**
- * Calculates dynamic font size based on text length to ensure single-row display
- * @param text - The collocation text to display
- * @returns Appropriate font size (between 24-42)
- */
-const getDynamicFontSize = (text: string): number => {
-  const { width } = Dimensions.get("window");
-  const availableWidth = width * 0.8; // 80% of screen width (accounting for padding)
-  const textLength = text.length;
-
-  // Base font size
-  const baseFontSize = 36;
-  const minFontSize = 24;
-
-  // Approximate character width ratio (adjusted for bold text)
-  const charWidthRatio = 0.6;
-  const estimatedWidth = textLength * baseFontSize * charWidthRatio;
-
-  // If text fits at base size, use base size
-  if (estimatedWidth <= availableWidth) {
-    return baseFontSize;
-  }
-
-  // Calculate scaled font size
-  const scaledFontSize = availableWidth / (textLength * charWidthRatio);
-
-  // Return font size clamped between min and base
-  return Math.max(minFontSize, Math.min(baseFontSize, scaledFontSize));
-};
 
 /**
  * FaceSide Component for CollocationFlipCard
@@ -159,7 +129,11 @@ export default React.memo(function FaceSide({
 
   // Calculate dynamic font size based on collocation text length
   const dynamicFontSize = React.useMemo(() => {
-    return getDynamicFontSize(longestVariant);
+    return getFlexibleTitleFontSize(
+      longestVariant,
+      FontSizes.display,
+      FontSizes.heading,
+    );
   }, [longestVariant]);
 
   // ============================================================================
@@ -249,7 +223,7 @@ export default React.memo(function FaceSide({
               { fontSize: dynamicFontSize },
             ]}
           >
-            {variant} {CARD_HEIGHT}
+            {variant}
           </Text>
         ))}
       </View>

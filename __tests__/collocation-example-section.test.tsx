@@ -3,6 +3,7 @@ import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import BackSide from "../components/CollocationFlipCard/BackSide";
 import ExampleSection from "../components/CollocationFlipCard/ExampleSection";
+import TranslationSection from "../components/CollocationFlipCard/TranslationSection";
 import { getFontColors } from "../constants/fontColors";
 
 const mockSpeak = jest.fn();
@@ -87,6 +88,22 @@ describe("ExampleSection", () => {
     );
 
     expect(queryByText("Speaker Button")).toBeNull();
+  });
+
+  test("hides the translation scroll indicator", () => {
+    const { getByTestId } = render(
+      <TranslationSection
+        translation="그녀는 결정을 내렸다."
+        isOpen={true}
+        onToggle={jest.fn()}
+        isDark={false}
+      />,
+    );
+
+    expect(
+      getByTestId("collocation-translation-scroll").props
+        .showsVerticalScrollIndicator,
+    ).toBe(false);
   });
 
   test("masks the collocation explanation value while masked", () => {
