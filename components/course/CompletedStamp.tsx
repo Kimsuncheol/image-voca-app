@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   stamp: {
     position: "absolute",
     top: -12,
-    right: 12,
+    left: -10,
     width: 96,
     height: 68,
     zIndex: 1,

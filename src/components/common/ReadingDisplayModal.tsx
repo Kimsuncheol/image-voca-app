@@ -206,9 +206,14 @@ export function ReadingDisplayModal() {
                   defaultValue: "Reading brightness",
                 })}
               </Text>
-              <Text style={styles.value}>
-                {Math.round(appBrightness * 100)}%
-              </Text>
+              {isAppBrightness ? (
+                <Text
+                  testID="reading-display-brightness-value"
+                  style={styles.value}
+                >
+                  {Math.round(appBrightness * 100)}%
+                </Text>
+              ) : null}
             </View>
             <View style={styles.segmentedControl}>
               {(["system", "app"] as const).map((mode) => {
@@ -239,25 +244,20 @@ export function ReadingDisplayModal() {
                 );
               })}
             </View>
-            <View style={!isAppBrightness && styles.disabledRow}>
+            {isAppBrightness ? (
               <Slider
                 testID="reading-display-brightness-slider"
                 minimumValue={MIN_APP_BRIGHTNESS}
                 maximumValue={MAX_APP_BRIGHTNESS}
                 step={0.01}
                 value={appBrightness}
-                disabled={!isAppBrightness}
-                minimumTrackTintColor={
-                  isAppBrightness ? sliderMinimumTrackTint : disabledTint
-                }
-                maximumTrackTintColor={
-                  isAppBrightness ? sliderMaximumTrackTint : disabledTint
-                }
+                minimumTrackTintColor={sliderMinimumTrackTint}
+                maximumTrackTintColor={sliderMaximumTrackTint}
                 thumbTintColor={thumbTintColor}
                 onValueChange={setAppBrightness}
                 style={styles.slider}
               />
-            </View>
+            ) : null}
           </View>
 
           <View style={styles.separator} />
@@ -316,35 +316,35 @@ export function ReadingDisplayModal() {
             </View>
           </View>
 
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.label}>
-                {t("readingDisplay.intensity", {
-                  defaultValue: "Intensity",
-                })}
-              </Text>
-              <Text style={styles.value}>{intensityPercent}%</Text>
-            </View>
-            <View style={!eyeComfortEnabled && styles.disabledRow}>
+          {eyeComfortEnabled ? (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.label}>
+                  {t("readingDisplay.intensity", {
+                    defaultValue: "Intensity",
+                  })}
+                </Text>
+                <Text
+                  testID="reading-display-eye-comfort-intensity-value"
+                  style={styles.value}
+                >
+                  {intensityPercent}%
+                </Text>
+              </View>
               <Slider
                 testID="reading-display-eye-comfort-intensity-slider"
                 minimumValue={0}
                 maximumValue={100}
                 step={1}
                 value={customIntensity}
-                disabled={!eyeComfortEnabled}
-                minimumTrackTintColor={
-                  eyeComfortEnabled ? "#FF9500" : disabledTint
-                }
-                maximumTrackTintColor={
-                  eyeComfortEnabled ? sliderMaximumTrackTint : disabledTint
-                }
+                minimumTrackTintColor="#FF9500"
+                maximumTrackTintColor={sliderMaximumTrackTint}
                 thumbTintColor={thumbTintColor}
                 onValueChange={setCustomIntensity}
                 style={styles.slider}
               />
             </View>
-          </View>
+          ) : null}
         </Pressable>
       </Pressable>
     </Modal>
@@ -482,7 +482,9 @@ const getStyles = (isDark: boolean) => {
       borderRadius: 9,
     },
     segmentSelected: {
-      backgroundColor: bg.surfaceElevated,
+      backgroundColor: bg.modalSegmentSelected,
+      borderWidth: 1,
+      borderColor: border.modalSegmentSelected,
     },
     segmentText: {
       color: font.screenMuted,

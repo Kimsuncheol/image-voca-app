@@ -60,6 +60,7 @@ export type BgColorRole =
   | "learningCardDelete"
   | "learningCardExpandButton"
   | "learningCardKanaActive"
+  | "modalSegmentSelected"
   | "fillBlankCard"
   | "fillBlankIdle"
   | "fillBlankCorrectSoft"
@@ -128,6 +129,7 @@ export const BackgroundColors: Record<BgColorScheme, BgColorTokens> = {
     learningCardDelete: "#F8FAFC",
     learningCardExpandButton: "#F5F7FA",
     learningCardKanaActive: "#2EA043",
+    modalSegmentSelected: "transparent",
     fillBlankCard: "#f5f5f5",
     fillBlankIdle: "#e8e8e8",
     fillBlankCorrectSoft: "#28a74520",
@@ -193,6 +195,7 @@ export const BackgroundColors: Record<BgColorScheme, BgColorTokens> = {
     learningCardDelete: "#050505",
     learningCardExpandButton: "rgba(255,255,255,0.08)",
     learningCardKanaActive: "#2EA043",
+    modalSegmentSelected: "transparent",
     fillBlankCard: "#1c1c1e",
     fillBlankIdle: "#2c2c2e",
     fillBlankCorrectSoft: "#28a74520",

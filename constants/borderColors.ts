@@ -38,6 +38,7 @@ export type BorderColorRole =
   | "modalFeaturedSelected"
   | "modalFeaturedUnselected"
   | "modalPreviewFrame"
+  | "modalSegmentSelected"
   | "toggleThumb"
   | "ipaInput"
   | "inputBorder"
@@ -96,6 +97,7 @@ export const BorderColors: Record<BorderColorScheme, BorderColorTokens> = {
     modalFeaturedSelected: "rgba(255,149,0,0.35)",
     modalFeaturedUnselected: "rgba(17,24,39,0.08)",
     modalPreviewFrame: "rgba(17,24,39,0.16)",
+    modalSegmentSelected: "#000000",
     toggleThumb: "rgba(255,255,255,0.55)",
     ipaInput: "#d1d1d6",
     inputBorder: "#E0E0E0",
@@ -151,6 +153,7 @@ export const BorderColors: Record<BorderColorScheme, BorderColorTokens> = {
     modalFeaturedSelected: "rgba(255,149,0,0.45)",
     modalFeaturedUnselected: "rgba(255,255,255,0.12)",
     modalPreviewFrame: "rgba(255,255,255,0.18)",
+    modalSegmentSelected: "#ffffff",
     toggleThumb: "rgba(255,255,255,0.55)",
     ipaInput: "#38383a",
     inputBorder: "#333",

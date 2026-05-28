@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { useTheme } from "../../src/context/ThemeContext";
 import { Course, CourseType } from "../../src/types/vocabulary";
-import { CourseCard } from "../course";
+import { WordBankCourseGrid } from "../wordbank/WordBankCourseGrid";
 import { ThemedText } from "../themed-text";
 import { FontSizes } from "@/constants/fontSizes";
 
@@ -34,14 +34,11 @@ export function AllCoursesSection({
           {t("courses.allCourses")}
         </ThemedText>
       </View>
-      {courses.map((course) => (
-        <CourseCard
-          key={course.id}
-          course={course}
-          isCompleted={completedCourseIds[course.id] === true}
-          onPress={() => onCoursePress(course)}
-        />
-      ))}
+      <WordBankCourseGrid
+        courses={courses}
+        completedCourseIds={completedCourseIds}
+        onCoursePress={onCoursePress}
+      />
     </View>
   );
 }

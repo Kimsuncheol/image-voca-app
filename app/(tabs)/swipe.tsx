@@ -99,18 +99,9 @@ export default function CourseSelectionScreen() {
     () => getTopLevelCoursesForLanguage(learningLanguage),
     [learningLanguage],
   );
-  const otherCourses = React.useMemo(
-    () => allCourses.filter((course) => course.id !== recentCourse),
-    [allCourses, recentCourse],
-  );
   const visibleCourses = React.useMemo(
-    () =>
-      learningLanguage === "ja"
-        ? allCourses
-        : recentCourse
-          ? otherCourses
-          : allCourses,
-    [allCourses, learningLanguage, otherCourses, recentCourse],
+    () => allCourses,
+    [allCourses],
   );
 
   useFocusEffect(

@@ -123,7 +123,7 @@ jest.mock("../components/course", () => ({
       <View>
         {courses.map((course) => (
           <Pressable key={course.id} onPress={() => onCoursePress(course)}>
-            <Text>{course.title}</Text>
+            <Text>{`all:${course.title}`}</Text>
             {completedCourseIds?.[course.id] ? (
               <Text>{`completed:${course.title}`}</Text>
             ) : null}
@@ -161,7 +161,7 @@ describe("CourseSelectionScreen JLPT routing", () => {
   it("routes JLPT to the level selection screen", async () => {
     const screen = await renderCourseSelection();
 
-    fireEvent.press(screen.getByText("JLPT"));
+    fireEvent.press(screen.getByText("all:JLPT"));
 
     expect(mockPush).toHaveBeenCalledWith("/course/jlpt-levels");
   });
@@ -172,7 +172,7 @@ describe("CourseSelectionScreen JLPT routing", () => {
     const screen = await renderCourseSelection();
 
     await waitFor(() => {
-      expect(screen.getByText("JLPT")).toBeTruthy();
+      expect(screen.getByText("all:JLPT")).toBeTruthy();
     });
 
     expect(screen.queryByText("recent:N2")).toBeNull();
@@ -184,6 +184,16 @@ describe("CourseSelectionScreen JLPT routing", () => {
     const screen = await renderCourseSelection();
 
     expect(screen.queryByText("Elementary Japanese")).toBeNull();
+  });
+
+  it("keeps the recent course visible in all courses for non-Japanese learners", async () => {
+    mockLearningLanguage.current = "en";
+    mockRecentCourseByLanguage.en = "TOEIC";
+
+    const screen = await renderCourseSelection();
+
+    expect(screen.getByText("recent:TOEIC")).toBeTruthy();
+    expect(screen.getByText("all:TOEIC")).toBeTruthy();
   });
 
   it("passes completed state to the JLPT parent while keeping it pressable", async () => {
@@ -209,7 +219,7 @@ describe("CourseSelectionScreen JLPT routing", () => {
       expect(screen.getByText("completed:JLPT")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("JLPT"));
+    fireEvent.press(screen.getByText("all:JLPT"));
 
     expect(mockPush).toHaveBeenCalledWith("/course/jlpt-levels");
   });

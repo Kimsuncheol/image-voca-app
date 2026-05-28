@@ -13,6 +13,19 @@ let mockIsDark = false;
 let mockTheme: "light" | "dark" | "system" = "light";
 const mockSetTheme = jest.fn();
 
+const expectSelectedSegmentStyle = (
+  style: unknown,
+  borderColor: string,
+) => {
+  expect(StyleSheet.flatten(style)).toEqual(
+    expect.objectContaining({
+      backgroundColor: "transparent",
+      borderColor,
+      borderWidth: 1,
+    }),
+  );
+};
+
 jest.mock("@react-navigation/elements", () => {
   const React = require("react");
 
@@ -108,7 +121,7 @@ describe("ReadingDisplayModal", () => {
 
     expect(screen.queryByTestId("reading-display-modal-handle")).toBeNull();
     expect(screen.getByText("Eye comfort mode")).toBeTruthy();
-    expect(screen.getByText("Intensity")).toBeTruthy();
+    expect(screen.getByText("Apply to")).toBeTruthy();
   });
 
   it("renders appearance controls and changes theme mode", () => {
@@ -185,13 +198,82 @@ describe("ReadingDisplayModal", () => {
     expect(useReadingDisplayStore.getState().eyeComfortScope).toBe("screen");
   });
 
-  it("dims and disables the intensity slider when eye comfort is off", () => {
+  it("uses high contrast selected segments in light mode", () => {
+    const screen = render(<ReadingDisplayModal />);
+
+    expectSelectedSegmentStyle(
+      screen.getByTestId("reading-display-brightness-mode-system").props
+        .style,
+      "#000000",
+    );
+    expectSelectedSegmentStyle(
+      screen.getByTestId("reading-display-eye-comfort-scope-screen").props
+        .style,
+      "#000000",
+    );
+  });
+
+  it("uses high contrast selected segments in dark mode", () => {
+    mockIsDark = true;
+    mockTheme = "dark";
+    const screen = render(<ReadingDisplayModal />);
+
+    expectSelectedSegmentStyle(
+      screen.getByTestId("reading-display-brightness-mode-system").props
+        .style,
+      "#ffffff",
+    );
+    expectSelectedSegmentStyle(
+      screen.getByTestId("reading-display-eye-comfort-scope-screen").props
+        .style,
+      "#ffffff",
+    );
+  });
+
+  it("shows reading brightness percentage only in app mode", () => {
     const screen = render(<ReadingDisplayModal />);
 
     expect(
-      screen.getByTestId("reading-display-eye-comfort-intensity-slider")
-        .props.disabled,
-    ).toBe(true);
+      screen.queryByTestId("reading-display-brightness-value"),
+    ).toBeNull();
+
+    fireEvent.press(
+      screen.getByTestId("reading-display-brightness-mode-app"),
+    );
+
+    expect(
+      screen.getByTestId("reading-display-brightness-value"),
+    ).toBeTruthy();
+  });
+
+  it("shows intensity percentage only when eye comfort is enabled", () => {
+    const screen = render(<ReadingDisplayModal />);
+
+    expect(
+      screen.queryByTestId("reading-display-eye-comfort-intensity-value"),
+    ).toBeNull();
+
+    fireEvent.press(screen.getByRole("switch"));
+
+    expect(
+      screen.getByTestId("reading-display-eye-comfort-intensity-value"),
+    ).toBeTruthy();
+  });
+
+  it("shows intensity slider only when eye comfort is enabled", () => {
+    const screen = render(<ReadingDisplayModal />);
+
+    expect(screen.queryByText("Intensity")).toBeNull();
+    expect(
+      screen.queryByTestId("reading-display-eye-comfort-intensity-slider"),
+    ).toBeNull();
+
+    fireEvent.press(screen.getByRole("switch"));
+
+    expect(screen.getByText("Intensity")).toBeTruthy();
+    expect(
+      screen.getByTestId("reading-display-eye-comfort-intensity-slider"),
+    ).toBeTruthy();
   });
 
   it("updates eye comfort intensity immediately", () => {
@@ -226,31 +308,28 @@ describe("ReadingDisplayModal", () => {
     expect(screen.getByText("80%")).toBeTruthy();
   });
 
-  it("disables brightness slider in system mode and enables it in app mode", () => {
+  it("shows brightness slider only in app mode", () => {
     const screen = render(<ReadingDisplayModal />);
 
     expect(
-      StyleSheet.flatten(
-        screen.getByTestId("reading-display-brightness-slider").props.style,
-      ),
-    ).toEqual(
-      expect.objectContaining({
-        transform: [{ scaleY: 1.0 }],
-      }),
-    );
-    expect(
-      screen.getByTestId("reading-display-brightness-slider").props
-        .disabled,
-    ).toBe(true);
+      screen.queryByTestId("reading-display-brightness-slider"),
+    ).toBeNull();
 
     fireEvent.press(
       screen.getByTestId("reading-display-brightness-mode-app"),
     );
 
+    const brightnessSlider = screen.getByTestId(
+      "reading-display-brightness-slider",
+    );
+
     expect(
-      screen.getByTestId("reading-display-brightness-slider").props
-        .disabled,
-    ).toBe(false);
+      StyleSheet.flatten(brightnessSlider.props.style),
+    ).toEqual(
+      expect.objectContaining({
+        transform: [{ scaleY: 1.0 }],
+      }),
+    );
   });
 
   it("updates app brightness immediately in app mode", () => {
