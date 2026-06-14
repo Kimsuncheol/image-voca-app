@@ -124,10 +124,11 @@ describe("JlptVocabularyCard", () => {
     expect(getByTestId("jlpt-card-image-shell")).toBeTruthy();
     expect(getByText("https://cdn.example.com/jlpt.jpg")).toBeTruthy();
     expect(getByTestId("jlpt-card-info")).toBeTruthy();
-    expect(getByTestId("jlpt-card-info-scroll")).toBeTruthy();
-    expect(getByTestId("jlpt-card-info-scroll").props.showsVerticalScrollIndicator).toBe(
-      false,
-    );
+    expect(getByTestId("jlpt-card-content-scroll")).toBeTruthy();
+    expect(
+      getByTestId("jlpt-card-content-scroll").props
+        .showsVerticalScrollIndicator,
+    ).toBe(false);
     expect(getByText("間")).toBeTruthy();
     expect(getByText("あいだ")).toBeTruthy();
     expect(getByText("interval; space; between")).toBeTruthy();
@@ -157,6 +158,9 @@ describe("JlptVocabularyCard", () => {
       expect.objectContaining({ color: lightFontColors.learningCardPrimary }),
     );
     expect(normal.getByTestId("mock-save-control")).toBeTruthy();
+    expect(JSON.stringify(normal.toJSON()).indexOf("mock-save-control")).toBeLessThan(
+      JSON.stringify(normal.toJSON()).indexOf("jlpt-card-content-scroll"),
+    );
 
     const preview = render(
       <JlptVocabularyCard item={buildCard()} initialIsSaved={true} day={1} isPreviewMode />,
@@ -489,7 +493,10 @@ describe("JlptVocabularyCard", () => {
     );
 
     expect(getByTestId("jlpt-card-kana-toggle-bar")).toBeTruthy();
-    expect(getByTestId("jlpt-card-kana-toggle-bar")).toHaveStyle({ gap: 12 });
+    expect(getByTestId("jlpt-card-kana-toggle-bar")).toHaveStyle({
+      alignSelf: "flex-end",
+      gap: 12,
+    });
     expect(getByTestId("jlpt-card-mask-toggle")).toBeTruthy();
     expect(getByTestId("jlpt-card-kana-toggle-pill")).toBeTruthy();
     expect(getByText("Mask")).toBeTruthy();
@@ -497,7 +504,10 @@ describe("JlptVocabularyCard", () => {
     expect(getByText("がな")).toBeTruthy();
 
     const renderedTree = JSON.stringify(toJSON());
-    expect(renderedTree.indexOf("jlpt-card-info-scroll")).toBeLessThan(
+    expect(renderedTree.indexOf("jlpt-card-image-shell")).toBeLessThan(
+      renderedTree.indexOf("jlpt-card-content-scroll"),
+    );
+    expect(renderedTree.indexOf("jlpt-card-content-scroll")).toBeLessThan(
       renderedTree.indexOf("jlpt-card-kana-toggle-bar"),
     );
     expect(renderedTree.indexOf("jlpt-card-mask-toggle")).toBeLessThan(
@@ -541,7 +551,10 @@ describe("JlptVocabularyCard", () => {
     );
 
     expect(getByTestId("jlpt-card-kana-toggle-bar")).toBeTruthy();
-    expect(getByTestId("jlpt-card-kana-toggle-bar")).toHaveStyle({ gap: 12 });
+    expect(getByTestId("jlpt-card-kana-toggle-bar")).toHaveStyle({
+      alignSelf: "flex-end",
+      gap: 12,
+    });
     expect(getByTestId("jlpt-card-mask-toggle")).toBeTruthy();
     expect(getByText("Mask")).toBeTruthy();
     expect(queryByText("Show")).toBeNull();

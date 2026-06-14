@@ -1,6 +1,6 @@
-import { fireEvent, render } from "@testing-library/react-native";
+import { act, fireEvent, render } from "@testing-library/react-native";
 import React from "react";
-import { StyleSheet } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 import { SwipeCardItem } from "../components/swipe/SwipeCardItem";
 import { VocabularyCard } from "../src/types/vocabulary";
 
@@ -61,8 +61,22 @@ function buildCard(overrides: Partial<VocabularyCard> = {}): VocabularyCard {
 }
 
 describe("SwipeCardItem synonyms", () => {
+  const scrollToSpy = jest.spyOn(ScrollView.prototype, "scrollTo");
+
+  beforeEach(() => {
+    jest.useRealTimers();
+    scrollToSpy.mockClear();
+  });
+
+  afterAll(() => {
+    scrollToSpy.mockRestore();
+  });
+
   it("renders the synonyms section for TOEFL_IELTS cards", () => {
-    const { getByText, getByTestId } = render(<SwipeCardItem item={buildCard()} />);
+    const { getByText, getByTestId, toJSON } = render(
+      <SwipeCardItem item={buildCard()} />,
+    );
+    const renderedTree = JSON.stringify(toJSON());
 
     expect(getByText("그들은 그 계획을 포기해야 했다.")).toBeTruthy();
     expect(getByText("Synonyms")).toBeTruthy();
@@ -73,6 +87,10 @@ describe("SwipeCardItem synonyms", () => {
       fontSize: 15,
       color: "#374151",
     });
+    expect(getByTestId("mock-add-button")).toBeTruthy();
+    expect(renderedTree.indexOf("mock-add-button")).toBeLessThan(
+      renderedTree.indexOf("swipe-card-content-scroll"),
+    );
   });
 
   it("hides the save overlay in preview mode", () => {
@@ -113,10 +131,14 @@ describe("SwipeCardItem synonyms", () => {
     expect(queryByText("Show 1 more")).toBeNull();
     expect(firstExample.props.numberOfLines).toBeUndefined();
     expect(firstTranslation.props.numberOfLines).toBeUndefined();
+    expect(getByTestId("swipe-card-examples-section")).toBeTruthy();
     expect(
-      getByTestId("swipe-card-examples-scroll").props
+      getByTestId("swipe-card-content-scroll").props
         .showsVerticalScrollIndicator,
     ).toBe(false);
+    expect(JSON.stringify(toJSON()).indexOf("mock-image-section")).toBeLessThan(
+      JSON.stringify(toJSON()).indexOf("swipe-card-content-scroll"),
+    );
     expect(JSON.stringify(toJSON()).indexOf("Fourth complete translation.")).toBeLessThan(
       JSON.stringify(toJSON()).indexOf("swipe-card-mask-toggle-row"),
     );
@@ -129,6 +151,9 @@ describe("SwipeCardItem synonyms", () => {
     const renderedTree = JSON.stringify(toJSON());
 
     expect(getByTestId("swipe-card-mask-toggle-row")).toBeTruthy();
+    expect(
+      StyleSheet.flatten(getByTestId("swipe-card-mask-toggle-row").props.style),
+    ).toEqual(expect.objectContaining({ alignSelf: "flex-end" }));
     expect(getByTestId("swipe-card-mask-toggle")).toBeTruthy();
     expect(getByText("Mask")).toBeTruthy();
     expect(queryByText("Show")).toBeNull();
@@ -209,5 +234,57 @@ describe("SwipeCardItem synonyms", () => {
         backgroundColor: "transparent",
       }),
     );
+  });
+
+  it("resets the content scroll 500ms after the card becomes inactive", () => {
+    jest.useFakeTimers();
+    const item = buildCard({ course: "TOEIC" });
+    const { rerender, unmount } = render(
+      <SwipeCardItem item={item} isActive />,
+    );
+
+    rerender(<SwipeCardItem item={item} isActive={false} />);
+
+    expect(scrollToSpy).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(499);
+    });
+
+    expect(scrollToSpy).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+
+    expect(scrollToSpy).toHaveBeenCalledWith({ y: 0, animated: false });
+
+    unmount();
+    jest.useRealTimers();
+  });
+
+  it("cancels a pending scroll reset when the card becomes active again", () => {
+    jest.useFakeTimers();
+    const item = buildCard({ course: "TOEIC" });
+    const { rerender, unmount } = render(
+      <SwipeCardItem item={item} isActive />,
+    );
+
+    rerender(<SwipeCardItem item={item} isActive={false} />);
+
+    act(() => {
+      jest.advanceTimersByTime(250);
+    });
+
+    rerender(<SwipeCardItem item={item} isActive />);
+
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+
+    expect(scrollToSpy).not.toHaveBeenCalled();
+
+    unmount();
+    jest.useRealTimers();
   });
 });

@@ -355,89 +355,97 @@ export function JlptVocabularyCard({
         testID="jlpt-card-image-shell"
         imageUrl={item.imageUrl}
         isDark={isDark}
+        topRightOverlay={
+          !isPreviewMode ? (
+            <SwipeCardItemAddToWordBankButton
+              item={item}
+              isDark={isDark}
+              initialIsSaved={initialIsSaved}
+              day={day}
+              onSavedWordChange={onSavedWordChange}
+            />
+          ) : null
+        }
       />
 
       <View
-        testID="jlpt-card-info"
+        testID="jlpt-card-body"
         style={[
-          styles.cardInfo,
+          styles.cardBody,
           { backgroundColor: bgColors.learningCardSurface },
         ]}
       >
         <ScrollView
-          testID="jlpt-card-info-scroll"
-          style={styles.cardInfoScroll}
+          testID="jlpt-card-content-scroll"
+          style={styles.cardContentScroll}
           showsVerticalScrollIndicator={false}
           nestedScrollEnabled={true}
-          contentContainerStyle={styles.cardInfoContent}
+          contentContainerStyle={styles.cardContent}
         >
-          <View style={styles.titleContainer}>
-            <View style={styles.leftRow}>
-              <TouchableOpacity onPress={handlePressWord} activeOpacity={0.7}>
-                <Text
-                  style={[
-                    styles.cardTitle,
-                    {
-                      fontSize: dynamicFontSize,
-                    },
-                    maskWord
-                      ? getReviewTapeTextStyle(isDark)
-                      : { color: fontColors.learningCardPrimary },
-                  ]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.5}
-                >
-                  {stripReviewMaskDelimiters(item.word)}
-                </Text>
-              </TouchableOpacity>
+          <View
+            testID="jlpt-card-info"
+            style={[
+              styles.cardInfoContent,
+              { backgroundColor: bgColors.learningCardSurface },
+            ]}
+          >
+            <View style={styles.titleContainer}>
+              <View style={styles.leftRow}>
+                <TouchableOpacity onPress={handlePressWord} activeOpacity={0.7}>
+                  <Text
+                    style={[
+                      styles.cardTitle,
+                      {
+                        fontSize: dynamicFontSize,
+                      },
+                      maskWord
+                        ? getReviewTapeTextStyle(isDark)
+                        : { color: fontColors.learningCardPrimary },
+                    ]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.5}
+                  >
+                    {stripReviewMaskDelimiters(item.word)}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-            <View style={styles.titleActions}>
-              {!isPreviewMode && (
-                <SwipeCardItemAddToWordBankButton
-                  item={item}
-                  isDark={isDark}
-                  initialIsSaved={initialIsSaved}
-                  day={day}
-                  onSavedWordChange={onSavedWordChange}
-                />
-              )}
+
+            {pronunciation ? (
+              <Text
+                testID="jlpt-card-pronunciation"
+                style={[
+                  styles.cardSubtitle,
+                  maskPronunciation
+                    ? getReviewTapeTextStyle(isDark)
+                    : { color: fontColors.learningCardMuted },
+                ]}
+              >
+                {pronunciation}
+              </Text>
+            ) : null}
+
+            <View style={styles.meaningSection}>
+              <LabeledMeaningRow
+                testID="jlpt-card-meaning"
+                meaning={resolved.meaning}
+                isDark={isDark}
+                isMasked={maskMeaning}
+              />
             </View>
-          </View>
 
-          {pronunciation ? (
-            <Text
-              testID="jlpt-card-pronunciation"
-              style={[
-                styles.cardSubtitle,
-                maskPronunciation
-                  ? getReviewTapeTextStyle(isDark)
-                  : { color: fontColors.learningCardMuted },
-              ]}
-            >
-              {pronunciation}
-            </Text>
-          ) : null}
-
-          <View style={styles.meaningSection}>
-            <LabeledMeaningRow
-              testID="jlpt-card-meaning"
-              meaning={resolved.meaning}
+            <ExampleBlock
+              example={resolved.example}
+              exampleFurigana={resolved.exampleFurigana}
+              translation={resolved.translation}
               isDark={isDark}
-              isMasked={maskMeaning}
+              isActive={isActive}
+              showKana={showKana}
+              isReviewMode={isReviewMode}
+              reviewMaskTarget={reviewMaskTarget}
             />
           </View>
-
-          <ExampleBlock
-            example={resolved.example}
-            exampleFurigana={resolved.exampleFurigana}
-            translation={resolved.translation}
-            isDark={isDark}
-            isActive={isActive}
-            showKana={showKana}
-            isReviewMode={isReviewMode}
-            reviewMaskTarget={reviewMaskTarget}
-          />
         </ScrollView>
 
         <View testID="jlpt-card-kana-toggle-bar" style={styles.kanaToggleBar}>
@@ -498,12 +506,16 @@ const styles = StyleSheet.create({
     elevation: 0,
     overflow: "hidden",
   },
-  cardInfo: {
-    height: "65%",
+  cardBody: {
+    flex: 1,
     flexDirection: "column",
   },
-  cardInfoScroll: {
+  cardContentScroll: {
     flex: 1,
+    minHeight: 0,
+  },
+  cardContent: {
+    paddingBottom: 8,
   },
   cardInfoContent: {
     paddingHorizontal: 4,
@@ -514,6 +526,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",
+    alignSelf: "flex-end",
     paddingHorizontal: 4,
     marginBottom: 20,
     gap: 12,
@@ -549,12 +562,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexShrink: 1,
     minWidth: 0,
-  },
-  titleActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexShrink: 0,
-    gap: 8,
   },
   cardTitle: {
     fontSize: FontSizes.headingXl,

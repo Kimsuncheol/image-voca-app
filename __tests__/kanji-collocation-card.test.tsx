@@ -202,8 +202,19 @@ describe("KanjiCollocationCard", () => {
     const stopPropagation = jest.fn();
     const renderedTree = JSON.stringify(screen.toJSON());
 
+    expect(screen.getByTestId("kanji-collocation-face-scroll")).toBeTruthy();
+    expect(screen.getByTestId("kanji-collocation-face-scroll").props.showsVerticalScrollIndicator).toBe(
+      false,
+    );
+    expect(screen.getByTestId("kanji-collocation-face-image-section")).toBeTruthy();
     expect(screen.getByTestId("kanji-collocation-face-mask-toggle-button")).toBeTruthy();
     expect(screen.getByText("Mask")).toBeTruthy();
+    expect(renderedTree.indexOf("kanji-collocation-face-image-section")).toBeLessThan(
+      renderedTree.indexOf("kanji-collocation-face-scroll"),
+    );
+    expect(renderedTree.indexOf("kanji-collocation-face-scroll")).toBeLessThan(
+      renderedTree.indexOf("kanji-collocation-face-mask-toggle"),
+    );
     expect(renderedTree.indexOf("kanji-collocation-face-reading-0")).toBeLessThan(
       renderedTree.indexOf("kanji-collocation-face-mask-toggle"),
     );
@@ -430,6 +441,9 @@ describe("KanjiCollocationCard", () => {
       expect.objectContaining({ color: lightFontColors.learningCardPrimary }),
     );
     expect(normal.getByTestId("mock-save-control")).toBeTruthy();
+    expect(JSON.stringify(normal.toJSON()).indexOf("mock-save-control")).toBeLessThan(
+      JSON.stringify(normal.toJSON()).indexOf("kanji-collocation-face-scroll"),
+    );
 
     const preview = render(
       <KanjiCollocationCard item={buildKanjiWord()} day={1} isPreviewMode />,
@@ -829,7 +843,7 @@ describe("KanjiCollocationCard", () => {
     expect(screen.getByText("Mask")).toBeTruthy();
     expect(screen.getByText("がな")).toBeTruthy();
     expect(flattenStyleOf(controlRow)).toEqual(
-      expect.objectContaining({ gap: 12 }),
+      expect.objectContaining({ alignSelf: "flex-end", gap: 12 }),
     );
     expect(renderedTree.indexOf("kanji-collocation-back-mask-toggle")).toBeLessThan(
       renderedTree.indexOf("kanji-collocation-furigana-toggle"),

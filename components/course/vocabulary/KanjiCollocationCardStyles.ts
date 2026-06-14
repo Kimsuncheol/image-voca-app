@@ -4,7 +4,7 @@ import { FontWeights } from "@/constants/fontWeights";
 import { LineHeights } from "@/constants/lineHeights";
 import { StyleSheet } from "react-native";
 import { CARD_HEIGHT, CARD_WIDTH } from "../../../src/constants/layout";
-import { blackCardSpacing } from "./blackCardStyles";
+import { blackCardSharedStyles, blackCardSpacing } from "./blackCardStyles";
 
 // const { width } = Dimensions.get("window");
 
@@ -30,14 +30,16 @@ export const styles = StyleSheet.create({
     elevation: 0,
     overflow: "hidden",
   },
-  faceInnerContainer: {
-    flex: 6,
-    paddingTop: 20,
-    paddingBottom: 20,
+  faceScroll: {
+    flex: 1,
+    minHeight: 0,
+  },
+  faceScrollContent: {
     paddingHorizontal: 4,
+    paddingBottom: 12,
   },
   imageContainer: {
-    flex: 4,
+    height: CARD_HEIGHT * 0.38,
     position: "relative",
     width: "100%",
   },
@@ -48,6 +50,9 @@ export const styles = StyleSheet.create({
     marginHorizontal: 4,
     marginTop: blackCardSpacing.contentTop,
     overflow: "hidden",
+  },
+  kanjiImageTopRightOverlay: {
+    ...blackCardSharedStyles.VocaCardTopRightControl,
   },
   faceTopRow: {
     flexDirection: "row",
@@ -78,17 +83,14 @@ export const styles = StyleSheet.create({
     flexShrink: 1,
     minWidth: 0,
   },
-  kanjiHeaderActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexShrink: 0,
-    gap: 8,
-  },
   faceMaskToggleRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
+    alignSelf: "flex-end",
     marginTop: 12,
+    marginBottom: 20,
+    paddingHorizontal: 4,
   },
   faceSection: {
     gap: 4,
@@ -134,6 +136,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
+    alignSelf: "flex-end",
     paddingHorizontal: 4,
     paddingTop: 14,
     paddingBottom: 4,

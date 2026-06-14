@@ -2,6 +2,7 @@ import React from "react";
 import { FontSizes } from "@/constants/fontSizes";
 import {
   Pressable,
+  ScrollView,
   Text,
   View,
   type GestureResponderEvent,
@@ -135,7 +136,10 @@ export function FaceSide({
       ]}
       onPress={onFlip}
     >
-      <View style={styles.imageContainer}>
+      <View
+        testID="kanji-collocation-face-image-section"
+        style={styles.imageContainer}
+      >
         <CollocationCardImage
           imageUrl={item.imageUrl}
           isDark={isDark}
@@ -144,9 +148,26 @@ export function FaceSide({
             { backgroundColor: bgColors.learningCardImage },
           ]}
         />
+        {!isPreviewMode ? (
+          <View style={styles.kanjiImageTopRightOverlay}>
+            <SwipeCardItemAddToWordBankButton
+              item={item}
+              isDark={isDark}
+              initialIsSaved={initialIsSaved ?? false}
+              day={day}
+              onSavedWordChange={onSavedWordChange}
+            />
+          </View>
+        ) : null}
       </View>
 
-      <View style={styles.faceInnerContainer}>
+      <ScrollView
+        testID="kanji-collocation-face-scroll"
+        style={styles.faceScroll}
+        contentContainerStyle={styles.faceScrollContent}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+      >
         <View style={styles.faceContent}>
           <View style={styles.kanjiSectionRow}>
             <Text
@@ -164,17 +185,6 @@ export function FaceSide({
             >
               {stripReviewMaskDelimiters(item.kanji)}
             </Text>
-            <View style={styles.kanjiHeaderActions}>
-              {!isPreviewMode && (
-                <SwipeCardItemAddToWordBankButton
-                  item={item}
-                  isDark={isDark}
-                  initialIsSaved={initialIsSaved ?? false}
-                  day={day}
-                  onSavedWordChange={onSavedWordChange}
-                />
-              )}
-            </View>
           </View>
 
           {meanings.length > 0 && (
@@ -303,18 +313,19 @@ export function FaceSide({
             </View>
           )}
         </View>
-        {shouldShowMaskToggle ? (
-          <View style={styles.faceMaskToggleRow}>
-            <MaskVisibilityToggle
-              isDark={isDark}
-              isMaskEnabled={isReviewMode}
-              onMaskChange={onMaskChange}
-              testID="kanji-collocation-face-mask-toggle"
-              stopPropagation
-            />
-          </View>
-        ) : null}
-      </View>
+      </ScrollView>
+
+      {shouldShowMaskToggle ? (
+        <View style={styles.faceMaskToggleRow}>
+          <MaskVisibilityToggle
+            isDark={isDark}
+            isMaskEnabled={isReviewMode}
+            onMaskChange={onMaskChange}
+            testID="kanji-collocation-face-mask-toggle"
+            stopPropagation
+          />
+        </View>
+      ) : null}
     </Pressable>
   );
 }

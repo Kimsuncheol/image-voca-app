@@ -16,10 +16,6 @@ interface SwipeCardItemMeaningExampleSentenceSectionProps {
   courseId: string;
   isDark: boolean;
   isActive?: boolean;
-  initialIsSaved?: boolean;
-  day?: number;
-  onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
-  isPreviewMode?: boolean;
   isReviewMode?: boolean;
   reviewMaskTarget?: ReviewMaskTarget;
 }
@@ -36,10 +32,6 @@ export function SwipeCardItemMeaningExampleSentenceSection({
   courseId,
   isDark,
   isActive = true,
-  initialIsSaved = false,
-  day,
-  onSavedWordChange,
-  isPreviewMode = false,
   isReviewMode = false,
   reviewMaskTarget = "word",
 }: SwipeCardItemMeaningExampleSentenceSectionProps) {
@@ -52,10 +44,6 @@ export function SwipeCardItemMeaningExampleSentenceSection({
         meaning={meaning}
         isDark={isDark}
         isActive={isActive}
-        initialIsSaved={initialIsSaved}
-        day={day}
-        onSavedWordChange={onSavedWordChange}
-        isPreviewMode={isPreviewMode}
         isReviewMode={isReviewMode}
         reviewMaskTarget={reviewMaskTarget}
       />

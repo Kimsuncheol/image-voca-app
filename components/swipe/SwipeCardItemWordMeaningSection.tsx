@@ -26,7 +26,6 @@ import {
 } from "../../src/utils/reviewMasking";
 import { InlineMeaningWithChips } from "../common/InlineMeaningWithChips";
 import { FontSizes } from "@/constants/fontSizes";
-import { SwipeCardItemAddToWordBankButton } from "./SwipeCardItemAddToWordBankButton";
 
 interface SwipeCardItemWordMeaningSectionProps {
   item: VocabularyCard;
@@ -35,10 +34,6 @@ interface SwipeCardItemWordMeaningSectionProps {
   meaning: string;
   isDark: boolean;
   isActive?: boolean;
-  initialIsSaved?: boolean;
-  day?: number;
-  onSavedWordChange?: (wordId: string, isSaved: boolean) => void;
-  isPreviewMode?: boolean;
   isReviewMode?: boolean;
   reviewMaskTarget?: ReviewMaskTarget;
 }
@@ -50,10 +45,6 @@ export function SwipeCardItemWordMeaningSection({
   meaning,
   isDark,
   isActive = true,
-  initialIsSaved = false,
-  day,
-  onSavedWordChange,
-  isPreviewMode = false,
   isReviewMode = false,
   reviewMaskTarget = "word",
 }: SwipeCardItemWordMeaningSectionProps) {
@@ -199,17 +190,6 @@ export function SwipeCardItemWordMeaningSection({
             {renderWord()}
           </TouchableOpacity>
         </View>
-        <View style={styles.titleActions}>
-          {!isPreviewMode && (
-            <SwipeCardItemAddToWordBankButton
-              item={item}
-              isDark={isDark}
-              initialIsSaved={initialIsSaved}
-              day={day}
-              onSavedWordChange={onSavedWordChange}
-            />
-          )}
-        </View>
       </View>
       {normalizedPronunciation ? (
         <Text
@@ -260,12 +240,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexShrink: 1,
     minWidth: 0,
-  },
-  titleActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexShrink: 0,
-    gap: 8,
   },
   cardTitle: {
     fontSize: FontSizes.displayXl,

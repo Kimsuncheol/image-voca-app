@@ -4,7 +4,6 @@ import { LineHeights } from "@/constants/lineHeights";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -105,11 +104,9 @@ export function SwipeCardItemExampleSentenceSection({
           </Text>
         </Text>
       ) : null}
-      <ScrollView
-        testID="swipe-card-examples-scroll"
-        style={styles.examplesScrollContainer}
-        showsVerticalScrollIndicator={false}
-        nestedScrollEnabled={true}
+      <View
+        testID="swipe-card-examples-section"
+        style={styles.examplesSection}
       >
         {examples.map((exampleText, index) => (
           <View key={index} style={styles.exampleGroup}>
@@ -186,14 +183,13 @@ export function SwipeCardItemExampleSentenceSection({
             </Text>
           </View>
         ) : null}
-      </ScrollView>
+      </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  examplesScrollContainer: {
-    maxHeight: 190,
+  examplesSection: {
     marginTop: 2,
   },
   exampleGroup: {
