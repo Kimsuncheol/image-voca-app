@@ -7,6 +7,7 @@ export interface ToggleSwitchProps {
   onValueChange: (value: boolean) => void;
   disabled?: boolean;
   trackColor?: { false: string; true: string };
+  testID?: string;
 }
 
 const TOGGLE_WIDTH = 42;
@@ -20,6 +21,7 @@ export function ToggleSwitch({
   onValueChange,
   disabled = false,
   trackColor = { false: "#767577", true: "#007AFF" },
+  testID,
 }: ToggleSwitchProps) {
   const translateX = useRef(new Animated.Value(value ? 1 : 0)).current;
   const animatedStyle = useMemo(
@@ -50,6 +52,7 @@ export function ToggleSwitch({
 
   return (
     <Pressable
+      testID={testID}
       onPress={() => onValueChange(!value)}
       disabled={disabled}
       style={[

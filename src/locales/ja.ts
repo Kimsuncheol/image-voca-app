@@ -72,6 +72,12 @@ const ja = {
       openSettings: "設定を開く",
       permissionRequired: "通知がブロックされています。タップして設定を開いてください。",
     },
+    study: {
+      title: "学習",
+      lockScreenStudy: "ロック画面で学習",
+      saveFailed:
+        "ロック画面学習は今すぐ反映されましたが、この端末には保存できませんでした。",
+    },
     account: {
       title: "アカウント",
       profile: "プロフィール",
@@ -152,6 +158,11 @@ const ja = {
     reminder: {
       title: "学習リマインダー",
       body: "語彙習慣を作りましょう！アプリを開いて、単語やコロケーションを学習してください。",
+    },
+    lockScreenVocabulary: {
+      title: "今日の単語",
+      body: "{{word}}",
+      bodyWithPronunciation: "{{word}} · {{pronunciation}}",
     },
     labels: {
       meaning: "意味",

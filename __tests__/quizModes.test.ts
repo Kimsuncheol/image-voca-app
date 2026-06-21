@@ -1,80 +1,53 @@
 import {
+  getLegacyFallbackQuizType,
   getQuizTypesForCourse,
   resolveRuntimeQuizType,
   sanitizeRequestedQuizType,
 } from "../src/course/quizModes";
 
 describe("quizModes", () => {
-  test("exposes only supported quiz types for standard courses", () => {
+  test("exposes only standard matching for every course", () => {
     expect(getQuizTypesForCourse("TOEIC").map((quizType) => quizType.id)).toEqual([
       "matching",
-      "fill-in-blank",
     ]);
     expect(
-      getQuizTypesForCourse("CSAT_IDIOMS").map((quizType) => quizType.id),
-    ).toEqual(["matching", "fill-in-blank"]);
-    expect(
-      getQuizTypesForCourse("EXTREMELY_ADVANCED").map((quizType) => quizType.id),
-    ).toEqual(["matching", "fill-in-blank"]);
-  });
-
-  test("exposes synonym matching only for TOEFL_IELTS", () => {
-    expect(
       getQuizTypesForCourse("TOEFL_IELTS").map((quizType) => quizType.id),
-    ).toEqual(["matching", "synonym-matching", "fill-in-blank"]);
-  });
-
-  test("exposes pronunciation matching only for JLPT level courses", () => {
+    ).toEqual(["matching"]);
     expect(
       getQuizTypesForCourse("JLPT_N3").map((quizType) => quizType.id),
-    ).toEqual(["matching", "pronunciation-matching", "fill-in-blank"]);
-  });
-
-  test("exposes only supported quiz types for collocation", () => {
+    ).toEqual(["matching"]);
+    expect(
+      getQuizTypesForCourse("KANJI").map((quizType) => quizType.id),
+    ).toEqual(["matching"]);
     expect(
       getQuizTypesForCourse("COLLOCATION").map((quizType) => quizType.id),
-    ).toEqual(["gap-fill-sentence", "collocation-matching"]);
+    ).toEqual(["matching"]);
   });
 
-  test("falls back removed and unknown standard quiz types to matching", () => {
-    expect(sanitizeRequestedQuizType("TOEIC", "spelling")).toBe("matching");
-    expect(sanitizeRequestedQuizType("TOEIC", "word-arrangement")).toBe(
-      "matching",
-    );
-    expect(sanitizeRequestedQuizType("TOEIC", "unknown")).toBe("matching");
-  });
-
-  test("falls back removed and unknown collocation quiz types to gap-fill-sentence", () => {
-    expect(sanitizeRequestedQuizType("COLLOCATION", "error-correction")).toBe(
-      "gap-fill-sentence",
-    );
-    expect(sanitizeRequestedQuizType("COLLOCATION", "word-order-tiles")).toBe(
-      "gap-fill-sentence",
-    );
-    expect(sanitizeRequestedQuizType("COLLOCATION", "unknown")).toBe(
-      "gap-fill-sentence",
-    );
-  });
-
-  test("keeps supported quiz types and resolves runtime aliases", () => {
-    expect(sanitizeRequestedQuizType("TOEIC", "fill-in-blank")).toBe(
+  test("falls back every legacy or unknown quiz type to matching", () => {
+    [
+      "spelling",
+      "word-arrangement",
       "fill-in-blank",
-    );
-    expect(
-      sanitizeRequestedQuizType("TOEFL_IELTS", "synonym-matching"),
-    ).toBe("synonym-matching");
-    expect(
-      sanitizeRequestedQuizType("JLPT_N3", "pronunciation-matching"),
-    ).toBe("pronunciation-matching");
-    expect(sanitizeRequestedQuizType("JLPT_N3", "matching")).toBe("matching");
-    expect(sanitizeRequestedQuizType("COLLOCATION", "collocation-matching")).toBe(
-      "collocation-matching",
-    );
-    expect(resolveRuntimeQuizType("gap-fill-sentence")).toBe("fill-in-blank");
-    expect(resolveRuntimeQuizType("collocation-matching")).toBe("matching");
-    expect(resolveRuntimeQuizType("synonym-matching")).toBe("synonym-matching");
-    expect(resolveRuntimeQuizType("pronunciation-matching")).toBe(
+      "words_placement",
+      "synonym-matching",
       "pronunciation-matching",
-    );
+      "gap-fill-sentence",
+      "collocation-matching",
+      undefined,
+    ].forEach((requestedQuizType) => {
+      expect(sanitizeRequestedQuizType("TOEIC", requestedQuizType)).toBe(
+        "matching",
+      );
+      expect(sanitizeRequestedQuizType("COLLOCATION", requestedQuizType)).toBe(
+        "matching",
+      );
+    });
+  });
+
+  test("keeps matching as the only fallback and runtime type", () => {
+    expect(getLegacyFallbackQuizType("COLLOCATION")).toBe("matching");
+    expect(getLegacyFallbackQuizType("TOEIC")).toBe("matching");
+    expect(resolveRuntimeQuizType("matching")).toBe("matching");
   });
 });

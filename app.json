@@ -36,6 +36,7 @@
     "plugins": [
       "expo-router",
       "./plugins/with-adi-registration",
+      "./plugins/with-lock-screen-vocabulary-widget",
       [
         "expo-splash-screen",
         {

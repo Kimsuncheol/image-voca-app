@@ -268,46 +268,18 @@ export default function DayPickerScreen() {
 
   /**
    * Handle tapping the Quiz button on a day card.
-   * Navigates to the Quiz Type selection screen.
+   * Navigates directly to the standard matching quiz.
    */
   const handleQuizPress = useCallback(
     (day: number) => {
       if (!courseId) return;
       router.push({
-        pathname: "/course/[courseId]/quiz-type",
-        params: { courseId, day: day.toString() },
+        pathname: "/course/[courseId]/quiz-play",
+        params: { courseId, day: day.toString(), quizType: "matching" },
       });
     },
     [courseId, router],
   );
-
-  const prefetchDayAssets = useCallback(
-    async (day: number) => {
-      if (!courseId) return;
-
-      const PREFETCH_TIMEOUT_MS = 8000;
-      const cards = await Promise.race([
-        prefetchVocabularyCards(courseId as CourseType, day),
-        new Promise<never>((_, reject) =>
-          setTimeout(
-            () => reject(new Error("prefetch timeout")),
-            PREFETCH_TIMEOUT_MS,
-          ),
-        ),
-      ]);
-      const imageUrls = cards
-        .map((c) => ("imageUrl" in c ? c.imageUrl : undefined))
-        .filter((url): url is string => Boolean(url));
-      if (imageUrls.length > 0) {
-        await Image.prefetch(imageUrls, "memory-disk").catch(() => {});
-      }
-    },
-    [courseId],
-  );
-
-
-
-
 
   // ---------------------------------------------------------------------------
   // Render

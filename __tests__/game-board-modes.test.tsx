@@ -2,12 +2,11 @@ import { render } from "@testing-library/react-native";
 import React from "react";
 import { GameBoard } from "../components/course/GameBoard";
 
-jest.mock("../components/course/GameScore", () => ({
-  GameScore: () => null,
-}));
+const mockMatchingGame = jest.fn();
 
 jest.mock("../components/course/MatchingGame", () => ({
-  MatchingGame: () => {
+  MatchingGame: (props: unknown) => {
+    mockMatchingGame(props);
     const React = jest.requireActual<typeof import("react")>("react");
     const { Text } = jest.requireActual<typeof import("react-native")>(
       "react-native",
@@ -16,55 +15,12 @@ jest.mock("../components/course/MatchingGame", () => ({
   },
 }));
 
-jest.mock("../components/course/SynonymMatchingGame", () => ({
-  SynonymMatchingGame: () => {
-    const React = jest.requireActual<typeof import("react")>("react");
-    const { Text } = jest.requireActual<typeof import("react-native")>(
-      "react-native",
-    );
-    return <Text>SynonymMatchingGame</Text>;
-  },
-}));
-
-jest.mock("../components/course/CollocationMatchingGame", () => ({
-  CollocationMatchingGame: () => null,
-}));
-
-jest.mock("../components/course/CollocationGapFillSentenceGame", () => ({
-  CollocationGapFillSentenceGame: () => null,
-}));
-
-jest.mock("../components/course/FillInTheBlankGame", () => ({
-  FillInTheBlankGame: () => null,
-}));
-
-jest.mock("../components/course/MultipleChoiceGame", () => ({
-  MultipleChoiceGame: () => null,
-}));
-
-const mockWordsPlacementGame = jest.fn();
-
-jest.mock("../components/course/WordsPlacementGame", () => ({
-  WordsPlacementGame: (props: unknown) => {
-    mockWordsPlacementGame(props);
-    const React = jest.requireActual<typeof import("react")>("react");
-    const { Text } = jest.requireActual<typeof import("react-native")>(
-      "react-native",
-    );
-    return <Text>WordsPlacementGame</Text>;
-  },
-}));
-
-jest.mock("../components/course/QuizFeedback", () => ({
-  QuizFeedback: () => null,
-}));
-
 const baseProps = {
+  quizType: "matching" as const,
   currentQuestion: {
     id: "q1",
     word: "abandon",
     meaning: "leave behind",
-    synonym: "forsake",
     correctAnswer: "leave behind",
   },
   questions: [
@@ -72,7 +28,6 @@ const baseProps = {
       id: "q1",
       word: "abandon",
       meaning: "leave behind",
-      synonym: "forsake",
       correctAnswer: "leave behind",
     },
   ],
@@ -84,100 +39,22 @@ const baseProps = {
   matchedPairs: {},
   onSelectWord: jest.fn(),
   onSelectMeaning: jest.fn(),
-  userAnswer: "",
-  showResult: false,
-  isCorrect: false,
-  onAnswer: jest.fn(),
 };
 
-describe("GameBoard matching modes", () => {
+describe("GameBoard", () => {
   beforeEach(() => {
-    mockWordsPlacementGame.mockClear();
+    mockMatchingGame.mockClear();
   });
 
-  it("routes standard matching to MatchingGame", () => {
-    const screen = render(<GameBoard {...baseProps} quizType="matching" />);
+  it("renders the standard matching game", () => {
+    const screen = render(<GameBoard {...baseProps} />);
 
     expect(screen.getByText("MatchingGame")).toBeTruthy();
-    expect(screen.queryByText("SynonymMatchingGame")).toBeNull();
-  });
-
-  it("routes synonym matching to SynonymMatchingGame", () => {
-    const screen = render(
-      <GameBoard {...baseProps} quizType="synonym-matching" matchingMode="synonym" />,
-    );
-
-    expect(screen.getByText("SynonymMatchingGame")).toBeTruthy();
-    expect(screen.queryByText("MatchingGame")).toBeNull();
-  });
-
-  it("routes words_placement to WordsPlacementGame", () => {
-    const screen = render(
-      <GameBoard
-        {...baseProps}
-        quizType="words_placement"
-        currentQuestion={{
-          ...baseProps.currentQuestion,
-          targetExample: "Too much help may spoil your child.",
-          placementPrompt: "망치다",
-          placementChunks: [
-            {
-              id: "chunk-1",
-              text: "Too much help may",
-              type: "sentence_chunk",
-              order: 1,
-            },
-          ],
-          placementTranslations: ["Too much help spoils a child."],
-        }}
-      />,
-    );
-
-    expect(screen.getByText("WordsPlacementGame")).toBeTruthy();
-    expect(mockWordsPlacementGame).toHaveBeenCalledWith(
+    expect(mockMatchingGame).toHaveBeenCalledWith(
       expect.objectContaining({
-        promptText: "망치다",
-        translations: ["Too much help spoils a child."],
+        questions: baseProps.questions,
+        meanings: baseProps.matchingMeanings,
       }),
     );
-    expect(screen.queryByText("MatchingGame")).toBeNull();
-  });
-
-  it("wraps standard quiz content with correct result decoration", () => {
-    const screen = render(
-      <GameBoard
-        {...baseProps}
-        quizType="multiple-choice"
-        showResult
-        isCorrect
-      />,
-    );
-
-    expect(screen.getByTestId("quiz-result-animation")).toBeTruthy();
-    expect(screen.getByTestId("quiz-result-correct-glow")).toBeTruthy();
-    expect(screen.queryByTestId("quiz-result-incorrect-glow")).toBeNull();
-  });
-
-  it("does not render result decoration before marking", () => {
-    const screen = render(
-      <GameBoard {...baseProps} quizType="multiple-choice" />,
-    );
-
-    expect(screen.getByTestId("quiz-result-animation")).toBeTruthy();
-    expect(screen.queryByTestId("quiz-result-correct-glow")).toBeNull();
-    expect(screen.queryByTestId("quiz-result-incorrect-glow")).toBeNull();
-  });
-
-  it("does not wrap matching-style games with shared result animation", () => {
-    const screen = render(
-      <GameBoard
-        {...baseProps}
-        quizType="matching"
-        showResult
-        isCorrect={false}
-      />,
-    );
-
-    expect(screen.queryByTestId("quiz-result-animation")).toBeNull();
   });
 });

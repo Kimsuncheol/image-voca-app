@@ -17,6 +17,9 @@ jest.mock("expo-notifications", () => ({
   AndroidImportance: {
     DEFAULT: "DEFAULT",
   },
+  AndroidNotificationVisibility: {
+    PUBLIC: "PUBLIC",
+  },
   IosAuthorizationStatus: {
     PROVISIONAL: 1,
   },
@@ -25,10 +28,15 @@ jest.mock("expo-notifications", () => ({
 import { setLanguage } from "../src/i18n";
 import {
   configureNotifications,
+  cancelLockScreenVocabularyNotifications,
   getStudyReminderEnabledPreference,
+  LOCK_SCREEN_VOCABULARY_ANDROID_CHANNEL_ID,
+  LOCK_SCREEN_VOCABULARY_NOTIFICATION_TYPE,
   scheduleDailyNotifications,
+  scheduleLockScreenVocabularyNotification,
   scheduleStudyReminderNotifications,
   setStudyReminderEnabledPreference,
+  syncAndroidLockScreenVocabularyNotification,
 } from "../src/utils/notifications";
 
 describe("notification localization", () => {
@@ -111,5 +119,100 @@ describe("notification localization", () => {
         name: "Study Reminders",
       }),
     );
+  });
+
+  it("schedules Android lock screen vocabulary notifications without meanings", async () => {
+    Platform.OS = "android";
+    const {
+      scheduleNotificationAsync,
+      setNotificationChannelAsync,
+    } = jest.requireMock("expo-notifications");
+
+    await scheduleLockScreenVocabularyNotification({
+      schemaVersion: 1,
+      courseId: "TOEIC",
+      dayNumber: 2,
+      cardId: "word-1",
+      word: "meticulous",
+      pronunciation: "muh-TIK-yuh-lus",
+      meaning: "very careful",
+      meaningHidden: true,
+      updatedAt: "2026-06-21T00:00:00.000Z",
+      deepLink: "imagevocaapp://course/TOEIC/vocabulary?day=2",
+    });
+
+    expect(setNotificationChannelAsync).toHaveBeenCalledWith(
+      LOCK_SCREEN_VOCABULARY_ANDROID_CHANNEL_ID,
+      expect.objectContaining({
+        importance: "DEFAULT",
+        lockscreenVisibility: "PUBLIC",
+      }),
+    );
+    expect(scheduleNotificationAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.objectContaining({
+          title: "Today's word",
+          body: "meticulous · muh-TIK-yuh-lus",
+          data: {
+            type: LOCK_SCREEN_VOCABULARY_NOTIFICATION_TYPE,
+            courseId: "TOEIC",
+            dayNumber: 2,
+            deepLink: "imagevocaapp://course/TOEIC/vocabulary?day=2",
+          },
+        }),
+        trigger: expect.objectContaining({
+          channelId: LOCK_SCREEN_VOCABULARY_ANDROID_CHANNEL_ID,
+        }),
+      }),
+    );
+    expect(
+      scheduleNotificationAsync.mock.calls[0][0].content.body,
+    ).not.toContain("very careful");
+  });
+
+  it("cancels stored Android lock screen vocabulary notifications", async () => {
+    Platform.OS = "android";
+    const {
+      cancelScheduledNotificationAsync,
+    } = jest.requireMock("expo-notifications");
+
+    await scheduleLockScreenVocabularyNotification({
+      schemaVersion: 1,
+      courseId: "TOEIC",
+      dayNumber: 2,
+      cardId: "word-1",
+      word: "meticulous",
+      pronunciation: "muh-TIK-yuh-lus",
+      meaningHidden: true,
+      updatedAt: "2026-06-21T00:00:00.000Z",
+      deepLink: "imagevocaapp://course/TOEIC/vocabulary?day=2",
+    });
+    jest.clearAllMocks();
+
+    await cancelLockScreenVocabularyNotifications();
+
+    expect(cancelScheduledNotificationAsync).toHaveBeenCalledWith("notif-id");
+  });
+
+  it("does not schedule Android lock screen vocabulary notifications for null or unsupported platforms", async () => {
+    const { scheduleNotificationAsync } = jest.requireMock("expo-notifications");
+
+    Platform.OS = "android";
+    await syncAndroidLockScreenVocabularyNotification(null);
+    expect(scheduleNotificationAsync).not.toHaveBeenCalled();
+
+    Platform.OS = "ios";
+    await syncAndroidLockScreenVocabularyNotification({
+      schemaVersion: 1,
+      courseId: "TOEIC",
+      dayNumber: 2,
+      cardId: "word-1",
+      word: "meticulous",
+      meaningHidden: true,
+      updatedAt: "2026-06-21T00:00:00.000Z",
+      deepLink: "imagevocaapp://course/TOEIC/vocabulary?day=2",
+    });
+
+    expect(scheduleNotificationAsync).not.toHaveBeenCalled();
   });
 });

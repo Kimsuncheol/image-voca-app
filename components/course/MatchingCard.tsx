@@ -14,7 +14,7 @@ interface MatchingCardProps {
   text: string;
   pronunciation?: string;
   courseId?: string;
-  variant?: "word" | "meaning" | "synonym" | "pronunciation";
+  variant?: "word" | "meaning";
   isMatched: boolean;
   isSelected: boolean;
   isIncorrect?: boolean;
@@ -90,31 +90,6 @@ export function MatchingCard({
             testID="matching-meaning"
             usePrefixColumnLayout
           />
-        ) : variant === "pronunciation" ? (
-          <ThemedText
-            style={[
-              styles.matchingItemText,
-              styles.pronunciationText,
-              isMatched && styles.matchingItemTextMatched,
-              isSelected && { color: courseColor || "#007AFF" },
-              isIncorrect && styles.matchingItemTextIncorrect,
-            ]}
-          >
-            {text}
-          </ThemedText>
-        ) : variant === "synonym" ? (
-          <ThemedText
-            style={[
-              styles.matchingItemText,
-              styles.synonymText,
-              isMatched && styles.matchingItemTextMatched,
-              !isMatched && !isSelected && styles.synonymTextDefault,
-              isSelected && { color: courseColor || "#007AFF" },
-              isIncorrect && styles.matchingItemTextIncorrect,
-            ]}
-          >
-            {text}
-          </ThemedText>
         ) : (
           <View style={styles.wordStack}>
             <ThemedText
@@ -236,21 +211,6 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.body,
     lineHeight: LineHeights.title,
     textAlign: "center",
-  },
-  pronunciationText: {
-    fontSize: FontSizes.bodyLg,
-    lineHeight: LineHeights.titleLg,
-    textAlign: "center",
-    fontWeight: FontWeights.semiBold,
-  },
-  synonymText: {
-    fontSize: FontSizes.caption,
-    lineHeight: LineHeights.bodyLg,
-    textAlign: "center",
-    fontWeight: FontWeights.semiBold,
-  },
-  synonymTextDefault: {
-    color: "#9CA3AF",
   },
   pronunciationCaption: {
     fontSize: FontSizes.caption,

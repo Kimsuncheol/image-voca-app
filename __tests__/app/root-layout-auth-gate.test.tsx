@@ -99,6 +99,14 @@ jest.mock("../../src/hooks/useStudyReminderNotifications", () => ({
   useStudyReminderNotifications: jest.fn(),
 }));
 
+jest.mock("../../src/hooks/useLockScreenVocabularyNotificationRouting", () => ({
+  useLockScreenVocabularyNotificationRouting: jest.fn(),
+}));
+
+jest.mock("../../src/hooks/useLockScreenVocabularySync", () => ({
+  useLockScreenVocabularySync: jest.fn(),
+}));
+
 jest.mock("../../src/hooks/useDeviceDeletionEnforcement", () => ({
   useDeviceDeletionEnforcement: jest.fn(),
 }));

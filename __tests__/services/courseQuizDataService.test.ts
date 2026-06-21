@@ -11,14 +11,8 @@ jest.mock("../../src/services/firebase", () => ({
 }));
 
 jest.mock("firebase/firestore", () => ({
-  collection: jest.fn(),
   doc: jest.fn((...segments: unknown[]) => segments.join("/")),
   getDoc: jest.fn(),
-  getDocs: jest.fn(),
-  limit: jest.fn(),
-  query: jest.fn(),
-  setDoc: jest.fn(),
-  updateDoc: jest.fn(),
 }));
 
 describe("courseQuizDataService", () => {
@@ -26,7 +20,7 @@ describe("courseQuizDataService", () => {
     jest.clearAllMocks();
   });
 
-  it("builds the TOEIC Day 5 matching quiz data path", async () => {
+  it("builds the course Day matching quiz data path", async () => {
     (getDoc as jest.Mock).mockResolvedValue({
       exists: () => false,
     });
@@ -50,456 +44,19 @@ describe("courseQuizDataService", () => {
     ]);
   });
 
-  it("maps fill-in-blank to the fill_in_the_blank quiz collection", async () => {
-    (getDoc as jest.Mock).mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        questions: [
-          {
-            id: "q1",
-            sentence: "The answer is _____.",
-            translation_english: "The answer is blank.",
-            options: [
-              { id: "a", text: "alpha" },
-              { id: "b", text: "beta" },
-            ],
-            answer_id: "b",
-            answer_text: "beta",
-          },
-        ],
-      }),
-    });
-
-    const result = await fetchCourseQuizData("TOEIC", 2, "fill-in-blank", "en");
-
-    expect(doc).toHaveBeenCalledWith(
-      {},
-      "courses/toeic",
-      "Day2",
-      "Day2-quiz",
-      "fill_in_the_blank",
-      "data",
-    );
-    expect(result?.questions[0]).toMatchObject({
-      id: "q1",
-      word: "beta",
-      correctAnswer: "beta",
-      clozeSentence: "The answer is _____.",
-      translation: "The answer is blank.",
-    });
-  });
-
-  it("maps words_placement to the words_placement quiz collection", async () => {
-    (getDoc as jest.Mock).mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        gameType: "words_placement",
-        items: [
-          {
-            wordId: "word-1",
-            word: "spoil",
-            translation: "망치다",
-            example: "[[[spoil]]] raw debug source",
-            wordsToPlace: [
-              {
-                targetExample: "Too much help may spoil your child.",
-                translation: "너무 많은 도움은 아이를 망칠 수 있다.",
-                chunks: [
-                  {
-                    id: "chunk-2",
-                    text: "spoil",
-                    type: "answer",
-                    order: 2,
-                  },
-                  {
-                    id: "chunk-1",
-                    text: "Too much help may",
-                    type: "sentence_chunk",
-                    order: 1,
-                  },
-                  {
-                    id: "chunk-3",
-                    text: "your child.",
-                    type: "sentence_chunk",
-                    order: 3,
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      }),
-    });
-
-    const result = await fetchCourseQuizData(
-      "TOEIC",
-      2,
-      "words_placement",
-      "en",
-    );
-
-    expect(doc).toHaveBeenCalledWith(
-      {},
-      "courses/toeic",
-      "Day2",
-      "Day2-quiz",
-      "words_placement",
-      "data",
-    );
-    expect(result?.questions[0]).toMatchObject({
-      id: "word-1-0",
-      word: "spoil",
-      meaning: "Too much help may spoil your child.",
-      correctAnswer: "Too much help may spoil your child.",
-      targetExample: "Too much help may spoil your child.",
-      placementPrompt: "망치다",
-      placementTranslations: ["너무 많은 도움은 아이를 망칠 수 있다."],
-    });
-    expect(result?.questions[0].placementChunks).toHaveLength(3);
-    expect(JSON.stringify(result?.questions[0])).not.toContain(
-      "[[[spoil]]]",
-    );
-  });
-
-  it("flattens multiple words_placement groups into playable questions", () => {
-    const result = normalizeFirestoreCourseQuiz("words_placement", {
-      items: [
-        {
-          wordId: "word-1",
-          word: "間",
-          example: "raw",
-          wordsToPlace: [
-            {
-              targetExample: "間に入る。",
-              translationEnglish: "Enter between.",
-              translationKorean: "사이에 들어가다.",
-              chunks: [
-                { id: "a", text: "間に", type: "answer", order: 1 },
-                { id: "b", text: "入る。", type: "sentence_chunk", order: 2 },
-              ],
-            },
-            {
-              targetExample: "少し間を置く。",
-              exampleEnglishTranslation: "Leave a little interval.",
-              exampleKoreanTranslation: "잠시 간격을 두다.",
-              chunks: [
-                { id: "c", text: "少し", type: "sentence_chunk", order: 1 },
-                { id: "d", text: "間を置く。", type: "answer", order: 2 },
-              ],
-            },
-          ],
-        },
-      ],
-    });
-
-    expect(result?.questions.map((question) => question.targetExample)).toEqual([
-      "間に入る。",
-      "少し間を置く。",
-    ]);
-    expect(result?.questions.map((question) => question.placementTranslations)).toEqual([
-      ["Enter between.", "사이에 들어가다."],
-      ["Leave a little interval.", "잠시 간격을 두다."],
-    ]);
-  });
-
-  it("localizes words_placement prompt text for Japanese courses", () => {
-    const data = {
-      items: [
-        {
-          wordId: "word-1",
-          word: "間",
-          translationEnglish: "between",
-          translationKorean: "사이",
-          wordsToPlace: [
-            {
-              targetExample: "家と学校の間に公園がある。",
-              translationEnglish:
-                "There is a park between my house and school.",
-              translationKorean: "집과 학교 사이에 공원이 있다.",
-              chunks: [
-                { id: "a", text: "家と", type: "sentence_chunk", order: 1 },
-                { id: "b", text: "間に", type: "answer", order: 2 },
-              ],
-            },
-          ],
-        },
-      ],
-    };
-
-    expect(
-      normalizeFirestoreCourseQuiz("words_placement", data, "ko", "JLPT_N5")
-        ?.questions[0].placementPrompt,
-    ).toBe("사이");
-    expect(
-      normalizeFirestoreCourseQuiz("words_placement", data, "en", "JLPT_N5")
-        ?.questions[0].placementPrompt,
-    ).toBe("between");
-  });
-
-  it("uses group translations as words_placement prompt fallback", () => {
-    const english = normalizeFirestoreCourseQuiz(
-      "words_placement",
-      {
-        items: [
-          {
-            wordId: "word-1",
-            word: "measure",
-            wordsToPlace: [
-              {
-                targetExample: "A number of measures were taken.",
-                translation: "여러 조치가 취해졌다.",
-                chunks: [
-                  { id: "a", text: "A number of", type: "sentence_chunk", order: 1 },
-                  { id: "b", text: "measures", type: "answer", order: 2 },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-      "en",
-      "TOEIC",
-    );
-
-    expect(english?.questions[0].placementPrompt).toBe("여러 조치가 취해졌다.");
-
-    const jlpt = {
-      items: [
-        {
-          wordId: "word-1",
-          word: "間",
-          wordsToPlace: [
-            {
-              targetExample: "家と学校の間に公園がある。",
-              translationEnglish:
-                "There is a park between my house and school.",
-              translationKorean: "집과 학교 사이에 공원이 있다.",
-              chunks: [
-                { id: "c", text: "家と", type: "sentence_chunk", order: 1 },
-                { id: "d", text: "間に", type: "answer", order: 2 },
-              ],
-            },
-          ],
-        },
-      ],
-    };
-
-    expect(
-      normalizeFirestoreCourseQuiz("words_placement", jlpt, "ko", "JLPT_N5")
-        ?.questions[0].placementPrompt,
-    ).toBe("집과 학교 사이에 공원이 있다.");
-    expect(
-      normalizeFirestoreCourseQuiz("words_placement", jlpt, "en", "JLPT_N5")
-        ?.questions[0].placementPrompt,
-    ).toBe("There is a park between my house and school.");
-
-    const kanji = {
-      items: [
-        {
-          wordId: "word-1",
-          word: "一",
-          wordsToPlace: [
-            {
-              targetExample: "これはいつでいくらですか。",
-              exampleEnglishTranslation: "How much is this one?",
-              exampleKoreanTranslation: "이것은 한 개에 얼마입니까?",
-              chunks: [
-                { id: "e", text: "これは", type: "sentence_chunk", order: 1 },
-                { id: "f", text: "いつで", type: "answer", order: 2 },
-              ],
-            },
-          ],
-        },
-      ],
-    };
-
-    expect(
-      normalizeFirestoreCourseQuiz("words_placement", kanji, "ko", "KANJI")
-        ?.questions[0].placementPrompt,
-    ).toBe("이것은 한 개에 얼마입니까?");
-    expect(
-      normalizeFirestoreCourseQuiz("words_placement", kanji, "en", "KANJI")
-        ?.questions[0].placementPrompt,
-    ).toBe("How much is this one?");
-  });
-
-  it("prefers item words_placement prompt translation over group fallback", () => {
-    const result = normalizeFirestoreCourseQuiz(
-      "words_placement",
-      {
-        items: [
-          {
-            wordId: "word-1",
-            word: "measure",
-            translation: "조치",
-            wordsToPlace: [
-              {
-                targetExample: "A number of measures were taken.",
-                translation: "여러 조치가 취해졌다.",
-                chunks: [
-                  { id: "a", text: "A number of", type: "sentence_chunk", order: 1 },
-                  { id: "b", text: "measures", type: "answer", order: 2 },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-      "en",
-      "TOEIC",
-    );
-
-    expect(result?.questions[0].placementPrompt).toBe("조치");
-  });
-
-  it("falls back to word when words_placement prompt translation is missing", () => {
-    const result = normalizeFirestoreCourseQuiz(
-      "words_placement",
-      {
-        items: [
-          {
-            wordId: "word-1",
-            word: "measure",
-            translation: " ",
-            wordsToPlace: [
-              {
-                targetExample: "A number of measures were taken.",
-                chunks: [
-                  { id: "a", text: "A number of", type: "sentence_chunk", order: 1 },
-                  { id: "b", text: "measures", type: "answer", order: 2 },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-      "en",
-      "TOEIC",
-    );
-
-    expect(result?.questions[0].placementPrompt).toBe("measure");
-  });
-
-  it("filters empty words_placement translation fields", () => {
-    const result = normalizeFirestoreCourseQuiz("words_placement", {
-      items: [
-        {
-          wordId: "word-1",
-          word: "一",
-          example: "[[[一]]] raw",
-          wordsToPlace: [
-            {
-              targetExample: "これはいつでいくらですか。",
-              translation: "   ",
-              translationEnglish: "",
-              translationKorean: " ",
-              exampleEnglishTranslation: "How much is this one?",
-              exampleKoreanTranslation: "이것은 한 개에 얼마입니까?",
-              chunks: [
-                { id: "a", text: "これは", type: "sentence_chunk", order: 1 },
-                { id: "b", text: "いつで", type: "answer", order: 2 },
-              ],
-            },
-          ],
-        },
-      ],
-    });
-
-    expect(result?.questions[0].placementTranslations).toEqual([
-      "How much is this one?",
-      "이것은 한 개에 얼마입니까?",
-    ]);
-  });
-
-  it("rejects invalid words_placement groups", () => {
-    expect(
-      normalizeFirestoreCourseQuiz("words_placement", {
-        items: [
-          {
-            wordId: "word-1",
-            word: "spoil",
-            wordsToPlace: [
-              {
-                targetExample: "",
-                chunks: [
-                  { id: "a", text: "spoil", type: "answer", order: 1 },
-                ],
-              },
-              {
-                targetExample: "Valid sentence.",
-                chunks: [
-                  { id: "b", text: "Valid", type: "answer", order: 1 },
-                  {
-                    id: "c",
-                    text: "sentence.",
-                    type: "sentence_chunk",
-                    order: 2,
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      })?.questions,
-    ).toHaveLength(1);
-
-    expect(
-      normalizeFirestoreCourseQuiz("words_placement", {
-        items: [
-          {
-            wordId: "word-1",
-            word: "spoil",
-            wordsToPlace: [
-              {
-                targetExample: "Invalid sentence.",
-                chunks: [
-                  { id: "a", text: "Invalid", type: "bad", order: 1 },
-                ],
-              },
-            ],
-          },
-        ],
-      }),
-    ).toBeNull();
-  });
-
-  it("builds the JLPT N5 Day 1 fill-in-blank quiz data path", async () => {
-    (getDoc as jest.Mock).mockResolvedValue({
-      exists: () => false,
-    });
-
-    await fetchCourseQuizData("JLPT_N5", 1, "fill-in-blank", "en");
-
-    expect(doc).toHaveBeenCalledWith(
-      {},
-      "courses/jlpt/n5",
-      "Day1",
-      "Day1-quiz",
-      "fill_in_the_blank",
-      "data",
-    );
-    expect(buildCourseQuizDocPathSegments("JLPT_N5", 1, "fill-in-blank")).toEqual([
-      "courses/jlpt/n5",
-      "Day1",
-      "Day1-quiz",
-      "fill_in_the_blank",
-      "data",
-    ]);
-  });
-
-  it("resolves object text with meaning_language", () => {
+  it("resolves localized text with app-language fallback", () => {
     expect(
       resolveFirestoreQuizText(
         { meaningEnglish: "reason", meaningKorean: "이유" },
-        "meaningKorean",
-        "en",
+        undefined,
+        "ko",
       ),
     ).toBe("이유");
     expect(
       resolveFirestoreQuizText(
         { meaningEnglish: "reason", meaningKorean: "이유" },
-        undefined,
-        "en",
+        "meaningEnglish",
+        "ko",
       ),
     ).toBe("reason");
   });
@@ -548,146 +105,56 @@ describe("courseQuizDataService", () => {
     expect(result?.matchingChoices).toEqual(["둘째", "첫째"]);
   });
 
-  it("localizes JLPT matching choice meanings to English", () => {
-    const result = normalizeFirestoreCourseQuiz(
+  it("localizes JLPT matching choice meanings by app language", () => {
+    const data = {
+      items: [
+        { id: "i1", word: "間" },
+        { id: "i2", word: "入口" },
+      ],
+      choices: [
+        {
+          id: "c2",
+          meaningEnglish: "entrance",
+          meaningKorean: "입구",
+        },
+        {
+          id: "c1",
+          meaningEnglish: "interval; between",
+          meaningKorean: "사이",
+        },
+      ],
+      answer_key: [
+        { item_id: "i1", choice_id: "c1" },
+        { item_id: "i2", choice_id: "c2" },
+      ],
+    };
+
+    const english = normalizeFirestoreCourseQuiz(
       "matching",
-      {
-        items: [
-          { id: "i1", word: "間" },
-          { id: "i2", word: "入口" },
-        ],
-        choices: [
-          {
-            id: "c2",
-            meaningEnglish: "entrance",
-            meaningKorean: "입구",
-          },
-          {
-            id: "c1",
-            meaningEnglish: "interval; between",
-            meaningKorean: "사이",
-          },
-        ],
-        answer_key: [
-          { item_id: "i1", choice_id: "c1" },
-          { item_id: "i2", choice_id: "c2" },
-        ],
-      },
+      data,
       "en",
       "JLPT_N5",
     );
-
-    expect(result?.questions).toEqual([
-      expect.objectContaining({
-        word: "間",
-        meaning: "interval; between",
-        matchChoiceText: "interval; between",
-        correctAnswer: "interval; between",
-      }),
-      expect.objectContaining({
-        word: "入口",
-        meaning: "entrance",
-        matchChoiceText: "entrance",
-        correctAnswer: "entrance",
-      }),
-    ]);
-    expect(result?.matchingChoices).toEqual(["entrance", "interval; between"]);
-  });
-
-  it("localizes JLPT matching choice meanings to Korean", () => {
-    const result = normalizeFirestoreCourseQuiz(
+    const korean = normalizeFirestoreCourseQuiz(
       "matching",
-      {
-        items: [
-          { id: "i1", word: "間" },
-          { id: "i2", word: "入口" },
-        ],
-        choices: [
-          {
-            id: "c2",
-            meaningEnglish: "entrance",
-            meaningKorean: "입구",
-          },
-          {
-            id: "c1",
-            meaningEnglish: "interval; between",
-            meaningKorean: "사이",
-          },
-        ],
-        answer_key: [
-          { item_id: "i1", choice_id: "c1" },
-          { item_id: "i2", choice_id: "c2" },
-        ],
-      },
+      data,
       "ko",
       "JLPT_N5",
     );
 
-    expect(result?.questions).toEqual([
-      expect.objectContaining({
-        word: "間",
-        meaning: "사이",
-        matchChoiceText: "사이",
-        correctAnswer: "사이",
-      }),
-      expect.objectContaining({
-        word: "入口",
-        meaning: "입구",
-        matchChoiceText: "입구",
-        correctAnswer: "입구",
-      }),
-    ]);
-    expect(result?.matchingChoices).toEqual(["입구", "사이"]);
-  });
-
-  it("uses available JLPT matching meaning when one localized field is missing", () => {
-    const result = normalizeFirestoreCourseQuiz(
-      "matching",
-      {
-        items: [{ id: "i1", word: "間" }],
-        choices: [{ id: "c1", meaningEnglish: "interval; between" }],
-        answer_key: [{ item_id: "i1", choice_id: "c1" }],
-      },
-      "ko",
-      "JLPT_N5",
-    );
-
-    expect(result?.questions[0]).toMatchObject({
+    expect(english?.questions[0]).toMatchObject({
       word: "間",
       meaning: "interval; between",
       matchChoiceText: "interval; between",
       correctAnswer: "interval; between",
     });
-    expect(result?.matchingChoices).toEqual(["interval; between"]);
-  });
-
-  it("prefers literal meaning for non-JLPT matching choices", () => {
-    const result = normalizeFirestoreCourseQuiz(
-      "matching",
-      {
-        meaning_language: "meaningKorean",
-        items: [{ id: "i1", word: "alpha" }],
-        choices: [
-          {
-            id: "c1",
-            meaning: "literal meaning",
-            meaningEnglish: "English meaning",
-            meaningKorean: "한국어 뜻",
-          },
-        ],
-        answer_key: [{ item_id: "i1", choice_id: "c1" }],
-      },
-      "ko",
-      "TOEIC",
-    );
-
-    expect(result?.questions[0]).toMatchObject({
-      word: "alpha",
-      meaning: "literal meaning",
-      matchChoiceText: "literal meaning",
-      correctAnswer: "literal meaning",
+    expect(korean?.questions[0]).toMatchObject({
+      word: "間",
+      meaning: "사이",
+      matchChoiceText: "사이",
+      correctAnswer: "사이",
     });
-    expect(result?.matchingChoices).toEqual(["literal meaning"]);
+    expect(korean?.matchingChoices).toEqual(["입구", "사이"]);
   });
 
   it("normalizes matching quizzes with camelCase answer keys and alternate text fields", () => {
@@ -735,96 +202,7 @@ describe("courseQuizDataService", () => {
     expect(result?.matchingChoices).toEqual(["first", "second"]);
   });
 
-  it("localizes Japanese fill-in-the-blank translations by app language", () => {
-    const quizData = {
-      questions: [
-        {
-          id: "q1",
-          sentence: "入口から____。",
-          translationEnglish: "Enter through the entrance.",
-          translationKorean: "입구로 들어가세요.",
-          options: [
-            { id: "a", text: "入る" },
-            { id: "b", text: "見る" },
-          ],
-          answer_id: "a",
-          answer_text: "入る",
-        },
-      ],
-    };
-    const englishResult = normalizeFirestoreCourseQuiz(
-      "fill_in_the_blank",
-      quizData,
-      "en",
-      "JLPT_N5",
-    );
-    const koreanResult = normalizeFirestoreCourseQuiz(
-      "fill_in_the_blank",
-      quizData,
-      "ko",
-      "JLPT_N5",
-    );
-
-    expect(englishResult?.questions[0].translation).toBe(
-      "Enter through the entrance.",
-    );
-    expect(koreanResult?.questions[0].translation).toBe("입구로 들어가세요.");
-  });
-
-  it("uses literal translation for English fill-in-the-blank courses", () => {
-    const result = normalizeFirestoreCourseQuiz(
-      "fill_in_the_blank",
-      {
-        questions: [
-          {
-            id: "q1",
-            sentence: "Alpha ____.",
-            translation: "Literal translation.",
-            translationEnglish: "Localized English translation.",
-            translationKorean: "현지화된 한국어 번역.",
-            options: [
-              { id: "a", text: "alpha" },
-              { id: "b", text: "beta" },
-            ],
-            answer_id: "b",
-            answer_text: "beta",
-          },
-        ],
-      },
-      "ko",
-      "TOEIC",
-    );
-
-    expect(result?.questions[0].translation).toBe("Literal translation.");
-  });
-
-  it("falls back when a Japanese fill-in-the-blank localized translation is missing", () => {
-    const result = normalizeFirestoreCourseQuiz(
-      "fill_in_the_blank",
-      {
-        questions: [
-          {
-            id: "q1",
-            sentence: "入口から____。",
-            translation_english: "Enter through the entrance.",
-            translation: "Fallback translation.",
-            options: [
-              { id: "a", text: "入る" },
-              { id: "b", text: "見る" },
-            ],
-            answer_id: "a",
-            answer_text: "入る",
-          },
-        ],
-      },
-      "ko",
-      "JLPT_N5",
-    );
-
-    expect(result?.questions[0].translation).toBe("Enter through the entrance.");
-  });
-
-  it("logs a matching normalization reason for invalid choice ids", async () => {
+  it("returns null and logs a reason for invalid matching data", async () => {
     const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
 
     (getDoc as jest.Mock).mockResolvedValue({
@@ -848,34 +226,5 @@ describe("courseQuizDataService", () => {
     );
 
     logSpy.mockRestore();
-  });
-
-  it("returns null for missing documents and malformed quiz data", async () => {
-    (getDoc as jest.Mock).mockResolvedValueOnce({
-      exists: () => false,
-    });
-    await expect(fetchCourseQuizData("TOEIC", 1, "matching")).resolves.toBeNull();
-
-    expect(
-      normalizeFirestoreCourseQuiz("matching", {
-        items: [{ id: "i1", text: "alpha" }],
-        choices: [{ id: "c1", text: "first" }],
-        answer_key: [{ item_id: "i1", choice_id: "missing" }],
-      }),
-    ).toBeNull();
-
-    expect(
-      normalizeFirestoreCourseQuiz("fill_in_the_blank", {
-        questions: [
-          {
-            id: "q1",
-            sentence: "Pick ____.",
-            options: [{ id: "a", text: "alpha" }],
-            answer_id: "missing",
-            answer_text: "beta",
-          },
-        ],
-      }),
-    ).toBeNull();
   });
 });

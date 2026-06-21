@@ -39,6 +39,7 @@ import { NotificationsSection } from "../../components/settings/NotificationsSec
 import { SettingsHeader } from "../../components/settings/SettingsHeader"; // Header component
 import { SignOutSection } from "../../components/settings/SignOutSection"; // Sign out button
 import { SpeechSection } from "../../components/settings/SpeechSection"; // Pronunciation speed settings
+import { StudySection } from "../../components/settings/StudySection"; // Study behavior settings
 import { EyeComfortSettingsSection } from "../../src/components/settings/EyeComfortSettingsSection";
 
 // ============================================================================
@@ -349,6 +350,8 @@ export default function SettingsScreen() {
           onOpenPermissionSettings={() => Linking.openSettings()}
           t={t}
         />
+
+        <StudySection styles={styles} isDark={isDark} t={t} />
 
         {/* ================================================================
             LANGUAGE SECTION

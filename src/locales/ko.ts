@@ -90,6 +90,12 @@ const ko = {
       openSettings: "설정 열기",
       permissionRequired: "알림이 차단되어 있습니다. 탭하여 설정을 여세요.",
     },
+    study: {
+      title: "학습",
+      lockScreenStudy: "잠금 화면에서 학습",
+      saveFailed:
+        "잠금 화면 학습은 지금 바로 적용되었지만 이 기기에는 저장하지 못했습니다.",
+    },
     account: {
       title: "계정",
       profile: "프로필",
@@ -188,6 +194,11 @@ const ko = {
     reminder: {
       title: "학습 알림",
       body: "오늘도 어휘 학습 습관을 만들어보세요! 앱을 열고 단어나 연어를 공부해보세요.",
+    },
+    lockScreenVocabulary: {
+      title: "오늘의 단어",
+      body: "{{word}}",
+      bodyWithPronunciation: "{{word}} · {{pronunciation}}",
     },
     labels: {
       meaning: "뜻",

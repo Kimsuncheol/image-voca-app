@@ -797,12 +797,12 @@ function VocabularyScreenContent() {
 
   /**
    * Action: Start Quiz
-   * Navigates to the Quiz selection screen for this day.
+   * Navigates directly to the standard matching quiz for this day.
    */
   const handleQuiz = () => {
     router.push({
-      pathname: "/course/[courseId]/quiz-type",
-      params: { courseId, day },
+      pathname: "/course/[courseId]/quiz-play",
+      params: { courseId, day, quizType: "matching" },
     });
   };
 

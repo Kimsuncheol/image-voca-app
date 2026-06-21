@@ -91,6 +91,12 @@ const en = {
       openSettings: "Open Settings",
       permissionRequired: "Notifications are blocked. Tap to open Settings.",
     },
+    study: {
+      title: "Study",
+      lockScreenStudy: "Study on the lock screen",
+      saveFailed:
+        "Lock screen study changed for now, but could not be saved on this device.",
+    },
     account: {
       title: "Account",
       profile: "Profile",
@@ -189,6 +195,11 @@ const en = {
     reminder: {
       title: "Study Reminder",
       body: "Time to build your vocabulary habit! Open the app and study your words or collocations today.",
+    },
+    lockScreenVocabulary: {
+      title: "Today's word",
+      body: "{{word}}",
+      bodyWithPronunciation: "{{word}} · {{pronunciation}}",
     },
     labels: {
       meaning: "Meaning",

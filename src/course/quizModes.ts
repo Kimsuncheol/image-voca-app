@@ -1,13 +1,6 @@
-import { CourseType, isJlptLevelCourseId } from "../types/vocabulary";
+import { CourseType } from "../types/vocabulary";
 
-export type QuizTypeId =
-  | "matching"
-  | "pronunciation-matching"
-  | "synonym-matching"
-  | "fill-in-blank"
-  | "words_placement"
-  | "gap-fill-sentence"
-  | "collocation-matching";
+export type QuizTypeId = "matching";
 
 export interface QuizTypeOption {
   id: QuizTypeId;
@@ -19,248 +12,28 @@ export interface QuizTypeOption {
   color: string;
 }
 
-const STANDARD_QUIZ_TYPES: QuizTypeOption[] = [
-  {
-    id: "matching",
-    title: "Matching",
-    titleKey: "quiz.types.matching.title",
-    description: "Match words with meanings",
-    descriptionKey: "quiz.types.matching.description",
-    icon: "git-compare",
-    color: "#FFE66D",
-  },
-  {
-    id: "fill-in-blank",
-    title: "Fill in the Blank",
-    titleKey: "quiz.types.fillInBlank.title",
-    description: "Complete the sentence",
-    descriptionKey: "quiz.types.fillInBlank.description",
-    icon: "create-outline",
-    color: "#4ECDC4",
-  },
-  {
-    id: "words_placement",
-    title: "Words Placement",
-    titleKey: "quiz.types.wordsPlacement.title",
-    description: "Rebuild the example sentence",
-    descriptionKey: "quiz.types.wordsPlacement.description",
-    icon: "reorder-four",
-    color: "#7C9CFF",
-  },
-];
-
-const TOEFL_QUIZ_TYPES: QuizTypeOption[] = [
-  {
-    id: "matching",
-    title: "Matching",
-    titleKey: "quiz.types.matching.title",
-    description: "Match words with meanings",
-    descriptionKey: "quiz.types.matching.description",
-    icon: "git-compare",
-    color: "#FFE66D",
-  },
-  {
-    id: "synonym-matching",
-    title: "Synonym Matching",
-    titleKey: "quiz.types.synonymMatching.title",
-    description: "Match words with synonyms",
-    descriptionKey: "quiz.types.synonymMatching.description",
-    icon: "git-compare",
-    color: "#7ED6A7",
-  },
-  {
-    id: "fill-in-blank",
-    title: "Fill in the Blank",
-    titleKey: "quiz.types.fillInBlank.title",
-    description: "Complete the sentence",
-    descriptionKey: "quiz.types.fillInBlank.description",
-    icon: "create-outline",
-    color: "#4ECDC4",
-  },
-  {
-    id: "words_placement",
-    title: "Words Placement",
-    titleKey: "quiz.types.wordsPlacement.title",
-    description: "Rebuild the example sentence",
-    descriptionKey: "quiz.types.wordsPlacement.description",
-    icon: "reorder-four",
-    color: "#7C9CFF",
-  },
-];
-
-const JLPT_QUIZ_TYPES: QuizTypeOption[] = [
-  {
-    id: "matching",
-    title: "Matching",
-    titleKey: "quiz.types.matching.title",
-    description: "Match words with meanings",
-    descriptionKey: "quiz.types.matching.description",
-    icon: "git-compare",
-    color: "#FFE66D",
-  },
-  {
-    id: "fill-in-blank",
-    title: "Fill in the Blank",
-    titleKey: "quiz.types.fillInBlank.title",
-    description: "Complete the sentence",
-    descriptionKey: "quiz.types.fillInBlank.description",
-    icon: "create-outline",
-    color: "#4ECDC4",
-  },
-  {
-    id: "words_placement",
-    title: "Words Placement",
-    titleKey: "quiz.types.wordsPlacement.title",
-    description: "Rebuild the example sentence",
-    descriptionKey: "quiz.types.wordsPlacement.description",
-    icon: "reorder-four",
-    color: "#7C9CFF",
-  },
-];
-
-const KANJI_QUIZ_TYPES: QuizTypeOption[] = [
-  {
-    id: "matching",
-    title: "Matching",
-    titleKey: "quiz.types.matching.title",
-    description: "Match words with meanings",
-    descriptionKey: "quiz.types.matching.description",
-    icon: "git-compare",
-    color: "#FFE66D",
-  },
-  {
-    id: "pronunciation-matching",
-    title: "Pronunciation Matching",
-    titleKey: "quiz.types.pronunciationMatching.title",
-    description: "Match words with pronunciations",
-    descriptionKey: "quiz.types.pronunciationMatching.description",
-    icon: "volume-medium",
-    color: "#FFB86B",
-  },
-  {
-    id: "fill-in-blank",
-    title: "Fill in the Blank",
-    titleKey: "quiz.types.fillInBlank.title",
-    description: "Complete the sentence",
-    descriptionKey: "quiz.types.fillInBlank.description",
-    icon: "create-outline",
-    color: "#4ECDC4",
-  },
-  {
-    id: "words_placement",
-    title: "Words Placement",
-    titleKey: "quiz.types.wordsPlacement.title",
-    description: "Rebuild the example sentence",
-    descriptionKey: "quiz.types.wordsPlacement.description",
-    icon: "reorder-four",
-    color: "#7C9CFF",
-  },
-];
-
-const COLLOCATION_QUIZ_TYPES: QuizTypeOption[] = [
-  {
-    id: "gap-fill-sentence",
-    title: "Gap-Fill Sentence",
-    titleKey: "quiz.types.gapFillSentence.title",
-    description: "Complete the collocation in a sentence",
-    descriptionKey: "quiz.types.gapFillSentence.description",
-    icon: "create-outline",
-    color: "#4ECDC4",
-  },
-  {
-    id: "collocation-matching",
-    title: "Matching",
-    titleKey: "quiz.types.collocationMatching.title",
-    description: "Match collocations with meanings",
-    descriptionKey: "quiz.types.collocationMatching.description",
-    icon: "git-compare",
-    color: "#FFE66D",
-  },
-  {
-    id: "words_placement",
-    title: "Words Placement",
-    titleKey: "quiz.types.wordsPlacement.title",
-    description: "Rebuild the example sentence",
-    descriptionKey: "quiz.types.wordsPlacement.description",
-    icon: "reorder-four",
-    color: "#7C9CFF",
-  },
-];
-
-const STANDARD_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
-  STANDARD_QUIZ_TYPES.map((quizType) => quizType.id),
-);
-const TOEFL_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
-  TOEFL_QUIZ_TYPES.map((quizType) => quizType.id),
-);
-const JLPT_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
-  JLPT_QUIZ_TYPES.map((quizType) => quizType.id),
-);
-const KANJI_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
-  KANJI_QUIZ_TYPES.map((quizType) => quizType.id),
-);
-const COLLOCATION_QUIZ_TYPE_IDS = new Set<QuizTypeId>(
-  COLLOCATION_QUIZ_TYPES.map((quizType) => quizType.id),
-);
+const MATCHING_QUIZ_TYPE: QuizTypeOption = {
+  id: "matching",
+  title: "Matching",
+  titleKey: "quiz.types.matching.title",
+  description: "Match words with meanings",
+  descriptionKey: "quiz.types.matching.description",
+  icon: "git-compare",
+  color: "#FFE66D",
+};
 
 export const getQuizTypesForCourse = (
-  courseId?: CourseType,
-): QuizTypeOption[] =>
-  courseId === "COLLOCATION"
-    ? COLLOCATION_QUIZ_TYPES
-    : courseId === "TOEFL_IELTS"
-      ? TOEFL_QUIZ_TYPES
-      : courseId === "KANJI"
-        ? KANJI_QUIZ_TYPES
-      : isJlptLevelCourseId(courseId)
-        ? JLPT_QUIZ_TYPES
-      : STANDARD_QUIZ_TYPES;
+  _courseId?: CourseType,
+): QuizTypeOption[] => [MATCHING_QUIZ_TYPE];
 
 export const getLegacyFallbackQuizType = (
-  courseId?: CourseType,
-): QuizTypeId =>
-  courseId === "COLLOCATION" ? "gap-fill-sentence" : "matching";
+  _courseId?: CourseType,
+): QuizTypeId => "matching";
 
 export const sanitizeRequestedQuizType = (
-  courseId: CourseType | undefined,
-  requestedQuizType?: string,
-): QuizTypeId => {
-  if (courseId === "COLLOCATION") {
-    return COLLOCATION_QUIZ_TYPE_IDS.has(requestedQuizType as QuizTypeId)
-      ? (requestedQuizType as QuizTypeId)
-      : getLegacyFallbackQuizType(courseId);
-  }
+  _courseId: CourseType | undefined,
+  _requestedQuizType?: string,
+): QuizTypeId => "matching";
 
-  if (courseId === "TOEFL_IELTS") {
-    return TOEFL_QUIZ_TYPE_IDS.has(requestedQuizType as QuizTypeId)
-      ? (requestedQuizType as QuizTypeId)
-      : getLegacyFallbackQuizType(courseId);
-  }
-
-  if (courseId === "KANJI") {
-    return KANJI_QUIZ_TYPE_IDS.has(requestedQuizType as QuizTypeId)
-      ? (requestedQuizType as QuizTypeId)
-      : getLegacyFallbackQuizType(courseId);
-  }
-
-  if (isJlptLevelCourseId(courseId)) {
-    return JLPT_QUIZ_TYPE_IDS.has(requestedQuizType as QuizTypeId)
-      ? (requestedQuizType as QuizTypeId)
-      : getLegacyFallbackQuizType(courseId);
-  }
-
-  return STANDARD_QUIZ_TYPE_IDS.has(requestedQuizType as QuizTypeId)
-    ? (requestedQuizType as QuizTypeId)
-    : getLegacyFallbackQuizType(courseId);
-};
-
-export const resolveRuntimeQuizType = (quizType: QuizTypeId) => {
-  switch (quizType) {
-    case "gap-fill-sentence":
-      return "fill-in-blank";
-    case "collocation-matching":
-      return "matching";
-    default:
-      return quizType;
-  }
-};
+export const resolveRuntimeQuizType = (quizType: QuizTypeId): QuizTypeId =>
+  quizType;

@@ -1,19 +1,6 @@
 import React from "react";
-import type {
-  QuizWordOption,
-  WordPlacementChunk,
-} from "../../src/course/quizUtils";
 import { View } from "react-native";
-import { CollocationGapFillSentenceGame } from "./CollocationGapFillSentenceGame";
-import { CollocationMatchingGame } from "./CollocationMatchingGame";
-import { FillInTheBlankGame } from "./FillInTheBlankGame";
-import { GameScore } from "./GameScore";
 import { MatchingGame } from "./MatchingGame";
-import { MultipleChoiceGame } from "./MultipleChoiceGame";
-import { QuizFeedback } from "./QuizFeedback";
-import { QuizResultAnimation } from "./QuizResultAnimation";
-import { SynonymMatchingGame } from "./SynonymMatchingGame";
-import { WordsPlacementGame } from "./WordsPlacementGame";
 
 interface QuizQuestion {
   id: string;
@@ -22,25 +9,12 @@ interface QuizQuestion {
   matchItemId?: string;
   matchChoiceId?: string;
   matchChoiceText?: string;
-  synonym?: string;
   pronunciation?: string;
-
-  options?: string[] | QuizWordOption[];
   correctAnswer: string;
-  clozeSentence?: string;
-  translation?: string;
-  localizedPronunciation?: string;
-  correctForms?: string[];
-  prompt?: string;
-  highlightText?: string;
-  targetExample?: string;
-  placementPrompt?: string;
-  placementChunks?: WordPlacementChunk[];
-  placementTranslations?: string[];
 }
 
 interface GameBoardProps {
-  quizType: string;
+  quizType: "matching";
   courseId?: string;
   currentQuestion: QuizQuestion;
   questions: QuizQuestion[];
@@ -59,19 +33,10 @@ interface GameBoardProps {
   onSelectWord: (word: string) => void;
   onSelectMeaning: (meaning: string) => void;
   onMatchingPageAdvance?: () => void;
-
-  userAnswer: string;
-  showResult: boolean;
-  isCorrect: boolean;
-  matchingMode?: "meaning" | "synonym" | "pronunciation";
-
-  onAnswer: (answer: string) => void;
 }
 
 export function GameBoard({
-  quizType,
   courseId,
-  currentQuestion,
   questions,
   progressCurrent,
   courseColor,
@@ -85,156 +50,27 @@ export function GameBoard({
   onSelectWord,
   onSelectMeaning,
   onMatchingPageAdvance,
-  userAnswer,
-  showResult,
-  isCorrect,
-  matchingMode = "meaning",
-  onAnswer,
   showPronunciationDetails = false,
 }: GameBoardProps) {
-  const isCollocationGapFill = quizType === "gap-fill-sentence";
-  const isCollocationMatching = quizType === "collocation-matching";
-  const isMatching =
-    quizType === "matching" ||
-    quizType === "synonym-matching" ||
-    quizType === "pronunciation-matching";
-  const isFillInBlank = quizType === "fill-in-blank";
-  const isWordsPlacement = quizType === "words_placement";
-  const shouldAnimateResult = !(isMatching || isCollocationMatching);
-
-  const quizContent = isCollocationMatching ? (
-    <CollocationMatchingGame
-      questions={questions}
-      meanings={matchingMeanings}
-      selectedWord={selectedWord}
-      selectedMeaning={selectedMeaning}
-      wrongWord={wrongWord}
-      wrongMeaning={wrongMeaning}
-      matchedPairs={matchedPairs}
-      onSelectWord={onSelectWord}
-      onSelectMeaning={onSelectMeaning}
-      onPageAdvance={onMatchingPageAdvance}
-      courseColor={courseColor}
-      isDark={isDark}
-      progressCurrent={progressCurrent}
-    />
-  ) : quizType === "synonym-matching" ? (
-    <SynonymMatchingGame
-      questions={questions}
-      selectedWord={selectedWord}
-      selectedMeaning={selectedMeaning}
-      wrongWord={wrongWord}
-      wrongMeaning={wrongMeaning}
-      matchedPairs={matchedPairs}
-      onSelectWord={onSelectWord}
-      onSelectMeaning={onSelectMeaning}
-      onPageAdvance={onMatchingPageAdvance}
-      courseColor={courseColor}
-      isDark={isDark}
-      showPronunciationDetails={showPronunciationDetails}
-      progressCurrent={progressCurrent}
-    />
-  ) : isMatching ? (
-    <MatchingGame
-      questions={questions}
-      courseId={courseId}
-      meanings={matchingMeanings}
-      selectedWord={selectedWord}
-      selectedMeaning={selectedMeaning}
-      wrongWord={wrongWord}
-      wrongMeaning={wrongMeaning}
-      matchedPairs={matchedPairs}
-      onSelectWord={onSelectWord}
-      onSelectMeaning={onSelectMeaning}
-      onPageAdvance={onMatchingPageAdvance}
-      courseColor={courseColor}
-      isDark={isDark}
-      showPronunciationDetails={showPronunciationDetails}
-      matchingMode={matchingMode}
-      progressCurrent={progressCurrent}
-    />
-  ) : isCollocationGapFill ? (
-    <CollocationGapFillSentenceGame
-      word={currentQuestion.word}
-      clozeSentence={currentQuestion.clozeSentence || ""}
-      translation={currentQuestion.translation}
-      localizedPronunciation={currentQuestion.localizedPronunciation}
-      options={(currentQuestion.options as string[]) || []}
-      correctAnswer={currentQuestion.correctAnswer}
-      userAnswer={userAnswer}
-      showResult={showResult}
-      onAnswer={onAnswer}
-      correctForms={currentQuestion.correctForms}
-    />
-  ) : isFillInBlank ? (
-    <FillInTheBlankGame
-      word={currentQuestion.word}
-      courseId={courseId}
-      clozeSentence={currentQuestion.clozeSentence || ""}
-      translation={currentQuestion.translation}
-      localizedPronunciation={currentQuestion.localizedPronunciation}
-      options={(currentQuestion.options as QuizWordOption[]) || []}
-      correctAnswer={currentQuestion.correctAnswer}
-      userAnswer={userAnswer}
-      showResult={showResult}
-      onAnswer={onAnswer}
-      correctForms={currentQuestion.correctForms}
-      showPronunciationDetails={showPronunciationDetails}
-    />
-  ) : isWordsPlacement ? (
-    <WordsPlacementGame
-      word={currentQuestion.word}
-      promptText={currentQuestion.placementPrompt}
-      targetExample={currentQuestion.targetExample ?? ""}
-      chunks={currentQuestion.placementChunks ?? []}
-      translations={currentQuestion.placementTranslations ?? []}
-      userAnswer={userAnswer}
-      showResult={showResult}
-      isCorrect={isCorrect}
-      onAnswer={onAnswer}
-    />
-  ) : (
-    <MultipleChoiceGame
-      options={(currentQuestion.options as string[]) || []}
-      courseId={courseId}
-      correctAnswer={currentQuestion.correctAnswer}
-      userAnswer={userAnswer}
-      showResult={showResult}
-      onAnswer={onAnswer}
-      word={currentQuestion.word}
-      questionLabel={currentQuestion.prompt}
-    />
-  );
-
   return (
-    <View style={shouldAnimateResult ? undefined : { flex: 1 }}>
-      {shouldAnimateResult && (
-        <GameScore
-          current={progressCurrent}
-          total={questions.length}
-          courseColor={courseColor}
-          isDark={isDark}
-        />
-      )}
-
-      {shouldAnimateResult ? (
-        <QuizResultAnimation
-          showResult={showResult}
-          isCorrect={isCorrect}
-          questionId={currentQuestion.id}
-        >
-          {quizContent}
-        </QuizResultAnimation>
-      ) : (
-        quizContent
-      )}
-
-      {showResult && !isMatching && !isWordsPlacement && (
-        <QuizFeedback
-          isCorrect={isCorrect}
-          correctAnswer={currentQuestion.correctAnswer}
-        />
-      )}
+    <View style={{ flex: 1 }}>
+      <MatchingGame
+        questions={questions}
+        courseId={courseId}
+        meanings={matchingMeanings}
+        selectedWord={selectedWord}
+        selectedMeaning={selectedMeaning}
+        wrongWord={wrongWord}
+        wrongMeaning={wrongMeaning}
+        matchedPairs={matchedPairs}
+        onSelectWord={onSelectWord}
+        onSelectMeaning={onSelectMeaning}
+        onPageAdvance={onMatchingPageAdvance}
+        courseColor={courseColor}
+        isDark={isDark}
+        showPronunciationDetails={showPronunciationDetails}
+        progressCurrent={progressCurrent}
+      />
     </View>
   );
 }

@@ -1,16 +1,23 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
+import { Platform } from "react-native";
 import SettingsScreen from "../app/(tabs)/settings";
 import {
   __resetReadingDisplayStoreForTests,
   useReadingDisplayStore,
 } from "../src/stores/readingDisplayStore";
+import {
+  __resetLockScreenStudyPreferencesForTests,
+  getLockScreenStudyPreferences,
+} from "../src/services/lockScreenStudyPreferences";
 
 const mockFetchSubscription = jest.fn();
 const mockLoadDashboardSettings = jest.fn();
 const mockConfigureNotifications = jest.fn();
 const mockSetStudyReminderEnabledPreference = jest.fn();
 const mockCancelAllScheduledNotifications = jest.fn();
+const mockCancelLockScreenVocabularyNotifications = jest.fn();
 const mockScheduleDailyNotifications = jest.fn();
 const mockIsPermissionGranted = jest.fn();
 const mockMarkStudyDate = jest.fn();
@@ -73,6 +80,17 @@ jest.mock("react-i18next", () => ({
         "settings.speech.maskTargets.example": "Example",
         "settings.speech.maskTargets.synonym": "Synonym",
         "settings.speech.maskTargets.all": "All",
+        "settings.study.title": "Study",
+        "settings.study.lockScreenStudy": "Study on the lock screen",
+        "settings.study.saveFailed": "Could not save lock screen study.",
+        "settings.notifications.moduleMissing":
+          "Notifications module not loaded.",
+        "settings.notifications.permissionTitle": "Permission Required",
+        "settings.notifications.permissionMessage":
+          "Please enable notifications in your system settings.",
+        "settings.notifications.openSettings": "Open Settings",
+        "common.cancel": "Cancel",
+        "common.error": "Error",
         "settings.eyeComfort.title": "Eye Comfort",
         "settings.eyeComfort.toggleLabel": "Eye comfort mode",
         "settings.eyeComfort.description":
@@ -154,6 +172,8 @@ jest.mock("../src/stores/languageSettingsStore", () => ({
 jest.mock("../src/utils/notifications", () => ({
   cancelAllScheduledNotifications: (...args: any[]) =>
     mockCancelAllScheduledNotifications(...args),
+  cancelLockScreenVocabularyNotifications: (...args: any[]) =>
+    mockCancelLockScreenVocabularyNotifications(...args),
   configureNotifications: (...args: any[]) => mockConfigureNotifications(...args),
   getNotificationPermissions: jest.fn().mockResolvedValue({ granted: false }),
   getStudyReminderEnabledPreference: jest.fn().mockResolvedValue(false),
@@ -220,12 +240,19 @@ jest.mock("../components/settings/DashboardSection", () => ({
 }));
 
 describe("SettingsScreen", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
+    Platform.OS = "ios";
     __resetReadingDisplayStoreForTests();
+    __resetLockScreenStudyPreferencesForTests();
+    await AsyncStorage.clear();
     useReadingDisplayStore.setState({ _initialized: true });
     mockConfigureNotifications.mockResolvedValue({ granted: true });
     mockIsPermissionGranted.mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    __resetLockScreenStudyPreferencesForTests();
   });
 
   it("renders the display-language row that opens the language detail screen", () => {
@@ -289,6 +316,120 @@ describe("SettingsScreen", () => {
     expect(screen.getByTestId("icon-eye-outline")).toBeTruthy();
     expect(screen.getByTestId("eye-comfort-description")).toBeTruthy();
     expect(screen.queryByTestId("eye-comfort-intensity-row")).toBeNull();
+  });
+
+  it("renders lock screen study off by default", async () => {
+    const screen = render(<SettingsScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Study")).toBeTruthy();
+      expect(screen.getByText("Study on the lock screen")).toBeTruthy();
+    });
+
+    expect(
+      screen.getByTestId("settings-lock-screen-study-toggle").props
+        .accessibilityState,
+    ).toEqual({ checked: false, disabled: false });
+  });
+
+  it("turns lock screen study on from Settings", async () => {
+    const screen = render(<SettingsScreen />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId("settings-lock-screen-study-toggle").props
+          .accessibilityState,
+      ).toEqual({ checked: false, disabled: false });
+    });
+
+    fireEvent.press(screen.getByTestId("settings-lock-screen-study-toggle"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId("settings-lock-screen-study-toggle").props
+          .accessibilityState,
+      ).toEqual({ checked: true, disabled: false });
+    });
+    await expect(getLockScreenStudyPreferences()).resolves.toEqual({
+      studyOnLockScreenEnabled: true,
+    });
+  });
+
+  it("requests Android notification permission before enabling lock screen study", async () => {
+    Platform.OS = "android";
+    const screen = render(<SettingsScreen />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId("settings-lock-screen-study-toggle").props
+          .accessibilityState,
+      ).toEqual({ checked: false, disabled: false });
+    });
+
+    fireEvent.press(screen.getByTestId("settings-lock-screen-study-toggle"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId("settings-lock-screen-study-toggle").props
+          .accessibilityState,
+      ).toEqual({ checked: true, disabled: false });
+    });
+    expect(mockConfigureNotifications).toHaveBeenCalled();
+    await expect(getLockScreenStudyPreferences()).resolves.toEqual({
+      studyOnLockScreenEnabled: true,
+    });
+  });
+
+  it("keeps Android lock screen study off when notification permission is denied", async () => {
+    Platform.OS = "android";
+    mockConfigureNotifications.mockResolvedValueOnce({ granted: false });
+    mockIsPermissionGranted.mockReturnValueOnce(false);
+    const screen = render(<SettingsScreen />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId("settings-lock-screen-study-toggle").props
+          .accessibilityState,
+      ).toEqual({ checked: false, disabled: false });
+    });
+
+    fireEvent.press(screen.getByTestId("settings-lock-screen-study-toggle"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId("settings-lock-screen-study-toggle").props
+          .accessibilityState,
+      ).toEqual({ checked: false, disabled: false });
+    });
+    expect(mockConfigureNotifications).toHaveBeenCalled();
+    await expect(getLockScreenStudyPreferences()).resolves.toEqual({
+      studyOnLockScreenEnabled: false,
+    });
+  });
+
+  it("cancels Android lock screen vocabulary notifications when lock screen study is disabled", async () => {
+    const screen = render(<SettingsScreen />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId("settings-lock-screen-study-toggle").props
+          .accessibilityState,
+      ).toEqual({ checked: false, disabled: false });
+    });
+
+    fireEvent.press(screen.getByTestId("settings-lock-screen-study-toggle"));
+    await waitFor(() => {
+      expect(
+        screen.getByTestId("settings-lock-screen-study-toggle").props
+          .accessibilityState,
+      ).toEqual({ checked: true, disabled: false });
+    });
+
+    fireEvent.press(screen.getByTestId("settings-lock-screen-study-toggle"));
+
+    await waitFor(() => {
+      expect(mockCancelLockScreenVocabularyNotifications).toHaveBeenCalled();
+    });
   });
 
   it("shows and opens the eye comfort intensity row when enabled", () => {

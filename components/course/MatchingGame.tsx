@@ -14,7 +14,6 @@ interface QuizQuestion {
   word: string;
   meaning: string;
   matchChoiceText?: string;
-  synonym?: string;
   pronunciation?: string;
 }
 
@@ -31,7 +30,6 @@ interface MatchingGameProps {
   onSelectMeaning: (meaning: string) => void;
   courseColor?: string;
   isDark: boolean;
-  matchingMode?: "meaning" | "synonym" | "pronunciation";
   showPronunciationDetails?: boolean;
   progressCurrent?: number;
   onPageAdvance?: () => void;
@@ -50,17 +48,12 @@ export function MatchingGame({
   onSelectMeaning,
   courseColor,
   isDark,
-  matchingMode = "meaning",
   showPronunciationDetails = false,
   progressCurrent = 0,
   onPageAdvance,
 }: MatchingGameProps) {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
-
-  useEffect(() => {
-    console.log("MatchingGame questions:", questions);
-  }, [questions]);
 
   const pageCount = Math.ceil(questions.length / PAGE_SIZE);
   const currentQuestions = questions.slice(
@@ -69,13 +62,8 @@ export function MatchingGame({
   );
 
   const getQuestionChoiceText = React.useCallback(
-    (q: QuizQuestion) =>
-      matchingMode === "synonym" && q.synonym
-        ? q.synonym
-        : matchingMode === "pronunciation" && q.pronunciation
-          ? q.pronunciation
-          : q.matchChoiceText ?? q.meaning,
-    [matchingMode],
+    (q: QuizQuestion) => q.matchChoiceText ?? q.meaning,
+    [],
   );
 
   const visibleChoices = React.useMemo(() => {
@@ -115,13 +103,7 @@ export function MatchingGame({
   return (
     <View style={styles.matchingContainer}>
       <ThemedText style={styles.matchingHint}>
-        {t(
-          matchingMode === "synonym"
-            ? "quiz.synonymMatching.instructions"
-            : matchingMode === "pronunciation"
-              ? "quiz.pronunciationMatching.instructions"
-              : "quiz.matching.instructions",
-        )}
+        {t("quiz.matching.instructions")}
       </ThemedText>
 
       <GameScore
@@ -142,9 +124,7 @@ export function MatchingGame({
                   courseId={courseId}
                   variant="word"
                   pronunciation={
-                    showPronunciationDetails && matchingMode !== "pronunciation"
-                      ? question.pronunciation
-                      : undefined
+                    showPronunciationDetails ? question.pronunciation : undefined
                   }
                   isMatched={Boolean(matchedPairs[question.word])}
                   isSelected={selectedWord === question.word}
@@ -159,9 +139,7 @@ export function MatchingGame({
                 <MatchingCard
                   text={meaning}
                   courseId={courseId}
-                  variant={
-                    matchingMode === "pronunciation" ? "pronunciation" : "meaning"
-                  }
+                  variant="meaning"
                   isMatched={Object.values(matchedPairs).includes(meaning)}
                   isSelected={selectedMeaning === meaning}
                   isIncorrect={wrongMeaning === meaning}

@@ -43,6 +43,8 @@ import {
 } from "../src/context/ThemeContext";
 import { useAuthenticatedDeviceRegistration } from "../src/hooks/useAuthenticatedDeviceRegistration";
 import { useDeviceDeletionEnforcement } from "../src/hooks/useDeviceDeletionEnforcement";
+import { useLockScreenVocabularyNotificationRouting } from "../src/hooks/useLockScreenVocabularyNotificationRouting";
+import { useLockScreenVocabularySync } from "../src/hooks/useLockScreenVocabularySync";
 import { useStudyReminderNotifications } from "../src/hooks/useStudyReminderNotifications";
 import { useSpeechPreferences } from "../src/hooks/useSpeechPreferences";
 import { hydrateLanguage, syncLanguageWithSystemLocales } from "../src/i18n";
@@ -134,6 +136,8 @@ export function RootLayoutNav() {
 
   useAuthenticatedDeviceRegistration();
   useDeviceDeletionEnforcement();
+  useLockScreenVocabularyNotificationRouting();
+  useLockScreenVocabularySync();
   useStudyReminderNotifications();
 
   useEffect(() => {
